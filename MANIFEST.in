@@ -1,0 +1,3 @@
+include fplan/config/deployment.ini_tmpl
+recursive-include fplan/public *
+recursive-include fplan/templates *
