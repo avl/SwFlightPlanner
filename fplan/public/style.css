@@ -43,10 +43,20 @@ h1 {
 div.popup {
 position:absolute;
 display:none;
+padding-left: 20px;
 z-index:10;
 left:0;
 top:0;
-background-color:green;
+background-color:#ffffff;
+border: 1px #808080 solid;
+}
+div.popup div{
+font-family:Verdana, sans-serif;
+text-decoration:underline;
+cursor:pointer;
+}
+div.popup div:hover{
+background-color:#cfcfff;
 }
 
 
