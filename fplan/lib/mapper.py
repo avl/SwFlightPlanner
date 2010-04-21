@@ -26,6 +26,8 @@ def from_str(pos):
 	lat=float(lat)
 	lon=float(lon)
 	return lat,lon
+def to_str(pos):
+	return "%.10f,%.10f"%pos
 	
 def from_aviation_format(pos):	
     lat_deg,lat_min,ns,lon_deg,lon_min,ew=re.match("(\d\d)([\d\.]*)([NS])(\d\d\d)([\d\.]*)([EW])",pos).groups()

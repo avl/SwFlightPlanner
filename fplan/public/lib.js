@@ -1,5 +1,13 @@
 
 
+keyhandler=0;
+function on_keypress(event)
+{
+	if (keyhandler!=0)
+		return keyhandler(event);
+	return false;
+}
+
 global_onload=0;
 /*Helper to support multiple onload functions easily*/ 
 function addLoadEvent(func) { 

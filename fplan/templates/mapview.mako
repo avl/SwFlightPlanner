@@ -3,10 +3,163 @@
 
 
 <script type="text/javascript" src="/wz_jsgraphics.js"></script>
-
+<script type="text/javascript" src="/mwheel.js"></script>
+<script src="/MochiKit.js" type="text/javascript"></script>
 
 
 <script type="text/javascript">
+
+function save_data(cont)
+{
+	cont();
+}
+
+/*
+function solvablecb(req)
+{
+	var elem=getElement('solvable');
+	elem.innerHTML=req.responseText;
+	inprogress=0;
+	if (runagain==1)
+	{
+		runagain=0;
+		checksolvable_impl();
+	}		
+}
+function checksolvable_impl()
+{
+	if (inprogress==1)
+	{
+		runagain=1;
+		return;
+	}
+	else
+	{
+		inprogress=1;
+	}
+	var svct=getElement("solvable");
+	svct.innerHTML='${_(u"Calculating...")}';
+	var fm=getElement('mainform');
+	var elems=fm.getElementsByTagName('select');
+	params={};
+	for(var i=0;i<elems.length;++i)
+	{
+		var elem=elems[i];
+		if (elem.name.substr(0,3)=='add')
+			continue;
+		params[elem.name]=elem.value;
+	}
+		
+	def=doSimpleXMLHttpRequest(checkurl,
+		params);
+	def.addCallback(solvablecb);
+}
+*/
+
+function on_key(event)
+{
+	if (event.which==67)
+	{
+		if (last_mousemove_lat==-90)
+			return false;
+		
+		var form=document.getElementById('helperform');
+		form.center.value=''+last_mousemove_lat+','+last_mousemove_lon;
+		form.submit();	
+	}
+}
+keyhandler=on_key
+
+function dozoom(how)
+{
+	var form=document.getElementById('helperform');
+	form.zoom.value=''+how;
+	form.submit();	
+}
+function zoom_out_impl()
+{
+	dozoom(1);
+}
+function zoom_in_impl()
+{
+	dozoom(-1);
+}
+function zoom_out()
+{
+ 	save_data(zoom_out_impl);
+}
+function zoom_in()
+{
+ 	save_data(zoom_in_impl);
+}
+function handle_mouse_wheel(delta) 
+{
+	if (delta>0)
+		zoom_in();
+	if (delta<0)
+		zoom_out(); 		
+}
+
+
+map_ysize=0;
+map_xsize=0;
+PI=3.1415926535897931;
+function sinh(x) 
+{
+	return (Math.exp(x) - Math.exp(-x))/2.0;
+}
+function aviation_format(lat,lon)
+{
+	var lathemi='N';
+	if (lat<0)
+	{
+		lathemi='S';
+		lat=-lat;
+	} 
+	var latdeg=Math.floor(lat);
+	var latmin=((lat+90)%1.0)*60.0;
+
+	lonhemi='E';
+	if (lon<0)
+	{
+		lonhemi='W';
+		lon=-lon;
+	} 
+	var londeg=Math.floor(lon);
+	var lonmin=((lon+90)%1.0)*60.0;
+	
+	return latdeg.toFixed(0)+"'"+latmin.toFixed(2)+lathemi+londeg.toFixed(0)+"'"+lonmin.toFixed(2)+lonhemi;	
+}
+function to_lat(y)
+{
+	return (180.0/PI)*Math.atan(sinh(y));
+}
+function to_y(lat)
+{
+	lat/=(180.0/PI);
+	return Math.log(Math.tan(lat)+1.0/Math.cos(lat));
+} 
+
+function to_latlon(px,py)
+{
+	if (map_ysize==0)
+	{
+		return [0,0];
+	}
+	var x=(px)/(map_xsize+0.0);
+	var y=(map_ysize-py)/(map_ysize+0.0);
+	
+	var wfactor=map_xsize/map_ysize;
+	var min_merc_y=to_y(${c.lat-0.5*c.size});
+	var max_merc_y=to_y(${c.lat+0.5*c.size});
+	var cury=y*(max_merc_y-min_merc_y)+min_merc_y;
+	var lat=to_lat(cury);
+					
+	var lon=${c.lon}-${0.5*c.lonwidth}*wfactor+${c.lonwidth}*x*wfactor;	
+	lon = lon % 360.0;
+	if (lon<0) lon=lon+360.0;	
+	return [lat,lon];	
+}
 
 wps=[];
 
@@ -37,11 +190,11 @@ function on_rightclickmap(event)
 }
 function abs_x(x)
 {
-	return x+document.getElementById('mapid').offsetLeft;
+	return x;
 }
 function abs_y(y)
 {
-	return y+document.getElementById('mapid').offsetTop;
+	return y;
 }
 function get_rel_x(clientX)
 {
@@ -134,7 +287,7 @@ function on_clickmap(event)
 					waypointstate='moving';
 					movingwaypoint=clo[0]+1;						
 					draw_jg();
-					draw_dynamic_lines(event.clientX,event.clientY);
+					draw_dynamic_lines(get_rel_x(event.clientX),get_rel_y(event.clientY));
 				}
 				else
 				{
@@ -142,7 +295,7 @@ function on_clickmap(event)
 					anchory=wps[wps.length-1][1];
 					waypointstate='addwaypoint';
 					draw_jg();
-					draw_dynamic_lines(event.clientX,event.clientY);		
+					draw_dynamic_lines(get_rel_x(event.clientX),get_rel_y(event.clientY));		
 				}
 			}
 			else
@@ -150,11 +303,11 @@ function on_clickmap(event)
 				waypointstate='moving';
 				movingwaypoint=closest_i;	
 				draw_jg();
-				draw_dynamic_lines(event.clientX,event.clientY);		
+				draw_dynamic_lines(get_rel_x(event.clientX),get_rel_y(event.clientY));		
 			}
 		}
 		
-		draw_dynamic_lines(event.clientX,event.clientY);
+		draw_dynamic_lines(get_rel_x(event.clientX),get_rel_y(event.clientY));
 	}
 
 }
@@ -164,25 +317,34 @@ function draw_dynamic_lines(cx,cy)
 	if (waypointstate=='addwaypoint')
 	{
 		jgq.clear();
-		jgq.drawLine(abs_x(anchorx),abs_y(anchory),cx,cy);
+		jgq.drawLine(anchorx,anchory,cx,cy);
 		jgq.paint();
 	}
 	else if (waypointstate=='moving')
 	{
 		jgq.clear();
 		if (movingwaypoint!=0)
-			jgq.drawLine(abs_x(wps[movingwaypoint-1][0]),abs_y(wps[movingwaypoint-1][1]),cx,cy);
+			jgq.drawLine(wps[movingwaypoint-1][0],wps[movingwaypoint-1][1],cx,cy);
 		if (movingwaypoint!=wps.length-1)
-			jgq.drawLine(abs_x(wps[movingwaypoint+1][0]),abs_y(wps[movingwaypoint+1][1]),cx,cy);
+			jgq.drawLine(wps[movingwaypoint+1][0],wps[movingwaypoint+1][1],cx,cy);
 		jgq.paint();
 		
 	}
 }
 
+last_mousemove_lat=-90;
+last_mousemove_lon=-360;
+
 function on_mousemovemap(event)
 {
-	document.getElementById("footer").innerHTML=''+get_rel_x(event.clientX)+','+get_rel_y(event.clientY);
-	draw_dynamic_lines(event.clientX,event.clientY);
+	var latlon=to_latlon(get_rel_x(event.clientX),get_rel_y(event.clientY));
+	var lat=latlon[0];
+	var lon=latlon[1];
+	last_mousemove_lat=lat;
+	last_mousemove_lon=lon;
+	document.getElementById("footer").innerHTML=aviation_format(lat,lon)
+		
+	draw_dynamic_lines(get_rel_x(event.clientX),get_rel_y(event.clientY));
 }
 function get_close_waypoint(relx,rely)
 {
@@ -302,7 +464,7 @@ function loadmap()
 	var h=content.offsetHeight;
 	var w=content.offsetWidth;
 	var left=content.offsetLeft;
-	var top=content.offsetLeft;
+	var top=content.offsetTop;
 
 		
 	content.innerHTML='<img id="mapid" src="/maptile/get?pos=${c.pos}&latitudes=${c.size}&width='+(w-3)+'&height='+(h-3)+'"/>'+
@@ -313,9 +475,15 @@ function loadmap()
 	'<div class="popopt" onclick="remove_waypoint()">Remove Waypoint</div>'+
 	'<div class="popopt" onclick="move_waypoint()">Move Waypoint</div>'+
 	'<div class="popopt" onclick="close_menu()">Close menu</div>'+
-	'</div>'
+	'</div>'+
+	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
+	'<input type="hidden" name="zoom" value="">'+
+	'<input type="hidden" name="center" value="">'+
+	'</form>'
 	;
 	
+	map_ysize=h;
+	map_xsize=w;
 	
 	
 	jgq = new jsGraphics("overlay1");
