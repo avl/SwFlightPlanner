@@ -36,7 +36,8 @@ addLoadEvent(fixcontentsize);
 
 <div id="header-end"></div>
 	
-<div id="sidebar-a">Sidebar A</div>
+<div id="sidebar-a">
+</div>
 	
 <div id="content">
 

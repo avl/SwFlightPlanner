@@ -56,8 +56,60 @@ function checksolvable_impl()
 }
 */
 
+function tab_modify_pos(idx,pos)
+{
+	var glist=document.getElementById('tab_fplan');
+	var rowpos=glist.rows[idx].cells[2];
+	rowpos.value=''+pos[0]+','+pos[1];	
+}
+function tab_remove_waypoint(idx)
+{
+	var glist=document.getElementById('tab_fplan');
+	glist.deleteRow(idx);
+	tab_renumber(idx);
+}
+function tab_renumber(idx)
+{
+	var glist=document.getElementById('tab_fplan');
+	for(var i=idx;i<glist.rows.length;i++)
+	{
+		var rowelem=glist.rows[i];		
+		rowelem.cells[0].innerHTML='<td>#'+i+':';
+		rowelem.cells[1].childNodes[0].name='row_'+i+'_name';
+		rowelem.cells[2].childNodes[0].name='row_'+i+'_pos';
+	}	
+}
+function tab_add_waypoint(idx,pos)
+{
+	
+	var glist=document.getElementById('tab_fplan');
+	var elem=0;
+	if (idx>=wps.length)
+	{
+		idx=wps.length;
+   		elem=glist.insertRow(-1);
+    }
+   	else
+   	{
+   		elem=glist.insertRow(idx);
+   	}
+   	
+    elem.innerHTML=\
+    '<td>#'+idx+':</td>'+
+    '<td><input type="text" name="row_'+idx+'_name" value=""/></td>'+
+    '<td><input type="hidden" name="row_'+idx+'_pos" value="'+pos[0]+','+pos[1]+'"/></td> '+
+    '';
+
+	if (idx!=wps.length)
+	{
+		tab_renumber(idx+1);	
+	}
+	
+}
+
 function on_key(event)
 {
+/*
 	if (event.which==67)
 	{
 		if (last_mousemove_lat==-90)
@@ -67,6 +119,7 @@ function on_key(event)
 		form.center.value=''+last_mousemove_lat+','+last_mousemove_lon;
 		form.submit();	
 	}
+*/
 }
 keyhandler=on_key
 
@@ -178,7 +231,21 @@ function on_rightclickmap(event)
 {
 	waypointstate='none';	
 	jgq.clear();
+	var relx=get_rel_x(event.clientX);
+	var rely=get_rel_y(event.clientY);
+	
+	var clo=get_close_line(relx,rely);
 	var cm=document.getElementById("mmenu");
+	
+	if (clo.length==3)
+	{ //A line nearby	
+		document.getElementById("menu-add").innerHTML="Insert waypoint";	
+	}
+	else
+	{
+		document.getElementById("menu-add").innerHTML="Add destination";	
+	}
+		
 	cm.style.display="block";
 	popupvisible=1;
 	lastrightclickx=get_rel_x(event.clientX);
@@ -188,6 +255,7 @@ function on_rightclickmap(event)
 	cm.style.top=''+event.clientY+'px';
 	return false;
 }
+
 function abs_x(x)
 {
 	return x;
@@ -244,6 +312,7 @@ function on_clickmap(event)
 	}	
 	if (waypointstate=='addwaypoint')
 	{
+		tab_add_waypoint(wps.length,[relx,rely]);
 		wps.push([get_rel_x(event.clientX),get_rel_y(event.clientY)]);
 		waypointstate='none';
 		jgq.clear();
@@ -252,7 +321,8 @@ function on_clickmap(event)
 	}
 	else if (waypointstate=='moving')
 	{
-		wps[movingwaypoint]=[get_rel_x(event.clientX),get_rel_y(event.clientY)];
+		wps[movingwaypoint]=[relx,rely];
+		tab_modify_pos(movingwaypoint,[relx,rely]);
 		waypointstate='none';
 		jgq.clear();
 		draw_jg();
@@ -264,6 +334,7 @@ function on_clickmap(event)
 		{
 			anchorx=get_rel_x(event.clientX);
 			anchory=get_rel_y(event.clientY);		
+			tab_add_waypoint(wps.length,[relx,rely]);
 			wps.push([anchorx,anchory]);
 			waypointstate='addwaypoint';
 		}
@@ -276,6 +347,7 @@ function on_clickmap(event)
 				var clo=get_close_line(relx,rely);
 				if (clo.length==3)
 				{
+					alert("Change this - show information about clicked line instead of adding");
 					var tmpwps=[];
 					for(var i=0;i<wps.length;i++)
 					{						
@@ -284,6 +356,7 @@ function on_clickmap(event)
 							tmpwps.push([clo[1],clo[2]]);
 					}
 					wps=tmpwps;
+					tab_add_waypoint(clo[0],[relx,rely]);
 					waypointstate='moving';
 					movingwaypoint=clo[0]+1;						
 					draw_jg();
@@ -300,6 +373,7 @@ function on_clickmap(event)
 			}
 			else
 			{
+				alert("Change this - show information about clicked waypoint instead of adding");
 				waypointstate='moving';
 				movingwaypoint=closest_i;	
 				draw_jg();
@@ -402,7 +476,7 @@ function get_close_line(relx,rely)
 		}				
 	}	
 	
-	if (closest_dist<100)
+	if (closest_dist<10)
 		return [closest_i,close_x,close_y];
 	return -1;
 }
@@ -430,6 +504,8 @@ function remove_waypoint()
 				wpsout.push([wps[i][0],wps[i][1]]);
 		}
 		wps=wpsout;
+		tab_remove_waypoint(closest_i);
+
 		draw_jg();		
 	}
 }
@@ -438,24 +514,59 @@ function close_menu()
 {
 	hidepopup();
 }
-function go_add_waypoint_mode()
+function menu_add_waypoint_mode()
 {
 	hidepopup();
-	if (wps.length==0)	
-	{	
-		waypointstate='addwaypoint';
-		anchorx=lastrightclickx;		
-		anchory=lastrightclicky;		
-		wps.push([anchorx,anchory]);
+	var relx=lastrightclickx;
+	var rely=lastrightclicky;
+
+	var clo=get_close_line(relx,rely);
+	if (clo.length==3)
+	{
+		var tmpwps=[];
+		for(var i=0;i<wps.length;i++)
+		{						
+			tmpwps.push(wps[i]);
+			if (i==clo[0])
+				tmpwps.push([clo[1],clo[2]]);
+		}
+		wps=tmpwps;
+		tab_add_waypoint(clo[0],[relx,rely]);
+		waypointstate='moving';
+		movingwaypoint=clo[0]+1;						
+		draw_jg();
+		draw_dynamic_lines(relx,rely);
 	}
 	else
 	{
-		anchorx=wps[wps.length-1][0];
-		anchory=wps[wps.length-1][1];
-		waypointstate='addwaypoint';		
+		if (wps.length==0)	
+		{	
+			waypointstate='addwaypoint';
+			anchorx=lastrightclickx;		
+			anchory=lastrightclicky;		
+			wps.push([anchorx,anchory]);
+		}
+		else
+		{
+			anchorx=wps[wps.length-1][0];
+			anchory=wps[wps.length-1][1];
+			waypointstate='addwaypoint';		
+		}
+		draw_dynamic_lines(anchorx,anchory);
 	}
-	draw_dynamic_lines(anchorx,anchory);
+
 	
+	
+}
+
+function center_map()
+{
+	var latlon=to_latlon(lastrightclickx,lastrightclicky);
+	var lat=latlon[0];
+	var lon=latlon[1];
+	var form=document.getElementById('helperform');
+	form.center.value=''+lat+','+lon;
+	form.submit();	
 }
 
 function loadmap()
@@ -471,16 +582,23 @@ function loadmap()
 	'<div id="overlay1" style="position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onclick="on_clickmap(event)" id="overlay2" style="position:absolute;z-index:2;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div id="mmenu" class="popup">'+
-	'<div class="popopt" onclick="go_add_waypoint_mode()">Add Waypoint</div>'+
+	'<div class="popopt" id="menu-add" onclick="menu_add_waypoint_mode()">Add Waypoint</div>'+
 	'<div class="popopt" onclick="remove_waypoint()">Remove Waypoint</div>'+
 	'<div class="popopt" onclick="move_waypoint()">Move Waypoint</div>'+
 	'<div class="popopt" onclick="close_menu()">Close menu</div>'+
+	'<div class="popopt" onclick="center_map()">Center Map</div>'+ 
 	'</div>'+
 	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
 	'<input type="hidden" name="zoom" value="">'+
 	'<input type="hidden" name="center" value="">'+
 	'</form>'
 	;
+	
+	var sidebar=document.getElementById('sidebar-a');
+	sidebar.innerHTML='<form id="fplanform" action="${h.url_for(controller="mapview",action="save")}">'+
+	'<table id="tab_fplan" width="100%">'+
+	'</table></form>';
+	
 	
 	map_ysize=h;
 	map_xsize=w;
