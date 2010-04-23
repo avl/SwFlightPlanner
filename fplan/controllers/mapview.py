@@ -14,9 +14,9 @@ class MapviewController(BaseController):
     def zoom(self):
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
-
+        #user.last_map_pos='59,18'
         lat,lon=mapper.from_str(user.last_map_pos)    
-                
+            
         if request.params['zoom']!='':
             zoom=float(request.params['zoom'])
             
@@ -26,8 +26,8 @@ class MapviewController(BaseController):
                 user.last_map_size*=2.0                                
             if user.last_map_size<1.0/120.0:
                 user.last_map_size=1.0/120.0            
-            if user.last_map_size>10.0:
-                user.last_map_size=10.0
+            if user.last_map_size>90.0:
+                user.last_map_size=90.0
         if request.params['center']!='':
             lats,lons=request.params['center'].split(",")
             lat=float(lats)
