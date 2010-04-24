@@ -11,6 +11,16 @@ function provide_help(msg)
 
 opinprogress=0;
 anychangetosave=0;
+
+function navigate_to(where)
+{	
+	var fin=function finish_nav()
+	{				
+	
+	document.location=where;	
+	}
+	save_data(fin);
+}
 function save_data(cont)
 {
 	anychangetosave=0;

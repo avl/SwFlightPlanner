@@ -7,8 +7,15 @@
 function loadfplan()
 {	
 }
-
-addLoadEvent(loadmap);
+function navigate_to(where)
+{
+	function finish_nav()
+	{
+		location.replace=where;
+	}
+	finish_nav();
+}
+addLoadEvent(loadfplan);
 
 </script>
 
@@ -29,21 +36,22 @@ addLoadEvent(loadmap);
 <td title="Variation (How much to the right of the true north pole, the compass is pointing. Negative numbers means the compass points to the left of the true north pole)">var</td>
 <td title="Deviation (How much to the right of the magnetic north, the aircraft compass will be pointing, while travelling in the direction of the true track)">dev</td>
 <td title="Compass Heading (The heading that should be flown on the airplane compass to end up at the right place)">CH</td> 
+<td title="Distance (in nautical miles)">D</td> 
 </td>
 %for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordinal)):
 <tr>
 <td>
 #${cnt}
 </td>
-<td colspan="10">
+<td colspan="11">
 ${wp.waypoint}
 </td>
 </tr>
 %if cnt!=len(c.waypoints)-1:
 <tr>
 <td></td>
-<td><input size="3" title="Wind Direction" type="text" name="row${cnt}winddir" value="${c.get('wind',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="2" title="Wind Velocity" type="text" name="row${cnt}windvel" value="${c.get('wind',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
+<td><input size="3" title="Wind Direction" type="text" name="row${cnt}winddir" value="${c.get('winddir',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
+<td><input size="2" title="Wind Velocity" type="text" name="row${cnt}windvel" value="${c.get('windvel',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
 <td><input size="2" type="text" name="row${cnt}temp" value="${c.get('temp',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
 <td><input size="4" type="text" name="row${cnt}alt" value="${c.get('alt',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
 <td><input size="3" type="text" name="row${cnt}tas" value="${c.get('tas',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
@@ -52,6 +60,7 @@ ${wp.waypoint}
 <td><input size="2" type="text" name="row${cnt}var" value="${c.get('var',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
 <td><input size="2" type="text" name="row${cnt}dev" value="${c.get('dev',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
 <td><input size="3" type="text" name="row${cnt}ch" value="${c.get('ch',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
+<td><input size="3" type="text" name="row${cnt}dist" value="${c.get('dist',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
 </tr>
 %endif
 %endfor

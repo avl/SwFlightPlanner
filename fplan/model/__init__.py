@@ -68,18 +68,22 @@ waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('pos',String(30),primary_key=True,nullable=False),
                         sa.Column('ordinal',Integer(),primary_key=False,nullable=False),
                         sa.Column('waypoint',Unicode(50),primary_key=False,nullable=False),
-                        sa.Column('altitude',String(6),nullable=True,primary_key=False), #example: 5000, FL050, 
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
 route_table = sa.Table("route",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('pos',String(30),primary_key=True,nullable=False),                        
+                        sa.Column('waypoint1',String(30),primary_key=True,nullable=False),                        
+                        sa.Column('waypoint2',String(30),primary_key=True,nullable=False),                        
                         sa.Column('winddir',Float(),primary_key=False,nullable=False),
                         sa.Column('windvel',Float(),primary_key=False,nullable=False),
+                        sa.Column('tas',Float(),primary_key=False,nullable=False),
                         sa.Column('variation',Float(),primary_key=False,nullable=False),
-                        sa.ForeignKeyConstraint(['user', 'trip', 'pos'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
+                        sa.Column('altitude',String(6),primary_key=False,nullable=False),
+                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
                                                 onupdate="CASCADE",ondelete="CASCADE"),                                                                                
+                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
+                                                onupdate="CASCADE",ondelete="CASCADE")                                                                                
                         )
                         
                         
@@ -99,6 +103,18 @@ obstacle_table = sa.Table("obstacle",meta.metadata,
                         sa.Column('top_altitude_msl',Float(),nullable=False,primary_key=False)
                         )
 
+class Route(object):
+    def __init__(self,user,trip,waypoint1,waypoint2,winddir,windvel,tas,variation,altitude):
+        self.user=user
+        self.trip=trip
+        self.waypoint1=waypoint1
+        self.waypoint2=waypoint2
+        self.winddir=winddir
+        self.windvel=windvel
+        self.tas=tas        
+        self.variation=variation
+        self.altitude=altitude
+                 
 class Waypoint(object):
     def __init__(self, user, trip, pos, ordinal, waypoint):
         self.user=user
@@ -130,6 +146,7 @@ class User(object):
 orm.mapper(User, user_table)
 orm.mapper(Trip, trip_table)
 orm.mapper(Waypoint, waypoint_table)
+orm.mapper(Route, route_table)
 
 
 ## Non-reflected tables may be defined and mapped at module level

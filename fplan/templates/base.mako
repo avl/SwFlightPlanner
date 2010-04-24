@@ -22,8 +22,8 @@ addLoadEvent(fixcontentsize);
 <div id="header">
 <div id="left-nav">
 	<dl>
-		<dt id="nav-map"><a href="/mapview/index">Map</a></dt>
-		<dt id="nav-flightplan"><a href="/flightplan/index">Flightplan</a></dt>
+		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="mapview",action="index")}')" href="">Map</a></dt>
+		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="">Flightplan</a></dt>
 	</dl>
 
 </div>

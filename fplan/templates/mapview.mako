@@ -16,6 +16,7 @@ map_proj_lonwidth=${c.lonwidth};
 map_proj_lat=${c.lat};
 map_proj_size=${c.size};
 saveurl='${h.url_for(controller="mapview",action="save")}';
+
 function loadmap()
 {
 	var content=document.getElementById('content')
