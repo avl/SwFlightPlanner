@@ -28,9 +28,7 @@ Float=sa.types.Float
 
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
-                        sa.Column("password",Unicode(100),nullable=False),
-                        sa.Column("last_map_pos",String(30),nullable=False),
-                        sa.Column("last_map_size",Float(),nullable=False)
+                        sa.Column("password",Unicode(100),nullable=False)
                         )
 
 rating_table = sa.Table("rating",meta.metadata,
@@ -60,16 +58,16 @@ plane_table = sa.Table("plane",meta.metadata,
 trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('plane',Unicode(32),nullable=False,primary_key=False),
+                        sa.Column('plane',Unicode(32),nullable=True,primary_key=False),
                         sa.ForeignKeyConstraint(['user', 'plane'], ['plane.user', 'plane.plane'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
 
 waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('waypoint',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('lat',Float(),nullable=False,primary_key=False),
-                        sa.Column('lon',Float(),nullable=False,primary_key=False),
+                        sa.Column('pos',String(30),primary_key=True,nullable=False),
+                        sa.Column('ordinal',Integer(),primary_key=False,nullable=False),
+                        sa.Column('waypoint',Unicode(50),primary_key=False,nullable=False),
                         sa.Column('altitude',String(6),nullable=True,primary_key=False), #example: 5000, FL050, 
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
@@ -89,20 +87,37 @@ obstacle_table = sa.Table("obstacle",meta.metadata,
                         sa.Column('top_altitude_msl',Float(),nullable=False,primary_key=False)
                         )
 
-
-
+class Waypoint(object):
+    def __init__(self, user, trip, pos, ordinal, waypoint):
+        self.user=user
+        self.trip=trip
+        self.pos=pos
+        self.ordinal=ordinal
+        self.waypoint=waypoint
+    def get_lat(self):
+        return float(self.pos.split(",")[0])
+    def get_lon(self):
+        return float(self.pos.split(",")[1])
+        
+class Trip(object):
+    def __init__(self, user, trip):
+        self.user=user
+        self.trip=trip
 class User(object):
     def __init__(self, user, password):        
         self.user = user
         self.password = password
         self.last_map_pos="59.3,17.7"
-        self.last_map_size=0.5        
+        self.last_map_size=0.5       
+        self.current_trip=None 
     def __unicode__(self):
         return "User(%s)"%(self.user,)
     def __repr__(self):
         return "User(%s)"%(self.user,)
-
+    
 orm.mapper(User, user_table)
+orm.mapper(Trip, trip_table)
+orm.mapper(Waypoint, waypoint_table)
 
 
 ## Non-reflected tables may be defined and mapped at module level

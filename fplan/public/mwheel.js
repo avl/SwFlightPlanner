@@ -22,7 +22,7 @@
            * and negative, if wheel was scrolled down.
            */
           if (delta)
-                  handle_mouse_wheel(delta);
+                  handle_mouse_wheel(delta,event);
   }
   
   /** Initialization code. 
