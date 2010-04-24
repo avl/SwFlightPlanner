@@ -10,6 +10,7 @@ body
 }
 table.bordered tr td {
 	border: 1px #808080 solid;
+	
 }	
 
 A:link {text-decoration: none; color: #303030;}
@@ -19,8 +20,7 @@ A:hover {text-decoration: underline; color: #000000;}
 
 h1 {
 	margin: 0;
-	padding: 0;
-	
+	padding: 0;	
 }
 h2 {
 	margin: 0;

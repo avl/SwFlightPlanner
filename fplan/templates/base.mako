@@ -9,7 +9,8 @@
 </head>
 
 
-<body onload="global_onload()" onkeydown="return on_keypress(event)">
+<body onload="global_onload()">
+
 <script type="text/javascript" src="/lib.js"></script>
 <script type="text/javascript">
 addLoadEvent(fixcontentsize);

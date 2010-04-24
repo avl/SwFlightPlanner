@@ -23,6 +23,12 @@ function addLoadEvent(func) {
 	    } 
 	}
 }
+function not_enter(event)
+{
+	if (event.keyCode==13 || event.charCode==13)
+		return false;
+	return true;
+}
 	 
 /*Belongs to base.mako but loaded here to reduce bw*/
 function fixcontentsize()

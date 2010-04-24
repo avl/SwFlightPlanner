@@ -16,4 +16,7 @@ class FlightplanController(BaseController):
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
         
+        def get(what,a,b):
+            return "42"
+        c.get=get
         return render('/flightplan.mako')

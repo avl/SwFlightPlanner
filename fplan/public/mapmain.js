@@ -1,11 +1,19 @@
 
 use_great_circles=0;
 
-
+function provide_help(msg)
+{
+	var h=document.getElementById('detail-pane');
+	h.style.background="#ffe0e0";
+	h.style.display='block';
+	h.innerHTML='<b>Hints:</b><br/>'+msg;
+}
 
 opinprogress=0;
+anychangetosave=0;
 function save_data(cont)
 {
+	anychangetosave=0;
 	if (opinprogress==1)
 	{
 		return;
@@ -17,7 +25,8 @@ function save_data(cont)
 		if (req.responseText=='ok')
 		{
 			progm.style.display='none';
-			cont();		
+			if (cont!=null)
+				cont();		
 		}
 		else
 		{
@@ -49,6 +58,7 @@ function save_data(cont)
 
 function tab_modify_pos(idx,pos)
 {
+	anychangetosave=1;
 	var glist=document.getElementById('tab_fplan');
 	var rowpos=glist.rows[idx].cells[2].childNodes[0];
 	var latlon=to_latlon(pos);
@@ -57,6 +67,7 @@ function tab_modify_pos(idx,pos)
 }
 function tab_remove_waypoint(idx)
 {
+	anychangetosave=1;
 	var glist=document.getElementById('tab_fplan');
 	glist.deleteRow(idx);
 	tab_renumber(idx);
@@ -135,6 +146,7 @@ function to_latlon_str(pos)
 }
 function tab_add_waypoint(idx,pos,origpos,name)
 {
+	anychangetosave=1;
 	
 	if (name==null)
 		name='Unnamed Waypoint';
@@ -149,10 +161,16 @@ function tab_add_waypoint(idx,pos,origpos,name)
    	{
    		elem=glist.insertRow(idx);
    	}
+   	
    	var latlon=to_latlon(pos);
+   	function onclick_waypoint()
+   	{
+   		select_waypoint(idx);
+   	}
+   	elem.onclick=onclick_waypoint;
     elem.innerHTML=''+
     '<td>#'+idx+':</td>'+
-    '<td><input type="text" name="row_'+idx+'_name" value="'+name+'"/></td>'+
+    '<td><input type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/></td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_origpos" value="'+origpos+'"/>'+
@@ -401,7 +419,14 @@ function on_rightclickmap(event)
 	if (waypointstate!='none')
 	{
 		waypointstate='none';
-		
+		if (wps.length==1)
+		{
+			provide_help('<ul><li>You have added a starting point, but no further waypoints. You need at least two points to define a journey!</li><li>Click the "Add" button above to add a new waypoint</li></ul>');
+		}
+		else
+		{
+			provide_help('<ul><li>Use the "Add" button up to the right to add more waypoints</li><li>To move or delete a waypoint, right-click it and choose add or delete.</li><li>To insert a new waypoint in the middle of the trip, right-click a track-line, and choose "Insert Waypoint".</li></ul>');
+		}
 		jgq.clear();
 		draw_jg();
 		return false;
@@ -414,17 +439,17 @@ function on_rightclickmap(event)
 	
 	var clo=get_close_line(relx,rely);
 	var cm=document.getElementById("mmenu");
-	
+	found=0;
 	if (clo.length==3)
 	{ //A line nearby	
-		document.getElementById("menu-add").innerHTML="Insert waypoint";	
+		document.getElementById("menu-insert").style.display='block';
+		provide_help('<ul><li>You have right-clicked on a track line. You can insert a waypoint in the middle of it.</li><li>You can left-click on a track-line to get information about it.</li></ul>');
+		found=1;				
+			
 	}
 	else
 	{
-		if (wps.length==0)		
-			document.getElementById("menu-add").innerHTML="Add starting point";
-		else
-			document.getElementById("menu-add").innerHTML="Add destination";			
+		document.getElementById("menu-insert").style.display='none';
 	}
 	var closest_i=get_close_waypoint(lastrightclickx,lastrightclicky);
 	if (closest_i==-1)
@@ -434,10 +459,13 @@ function on_rightclickmap(event)
 	}
 	else
 	{
+		provide_help('<ul><li>You have right-clicked on a waypoint. You can move or delete it.</li><li>Left click on a waypoint to get information about it.</li></ul>');
 		document.getElementById('menu-move').style.display='block';
 		document.getElementById('menu-del').style.display='block';
+		found=1;
 	}
-		
+	if (!found)
+		provide_help('<ul><li>Use the "Add" button up to the right to add new waypoints</li><li>Choose Center Map to center the feature you clicked on, in the middle of the screen.</li><li>Right click on an added waypoint or track-line to modify.</li></ul>');	
 	cm.style.display="block";
 	popupvisible=1;
 	
@@ -510,6 +538,9 @@ function draw_jg()
 			    	{
 			    		if (clippoint(wps[i][0],wps[i][1]))
 			    		{
+				    		jg.setColor("#20207f");
+							jg.setFont("arial","14px",Font.BOLD);
+							jg.drawString(''+i,wps[i][0]+6,wps[i][1]-5);			    		
 				    		jg.setColor("#0000bf");
 					    	jg.fillEllipse(abs_x(wps[i][0])-5,abs_y(wps[i][1])-5,10,10);
 				    		jg.setColor("#ffffff");
@@ -520,6 +551,9 @@ function draw_jg()
 			    	{
 			    		if (clippoint(wps[i][0],wps[i][1]))
 			    		{
+			    			jg.setColor("#207f20");
+							jg.setFont("arial","14px",Font.BOLD);
+							jg.drawString(''+i,wps[i][0]+7,wps[i][1]-5);			    		
 				    		jg.setColor("#00bf00");
 					    	jg.fillEllipse(abs_x(wps[i][0])-5,abs_y(wps[i][1])-5,10,10);
 				    		jg.setColor("#ffffff");
@@ -588,16 +622,27 @@ function on_clickmap(event)
 {
 	relx=get_rel_x(event.clientX);
 	rely=get_rel_y(event.clientY);
+	if (wps.length>0)
+		extra='<li>Left click on a waypoint or track-line to get more information about it.</li>';
+	else
+		extra='';
+	provide_help('<ul><li>Use the "Add"-button above to add new waypoints.</li>'+extra+'</ul>');				
+	
 	if (popupvisible)
 	{
+	
 		hidepopup();		
 		return;	
 	}	
-	if (waypointstate=='addwaypoint')
+	if (waypointstate=='addwaypoint' || waypointstate=='addfirstwaypoint')
 	{
 		tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
 		wps.push([get_rel_x(event.clientX),get_rel_y(event.clientY)]);
-		waypointstate='none';
+
+		anchorx=wps[wps.length-1][0];
+		anchory=wps[wps.length-1][1];
+		waypointstate='addwaypoint';
+		provide_help('<ul><li>Place your next waypoint.</li><li>When you are finished, right-click anywhere in the map</il></ul>');
 		jgq.clear();
 		draw_jg();
 		return;		
@@ -616,12 +661,13 @@ function on_clickmap(event)
 		if (wps.length==0)
 		{
 			if (!check_and_clear_selections())
-			{
+			{/*
 				anchorx=relx;
 				anchory=rely;		
 				tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
 				wps.push([anchorx,anchory]);
 				waypointstate='addwaypoint';
+				*/
 			}
 		}
 		else
@@ -637,12 +683,13 @@ function on_clickmap(event)
 				else
 				{
 					if (!check_and_clear_selections())				
-					{
+					{/*
 						anchorx=wps[wps.length-1][0];
 						anchory=wps[wps.length-1][1];
 						waypointstate='addwaypoint';
 						draw_jg();
 						draw_dynamic_lines(relx,rely);
+						*/
 					}		
 				}
 			}
@@ -659,10 +706,29 @@ function on_clickmap(event)
 
 function draw_dynamic_lines(cx,cy)
 {
-	if (waypointstate=='addwaypoint')
+	if (waypointstate=='addfirstwaypoint')
+	{
+		
+		jgq.clear();
+		jgq.setColor("#00bf00");
+    	jgq.fillEllipse(cx-5,cy-5,10,10);
+		jgq.setColor("#ffffff");
+		jgq.fillEllipse(cx-3,cy-3,6,6);
+		jgq.setColor("#00bf00");
+		
+		jgq.paint();
+	}
+	else if (waypointstate=='addwaypoint')
 	{
 		jgq.clear();
 		jgq.drawLine(anchorx,anchory,cx,cy);
+		jgq.setColor("#00bf00");
+		
+    	jgq.fillEllipse(cx-5,cy-5,10,10);
+		jgq.setColor("#ffffff");
+		jgq.fillEllipse(cx-3,cy-3,6,6);
+		jgq.setColor("#00bf00");
+		
 		jgq.paint();
 	}
 	else if (waypointstate=='moving')
@@ -713,7 +779,7 @@ function get_close_waypoint(relx,rely)
 		}			
 	}
 	
-	if (closest_dist<30)
+	if (closest_dist<10)
 		return closest_i;
 	return -1;
 }
@@ -811,7 +877,7 @@ function close_menu()
 {
 	hidepopup();
 }
-function menu_add_waypoint_mode()
+function menu_insert_waypoint_mode()
 {
 	hidepopup();
 	var relx=lastrightclickx;
@@ -834,25 +900,23 @@ function menu_add_waypoint_mode()
 		draw_jg();
 		draw_dynamic_lines(relx,rely);
 	}
+}
+function menu_add_new_waypoints()
+{	
+	if (wps.length==0)	
+	{	
+		waypointstate='addfirstwaypoint';
+		provide_help('<ul><li>Click in map to select the starting point for your journey.</li></ul>');
+	}
 	else
 	{
-		if (wps.length==0)	
-		{	
-			waypointstate='addwaypoint';
-			anchorx=lastrightclickx;		
-			anchory=lastrightclicky;		
-			wps.push([anchorx,anchory]);
-		}
-		else
-		{
-			anchorx=wps[wps.length-1][0];
-			anchory=wps[wps.length-1][1];
-			waypointstate='addwaypoint';		
-		}
+		anchorx=wps[wps.length-1][0];
+		anchory=wps[wps.length-1][1];
+		waypointstate='addwaypoint';
+		provide_help('<ul><li>Click in map to select the next waypoint in your journey.</li></ul>');				
 		draw_dynamic_lines(anchorx,anchory);
 	}
 
-	
 	
 }
 
@@ -861,8 +925,12 @@ function center_map()
 	var latlon=to_latlon([lastrightclickx,lastrightclicky]);
 	var lat=latlon[0];
 	var lon=latlon[1];
-	var form=document.getElementById('helperform');
-	form.center.value=''+lat+','+lon;
-	form.submit();	
+	function implement_center()
+	{
+		var form=document.getElementById('helperform');
+		form.center.value=''+lat+','+lon;
+		form.submit();
+	}
+	save_data(implement_center);	
 }
 

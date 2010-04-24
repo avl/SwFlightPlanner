@@ -71,6 +71,18 @@ waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('altitude',String(6),nullable=True,primary_key=False), #example: 5000, FL050, 
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
+route_table = sa.Table("route",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
+                        sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
+                        sa.Column('pos',String(30),primary_key=True,nullable=False),                        
+                        sa.Column('winddir',Float(),primary_key=False,nullable=False),
+                        sa.Column('windvel',Float(),primary_key=False,nullable=False),
+                        sa.Column('variation',Float(),primary_key=False,nullable=False),
+                        sa.ForeignKeyConstraint(['user', 'trip', 'pos'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
+                                                onupdate="CASCADE",ondelete="CASCADE"),                                                                                
+                        )
+                        
+                        
 
 airport_table = sa.Table("airport",meta.metadata,                         
                         sa.Column('airport',Unicode(50),primary_key=True,nullable=False),                        
