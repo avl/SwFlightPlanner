@@ -31,6 +31,7 @@ function loadmap()
 	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-add" onclick="menu_add_waypoint_mode()">Add Waypoint</div>'+
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+
+	'<div class="popopt" id="menu-del-all" onclick="remove_all_waypoints()">Remove All Waypoints</div>'+
 	'<div class="popopt" id="menu-move" onclick="move_waypoint()">Move Waypoint</div>'+
 	'<div class="popopt" onclick="close_menu()">Close menu</div>'+
 	'<div class="popopt" onclick="center_map()">Center Map</div>'+ 
@@ -80,7 +81,7 @@ function loadmap()
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
 	var me=to_merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,'${wp.pos}');
+	tab_add_waypoint(idx,me,'${wp.pos}','${wp.waypoint}');
 	idx++;
 	%endfor
 	draw_jg();

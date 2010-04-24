@@ -14,6 +14,7 @@ class MapviewController(BaseController):
 
     def get_waypoints(self,parms):
         wpst=dict()
+        print "Parms:",parms
         for key,val in parms.items():
             if not key.count('_')==2: continue
             row,ordinal,key=key.split("_")
@@ -75,7 +76,7 @@ class MapviewController(BaseController):
             for add in added:                
                 wp=wps[add]
                 waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'])
-                print "\n\n====ADDING!=====\n%s %s\n\n"%(waypoint.ordinal,waypoint.pos)
+                print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
             for upd in updated:
                 wp=wps[upd]
@@ -86,7 +87,7 @@ class MapviewController(BaseController):
                     u=us[0]
                     u.pos=wp['pos']
                     u.waypoint=wp['name']
-                    print "\n\n====UPDATING!=====\n%s %s\n\n"%(u.ordinal,u.pos)
+                    print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
             meta.Session.flush()
             meta.Session.commit();
             

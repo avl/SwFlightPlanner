@@ -8,6 +8,10 @@ body
 	margin: 0;
 	padding: 0;
 }
+table.bordered tr td {
+	border: 1px #808080 solid;
+}	
+
 A:link {text-decoration: none; color: #303030;}
 A:visited {text-decoration: none; color: #303030;}
 A:active {text-decoration: none; color: #303030;}
@@ -114,6 +118,7 @@ background-color:#cfcfff;
 #header-end {
 	clear: both;
 }
+
 
 
 #sidebar-a {

@@ -21,8 +21,8 @@ addLoadEvent(fixcontentsize);
 <div id="header">
 <div id="left-nav">
 	<dl>
-		<dt id="nav-map"><a href="#">Map</a></dt>
-		<dt id="nav-flightplan"><a href="#">Flightplan</a></dt>
+		<dt id="nav-map"><a href="/mapview/index">Map</a></dt>
+		<dt id="nav-flightplan"><a href="/flightplan/index">Flightplan</a></dt>
 	</dl>
 
 </div>

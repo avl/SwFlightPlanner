@@ -52,7 +52,8 @@ function tab_modify_pos(idx,pos)
 	var glist=document.getElementById('tab_fplan');
 	var rowpos=glist.rows[idx].cells[2].childNodes[0];
 	var latlon=to_latlon(pos);
-	rowpos.value=''+latlon[0]+','+latlon[1];	
+	rowpos.value=''+latlon[0]+','+latlon[1];
+		
 }
 function tab_remove_waypoint(idx)
 {
@@ -132,9 +133,11 @@ function to_latlon_str(pos)
 	latlon=to_latlon(pos);
 	return ''+latlon[0]+','+latlon[1];
 }
-function tab_add_waypoint(idx,pos,origpos)
+function tab_add_waypoint(idx,pos,origpos,name)
 {
 	
+	if (name==null)
+		name='Unnamed Waypoint';
 	var glist=document.getElementById('tab_fplan');
 	var elem=0;
 	if (idx>=wps.length)
@@ -149,7 +152,7 @@ function tab_add_waypoint(idx,pos,origpos)
    	var latlon=to_latlon(pos);
     elem.innerHTML=''+
     '<td>#'+idx+':</td>'+
-    '<td><input type="text" name="row_'+idx+'_name" value=""/></td>'+
+    '<td><input type="text" name="row_'+idx+'_name" value="'+name+'"/></td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_origpos" value="'+origpos+'"/>'+
@@ -592,7 +595,7 @@ function on_clickmap(event)
 	}	
 	if (waypointstate=='addwaypoint')
 	{
-		tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]));
+		tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
 		wps.push([get_rel_x(event.clientX),get_rel_y(event.clientY)]);
 		waypointstate='none';
 		jgq.clear();
@@ -616,7 +619,7 @@ function on_clickmap(event)
 			{
 				anchorx=relx;
 				anchory=rely;		
-				tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]));
+				tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
 				wps.push([anchorx,anchory]);
 				waypointstate='addwaypoint';
 			}
@@ -770,6 +773,20 @@ function move_waypoint()
 		draw_dynamic_lines(lastrightclickx,lastrightclicky);
 	}	
 }
+function remove_all_waypoints()
+{
+	hidepopup();
+	if (!confirm('Really remove all waypoints?'))
+		return;
+	var oldcnt=wps.length;
+	wps=[];
+	
+	for(var i=0;i<oldcnt;++i)
+		tab_remove_waypoint(oldcnt-i-1);
+
+	draw_jg();
+}
+
 function remove_waypoint()
 {
 
@@ -811,7 +828,7 @@ function menu_add_waypoint_mode()
 				tmpwps.push([clo[1],clo[2]]);
 		}
 		wps=tmpwps;
-		tab_add_waypoint(clo[0],[relx,rely],to_latlon_str([relx,rely]));
+		tab_add_waypoint(clo[0],[relx,rely],to_latlon_str([relx,rely]),null);
 		waypointstate='moving';
 		movingwaypoint=clo[0]+1;						
 		draw_jg();
