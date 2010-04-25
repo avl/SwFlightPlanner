@@ -2,19 +2,45 @@
 <%inherit file="base.mako"/>
 
 <script src="/MochiKit.js" type="text/javascript"></script>
+<script src="/fpmain.js" type="text/javascript"></script>
 
 <script type="text/javascript">
+fpcolnum=${len(c.cols)};
+fpcolshort=[];
+fpcolname=[];
+fpcoldesc=[];
+fpcolwidth=[];
 function loadfplan()
-{	
-}
-function navigate_to(where)
 {
+%for col in c.cols:
+	fpcolshort.push('${col["short"}');
+	fpcoldesc.push('${col["desc"}');
+	fpcolhuman.push('${col["name"}');
+	fpcolwidth.push('${col["width"}');
+%endfor
+	
+%for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordinal)):
+
+	var rowdata=[
+	%for what in c.cols:
+	'${c.get(what['short'],c.waypoints[cnt],c.waypoints[cnt+1])}',
+	%endfor
+	''];
+	fpaddwaypoint(rowdata);
+
+%endfor
+
+}
+
+function navigate_to(where)
+{	
 	function finish_nav()
-	{
-		location.replace=where;
+	{				
+		window.location.href=where;
 	}
 	finish_nav();
 }
+
 addLoadEvent(loadfplan);
 
 </script>
@@ -23,9 +49,16 @@ addLoadEvent(loadfplan);
 <div>
 
 <form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
-<table class="bordered" cellspacing="0" borders="0">
+<div class="bordered" id="nowaypointsyet"
+%if len(c.waypoints)!=0:
+	style="display:none"
+%endif
+>
+You have no waypoints yet! Go to the map and click to add some, or click the "add" button below!
+</div>
+
+<table id="flightplantable" class="bordered" cellspacing="0" borders="0">
 <tr>
-<td>#</td>
 <td title="Wind Direction (in degrees)">W</td>
 <td title="Wind Velocity (in knots)">V</td>
 <td title="Outside Air Temperature">T</td>
@@ -38,34 +71,13 @@ addLoadEvent(loadfplan);
 <td title="Compass Heading (The heading that should be flown on the airplane compass to end up at the right place)">CH</td> 
 <td title="Distance (in nautical miles)">D</td> 
 </td>
-%for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordinal)):
-<tr>
-<td>
-#${cnt}
-</td>
-<td colspan="11">
-${wp.waypoint}
-</td>
 </tr>
-%if cnt!=len(c.waypoints)-1:
-<tr>
-<td></td>
-<td><input size="3" title="Wind Direction" type="text" name="row${cnt}winddir" value="${c.get('winddir',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="2" title="Wind Velocity" type="text" name="row${cnt}windvel" value="${c.get('windvel',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="2" type="text" name="row${cnt}temp" value="${c.get('temp',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="4" type="text" name="row${cnt}alt" value="${c.get('alt',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="3" type="text" name="row${cnt}tas" value="${c.get('tas',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="3" type="text" name="row${cnt}tt" value="${c.get('tt',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="2" type="text" name="row${cnt}wca" value="${c.get('wca',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="2" type="text" name="row${cnt}var" value="${c.get('var',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="2" type="text" name="row${cnt}dev" value="${c.get('dev',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="3" type="text" name="row${cnt}ch" value="${c.get('ch',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-<td><input size="3" type="text" name="row${cnt}dist" value="${c.get('dist',c.waypoints[cnt],c.waypoints[cnt+1])}"/></td>
-</tr>
-%endif
-%endfor
 </table>
+<button id="addbutton" onclick="fpaddwaypoint(null)">Add</button>
 </form>
+
+
+
 	        
 </div>
 	

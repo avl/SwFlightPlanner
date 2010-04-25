@@ -10,7 +10,10 @@ body
 }
 table.bordered tr td {
 	border: 1px #808080 solid;
-	
+}	
+div.bordered {
+	border: 1px #808080 solid;
+	margin: 2px;
 }	
 
 A:link {text-decoration: none; color: #303030;}

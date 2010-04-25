@@ -45,4 +45,33 @@ class FlightplanController(BaseController):
                 
             return "42"
         c.get=get
+        
+
+
+
+
+
+
+
+
+
+         
+        c.cols=[
+                dict(short='winddir',desc="Wind Direction (deg)",extra=""),
+                dict(short='windvel',desc="Wind Velocity (kt)",extra=""),
+                dict(short='temp',desc="Outside Air Temperature (C)",extra=""),
+                dict(short='alt',desc="Altitude/Flight Level",extra="(Altitude above mean sea level/flight level, e.g 4500ft or FL045)"),
+                dict(short='tas',desc="True Air Speed (kt)",extra="(the speed of the aircraft in relation to the air around it)"),
+                dict(short='tt',desc="True Track (deg)",extra="(the true direction the aircraft is flying, relative to ground)"),
+                dict(short='wca',desc="Wind correction angle (deg)",extra=" (the compensation due to wind needed to stay on the True Track. Negative means you have to aim left, positive to aim right)"),
+                dict(short='var',desc="Variation (deg)",extra="(How much to the right of the true north pole, the compass is pointing. Negative numbers means the compass points to the left of the true north pole)"),
+                dict(short='dev',desc="Deviation (deg)",extra="(How much to the right of the magnetic north, the aircraft compass will be pointing, while travelling in the direction of the true track)"),
+                dict(short='ch',desc="Compass Heading (deg)",extra="(The heading that should be flown on the airplane compass to end up at the right place)"),
+                dict(short='dist',desc="Distance (NM)",extra=""),
+                dict(short='gs',desc="Ground Speed (kt)",extra=""),
+                dict(short='time',desc="Time (minutes)")
+                ]
+       
+        
+        
         return render('/flightplan.mako')

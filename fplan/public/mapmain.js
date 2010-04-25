@@ -14,12 +14,11 @@ anychangetosave=0;
 
 function navigate_to(where)
 {	
-	var fin=function finish_nav()
+	function finish_nav()
 	{				
-	
-	document.location=where;	
+		window.location.href=where;
 	}
-	save_data(fin);
+	save_data(finish_nav);
 }
 function save_data(cont)
 {
