@@ -146,8 +146,7 @@ background-color:#cfcfff;
 	border: 1px #808080 solid;	
 }
 #content {
-	background: #ffffff;
-	
+	background: #ffffff;	
 	margin-right: 282px; /*This must be the same as the sidebar-a width*/
 	bottom: 100%;
 	margin-left: 2px;
@@ -155,7 +154,6 @@ background-color:#cfcfff;
 	margin-top: 2px;
 	border: 1px #808080 solid;
 	height: 90%;
-	
 }
 
 #footer {

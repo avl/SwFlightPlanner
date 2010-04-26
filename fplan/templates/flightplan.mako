@@ -7,26 +7,28 @@
 <script type="text/javascript">
 fpcolnum=${len(c.cols)};
 fpcolshort=[];
-fpcolname=[];
 fpcoldesc=[];
+fpcolextra=[];
 fpcolwidth=[];
 function loadfplan()
 {
 %for col in c.cols:
-	fpcolshort.push('${col["short"}');
-	fpcoldesc.push('${col["desc"}');
-	fpcolhuman.push('${col["name"}');
-	fpcolwidth.push('${col["width"}');
+	fpcolshort.push('${col["short"]}');
+	fpcoldesc.push('${col["desc"]}');
+	fpcolextra.push('${col["extra"]}');
+	fpcolwidth.push('${col["width"]}');
 %endfor
 	
 %for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordinal)):
 
 	var rowdata=[
-	%for what in c.cols:
-	'${c.get(what['short'],c.waypoints[cnt],c.waypoints[cnt+1])}',
+	%if cnt!=len(c.waypoints)-1:
+	%for whati,what in h.izip(h.count(),c.cols):
+	'${c.get(what['short'],c.waypoints[cnt-1],c.waypoints[cnt+1])}'${',' if whati!=len(c.cols)-1 else ''}\
 	%endfor
-	''];
-	fpaddwaypoint(rowdata);
+	%endif
+	];	
+	fpaddwaypoint('${wp.pos}','${wp.waypoint}',rowdata);
 
 %endfor
 
@@ -46,7 +48,7 @@ addLoadEvent(loadfplan);
 </script>
 
 
-<div>
+<div style="height:100%;width:100%;overflow:auto;">
 
 <form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
 <div class="bordered" id="nowaypointsyet"
@@ -59,17 +61,9 @@ You have no waypoints yet! Go to the map and click to add some, or click the "ad
 
 <table id="flightplantable" class="bordered" cellspacing="0" borders="0">
 <tr>
-<td title="Wind Direction (in degrees)">W</td>
-<td title="Wind Velocity (in knots)">V</td>
-<td title="Outside Air Temperature">T</td>
-<td title="Altitude/Flight Level (Altitude above mean sea level/flight level, e.g 4500ft or FL045)">Alt</td>
-<td title="True Air Speed (the speed of the aircraft in relation to the air around it)">TAS</td>
-<td title="True Track (the true direction the aircraft is flying, relative to ground)">TT</td>
-<td title="Wind correction angle (the compensation due to wind needed to stay on the True Track. Negative means you have to aim left, positive to aim right)">wca</td>
-<td title="Variation (How much to the right of the true north pole, the compass is pointing. Negative numbers means the compass points to the left of the true north pole)">var</td>
-<td title="Deviation (How much to the right of the magnetic north, the aircraft compass will be pointing, while travelling in the direction of the true track)">dev</td>
-<td title="Compass Heading (The heading that should be flown on the airplane compass to end up at the right place)">CH</td> 
-<td title="Distance (in nautical miles)">D</td> 
+%for col in c.cols:
+<td title="${col['desc']+' '+col['extra']}">${col['short']}</td>
+%endfor 
 </td>
 </tr>
 </table>
