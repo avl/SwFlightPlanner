@@ -91,8 +91,7 @@ route_table = sa.Table("route",meta.metadata,
 airport_table = sa.Table("airport",meta.metadata,                         
                         sa.Column('airport',Unicode(50),primary_key=True,nullable=False),                        
                         sa.Column('icao',Unicode(50),primary_key=False,nullable=False),                        
-                        sa.Column('lat',Float(),nullable=False,primary_key=False),
-                        sa.Column('lon',Float(),nullable=False,primary_key=False),
+                        sa.Column('pos',String(30),nullable=False,primary_key=False),
                         sa.Column('altitude_msl',Float(),nullable=True,primary_key=False)
                         ) 
 obstacle_table = sa.Table("obstacle",meta.metadata,                         
@@ -127,6 +126,12 @@ class Waypoint(object):
     def get_lon(self):
         return float(self.pos.split(",")[1])
         
+class Airport(object):
+    def __init__(self, airport, icao, pos, alt):
+        self.airport=airport
+        self.icao=icao
+        self.pos=pos
+        self.altitude_msl=alt
 class Trip(object):
     def __init__(self, user, trip):
         self.user=user

@@ -5,6 +5,8 @@ from fplan.config.environment import load_environment
 from fplan.model import meta
 from fplan.model import *
 log = logging.getLogger(__name__)
+from pylons import config
+import extract.loader
 
 def setup_app(command, conf, vars):
     """Place any commands to setup fplan here"""
@@ -14,8 +16,13 @@ def setup_app(command, conf, vars):
     meta.metadata.create_all(bind=meta.engine)
 
     if len(meta.Session.query(User).all())==0:       
-        user1 = User("anders.musikka", "password")
+        user1 = User(u"anders.musikka", u"password")
         meta.Session.add(user1)
         meta.Session.flush()
     meta.Session.commit()
+    
+    if config['preload_aerodrome_info']:
+        print "Preloading aerodrome-info"
+        extract.loader.update_airfields()
         
+    

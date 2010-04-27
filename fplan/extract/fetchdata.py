@@ -8,7 +8,7 @@ def get_filedate(path):
 def stripname(path):
     out=[]
     for c in path:
-        if c.isalnum():
+        if c.isalnum() or c=='.':
             out.append(c)
         else:
             out.append("_")
@@ -24,13 +24,12 @@ def getrawdata(relpath):
     assert(relpath.startswith("/"))
     return open('/home/anders/lfv/www.lfv.se'+relpath).read()
     
-
 def getxml(relpath):
     assert relpath.startswith("/")
     
     filedate=get_date(relpath)
     cachenamepdf="/tmp/lfv/"+stripname(relpath)
-    cachenamexml="/tmp/lfv/"+stripname(relpath)+".xml"
+    cachenamexml=changeext("/tmp/lfv/"+stripname(relpath),'.pdf',".xml")
     if os.path.exists(cachenamexml):
         cacheddate=get_filedate(cachenamexml)
         if cacheddate==filedate:
@@ -38,11 +37,12 @@ def getxml(relpath):
             return open(cachenamexml).read()
     
     pdfdata=getrawdata(relpath)
+    if not os.path.exists("/tmp/lfv"):
+        os.makedirs("/tmp/lfv")
     open(cachenamepdf,"w").write(pdfdata)
     if os.system("pdftohtml -xml -nodrm "+cachenamepdf)!=0:
         raise Exception("pdftohtml failed!")
-    
-    
+        
     modt=int(filedate.strftime('%s'))
     os.utime(cachenamexml,(modt,modt))
     return open(cachenamexml).read() 

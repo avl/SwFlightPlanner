@@ -17,6 +17,47 @@ class Item(object):
     def __repr__(self):
         return "Item(%.1f,%.1f - %.1f,%.1f : %s)"%(self.x1,self.y1,self.x2,self.y2,repr(self.text))
 
+class Page(object):
+    def __init__(self,items):
+        self.items=items
+    def count(self,str):
+        cnt=0
+        for item in self.items:
+            cnt+=item.text.count(str)
+        return cnt
+    def get_partially_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
+        out=[]
+        for item in self.items:
+            if item.x2<x1: continue;
+            if item.x1>x2: continue;
+            if item.y2<y1: continue;
+            if item.y1>y2: continue;
+            out.append(item)
+        if xsort:
+            out.sort(key=lambda x:x.x1)
+        if ysort:
+            out.sort(key=lambda x:x.y1)        
+        return out
+    def get_all_text(self):
+        out=[]
+        for item in self.items:
+            out.append(item.text)
+        return "\n".join(out)
+    def get_fully_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
+        out=[]
+        for item in self.items:
+            if item.x1<x1: continue;
+            if item.x2>x2: continue;
+            if item.y1<y1: continue;
+            if item.y2>y2: continue;
+            out.append(item)
+        if xsort:
+            out.sort(key=lambda x:x.x1)
+        if ysort:
+            out.sort(key=lambda x:x.y1)        
+        return out
+            
+        
 class Parser(object):
     def load_xml(self,path,loadhook=None):
         raw=fetchdata.getxml(path)
@@ -24,28 +65,41 @@ class Parser(object):
         if loadhook:
             raw=loadhook(raw)
            
-        xml=ElementTree.fromstring(raw)
+        xml=ElementTree.fromstring(raw)        
         return xml
         
     def get_num_pages(self):
-        return len(self.xml.getchildren()[1:])
+        return len(self.xml.getchildren())
     def parse_page_to_items(self,pagenr):
-        page=self.xml.getchildren()[pagenr+1]
-        items=[Item(text=unicode(item.text),
+        page=self.xml.getchildren()[pagenr]
+        out=[]
+        for item in page.findall(".//text"):
+            t=[]
+            if item.text:
+                t.append(item.text)
+            for it2 in item.findall(".//*"):
+                if it2.text!=None:
+                    t.append(it2.text)
+                if it2.tail!=None:
+                    t.append(it2.tail)                        
+            it=Item(text=" ".join(t),
               x1=float(item.attrib['left']),
               x2=float(item.attrib['left'])+float(item.attrib['width']),
               y1=float(item.attrib['top']),
               y2=float(item.attrib['top'])+float(item.attrib['height'])
-              ) for item in page.findall("text")]
-        return items
+              )
+            out.append(it)
         
+        return Page(list(self.normalize_items(out)))
     def normalize_items(self,items):
+        if len(items)==0:
+            return
         minx=min(x.x1 for x in items)
         miny=min(x.y1 for x in items)
         maxx=max(x.x2 for x in items)
         maxy=max(x.y2 for x in items)
-        xfactor=maxx-minx
-        yfactor=maxy-miny
+        xfactor=float(maxx-minx)
+        yfactor=float(maxy-miny)
         for item in items:
             yield Item(
                 text=item.text,
