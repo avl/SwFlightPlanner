@@ -2,13 +2,22 @@ import logging
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route
+from fplan.model import meta,User,Trip,Waypoint,Route,Airport
 from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 
 class FlightplanController(BaseController):
+    def search(self):
+        
+        searchstr=request.params.get('search','')
+        print "Searching for ",searchstr
+        airports=meta.Session.query(Airport).filter(
+                sa.or_(Airport.airport.like('%%%s%%'%(searchstr,)),
+                Airport.icao.like('%%%s%%'%(searchstr,)))
+                ).all()                     
+        return "".join(["<p>%s</p>"%x.airport for x in airports])  
 
     def index(self):
         # Return a rendered template
@@ -18,7 +27,7 @@ class FlightplanController(BaseController):
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
         
         
-        
+            
         def get(what,a,b):
             print "A:",a
             if what=='tt':

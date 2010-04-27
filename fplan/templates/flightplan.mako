@@ -5,6 +5,8 @@
 <script src="/fpmain.js" type="text/javascript"></script>
 
 <script type="text/javascript">
+
+searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 fpcolnum=${len(c.cols)};
 fpcolshort=[];
 fpcoldesc=[];
@@ -70,8 +72,11 @@ You have no waypoints yet! Go to the map and click to add some, or click the "ad
 <button id="addbutton" onclick="fpaddwaypoint(null)">Add</button>
 </form>
 
-
-
-	        
+<div id="searchmenu" class="popup">
 </div>
+
+        
+</div>
+	
+	
 	

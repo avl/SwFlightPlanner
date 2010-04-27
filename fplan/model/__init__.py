@@ -90,9 +90,9 @@ route_table = sa.Table("route",meta.metadata,
 
 airport_table = sa.Table("airport",meta.metadata,                         
                         sa.Column('airport',Unicode(50),primary_key=True,nullable=False),                        
-                        sa.Column('icao',Unicode(50),primary_key=False,nullable=False),                        
+                        sa.Column('icao',String(4),primary_key=False,nullable=False),                        
                         sa.Column('pos',String(30),nullable=False,primary_key=False),
-                        sa.Column('altitude_msl',Float(),nullable=True,primary_key=False)
+                        sa.Column('elev',Float(),nullable=True,primary_key=False)
                         ) 
 obstacle_table = sa.Table("obstacle",meta.metadata,                         
                         sa.Column('obstacle',Unicode(50),primary_key=True,nullable=False),                        
@@ -127,11 +127,11 @@ class Waypoint(object):
         return float(self.pos.split(",")[1])
         
 class Airport(object):
-    def __init__(self, airport, icao, pos, alt):
+    def __init__(self, airport, icao, pos, elev):
         self.airport=airport
         self.icao=icao
         self.pos=pos
-        self.altitude_msl=alt
+        self.elev=elev
 class Trip(object):
     def __init__(self, user, trip):
         self.user=user
@@ -152,6 +152,7 @@ orm.mapper(User, user_table)
 orm.mapper(Trip, trip_table)
 orm.mapper(Waypoint, waypoint_table)
 orm.mapper(Route, route_table)
+orm.mapper(Airport, airport_table)
 
 
 ## Non-reflected tables may be defined and mapped at module level
