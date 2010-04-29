@@ -4,6 +4,25 @@ import popen2
 import math
 import cStringIO
 
+def sec(x):
+        return 1.0/math.cos(x)
+
+def merc(lat):
+        lat/=(180.0/3.14159)
+        return math.log(math.tan(lat)+sec(lat))
+def unmerc(y):
+        return (180.0/3.14159)*math.atan(math.sinh(y))
+        
+def latlon2merc(pos,zoomlevel):
+	lat,lon=pos
+	factor=(2.0**(zoomlevel))
+	return (factor*256.0*(lon+180.0)/360.0,128*factor-128*factor*merc(lat)/merc(85.05113))
+def merc2latlon(p,zoomlevel):
+	x,y=p
+	factor=(2.0**(zoomlevel))
+	return (unmerc((128*factor-y)/128.0/factor*merc(85.05113)),x*360.0/(256.0*factor)-180.0)
+
+
 	
 def _from_decimal(x):
 	"""From decimal lat/lon tuple to to format: N47-13'30" E12-49'37" """

@@ -7,17 +7,23 @@ from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
+import json
+
 
 class FlightplanController(BaseController):
-    def search(self):
-        
+    def search(self):        
         searchstr=request.params.get('search','')
         print "Searching for ",searchstr
         airports=meta.Session.query(Airport).filter(
                 sa.or_(Airport.airport.like('%%%s%%'%(searchstr,)),
                 Airport.icao.like('%%%s%%'%(searchstr,)))
-                ).all()                     
-        return "".join(["<p>%s</p>"%x.airport for x in airports])  
+                ).limit(20).all()    
+        if len(airports)==0:
+            return ""        
+        ret=json.dumps([[x.airport,mapper.from_str(x.pos)] for x in airports])
+        print "returning json:",ret
+        return ret   
+  
 
     def index(self):
         # Return a rendered template

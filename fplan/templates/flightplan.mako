@@ -72,8 +72,6 @@ You have no waypoints yet! Go to the map and click to add some, or click the "ad
 <button id="addbutton" onclick="fpaddwaypoint(null)">Add</button>
 </form>
 
-<div id="searchmenu" class="popup">
-</div>
 
         
 </div>

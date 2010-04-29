@@ -6,6 +6,8 @@ from fplan.model import meta,User,Trip,Waypoint
 import fplan.lib.mapper as mapper
 import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
+from fplan.lib.gen_tile import generate_tile,get_map_corners
+
 import sqlalchemy as sa
 import routes.util as h
 log = logging.getLogger(__name__)
@@ -108,23 +110,20 @@ class MapviewController(BaseController):
             print "zoom: ",zoom
             
             if zoom<0:
-                session['last_map_size']=session['last_map_size']*0.5
+                session['last_map_size']=session['last_map_size']+1
             else:
-                session['last_map_size']=session['last_map_size']*2.0                                
-            if session['last_map_size']<1.0/120.0:
-                session['last_map_size']=1.0/120.0            
-            if session['last_map_size']>90.0:
-                session['last_map_size']=90.0
+                session['last_map_size']=session['last_map_size']-1                                
+            if session['last_map_size']<3:
+                session['last_map_size']=3            
+            if session['last_map_size']>13:
+                session['last_map_size']=13
         if request.params['center']!='':
             lats,lons=request.params['center'].split(",")
             lat=float(lats)
             lon=float(lons)%360.0
         
             
-        if lat+session['last_map_size']>85.0:
-            lat=85.0-session['last_map_size']
-        if lat-session['last_map_size']<-85.0:
-            lat=-85.0+session['last_map_size']
+            
         session['last_map_pos']=(lat,lon)
         session.save()        
         meta.Session.flush()
@@ -161,19 +160,26 @@ class MapviewController(BaseController):
             session['last_map_pos']=(59,15)
         if not 'last_map_size' in session:
             session['last_map_size']=5.0
+            
+        zoomlevel=session['last_map_size']
         session.save()        
         
         coords=session['last_map_pos']
-        c.pos=mapper.to_aviation_format(coords)
-        c.size=session['last_map_size']
+        c.pos=mapper.to_aviation_format(coords)        
         c.lat=coords[0]
         c.lon=coords[1]
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
         c.tripname=session['current_trip']
-        lat1,lon1,lat2,lon2=gen_tile.get_map_corners((100,100),coords,session['last_map_size'])
-        print "lat1/lon1: %f/%f, lat2/lon2: %f/%f"%(lat1,lon1,lat2,lon2) 
-        assert (abs(lat1-lat2)-session['last_map_size'])<1e-6
-        c.lonwidth=abs(lon2-lon1)
+        print "Lat/Lon: %f/%f"%(c.lat,c.lon)        
         
+        merc_x,merc_y=mapper.latlon2merc(coords,zoomlevel)
+        upper=mapper.merc2latlon((merc_x,merc_y-100/2.0),zoomlevel)[0]
+        lower=mapper.merc2latlon((merc_x,merc_y+100/2.0),zoomlevel)[0]
+        
+        corners=get_map_corners(pixelsize=(100,100),center=coords,lolat=lower,hilat=upper)
+        c.topleft_lon=c.corners[1]
+        c.topleft_lat=c.corners[2]
+        
+        c.zoomlevel=session['last_map_size'];
         return render('/mapview.mako')

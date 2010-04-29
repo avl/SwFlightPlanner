@@ -140,7 +140,9 @@ function dist_between(latlon1,latlon2)
 	return  6367500*ang; //meters
 	
 }
-function to_latlon(p)
+
+/*
+function merc2latlon(p)
 {
 	px=p[0];
 	py=p[1];
@@ -166,7 +168,7 @@ function to_latlon(p)
 	return [lat,lon];	
 }
 
-function to_merc(latlon)
+function latlon2merc(latlon)
 {
 	var lat=latlon[0];
 	var lon=latlon[1];
@@ -202,3 +204,38 @@ function to_y(lat)
 	lat/=(180.0/Math.PI);
 	return Math.log(Math.tan(lat)+1.0/Math.cos(lat));
 } 
+*/
+
+function sec(x)
+{
+    return 1.0/Math.cos(x);
+}
+function sinh(x) 
+{
+	return (Math.exp(x) - Math.exp(-x))/2.0;
+}
+function merc(lat)
+{
+    lat=lat/(180.0/3.14159);
+    return Math.log(Math.tan(lat)+sec(lat));
+}
+function unmerc(y)
+{
+    return (180.0/3.14159)*Math.atan(sinh(y));
+}
+function latlon2merc(latlon)
+{
+	var lat=latlon[0];
+	var lon=latlon[1];
+    var factor=(2.0*(map_zoomlevel*map_zoomlevel));
+    
+    return [factor*256.0*(lon+180.0)/360.0,128*factor-128*factor*merc(lat)/merc(85.05113)];
+    
+}
+function merc2latlon(xy)
+{
+	var x=xy[0];
+	var y=xy[1];
+    var factor=(2.0*(map_zoomlevel*map_zoomlevel));
+    return [unmerc((128*factor-y)/128.0/factor*merc(85.05113)),x*360.0/(256.0*factor)-180.0];
+}

@@ -6,27 +6,33 @@
 <script src="/MochiKit.js" type="text/javascript"></script>
 <script src="/mwheel.js" type="text/javascript"></script>
 <script src="/mapmath.js" type="text/javascript"></script>
+<script src="/mapsearch.js" type="text/javascript"></script>
 <script src="/mapmain.js" type="text/javascript"></script>
 
 
 <script type="text/javascript">
 
-map_proj_lon=${c.lon};
-map_proj_lonwidth=${c.lonwidth};
-map_proj_lat=${c.lat};
-map_proj_size=${c.size};
+map_proj_topleft_lon=${c.topleft_lon};
+map_proj_topleft_lat=${c.topleft_lat};
+
+map_topleft_merc=[0,0];
+map_zoomlevel=${c.zoomlevel};
+
 saveurl='${h.url_for(controller="mapview",action="save")}';
+searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 
 function loadmap()
 {
+	
 	var content=document.getElementById('content')
 	var h=content.offsetHeight;
 	var w=content.offsetWidth;
 	var left=content.offsetLeft;
 	var top=content.offsetTop;
 
+	map_topleft_merc=latlon2merc(map_proj_topleft_lat,map_proj_topleft_lon);
 		
-	content.innerHTML='<img id="mapid" src="/maptile/get?pos=${c.pos}&latitudes=${c.size}&width='+(w-3)+'&height='+(h-3)+'"/>'+
+	content.innerHTML='<img id="mapid" src="/maptile/get?pos=${c.pos}&zoomlevel=${c.zoomlevel}&width='+(w-3)+'&height='+(h-3)+'"/>'+
 	'<div id="overlay1" style="position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onclick="on_clickmap(event)" id="overlay2" style="position:absolute;z-index:2;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div id="mmenu" class="popup">'+
@@ -42,14 +48,20 @@ function loadmap()
 	'</form>'+
 	'<div id="progmessage" class="progress-popup">'+
 	''+
-	'</div>'	
+	'</div>'+
+	'<div id="searchpopup" class="popup"></div>'	
 	;
 	
 	var sidebar=document.getElementById('sidebar-a');
 	sidebar.innerHTML=''+
+	'<div class="first" id="search-pane">'+
+	'<form id="searchform" action="">'+
+	'Search:<input onkeydown="return on_search_keydown(event)" size="15" onkeyup="on_search_keyup(event)" onblur="remove_searchpopup()" id="searchfield" name="searchfield" type="text" value="" />'+	
+	'</form>'+
+	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="">'+
-	'Trip: <input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${c.tripname}" />'+
+	'Trip:<input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${c.tripname}" />'+
 	'<input id="oldtripname" name="oldtripname" type="hidden" value="${c.tripname}" />'+
 	'</form>'+
 	'</div>'+
@@ -84,7 +96,7 @@ function loadmap()
 	
 	var idx=0;	
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
-	var me=to_merc([${wp.get_lat()},${wp.get_lon()}]);
+	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
 	tab_add_waypoint(idx,me,'${wp.pos}','${wp.waypoint}');
 	idx++;

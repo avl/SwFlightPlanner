@@ -5,8 +5,8 @@ import sys, os, tempfile
 
 prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
 
-def generate_tile(pixelsize,center,latitudes):
-    print "Making tile at %s , size %s"%(center,latitudes)
+def generate_tile(pixelsize,center,lolat,hilat):
+    print "Making tile at %s"%(center,)
     #print "Generating tile"
     mapfile = "/home/anders/saker/avl_fplan_world/mapnik_render/osm.xml"
     
@@ -14,7 +14,7 @@ def generate_tile(pixelsize,center,latitudes):
     #  Change this to the bounding box you want
     #
     #    lon         lat        lon        lat
-    ll = (center[1], center[0]+0.5*latitudes, center[1], center[0]-0.5*latitudes)
+    ll = (center[1], hilat, center[1], lolat)
     #---------------------------------------------------
 
     
@@ -43,14 +43,14 @@ def generate_tile(pixelsize,center,latitudes):
     return data
 
     
-def get_map_corners(pixelsize,center,latitudes):
+def get_map_corners(pixelsize,center,lolat,hilat):
     mapfile = "/home/anders/saker/avl_fplan_world/mapnik_render/osm.xml"
     
     #---------------------------------------------------
     #  Change this to the bounding box you want
     #
     #    lon         lat        lon        lat
-    ll = (center[1], center[0]+0.5*latitudes, center[1], center[0]-0.5*latitudes)
+    ll = (center[1], hilat, center[1], lolat)
     #---------------------------------------------------
 
     
