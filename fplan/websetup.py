@@ -21,7 +21,7 @@ def setup_app(command, conf, vars):
         meta.Session.flush()
     meta.Session.commit()
     
-    if config['preload_aerodrome_info']:
+    if config['preload_aerodrome_info']==True:
         print "Preloading aerodrome-info"
         extract.loader.update_airfields()
         

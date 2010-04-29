@@ -19,20 +19,21 @@ class MaptileController(BaseController):
         #png=open("fplan/public/boilerplate.jpg").read()
         #png=open("fplan/public/bg.png").read()
         
-        pos=mapper.from_aviation_format(request.params["pos"]);
         zoomlevel=float(request.params['zoomlevel'])
+        x1=int(request.params['x1'])
+        y1=int(request.params['y1'])
         width=int(request.params['width'])
         height=int(request.params['height'])
         #png=open("fplan/public/bg.png").read()
         #request.params.get('layout','para')
         
-        merc_x,merc_y=mapper.latlon2merc(pos,zoomlevel)
-        upper=mapper.merc2latlon((merc_x,merc_y-height/2.0),zoomlevel)[0]
-        lower=mapper.merc2latlon((merc_x,merc_y+height/2.0),zoomlevel)[0]
+        #merc_x,merc_y=mapper.latlon2merc(pos,zoomlevel)
+        #upper=mapper.merc2latlon((merc_x,merc_y-height/2.0),zoomlevel)[0]
+        #lower=mapper.merc2latlon((merc_x,merc_y+height/2.0),zoomlevel)[0]
 
-        print "generating, zoom level: %f"%(zoomlevel,)
-        print "Rendered lat interval: %f - %f"%(upper,lower)
-        png=generate_tile(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
-        print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
+        #print "generating, zoom level: %f"%(zoomlevel,)
+        #print "Rendered lat interval: %f - %f"%(upper,lower)
+        png=generate_tile(pixelsize=(width,height),x1=x1,y1=y1,zoomlevel=zoomlevel)
+        #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
         response.headers['Content-Type'] = 'image/png'
         return png

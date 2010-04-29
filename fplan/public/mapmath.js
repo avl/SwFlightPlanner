@@ -100,7 +100,6 @@ function to_polar_coord(cur)
 
 	if (lon<0.0)
 		lon+=360.0;
-	//alert('to polar('+cur+') = '+lat+', '+lon);
 	return [lat,lon];
 }
 function great_circle_points(c1,c2,num)
@@ -137,74 +136,11 @@ function dist_between(latlon1,latlon2)
 	{
 		ang=Math.acos(sc);
 	}
+	
 	return  6367500*ang; //meters
 	
 }
 
-/*
-function merc2latlon(p)
-{
-	px=p[0];
-	py=p[1];
-	if (map_ysize==0)
-	{
-		return [0,0];
-	}
-	var min_merc_y=to_y(map_proj_lat-0.5*map_proj_size);
-	var max_merc_y=to_y(map_proj_lat+0.5*map_proj_size);
-	
-	var x=(px)/(map_xsize+0.0);
-	var y=(map_ysize-py)/(map_ysize+0.0);
-	
-	var wfactor=map_xsize/map_ysize;
-	var cury=y*(max_merc_y-min_merc_y)+min_merc_y;
-	var lat=to_lat(cury);
-					
-	var lon=map_proj_lon-0.5*map_proj_lonwidth*wfactor+map_proj_lonwidth*x*wfactor;	
-	lon = lon % 360.0;
-	if (lon>180.0) lon=lon-360.0;
-	if (lon<-180.0) lon=lon+360.0;
-	
-	return [lat,lon];	
-}
-
-function latlon2merc(latlon)
-{
-	var lat=latlon[0];
-	var lon=latlon[1];
-	if ((lon-map_proj_lon)>180.0)
-	{
-		lon-=360.0;
-	}
-	if ((lon-map_proj_lon)<-180.0)
-	{
-		lon+=360.0;
-	}
-	var wfactor=map_xsize/map_ysize;
-	var min_merc_y=to_y(map_proj_lat-0.5*map_proj_size);
-	var max_merc_y=to_y(map_proj_lat+0.5*map_proj_size);
-	var cury=to_y(lat);
-	var y=(cury-min_merc_y)/(max_merc_y-min_merc_y);
-	var x=(lon+0.5*map_proj_lonwidth*wfactor-map_proj_lon)/(map_proj_lonwidth*wfactor);
-	
-	var px=x*(map_xsize+0.0);
-	var py=map_ysize-y*(map_ysize+0.0);
-	return [px,py];	
-}
-function sinh(x) 
-{
-	return (Math.exp(x) - Math.exp(-x))/2.0;
-}
-function to_lat(y)
-{
-	return (180.0/Math.PI)*Math.atan(sinh(y));
-}
-function to_y(lat)
-{
-	lat/=(180.0/Math.PI);
-	return Math.log(Math.tan(lat)+1.0/Math.cos(lat));
-} 
-*/
 
 function sec(x)
 {
@@ -227,8 +163,7 @@ function latlon2merc(latlon)
 {
 	var lat=latlon[0];
 	var lon=latlon[1];
-    var factor=(2.0*(map_zoomlevel*map_zoomlevel));
-    
+    var factor=Math.pow(2.0,map_zoomlevel);
     return [factor*256.0*(lon+180.0)/360.0,128*factor-128*factor*merc(lat)/merc(85.05113)];
     
 }
@@ -236,6 +171,6 @@ function merc2latlon(xy)
 {
 	var x=xy[0];
 	var y=xy[1];
-    var factor=(2.0*(map_zoomlevel*map_zoomlevel));
+    var factor=Math.pow(2.0,map_zoomlevel);
     return [unmerc((128*factor-y)/128.0/factor*merc(85.05113)),x*360.0/(256.0*factor)-180.0];
 }

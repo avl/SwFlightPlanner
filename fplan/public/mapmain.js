@@ -212,12 +212,24 @@ keyhandler=on_key
 function dozoom(how,pos)
 {
 	var form=document.getElementById('helperform');
-	form.zoom.value=''+how;
+
 	
-	var latlon=merc2latlon(pos);
-	var lat=latlon[0];
-	var lon=latlon[1];
-	form.center.value=''+lat+','+lon;
+	var mercx=pos[0];
+	var mercy=pos[1];
+	if (how==1 && map_zoomlevel<13)
+	{
+		mercx*=2.0;
+		mercy*=2.0;
+		map_zoomlevel+=1;
+	}
+	else if (how==-1 && map_zoomlevel>0)
+	{
+		mercx/=2.0;
+		mercy/=2.0;
+		map_zoomlevel-=1;
+	}
+	form.zoom.value=''+(map_zoomlevel);
+	form.center.value=''+mercx+','+mercy;
 		
 	form.submit();
 }
@@ -225,7 +237,7 @@ function zoom_out(pos)
 {
 	function zoom_out_impl()
 	{
-		dozoom(1,pos);
+		dozoom(-1,pos);
 	}
  	save_data(zoom_out_impl);
 }
@@ -233,7 +245,7 @@ function zoom_in(pos)
 {
 	function zoom_in_impl()
 	{
-		dozoom(-1,pos);
+		dozoom(1,pos);
 	}
  	save_data(zoom_in_impl);
 }
@@ -483,25 +495,23 @@ function on_rightclickmap(event)
 	return false;
 }
 
-function merc2screen_x(x)
+function merc2screen_x(merc_x)
 { //screen = map
-	return parseInt(x)-map_topleft_merc[0];
+	return parseInt(merc_x)-map_topleft_merc[0];
 }
-function merc2screen_y(y)
+function merc2screen_y(merc_y)
 { //screen = map
-	return parseInt(y)-map_topleft_merc[1];
+	return parseInt(merc_y)-map_topleft_merc[1];
 }
 function client2merc_x(clientX)
 {
-	var screen_x=clientX-document.getElementById('mapid').offsetLeft;
-	return screen_x+map_topleft_merc[0];
+	var screen_x=clientX-document.getElementById('mapid00').offsetLeft;
+	return map_topleft_merc[0]+screen_x;
 }
 function client2merc_y(clientY)
 {
-	var screen_y=clientY-document.getElementById('mapid').offsetTop;
-	//screen_y=map_topleft_merc[1]-parseInt(y);
-	//parseInt(y);=map_topleft_merc[1]-screen_y
-	return screen_y+map_topleft_merc[1];
+	var screen_y=clientY-document.getElementById('mapid00').offsetTop;
+	return map_topleft_merc[1]+screen_y;
 }
 function draw_jg()
 {
@@ -527,7 +537,7 @@ function draw_jg()
 						{
 							draw_great_circle(
 								wps[i-1],wps[i]);
-						}
+						}						
 						else
 						{				
 						var l=clipline(
@@ -545,30 +555,32 @@ function draw_jg()
 			    }
 			    if (pass==1)
 			    {	
+			    	var screen_x=merc2screen_x(wps[i][0]);
+			    	var screen_y=merc2screen_y(wps[i][1]);
 			    	if (selected_waypoint_idx==i)
 			    	{
-			    		if (clippoint(wps[i][0],wps[i][1]))
+			    		if (clippoint(screen_x,screen_y))
 			    		{
 				    		jg.setColor("#20207f");
 							jg.setFont("arial","14px",Font.BOLD);
-							jg.drawString(''+i,merc2screen_x(wps[i][0])+6,merc2screen_y(wps[i][1])-5);			    		
+							jg.drawString(''+i,screen_x+6,screen_y-5);			    		
 				    		jg.setColor("#0000bf");
-					    	jg.fillEllipse(merc2screen_x(wps[i][0])-5,merc2screen_y(wps[i][1])-5,10,10);
+					    	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
 				    		jg.setColor("#ffffff");
-				    		jg.fillEllipse(merc2screen_x(wps[i][0])-3,merc2screen_y(wps[i][1])-3,6,6);
+				    		jg.fillEllipse(screen_x-3,screen_y-3,6,6);
 				    	}
 			    	}
 			    	else
 			    	{
-			    		if (clippoint(wps[i][0],wps[i][1]))
+			    		if (clippoint(screen_x,screen_y))
 			    		{
 			    			jg.setColor("#207f20");
 							jg.setFont("arial","14px",Font.BOLD);
-							jg.drawString(''+i,merc2screen_x(wps[i][0])+7,merc2screen_y(wps[i][1])-5);			    		
+							jg.drawString(''+i,screen_x+7,screen_y-5);			    		
 				    		jg.setColor("#00bf00");
-					    	jg.fillEllipse(merc2screen_x(wps[i][0])-5,merc2screen_y(wps[i][1])-5,10,10);
+					    	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
 				    		jg.setColor("#ffffff");
-				    		jg.fillEllipse(merc2screen_x(wps[i][0])-3,merc2screen_y(wps[i][1])-3,6,6);
+				    		jg.fillEllipse(screen_x-3,screen_y-3,6,6);
 				    	}			    	
 			    	}			    	
 				    
@@ -779,12 +791,13 @@ last_mousemove_lon=-360;
 function on_mousemovemap(event)
 {
 	var mercy=client2merc_y(event.clientY);
+	var mercx=client2merc_x(event.clientX);
 	var latlon=merc2latlon([client2merc_x(event.clientX),mercy]);
 	var lat=latlon[0];
 	var lon=latlon[1];
 	last_mousemove_lat=lat;
 	last_mousemove_lon=lon;
-	document.getElementById("footer").innerHTML='clientX:'+event.clientX+' clientY: '+event.clientY+' mercY:'+mercy+' '+aviation_format_pos(latlon);
+	document.getElementById("footer").innerHTML='clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' '+aviation_format_pos(latlon);
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }

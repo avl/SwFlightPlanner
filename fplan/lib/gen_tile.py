@@ -2,8 +2,49 @@
 #lifted from a mapnik sample
 import mapnik
 import sys, os, tempfile
+import Image
+from ImageDraw import Draw
+import ImageFont
+import fplan.lib.mapper as mapper
+import cStringIO
+import math
 
 prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
+
+
+def get_map_corners(pixelsize,center,zoomlevel):
+    raise Exception("Not supported")
+def generate_tile(pixelsize,x1,y1,zoomlevel):
+    img=Image.new("RGB",pixelsize)
+    draw=Draw(img)
+    #merc=mapper.latlon2merc(center,zoomlevel)
+    min_x=x1#int(merc[0])-0.5*pixelsize[0]
+    min_y=y1#int(merc[1])-0.5*pixelsize[1]
+    max_x=x1+pixelsize[0]
+    max_y=y1+pixelsize[1]
+    font = ImageFont.truetype("/var/lib/defoma/x-ttcidfont-conf.d/dirs/TrueType/FreeMonoBold.ttf",14)
+    draw=Draw(img)
+    def modrange(a,b,mod):
+        start=mod*int(math.floor(a/mod))
+        end=mod*int(math.ceil(b/mod))
+        return xrange(start,end,mod)
+    
+    for y in modrange(min_y,max_y,100):
+        for x in modrange(min_x,max_x,100):
+            latlon=mapper.merc2latlon((x,y),zoomlevel)
+            lat,lon=latlon
+            text1="%.2fN"%(lat,)
+            text2="%.2fE"%(lon,)
+            #print "Drawing at %s: %s/%s"%((x,y),text1,text2)
+            draw.text((x-min_x,y-min_y),text1,fill=(255,255,255),font=font)        
+            draw.text((x-min_x,y-min_y+15),text2,fill=(255,255,255),font=font)        
+    outp=cStringIO.StringIO()
+    img.save(outp,"png")
+    outp.seek(0)
+    print "Zoomlevel:",zoomlevel
+    return outp.read()
+
+"""
 
 def generate_tile(pixelsize,center,lolat,hilat):
     print "Making tile at %s"%(center,)
@@ -76,6 +117,6 @@ def get_map_corners(pixelsize,center,lolat,hilat):
     assert abs(upperleft.y-upperright.y)<1e-6
     assert abs(lowerleft.y-lowerright.y)<1e-6
     return (lowerleft.y,lowerleft.x,upperright.y,upperright.x)
-
+"""
     
 

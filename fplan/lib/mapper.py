@@ -21,7 +21,10 @@ def merc2latlon(p,zoomlevel):
 	x,y=p
 	factor=(2.0**(zoomlevel))
 	return (unmerc((128*factor-y)/128.0/factor*merc(85.05113)),x*360.0/(256.0*factor)-180.0)
-
+def max_merc_y(zoomlevel):
+    return 256*(2**zoomlevel)
+def max_merc_x(zoomlevel):
+    return 256*(2**zoomlevel)
 
 	
 def _from_decimal(x):

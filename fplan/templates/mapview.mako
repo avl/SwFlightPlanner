@@ -12,27 +12,46 @@
 
 <script type="text/javascript">
 
-map_proj_topleft_lon=${c.topleft_lon};
-map_proj_topleft_lat=${c.topleft_lat};
-
-map_topleft_merc=[0,0];
 map_zoomlevel=${c.zoomlevel};
-
+map_topleft_merc=undefined;
 saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 
 function loadmap()
 {
-	
 	var content=document.getElementById('content')
 	var h=content.offsetHeight;
 	var w=content.offsetWidth;
 	var left=content.offsetLeft;
 	var top=content.offsetTop;
+	
+	
+	map_topleft_merc=[parseInt(${c.merc_x}-0.5*w),parseInt(${c.merc_y}-0.5*h)];
+	if (map_topleft_merc[1]<0)
+		map_topleft_merc[1]=0;
 
-	map_topleft_merc=latlon2merc(map_proj_topleft_lat,map_proj_topleft_lon);
+	var imgs='';
+	var segc=4;
+	for(var iy=0;iy<segc;++iy)
+	{
+		var offy1=parseInt((iy)*h/segc);
+		var offy2=parseInt((iy+1)*h/segc);
+		var segh=offy2-offy1;
+		for(var ix=0;ix<segc;++ix)
+		{
+			var offx1=parseInt((ix)*w/segc);
+			var offx2=parseInt((ix+1)*w/segc);
+			var segw=offx2-offx1;			
+			imgs+='<img style="position:absolute;z-index:0;left:'+(left+offx1)+'px;top:'+
+				(top+offy1)+'px;width:'+(segw)+'px;height:'+(segh)+'px" id="mapid'+iy+''+ix+
+				'" src="/maptile/get?x1='+
+				(map_topleft_merc[0]+offx1)+'&y1='+
+				(map_topleft_merc[1]+offy1)+'&zoomlevel=${c.zoomlevel}&width='+
+				(segw)+'&height='+(segh)+'"/>';
 		
-	content.innerHTML='<img id="mapid" src="/maptile/get?pos=${c.pos}&zoomlevel=${c.zoomlevel}&width='+(w-3)+'&height='+(h-3)+'"/>'+
+		}
+	}		
+	content.innerHTML=imgs+	
 	'<div id="overlay1" style="position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onclick="on_clickmap(event)" id="overlay2" style="position:absolute;z-index:2;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div id="mmenu" class="popup">'+
@@ -104,7 +123,6 @@ function loadmap()
 	draw_jg();
 	anychangetosave=0;
 	setInterval("if (anychangetosave!=0) save_data(null)", 30*1000);
-	
 }
 
 addLoadEvent(loadmap);

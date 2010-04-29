@@ -98,37 +98,34 @@ class MapviewController(BaseController):
             raise
             return "notok"        
         
-        
+    
     def zoom(self):
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
-        #user.last_map_pos='59,18'
-        lat,lon=session['last_map_pos']    
+                
             
-        if request.params['zoom']!='':
-            zoom=float(request.params['zoom'])
-            print "zoom: ",zoom
-            
-            if zoom<0:
-                session['last_map_size']=session['last_map_size']+1
-            else:
-                session['last_map_size']=session['last_map_size']-1                                
-            if session['last_map_size']<3:
-                session['last_map_size']=3            
-            if session['last_map_size']>13:
-                session['last_map_size']=13
-        if request.params['center']!='':
-            lats,lons=request.params['center'].split(",")
-            lat=float(lats)
-            lon=float(lons)%360.0
-        
-            
-            
-        session['last_map_pos']=(lat,lon)
-        session.save()        
-        meta.Session.flush()
-        meta.Session.commit()
+        zoomlevel=float(request.params['zoom'])
+        if zoomlevel<0: zoomlevel=0
+        if zoomlevel>13: zoomlevel=13
+        print "Zoomlevel: %s"%(zoomlevel,)
+        mercmaxx=mapper.max_merc_x(zoomlevel)    
+        mercmaxy=mapper.max_merc_y(zoomlevel)
 
+        pos=mapper.from_str(request.params['center'])
+        
+        pos=list(pos)          
+        if pos[0]<0:
+            pos[0]=0
+        if pos[0]>mercmaxx:
+            pos[0]=mercmaxx    
+        if pos[1]<0:
+            pos[1]=0
+        if pos[1]>mercmaxy:
+            pos[1]=mercmaxy    
+        
+        session['last_pos']=pos
+        session['zoom']=zoomlevel
+        session.save()        
         
         redirect_to(h.url_for(controller='mapview',action="index"))
 
@@ -155,31 +152,17 @@ class MapviewController(BaseController):
                 trip=trips[0]
             session['current_trip']=trip.trip
             trip=None
-            
-        if not 'last_map_pos' in session:
-            session['last_map_pos']=(59,15)
-        if not 'last_map_size' in session:
-            session['last_map_size']=5.0
-            
-        zoomlevel=session['last_map_size']
-        session.save()        
-        
-        coords=session['last_map_pos']
-        c.pos=mapper.to_aviation_format(coords)        
-        c.lat=coords[0]
-        c.lon=coords[1]
+
+        zoomlevel=session.get('zoom',0)
+        pos=session.get('last_pos',mapper.latlon2merc((59,18),zoomlevel)) #Pos is always in the _old_ zoomlevel, even if zoomlevel changes (for now)
+                                
+        c.merc_x=int(pos[0]);
+        c.merc_y=int(pos[1]);        
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
         c.tripname=session['current_trip']
-        print "Lat/Lon: %f/%f"%(c.lat,c.lon)        
+        print "Zoomlevel active: ",zoomlevel
         
-        merc_x,merc_y=mapper.latlon2merc(coords,zoomlevel)
-        upper=mapper.merc2latlon((merc_x,merc_y-100/2.0),zoomlevel)[0]
-        lower=mapper.merc2latlon((merc_x,merc_y+100/2.0),zoomlevel)[0]
-        
-        corners=get_map_corners(pixelsize=(100,100),center=coords,lolat=lower,hilat=upper)
-        c.topleft_lon=c.corners[1]
-        c.topleft_lat=c.corners[2]
-        
-        c.zoomlevel=session['last_map_size'];
+        c.zoomlevel=zoomlevel
         return render('/mapview.mako')
+        
