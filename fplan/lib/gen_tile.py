@@ -29,6 +29,9 @@ def generate_tile(pixelsize,x1,y1,zoomlevel):
         end=mod*int(math.ceil(b/mod))
         return xrange(start,end,mod)
     
+    
+    #draw.text((0,0),"upper",fill=(255,255,255),font=font)
+    draw.rectangle(((0,0),(pixelsize[0]-1,pixelsize[1]-1)),outline=(255,255,255))        
     for y in modrange(min_y,max_y,100):
         for x in modrange(min_x,max_x,100):
             latlon=mapper.merc2latlon((x,y),zoomlevel)

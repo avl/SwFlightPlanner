@@ -14,8 +14,17 @@
 
 map_zoomlevel=${c.zoomlevel};
 map_topleft_merc=undefined;
+screen_size_x=0;
+screen_size_y=0;
+tilesize=256;
+xsegcnt=0;
+ysegcnt=0;
 saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
+tilestart=[];//upper left corner of tile grid
+tiles=[];
+overlay_left=0;
+overlay_top=0;
 
 function loadmap()
 {
@@ -24,36 +33,55 @@ function loadmap()
 	var w=content.offsetWidth;
 	var left=content.offsetLeft;
 	var top=content.offsetTop;
-	
+	overlay_left=left;
+	overlay_top=top;
+	screen_size_x=w;
+	screen_size_y=h;
 	
 	map_topleft_merc=[parseInt(${c.merc_x}-0.5*w),parseInt(${c.merc_y}-0.5*h)];
 	if (map_topleft_merc[1]<0)
 		map_topleft_merc[1]=0;
 
+
+	tilestart=[map_topleft_merc[0],map_topleft_merc[1]];
+	tilestart[0]=tilestart[0]-(tilestart[0]%tilesize);
+	tilestart[1]=tilestart[1]-(tilestart[1]%tilesize);
+	//alert('topleft merc x: '+map_topleft_merc[0]+' tilestart x: '+tilestart[0]);
+	var tileoffset_x=tilestart[0]-map_topleft_merc[0];
+	var tileoffset_y=tilestart[1]-map_topleft_merc[1];
+	//alert('tileoffset x: '+tileoffset_x);
 	var imgs='';
-	var segc=4;
-	for(var iy=0;iy<segc;++iy)
+	xsegcnt=parseInt(Math.ceil(w/tilesize)+1.5);
+	ysegcnt=parseInt(Math.ceil(h/tilesize)+1.5);
+	var offy1=tileoffset_y;
+	var mercy=tilestart[1];
+	for(var iy=0;iy<ysegcnt;++iy)
 	{
-		var offy1=parseInt((iy)*h/segc);
-		var offy2=parseInt((iy+1)*h/segc);
-		var segh=offy2-offy1;
-		for(var ix=0;ix<segc;++ix)
+		var row=[];
+		var offx1=tileoffset_x;
+		var mercx=tilestart[0];
+		for(var ix=0;ix<xsegcnt;++ix)
 		{
-			var offx1=parseInt((ix)*w/segc);
-			var offx2=parseInt((ix+1)*w/segc);
-			var segw=offx2-offx1;			
-			imgs+='<img style="position:absolute;z-index:0;left:'+(left+offx1)+'px;top:'+
-				(top+offy1)+'px;width:'+(segw)+'px;height:'+(segh)+'px" id="mapid'+iy+''+ix+
+			imgs+='<img style="position:absolute;z-index:0;left:'+(offx1)+'px;top:'+
+				(offy1)+'px;width:'+(tilesize)+'px;height:'+(tilesize)+'px" id="mapid'+iy+''+ix+
 				'" src="/maptile/get?x1='+
-				(map_topleft_merc[0]+offx1)+'&y1='+
-				(map_topleft_merc[1]+offy1)+'&zoomlevel=${c.zoomlevel}&width='+
-				(segw)+'&height='+(segh)+'"/>';
-		
+				(mercx)+'&y1='+
+				(mercy)+'&zoomlevel=${c.zoomlevel}&width='+
+				(tilesize)+'&height='+(tilesize)+'"/>';
+			offx1+=tilesize
+			mercx+=tilesize;
 		}
-	}		
-	content.innerHTML=imgs+	
+		offy1+=tilesize;
+		mercy+=tilesize;
+	}
+
+	content.innerHTML=''+
+	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;">'+	
+	imgs+
+	'</div>'+	
 	'<div id="overlay1" style="position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onclick="on_clickmap(event)" id="overlay2" style="position:absolute;z-index:2;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div id="overlay2" style="position:absolute;z-index:2;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" id="overlay3" style="position:absolute;z-index:3;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+
@@ -102,6 +130,29 @@ function loadmap()
 	
 	map_ysize=h;
 	map_xsize=w;
+
+	var mercy=tilestart[1];
+	var offy=tileoffset_y;
+	for(var iy=0;iy<ysegcnt;++iy)
+	{
+		var mercx=tilestart[0];
+		var offx=tileoffset_x;
+		for(var ix=0;ix<xsegcnt;++ix)
+		{
+			var tile=new Object();
+			tile.img=document.getElementById('mapid'+iy+''+ix);
+			tile.mercx=mercx;
+			tile.mercy=mercy;
+			tile.x1=offx;	
+			tile.y1=offy;	
+			tiles.push(tile);
+			offx+=tilesize;
+			mercx+=tilesize;				
+		}
+		offy+=tilesize;
+		mercy+=tilesize;
+	}	
+	
 	
 	
 	jgq = new jsGraphics("overlay1");
@@ -123,6 +174,8 @@ function loadmap()
 	draw_jg();
 	anychangetosave=0;
 	setInterval("if (anychangetosave!=0) save_data(null)", 30*1000);
+	
+	
 }
 
 addLoadEvent(loadmap);

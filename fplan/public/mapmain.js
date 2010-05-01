@@ -198,12 +198,6 @@ function on_key(event)
 /*
 	if (event.which==67)
 	{
-		if (last_mousemove_lat==-90)
-			return false;
-		
-		var form=document.getElementById('helperform');
-		form.center.value=''+last_mousemove_lat+','+last_mousemove_lon;
-		form.submit();	
 	}
 */
 }
@@ -505,12 +499,12 @@ function merc2screen_y(merc_y)
 }
 function client2merc_x(clientX)
 {
-	var screen_x=clientX-document.getElementById('mapid00').offsetLeft;
+	var screen_x=clientX-document.getElementById('mapcontainer').offsetLeft;
 	return map_topleft_merc[0]+screen_x;
 }
 function client2merc_y(clientY)
 {
-	var screen_y=clientY-document.getElementById('mapid00').offsetTop;
+	var screen_y=clientY-document.getElementById('mapcontainer').offsetTop;
 	return map_topleft_merc[1]+screen_y;
 }
 function draw_jg()
@@ -540,16 +534,16 @@ function draw_jg()
 						}						
 						else
 						{				
-						var l=clipline(
-							merc2screen_x(wps[i-1][0]),
-							merc2screen_y(wps[i-1][1]),
-							merc2screen_x(wps[i][0]),
-							merc2screen_y(wps[i][1])
-			    			);
-			    		if (l.length)	    			
-		    				jg.drawLine(
-			    				l[0],l[1],l[2],l[3]
+							var l=clipline(
+								merc2screen_x(wps[i-1][0]),
+								merc2screen_y(wps[i-1][1]),
+								merc2screen_x(wps[i][0]),
+								merc2screen_y(wps[i][1])
 				    			);
+				    		if (l.length)	    			
+			    				jg.drawLine(
+				    				l[0],l[1],l[2],l[3]
+					    			);
 				    	}
 			    	}
 			    }
@@ -651,10 +645,29 @@ function add_waypoint(name,pos)
 	draw_jg();
 }
 
-function on_clickmap(event)
+mouse_is_down=0;
+var initial_mouse_down=[-100,-100];
+function on_mouseout()
 {
+	mouse_is_down=0;
+	end_drag_mode(last_mousemove_x,last_mousemove_y);
+}
+function on_mouseup(event)
+{
+	mouse_is_down=0;
+	end_drag_mode(event.clientX,event.clientY);
+}
+function on_mousedown(event)
+{
+	if(event.preventDefault) //prevent imagedrag on firefox
+	{
+	  event.preventDefault();
+	}
+	mouse_is_down=1;
+	end_drag_mode(event.clientX,event.clientY);
 	relx=client2merc_x(event.clientX);
 	rely=client2merc_y(event.clientY);
+	initial_mouse_down=[event.clientX,event.clientY];
 	if (wps.length>0)
 		extra='<li>Left click on a waypoint or track-line to get more information about it.</li>';
 	else
@@ -734,7 +747,7 @@ function on_clickmap(event)
 		
 		draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 	}
-
+	return false;
 }
 
 function draw_dynamic_lines(cx,cy)
@@ -785,18 +798,43 @@ function draw_dynamic_lines(cx,cy)
 	}
 }
 
-last_mousemove_lat=-90;
-last_mousemove_lon=-360;
-
+last_mousemove_x=0;
+last_mousemove_y=0;
+dragmode=0;
+dragstart=[];
 function on_mousemovemap(event)
 {
+	last_mousemove_x=event.clientX;
+	last_mousemove_y=event.clientY;
 	var mercy=client2merc_y(event.clientY);
 	var mercx=client2merc_x(event.clientX);
+
+	if (mouse_is_down)
+	{
+		if (dragmode==1)
+		{
+			var dx=event.clientX-dragstart[0];
+			var dy=event.clientY-dragstart[1];
+			//alert('drag:'+dx+' , '+dy);
+			pan_map(dx,dy);						
+		}
+		else
+		{
+			var dx=Math.abs(event.clientX-initial_mouse_down[0]);
+			var dy=Math.abs(event.clientY-initial_mouse_down[1]);
+			if (Math.max(dx,dy)>20)
+			{
+				dragmode=1;
+				dragstart=[event.clientX,event.clientY];
+				
+			}
+		}
+	}
+	
+	
 	var latlon=merc2latlon([client2merc_x(event.clientX),mercy]);
 	var lat=latlon[0];
 	var lon=latlon[1];
-	last_mousemove_lat=lat;
-	last_mousemove_lon=lon;
 	document.getElementById("footer").innerHTML='clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' '+aviation_format_pos(latlon);
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
@@ -969,3 +1007,86 @@ function center_map()
 	save_data(implement_center);	
 }
 
+function end_drag_mode(clientX,clientY)
+{
+	if (dragmode==1)
+	{
+		dragmode=0;
+		var dx=parseInt(clientX-dragstart[0]);
+		var dy=parseInt(clientY-dragstart[1]);
+		for(var i=0;i<tiles.length;++i)
+		{
+			var tile=tiles[i];
+			tile.x1+=dx;		
+			tile.y1+=dy;		
+		}
+		
+		pan_map(0,0); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
+		map_topleft_merc[0]=map_topleft_merc[0]-dx;
+		map_topleft_merc[1]=map_topleft_merc[1]-dy;
+		tilestart[0]=tilestart[0]-dx;
+		tilestart[1]=tilestart[1]-dy;
+		jgq.clear();
+		draw_jg();
+	}
+}
+function pan_map(dx,dy)
+{
+	var h=screen_size_y;
+	var w=screen_size_x;
+	var topleft_merc_x=map_topleft_merc[0]-dx;
+	var topleft_merc_y=map_topleft_merc[1]-dy;
+	
+	for(var i=0;i<tiles.length;++i)
+	{
+		var tile=tiles[i];		
+		var x=tile.x1+dx;
+		var y=tile.y1+dy;
+		var need_reload=0;
+		if (x+tilesize<=-tilesize/4)
+		{ //tile has passed too far to the left
+			tile.mercx+=xsegcnt*tilesize;
+			tile.x1+=xsegcnt*tilesize;
+			x+=xsegcnt*tilesize;
+			need_reload=1;
+		}
+		if (x>=w+tilesize/4)
+		{ //tile has passed too far to the right
+			tile.mercx-=xsegcnt*tilesize;
+			tile.x1-=xsegcnt*tilesize;
+			x-=xsegcnt*tilesize;
+			need_reload=1;
+		}
+		
+		if (y+tilesize<=-tilesize/4)
+		{ //tile has passed too far up
+			tile.mercy+=ysegcnt*tilesize;
+			tile.y1+=ysegcnt*tilesize;
+			y+=ysegcnt*tilesize;
+			need_reload=1;
+		}
+		if (y>=h+tilesize/4)
+		{ //tile has passed too far down
+			tile.mercy-=ysegcnt*tilesize;
+			tile.y1-=ysegcnt*tilesize;
+			y-=ysegcnt*tilesize;
+			need_reload=1;
+		}
+		
+		if (need_reload)
+		{
+			//tile.img.src='/boilerplate.jpg';			
+			tile.img.src='/maptile/get?x1='+
+				(tile.mercx)+'&y1='+
+				(tile.mercy)+'&zoomlevel='+map_zoomlevel+'&width='+
+				(tilesize)+'&height='+tilesize;
+	        	
+		}
+		tile.img.style.left=''+x+'px';
+		tile.img.style.top=''+y+'px';
+	}
+	//asdf
+	var overlay2=document.getElementById('overlay2');
+	overlay2.style.left=''+(overlay_left+dx)+'px';
+	overlay2.style.top=''+(overlay_top+dy)+'px';
+}
