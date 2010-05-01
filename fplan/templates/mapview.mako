@@ -33,8 +33,8 @@ function loadmap()
 	var w=content.offsetWidth;
 	var left=content.offsetLeft;
 	var top=content.offsetTop;
-	overlay_left=left;
-	overlay_top=top;
+	overlay_left=0; //relative to mapcontainer, the parent
+	overlay_top=0;
 	screen_size_x=w;
 	screen_size_y=h;
 	
@@ -64,10 +64,7 @@ function loadmap()
 		{
 			imgs+='<img style="position:absolute;z-index:0;left:'+(offx1)+'px;top:'+
 				(offy1)+'px;width:'+(tilesize)+'px;height:'+(tilesize)+'px" id="mapid'+iy+''+ix+
-				'" src="/maptile/get?x1='+
-				(mercx)+'&y1='+
-				(mercy)+'&zoomlevel=${c.zoomlevel}&width='+
-				(tilesize)+'&height='+(tilesize)+'"/>';
+				'" src="/tiles/'+${c.zoomlevel}+'/'+mercy+'/'+mercx+'.png"/>';
 			offx1+=tilesize
 			mercx+=tilesize;
 		}
@@ -78,10 +75,11 @@ function loadmap()
 	content.innerHTML=''+
 	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;">'+	
 	imgs+
+	'<div id="overlay1" style="overflow:hidden;position:absolute;z-index:1;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div id="overlay2" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" id="overlay3" '+
+	'style="overflow:hidden;position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'</div>'+	
-	'<div id="overlay1" style="position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div id="overlay2" style="position:absolute;z-index:2;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" id="overlay3" style="position:absolute;z-index:3;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+

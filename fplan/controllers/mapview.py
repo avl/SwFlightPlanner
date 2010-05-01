@@ -6,7 +6,7 @@ from fplan.model import meta,User,Trip,Waypoint
 import fplan.lib.mapper as mapper
 import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
-from fplan.lib.gen_tile import generate_tile,get_map_corners
+
 
 import sqlalchemy as sa
 import routes.util as h
@@ -153,7 +153,7 @@ class MapviewController(BaseController):
             session['current_trip']=trip.trip
             trip=None
 
-        zoomlevel=session.get('zoom',0)
+        zoomlevel=int(session.get('zoom',0))
         pos=session.get('last_pos',mapper.latlon2merc((59,18),zoomlevel)) #Pos is always in the _old_ zoomlevel, even if zoomlevel changes (for now)
                                 
         c.merc_x=int(pos[0]);

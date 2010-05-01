@@ -491,6 +491,7 @@ function on_rightclickmap(event)
 
 function merc2screen_x(merc_x)
 { //screen = map
+	
 	return parseInt(merc_x)-map_topleft_merc[0];
 }
 function merc2screen_y(merc_y)
@@ -659,23 +660,12 @@ function on_mouseup(event)
 		return true;
 	}
 	mouse_is_down=0;
-	end_drag_mode(event.clientX,event.clientY);
-}
-function on_mousedown(event)
-{
-	if (event.which!=1)
-	{	 //not left button
-		return true;
-	}
-	if(event.preventDefault) //prevent imagedrag on firefox
-	{
-	  event.preventDefault();
-	}
-	mouse_is_down=1;
-	end_drag_mode(event.clientX,event.clientY);
+	if (end_drag_mode(event.clientX,event.clientY))
+		return false;
+
 	relx=client2merc_x(event.clientX);
 	rely=client2merc_y(event.clientY);
-	initial_mouse_down=[event.clientX,event.clientY];
+	
 	if (wps.length>0)
 		extra='<li>Left click on a waypoint or track-line to get more information about it.</li>';
 	else
@@ -755,6 +745,22 @@ function on_mousedown(event)
 		
 		draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 	}
+	
+}
+function on_mousedown(event)
+{
+	if (event.which!=1)
+	{	 //not left button
+		return true;
+	}
+	if(event.preventDefault) //prevent imagedrag on firefox
+	{
+	  event.preventDefault();
+	}
+	mouse_is_down=1;
+	end_drag_mode(event.clientX,event.clientY);
+	initial_mouse_down=[event.clientX,event.clientY];
+
 	return false;
 }
 
@@ -765,23 +771,31 @@ function draw_dynamic_lines(cx,cy)
 		
 		jgq.clear();
 		jgq.setColor("#00bf00");
-    	jgq.fillEllipse(merc2screen_x(cx-5),merc2screen_y(cy-5),10,10);
-		jgq.setColor("#ffffff");
-		jgq.fillEllipse(merc2screen_x(cx-3),merc2screen_y(cy-3),6,6);
-		jgq.setColor("#00bf00");
+		if (clippoint(merc2screen_x(cx),merc2screen_y(cy)))
+		{
+	    	jgq.fillEllipse(merc2screen_x(cx-5),merc2screen_y(cy-5),10,10);
+			jgq.setColor("#ffffff");
+			jgq.fillEllipse(merc2screen_x(cx-3),merc2screen_y(cy-3),6,6);
+			jgq.setColor("#00bf00");
+		}
 		
 		jgq.paint();
 	}
 	else if (waypointstate=='addwaypoint')
 	{
 		jgq.clear();
-		jgq.drawLine(merc2screen_x(anchorx),merc2screen_y(anchory),merc2screen_x(cx),merc2screen_y(cy));
-		jgq.setColor("#00bf00");
-		
-    	jgq.fillEllipse(merc2screen_x(cx-5),merc2screen_y(cy-5),(10),(10));
-		jgq.setColor("#ffffff");
-		jgq.fillEllipse(merc2screen_x(cx-3),merc2screen_y(cy-3),(6),(6));
-		jgq.setColor("#00bf00");
+		l=clipline(merc2screen_x(anchorx),merc2screen_y(anchory),merc2screen_x(cx),merc2screen_y(cy));
+		if (l.length>0) 
+			jgq.drawLine(l[0],l[1],l[2],l[3]);
+
+		if (clippoint(merc2screen_x(cx),merc2screen_y(cy)))
+		{
+			jgq.setColor("#00bf00");		
+	    	jgq.fillEllipse(merc2screen_x(cx-5),merc2screen_y(cy-5),(10),(10));
+			jgq.setColor("#ffffff");
+			jgq.fillEllipse(merc2screen_x(cx-3),merc2screen_y(cy-3),(6),(6));
+			jgq.setColor("#00bf00");
+		}
 		
 		jgq.paint();
 	}
@@ -833,6 +847,8 @@ function on_mousemovemap(event)
 			if (Math.max(dx,dy)>20)
 			{
 				dragmode=1;
+				dragstarttopleftmerc=[map_topleft_merc[0],map_topleft_merc[1]];
+				dragstarttilestart=[tilestart[0],tilestart[1]];
 				dragstart=[event.clientX,event.clientY];
 				
 			}
@@ -1028,22 +1044,25 @@ function end_drag_mode(clientX,clientY)
 			tile.x1+=dx;		
 			tile.y1+=dy;		
 		}
-		
+		dragstarttopleftmerc[0]=map_topleft_merc[0];
+		dragstarttilestart[0]=tilestart[0];
+		dragstarttopleftmerc[1]=map_topleft_merc[1];
+		dragstarttilestart[1]=tilestart[1];
 		pan_map(0,0); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
-		map_topleft_merc[0]=map_topleft_merc[0]-dx;
-		map_topleft_merc[1]=map_topleft_merc[1]-dy;
-		tilestart[0]=tilestart[0]-dx;
-		tilestart[1]=tilestart[1]-dy;
 		jgq.clear();
 		draw_jg();
+		return 1;
 	}
+	return 0;
 }
 function pan_map(dx,dy)
 {
 	var h=screen_size_y;
 	var w=screen_size_x;
-	var topleft_merc_x=map_topleft_merc[0]-dx;
-	var topleft_merc_y=map_topleft_merc[1]-dy;
+	map_topleft_merc[0]=dragstarttopleftmerc[0]-dx;
+	map_topleft_merc[1]=dragstarttopleftmerc[1]-dy;
+	tilestart[0]=dragstarttilestart[0]-dx;
+	tilestart[1]=dragstarttilestart[1]-dy;
 	
 	for(var i=0;i<tiles.length;++i)
 	{
@@ -1084,16 +1103,17 @@ function pan_map(dx,dy)
 		if (need_reload)
 		{
 			//tile.img.src='/boilerplate.jpg';			
-			tile.img.src='/maptile/get?x1='+
+			tile.img.src='/tiles/'+parseInt(map_zoomlevel)+'/'+parseInt(tile.mercy)+'/'+parseInt(tile.mercx)+'.png';
+				/*'/maptile/get?x1='+
 				(tile.mercx)+'&y1='+
 				(tile.mercy)+'&zoomlevel='+map_zoomlevel+'&width='+
-				(tilesize)+'&height='+tilesize;
+				(tilesize)+'&height='+tilesize;*/
 	        	
 		}
 		tile.img.style.left=''+x+'px';
 		tile.img.style.top=''+y+'px';
 	}
-	//asdf
+
 	var overlay2=document.getElementById('overlay2');
 	overlay2.style.left=''+(overlay_left+dx)+'px';
 	overlay2.style.top=''+(overlay_top+dy)+'px';
