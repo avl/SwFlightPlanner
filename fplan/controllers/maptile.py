@@ -19,12 +19,12 @@ class MaptileController(BaseController):
         #png=open("fplan/public/boilerplate.jpg").read()
         #png=open("fplan/public/bg.png").read()
         
-        zoomlevel=float(request.params['zoomlevel'])
-        x1=int(request.params['x1'])
-        y1=int(request.params['y1'])
+        zoomlevel=int(float(request.params.get('zoomlevel',0)))
+        x1=int(request.params.get('x1',0))
+        y1=int(request.params.get('y1',0))
         print "x1,y1:",x1,y1
-        width=int(request.params['width'])
-        height=int(request.params['height'])
+        width=int(request.params.get('width',256))
+        height=int(request.params.get('height',256))
         #png=open("fplan/public/bg.png").read()
         #request.params.get('layout','para')
         

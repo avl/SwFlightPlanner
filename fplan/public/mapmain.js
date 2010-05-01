@@ -654,11 +654,19 @@ function on_mouseout()
 }
 function on_mouseup(event)
 {
+	if (event.which!=1)
+	{	 //not left button
+		return true;
+	}
 	mouse_is_down=0;
 	end_drag_mode(event.clientX,event.clientY);
 }
 function on_mousedown(event)
 {
+	if (event.which!=1)
+	{	 //not left button
+		return true;
+	}
 	if(event.preventDefault) //prevent imagedrag on firefox
 	{
 	  event.preventDefault();
