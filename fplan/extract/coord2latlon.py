@@ -37,6 +37,7 @@ def vec_rotate(angle,vec):
     return (cos(angle)*vec[0]-sin(angle)*vec[1],
             sin(angle)*vec[0]+cos(angle)*vec[1])
 
+Error: What needs to be done: Convert to mercator proj coords for all coord2latlon purposes!
 def fixup(coord,calib):
 
     center_coord=calib['center_coord']
