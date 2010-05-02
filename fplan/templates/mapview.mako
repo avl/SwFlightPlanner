@@ -35,8 +35,8 @@ function loadmap()
 	var top=content.offsetTop;
 	overlay_left=0; //relative to mapcontainer, the parent
 	overlay_top=0;
-	screen_size_x=w;
-	screen_size_y=h;
+	screen_size_x=parseInt(w);
+	screen_size_y=parseInt(h);
 	
 	map_topleft_merc=[parseInt(${c.merc_x}-0.5*w),parseInt(${c.merc_y}-0.5*h)];
 	if (map_topleft_merc[1]<0)
@@ -44,8 +44,8 @@ function loadmap()
 
 
 	tilestart=[map_topleft_merc[0],map_topleft_merc[1]];
-	tilestart[0]=tilestart[0]-(tilestart[0]%tilesize);
-	tilestart[1]=tilestart[1]-(tilestart[1]%tilesize);
+	tilestart[0]=parseInt(tilestart[0]-(tilestart[0]%tilesize));
+	tilestart[1]=parseInt(tilestart[1]-(tilestart[1]%tilesize));
 	//alert('topleft merc x: '+map_topleft_merc[0]+' tilestart x: '+tilestart[0]);
 	var tileoffset_x=tilestart[0]-map_topleft_merc[0];
 	var tileoffset_y=tilestart[1]-map_topleft_merc[1];
@@ -62,8 +62,9 @@ function loadmap()
 		var mercx=tilestart[0];
 		for(var ix=0;ix<xsegcnt;++ix)
 		{
-			imgs+='<img style="position:absolute;z-index:0;left:'+(offx1)+'px;top:'+
-				(offy1)+'px;width:'+(tilesize)+'px;height:'+(tilesize)+'px" id="mapid'+iy+''+ix+
+			imgs+='<img style="border:0px;margin:0px;padding:0px;position:absolute;z-index:0;left:'+(offx1)+'px;top:'+
+				(offy1)+'px;width:'+(tilesize)+'px;height:'+(tilesize)+'px" '+
+				'id="mapid'+iy+''+ix+
 				'" src="/tiles/'+${c.zoomlevel}+'/'+mercy+'/'+mercx+'.png"/>';
 			offx1+=tilesize
 			mercx+=tilesize;
@@ -139,10 +140,10 @@ function loadmap()
 		{
 			var tile=new Object();
 			tile.img=document.getElementById('mapid'+iy+''+ix);
-			tile.mercx=mercx;
-			tile.mercy=mercy;
-			tile.x1=offx;	
-			tile.y1=offy;	
+			tile.mercx=parseInt(mercx);
+			tile.mercy=parseInt(mercy);
+			tile.x1=parseInt(offx);	
+			tile.y1=parseInt(offy);	
 			tiles.push(tile);
 			offx+=tilesize;
 			mercx+=tilesize;				

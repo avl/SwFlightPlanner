@@ -835,8 +835,8 @@ function on_mousemovemap(event)
 	{
 		if (dragmode==1)
 		{
-			var dx=event.clientX-dragstart[0];
-			var dy=event.clientY-dragstart[1];
+			var dx=parseInt(event.clientX-dragstart[0]);
+			var dy=parseInt(event.clientY-dragstart[1]);
 			//alert('drag:'+dx+' , '+dy);
 			pan_map(dx,dy);						
 		}
@@ -859,7 +859,10 @@ function on_mousemovemap(event)
 	var latlon=merc2latlon([client2merc_x(event.clientX),mercy]);
 	var lat=latlon[0];
 	var lon=latlon[1];
-	document.getElementById("footer").innerHTML='clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' '+aviation_format_pos(latlon);
+
+	var ol=document.getElementById('mapcontainer').offsetLeft;
+
+	document.getElementById("footer").innerHTML='offsetLeft: '+ol+'mtm'+map_topleft_merc[0]+' clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' '+aviation_format_pos(latlon);
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }

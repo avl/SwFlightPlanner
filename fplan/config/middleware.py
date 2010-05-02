@@ -8,7 +8,7 @@ from pylons import config
 from pylons.middleware import ErrorHandler, StatusCodeRedirect
 from pylons.wsgiapp import PylonsApp
 from routes.middleware import RoutesMiddleware
-
+import os
 from fplan.config.environment import load_environment
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
@@ -63,7 +63,18 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
 
     if asbool(static_files):
         # Serve static files
+        print "Serving static content from ",config['pylons.paths']['static_files']
         static_app = StaticURLParser(config['pylons.paths']['static_files'])
+
+        tile_dir=config['tile_dir']
+        assert tile_dir.endswith("/")
+        if not os.path.exists(tile_dir+"tiles/"):
+            raise Exception("%s must exist, and be a directory with map tiles"%(tile_dir+"tiles/"))
+        static_app_tiles = StaticURLParser(
+            tile_dir,
+            root_directory=tile_dir+"tiles/")
+
+        app = Cascade([static_app_tiles, app])
         app = Cascade([static_app, app])
 
     return app
