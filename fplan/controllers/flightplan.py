@@ -8,11 +8,26 @@ import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import json
-
+import re
 
 class FlightplanController(BaseController):
-    def search(self):        
+    def search(self):
         searchstr=request.params.get('search','')
+
+        latlon_match=re.match(r"(\d+)\.(\d+)([NS])(\d+)\.(\d+)([EW])",searchstr)
+        print "latlon_match",latlon_match
+        if latlon_match:
+            latdeg,latdec,ns,londeg,londec,ew=latlon_match.groups()
+            lat=float(latdeg)+float("0."+latdec)
+            lon=float(londeg)+float("0."+londec)
+            if ns in ['S','s']:
+                lat=-lat
+            if ew in ['W','w']:
+                lon=-lon
+            print "latlon",lat,lon
+            return json.dumps([['Unknown Waypoint',[lat,lon]]])                
+
+
         print "Searching for ",searchstr
         airports=meta.Session.query(Airport).filter(
                 sa.or_(Airport.airport.like('%%%s%%'%(searchstr,)),
