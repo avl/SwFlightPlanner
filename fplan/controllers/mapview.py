@@ -153,7 +153,7 @@ class MapviewController(BaseController):
             session['current_trip']=trip.trip
             trip=None
 
-        zoomlevel=int(session.get('zoom',0))
+        zoomlevel=int(session.get('zoom',5))
         pos=session.get('last_pos',mapper.latlon2merc((59,18),zoomlevel)) #Pos is always in the _old_ zoomlevel, even if zoomlevel changes (for now)
                                 
         c.merc_x=int(pos[0]);

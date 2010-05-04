@@ -3,19 +3,16 @@ import math
 from math import cos,sin
 import fplan.lib.mapper as mapper
 
-def parse_line(l,inv=True):
+zoomlevel=10
+
+def parse_line(l):
     name,coords_str=l.split(":")
     coords=[]
     for coord_str in coords_str.strip().split(";"):
         coord=[]
         for component in coord_str.strip().split(","):
             coord.append(int(component.strip()))
-        if inv:
-            x,y=coord
-            x=float(x)
-            y=float(y)
-        else:
-            x,y=coord
+        x,y=coord
 
         coords.append((x,y))
     return name.strip(),coords
@@ -27,7 +24,7 @@ def vec_sub(x,y):
 def get_angle(v):
     return math.atan2(v[1],v[0])
 def format_latlon(p):
-    return "%.5fN%.5fE"%(p[1],p[0])
+    return "%.5fN%.5fE"%(p[0],p[1])
 
 def vec_add(a,b):
     return a[0]+b[0],a[1]+b[1]
@@ -37,7 +34,6 @@ def vec_rotate(angle,vec):
     return (cos(angle)*vec[0]-sin(angle)*vec[1],
             sin(angle)*vec[0]+cos(angle)*vec[1])
 
-Error: What needs to be done: Convert to mercator proj coords for all coord2latlon purposes!
 def fixup(coord,calib):
 
     center_coord=calib['center_coord']
@@ -95,7 +91,8 @@ def run(path):
         geo_points=[]
         for cd in coords:
             geo_points.append(fixup(cd,calib))
-        print name,":","; ".join(format_latlon(mapper.merc2mlatlon(c,zoomlevel)) for c in geo_points)
+        #print "Coords: %s, geo points: %s"%(coords,geo_points)
+        print name,":","; ".join(format_latlon(mapper.merc2latlon(c,zoomlevel)) for c in geo_points)
     
 
 
