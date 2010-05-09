@@ -52,6 +52,7 @@ def run(path):
     lines=list(f)
     calib=None
     for line in lines:
+        if line.strip()=="": continue
         name,coords=parse_line(line)
         if name.count("(")==1 and name.count(")")==1:
             print "Calib:",name,coords
@@ -85,16 +86,20 @@ def run(path):
                 scale=float(geo_dist)/float(coord_dist))
     assert calib!=None
     print calib
+    ret=dict()
     for line in lines:
+        if line.strip()=="": continue
         name,coords=parse_line(line)
         #if name.count("(")!=1 or name.count(")")!=1:
         geo_points=[]
         for cd in coords:
             geo_points.append(fixup(cd,calib))
+        
+        ret[name]=[mapper.merc2latlon(c,zoomlevel) for c in geo_points]
         #print "Coords: %s, geo points: %s"%(coords,geo_points)
         print name,":","; ".join(format_latlon(mapper.merc2latlon(c,zoomlevel)) for c in geo_points)
     
-
+    return ret
 
 if __name__=='__main__':
     run(sys.argv[1])
