@@ -2,16 +2,7 @@ from fetchdata import getxml
 from parse import Parser
 import re
 
-def parse_coords(lat,lon):
-    latdeg=float(lat[0:2])
-    latmin=float(lat[2:4])
-    latsec=float(lat[4:6])
-    londeg=float(lon[0:3])
-    lonmin=float(lon[3:5])
-    lonsec=float(lon[5:7])
-    latdec=latdeg+latmin/60.0+latsec/(60.0*60.0)
-    londec=londeg+lonmin/60.0+lonsec/(60.0*60.0)
-    return '%.10f,%.10f'%(latdec,londec)
+from mapper import parse_coords
     
 def extract_airfields():
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")

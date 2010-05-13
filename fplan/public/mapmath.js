@@ -30,10 +30,29 @@ function scalar_vector_prod(sc,v2)
 {
 	return [sc*v2[0],sc*v2[1],sc*v2[2]];
 }
-function format_distance(meters)
+function format_distance(meters,extra)
 {
 	var naut=meters/1852.0;
-	return ''+naut.toFixed(0)+" NM";	
+	if (naut<10.0)
+		prec=1;
+	if (extra)
+	{
+		if (meters<1000.0)
+		{
+			return ''+naut.toFixed(prec)+" NM ("+meters.toFixed(0)+' m)';
+		}
+		else
+		{
+			kilometers=meters/1000.0;
+			prec=0;
+			if (kilometers<10) prec=1;
+			return ''+naut.toFixed(prec)+" NM ("+kilometers.toFixed(prec)+' km)';
+		}
+	}
+	else
+	{
+		return ''+naut.toFixed(prec)+" NM";
+	}
 }
 function to_vector(latlon)
 {	

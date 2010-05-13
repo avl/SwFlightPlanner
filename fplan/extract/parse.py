@@ -56,7 +56,30 @@ class Page(object):
         if ysort:
             out.sort(key=lambda x:x.y1)        
         return out
-            
+    def get_lines(self,items,fudge=0.25):
+        si=sorted(items,key=lambda x:x.y1)
+        si=sorted(si,key=lambda x:x.x1)
+        last=None
+        out=[]
+        linesize=None
+        for item in si:
+            if last==None:
+                out.append(item.text.strip())
+                last=item
+                continue
+            new_linesize=abs(last.y1-item.y1)
+            if new_linesize<fudge:
+                out[-1]=(out[-1]+" "+item.text.strip()).strip()
+            else:
+                if linesize==None:
+                    linesize=new_linesize
+                else:
+                    if new_linesize>1.75*linesize:
+                        out.append("")                        
+                out.append(item.text.strip())
+            last=item
+        return out
+        
         
 class Parser(object):
     def load_xml(self,path,loadhook=None):

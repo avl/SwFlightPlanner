@@ -49,6 +49,14 @@ class MapviewController(BaseController):
                 User.user==session['user']).one()
             oldname=request.params.get('oldtripname','')
             tripname=request.params.get('tripname','')
+            if 'showarea' in request.params and request.params['showarea']:
+                sha=request.params['showarea']
+                if (sha=='.'):
+                    session['showarea']=''
+                else:
+                    session['showarea']=sha
+                    print "Saved showarea:",sha                
+                session.save()
             #print "Req:",request.params
             oldtrip=None
             if oldname.strip():
@@ -73,12 +81,12 @@ class MapviewController(BaseController):
                 meta.Session.query(Waypoint).filter(
                     sa.and_(Waypoint.user==user.user,Waypoint.trip==trip.trip,
                             Waypoint.pos==rem)).delete()
-                print "\n\n====DELETING!=====\n%s\n\n"%(rem,)
+                #print "\n\n====DELETING!=====\n%s\n\n"%(rem,)
                     
             for add in added:                
                 wp=wps[add]
                 waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'])
-                print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
+                #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
             for upd in updated:
                 wp=wps[upd]
@@ -89,7 +97,7 @@ class MapviewController(BaseController):
                     u=us[0]
                     u.pos=wp['pos']
                     u.waypoint=wp['name']
-                    print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
+                    #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
             meta.Session.flush()
             meta.Session.commit();
             
@@ -103,16 +111,57 @@ class MapviewController(BaseController):
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
                 
-            
-        zoomlevel=float(request.params['zoom'])
-        if zoomlevel<0: zoomlevel=0
-        if zoomlevel>13: zoomlevel=13
-        print "Zoomlevel: %s"%(zoomlevel,)
+        if request.params['zoom']=='auto':
+            print "showarea: ",session.get('showarea','')
+            if session.get('showarea','')!='':                
+                zoom=13
+                minx=1e30
+                maxx=-1e30
+                miny=1e30
+                maxy=-1e30                
+                for vert in mapper.parse_lfv_area(session.get('showarea')):
+                    merc=mapper.latlon2merc(mapper.from_str(vert),zoom)
+                    minx=min(minx,merc[0])
+                    miny=min(miny,merc[1])
+                    maxx=max(maxx,merc[0])
+                    maxy=max(maxy,merc[1])                
+                if maxy<-1e29:                                    
+                    session['zoom']=6 #no vertices...   
+                    session['last_pos']=mapper.latlon2merc((59,18),6)
+                else:
+                    size=max(maxx-minx,maxy-miny)
+                    if (maxx==minx and maxy==miny):
+                        zoom=10
+                    else:
+                        nominal_size=400
+                        while zoom>=0 and size>nominal_size:
+                            zoom-=1
+                            size/=2.0                            
+                    session['zoom']=zoom                    
+                    pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
+                    latlon=mapper.merc2latlon(pos,13)
+                    session['last_pos']=mapper.latlon2merc(latlon,zoom)
+            else:
+                #mapper.parse_lfv_area()
+                session['zoom']=6               
+                session['last_pos']=mapper.latlon2merc((59,18),6)
+            print "Autozoom zooming to level %d at %s"%(session['zoom'],session['last_pos'])
+        else:
+            zoomlevel=float(request.params['zoom'])
+            if zoomlevel<0: zoomlevel=0
+            if zoomlevel>13: zoomlevel=13
+            print "Zoomlevel: %s"%(zoomlevel,)
+    
+            pos=mapper.from_str(request.params['center'])
+            session['last_pos']=pos
+            session['zoom']=zoomlevel
+
+        pos=session['last_pos']
+        zoomlevel=session['zoom']
+
         mercmaxx=mapper.max_merc_x(zoomlevel)    
         mercmaxy=mapper.max_merc_y(zoomlevel)
-
-        pos=mapper.from_str(request.params['center'])
-        
+            
         pos=list(pos)          
         if pos[0]<0:
             pos[0]=0
@@ -126,9 +175,7 @@ class MapviewController(BaseController):
         session['last_pos']=pos
         session['zoom']=zoomlevel
         session.save()        
-        
         redirect_to(h.url_for(controller='mapview',action="index"))
-
     
     def index(self):
         user=meta.Session.query(User).filter(
@@ -161,6 +208,11 @@ class MapviewController(BaseController):
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
         c.tripname=session['current_trip']
+        c.showarea=session.get('showarea','')
+        if session.get('showarea','')=='':
+            c.tilestyle="plain"
+        else:
+            c.tilestyle="showarea"   
         print "Zoomlevel active: ",zoomlevel
         
         c.zoomlevel=zoomlevel

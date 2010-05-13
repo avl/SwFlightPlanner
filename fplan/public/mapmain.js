@@ -1,12 +1,20 @@
 
 use_great_circles=0;
 
-function provide_help(msg)
+function setdetailpane(bgcol,display,cont)
 {
 	var h=document.getElementById('detail-pane');
-	h.style.background="#ffe0e0";
-	h.style.display='block';
-	h.innerHTML='<b>Hints:</b><br/>'+msg;
+	h.style.background=bgcol;
+	h.style.display=display;
+	h.innerHTML=cont;
+}
+function hidedetailpane()
+{
+	setdetailpane('#ffffff','none','');	
+}
+function provide_help(msg)
+{
+	setdetailpane("#ffe0e0",'block','<b>Hints:</b><br/>'+msg);
 }
 
 opinprogress=0;
@@ -59,6 +67,8 @@ function save_data(cont)
 	}			
 	params['tripname']=document.getElementById('entertripname').value;
 	params['oldtripname']=document.getElementById('oldtripname').value;
+	params['showarea']=showarea;
+	
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -109,24 +119,19 @@ function tab_select_waypoints(idxs,col)
 		else
 			rowelem.style.backgroundColor='#ffffff';
 	}
-	var pane=document.getElementById('detail-pane');
 	if (idxs.length==0)
 	{
-		pane.innerHTML='';
-		pane.style.display='none';
+		hidedetailpane();
 	}
 	if (idxs.length==1)
 	{
 		var idx=idxs[0];		
 		var name=glist.rows[idx].cells[1].childNodes[0].value;
-		pane.innerHTML=''+
-			'<h2>'+name+'</h2>'+
-			'<p><b>Position:</b>'+aviation_format_pos(merc2latlon(wps[idx]))+'</p>'+
-			''+
-			''+
-			'';
-		pane.style.backgroundColor="#a0a0ff";
-		pane.style.display='block';
+		setdetailpane(
+				"#a0a0ff",
+				'block',
+				'<h2>'+name+'</h2>'+
+				'<p><b>Position:</b>'+aviation_format_pos(merc2latlon(wps[idx]))+'</p>');
 	}
 	if (idxs.length==2)
 	{
@@ -134,15 +139,11 @@ function tab_select_waypoints(idxs,col)
 		var idx2=idxs[1];
 		var name1=glist.rows[idx1].cells[1].childNodes[0].value;
 		var name2=glist.rows[idx2].cells[1].childNodes[0].value;
-		pane.innerHTML=''+
+		setdetailpane('#ffa0a0',
+				'block',
 			'<h2>'+name1+' - '+name2+'</h2>'+
-			'<p><b>Distance:</b> '+format_distance(dist_between(merc2latlon(wps[idx1]),merc2latlon(wps[idx2])))+'</p>'+
-			'<p><b>True Heading:</b> '+format_heading(heading_between(merc2latlon(wps[idx1]),merc2latlon(wps[idx2])))+'</p>'+
-			''+
-			''+
-			'';
-		pane.style.backgroundColor="#ffa0a0";
-		pane.style.display='block';
+			'<p><b>Distance:</b> '+format_distance(dist_between(merc2latlon(wps[idx1]),merc2latlon(wps[idx2])),1)+'</p>'+
+			'<p><b>True Heading:</b> '+format_heading(heading_between(merc2latlon(wps[idx1]),merc2latlon(wps[idx2])))+'</p>');
 		
 		
 	}
@@ -207,22 +208,30 @@ function dozoom(how,pos)
 {
 	var form=document.getElementById('helperform');
 
-	
+	if (how=='auto')
+	{
+		form.zoom.value='auto';
+		form.submit();
+		return;
+	}
+
+	var zoomparam=map_zoomlevel;
 	var mercx=pos[0];
 	var mercy=pos[1];
 	if (how==1 && map_zoomlevel<13)
 	{
 		mercx*=2.0;
 		mercy*=2.0;
-		map_zoomlevel+=1;
+		zoomparam+=1;
 	}
 	else if (how==-1 && map_zoomlevel>0)
 	{
 		mercx/=2.0;
 		mercy/=2.0;
-		map_zoomlevel-=1;
+		zoomparam-=1;
 	}
-	form.zoom.value=''+(map_zoomlevel);
+	
+	form.zoom.value=''+(zoomparam);
 	form.center.value=''+mercx+','+mercy;
 		
 	form.submit();
@@ -866,6 +875,35 @@ function on_mousemovemap(event)
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }
+function upload_areadata()
+{	
+	
+	function upload_areadata_impl()
+	{
+		dozoom('auto',0);
+	}
+	
+	showarea=document.getElementById('visualize_data_text').value;
+ 	save_data(upload_areadata_impl);
+	return false;
+}
+
+function visualize_data()
+{
+	setdetailpane(
+			"#ffffc0",
+			'block',
+			'<form action="#">'+
+			'Paste an area definition from NOTAM or other source into '+
+			'the area below:<br/>'+
+			'<textarea id="visualize_data_text" rows="5" cols="25" name="text">'+
+			'</textarea>'+
+			'<button onclick="return upload_areadata()">Upload</button>'+
+			'<p style="font-size:70%"><b>Example:</b><br/>554937N 0133636E - 553500N 0133850E - 552620N 0134720E - 550715N 0134720E - 550540N 0125958E - 551458N 0125956E - 554358N 0130656E - 554857N 0130636E - 554937N 0133636E</p>'+
+			'</form>'
+			);
+			
+}
 function get_close_waypoint(relx,rely)
 {
 	var closest_i=0;
@@ -1106,7 +1144,7 @@ function pan_map(dx,dy)
 		if (need_reload)
 		{
 			//tile.img.src='/boilerplate.jpg';			
-			tile.img.src='/tiles/'+parseInt(map_zoomlevel)+'/'+parseInt(tile.mercy)+'/'+parseInt(tile.mercx)+'.png';
+			tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
 				/*'/maptile/get?x1='+
 				(tile.mercx)+'&y1='+
 				(tile.mercy)+'&zoomlevel='+map_zoomlevel+'&width='+

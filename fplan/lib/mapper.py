@@ -65,7 +65,55 @@ def _to_deg_min(x):
 	deg=x/(60*10000)
 	min=(x%(60*10000))/10000.0
 	return deg,min
-
+    
+def parse_lfv_format(lat,lon):
+    latdeg=float(lat[0:2])
+    latmin=float(lat[2:4])
+    if len(lat)>5:
+        latsec=float(lat[4:6])
+    else:
+        latsec=0
+    londeg=float(lon[0:3])
+    lonmin=float(lon[3:5])
+    if len(lon)>6:
+        lonsec=float(lon[5:7])
+    else:
+        lonsec=0
+    latdec=latdeg+latmin/60.0+latsec/(60.0*60.0)
+    londec=londeg+lonmin/60.0+lonsec/(60.0*60.0)
+    if lat[-1]=='S':
+        latdec=-latdec
+    if lon[-1]=='W':
+        londec=-londec
+    return '%.10f,%.10f'%(latdec,londec)
+parse_coords=parse_lfv_format
+def format_lfv(lat,lon):
+    out=[]   
+    for c,(pos,neg) in [(lat,('N','S')),(lon,('E','W'))]:
+        if c<0:
+            sign=-1
+            H=neg
+            c=-c
+            assert c>=0
+        else:
+            H=pos
+            sign=1
+        totseconds=int(round(c*60.0*60.0))
+        degrees=totseconds//3600
+        totseconds-=3600*degrees
+        minutes=totseconds//60
+        totseconds-=60*minutes
+        seconds=totseconds
+        if pos=='N': #latitude            
+            out.append("%02d%02d%02d%s"%(degrees,minutes,seconds,H))
+        else:
+            out.append("%03d%02d%02d%s"%(degrees,minutes,seconds,H))
+    return " ".join(out)
+        
+def parse_lfv_area(area):
+    for lat,lon in re.findall(r"(\d{4,6}(?:,\d+)?[NS])\s*(\d{5,7}(?:,\d+)?[EW])",area):
+        yield parse_lfv_format(lat.strip(),lon.strip())
+                
    
 def to_aviation_format(latlon):
 	lat,lon=latlon

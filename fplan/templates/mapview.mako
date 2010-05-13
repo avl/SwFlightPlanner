@@ -21,10 +21,24 @@ xsegcnt=0;
 ysegcnt=0;
 saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
+showareaurl='${h.url_for(controller="mapview",action="showarea")}';
+showarea='${c.showarea.replace("\n"," ").replace("'"," ")}';
+
 tilestart=[];//upper left corner of tile grid
 tiles=[];
 overlay_left=0;
 overlay_top=0;
+
+function calctileurl(zoomlevel,mercx,mercy)
+{
+%if c.tilestyle=="showarea":
+	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy;
+%endif
+%if c.tilestyle!="showarea":
+	return '/tiles/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
+%endif
+}
+
 
 function loadmap()
 {
@@ -65,7 +79,7 @@ function loadmap()
 			imgs+='<img style="border:0px;margin:0px;padding:0px;position:absolute;z-index:0;left:'+(offx1)+'px;top:'+
 				(offy1)+'px;width:'+(tilesize)+'px;height:'+(tilesize)+'px" '+
 				'id="mapid'+iy+''+ix+
-				'" src="/tiles/'+${c.zoomlevel}+'/'+mercy+'/'+mercx+'.png"/>';
+				'" src="'+calctileurl(${c.zoomlevel},mercx,mercy)+'"/>';
 			offx1+=tilesize
 			mercx+=tilesize;
 		}
@@ -111,9 +125,12 @@ function loadmap()
 	'<input id="oldtripname" name="oldtripname" type="hidden" value="${c.tripname}" />'+
 	'</form>'+
 	'</div>'+
-	'<div class="first"><form id="fplanform" action="">'+
+	'<div class="first"><form id="fplanformbuttons" action="">'+
 	'<button onclick="remove_all_waypoints();return false" title="Remove all waypoints">Remove All</button>'+
 	'<button onclick="menu_add_new_waypoints();return false" title="Add a new waypoint. Click here, then click start and end point in map.">Add</button>'+
+	'</form></div>'+
+	'<div class="first"><form id="showdataformbuttons" action="">'+
+	'<button onclick="visualize_data();return false" title="Show an area, point or track on the map, for example from NOTAM.">Upload Track/Area</button>'+
 	'</form></div>'+
 
 	'<div class="first"><form id="fplanform" action="">'+
