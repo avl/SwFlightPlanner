@@ -5,7 +5,9 @@ import math
 import Pyro.naming
 import md5
 import Pyro.core
-
+import Image
+import cairo
+import numpy
 prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
 
 def get_dirpath(cachedir,zoomlevel,x1,y1):
@@ -48,8 +50,57 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel):
     m.zoom_to_box(bbox)
     im = mapnik.Image(imgx,imgy)
     mapnik.render(m, im)
+    
+    buf=im.tostring()
+    print "len im tostring:" ,len(buf)
+    assert len(buf)%4==0
+    num_pixels=len(buf)/4            
+    as_array=numpy.fromstring(buf,numpy.dtype("u1"))
+    assert len(as_array)==len(buf)
+    r,g,b,a=numpy.hsplit(as_array.reshape(num_pixels,4),(1,2,3))
+    assert len(r)==num_pixels
+    print "Num pixels: ",num_pixels
+    swapped=numpy.column_stack((b,g,r,a)).reshape(4*num_pixels)
+    assert len(swapped)==num_pixels*4   
+    assert num_pixels==imgx*imgy
+    #as_array=numpy.fromstring(buf,numpy.dtype("u4"))
+    #as_array.byteswap(True)
+    im=cairo.ImageSurface.create_for_data(swapped,cairo.FORMAT_RGB24,imgx,imgy)
+    
+    ctx=cairo.Context(im)
+    ctx.line_to(0,0)
+    ctx.line_to(100,0)
+    ctx.line_to(0,100)
+    ctx.close_path()   
+    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,0.25))             
+    ctx.fill_preserve()
+    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
+    ctx.stroke()
+  
+    
+    
+    
+    b,g,r,a=numpy.hsplit(swapped.reshape(num_pixels,4),(1,2,3))
+    
+    back=numpy.column_stack((r,g,b)).reshape(3*num_pixels)
+    im=Image.frombuffer("RGB",(imgx,imgy),back,'raw','RGB',0,1)
+    
     #print "Returnign rendered image and map"
-    return m,im
+    return im
+
+def test_stockholm_tile():
+    im=generate_big_tile((256,256),71980,38450,9)
+    p="output.png"
+    if hasattr(im,'crop'):
+        view = im.crop(((0,0,256,256)))
+        view.save(p,'png')
+    else:
+        im.write_to_png(p)
+    #
+    
+    
+    
+        
 
 tilepixelsize=256
 
@@ -62,7 +113,7 @@ def do_work_item(planner,coord,descr):
     maxy=mapper.max_merc_y(zoomlevel)
     maxx=mapper.max_merc_x(zoomlevel)
     
-    m,im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel)
+    im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel)
     cadir=planner.get_cachedir()            
     for j in xrange(0,2048,tilepixelsize):
         for i in xrange(0,2048,tilepixelsize):

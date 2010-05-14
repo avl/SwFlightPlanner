@@ -871,7 +871,7 @@ function on_mousemovemap(event)
 
 	var ol=document.getElementById('mapcontainer').offsetLeft;
 
-	document.getElementById("footer").innerHTML='offsetLeft: '+ol+'mtm'+map_topleft_merc[0]+' clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' '+aviation_format_pos(latlon);
+	document.getElementById("footer").innerHTML='offsetLeft: '+ol+'mtm'+map_topleft_merc[0]+' clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' zoom: '+map_zoomlevel+' '+aviation_format_pos(latlon);
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }
@@ -1025,14 +1025,15 @@ function menu_insert_waypoint_mode()
 	if (clo.length==3)
 	{
 		var tmpwps=[];
-		for(var i=0;i<wps.length;i++)
+		var i=0;
+		for(;i<wps.length;i++)
 		{						
 			tmpwps.push(wps[i]);
 			if (i==clo[0])
 				tmpwps.push([clo[1],clo[2]]);
 		}
 		wps=tmpwps;
-		tab_add_waypoint(clo[0],[relx,rely],to_latlon_str([relx,rely]),null);
+		tab_add_waypoint(clo[0]+1,[relx,rely],to_latlon_str([relx,rely]),null);
 		waypointstate='moving';
 		movingwaypoint=clo[0]+1;						
 		draw_jg();
@@ -1143,7 +1144,8 @@ function pan_map(dx,dy)
 		
 		if (need_reload)
 		{
-			//tile.img.src='/boilerplate.jpg';			
+			//tile.img.src='/boilerplate.jpg';
+			tile.img.src='/loading.png';
 			tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
 				/*'/maptile/get?x1='+
 				(tile.mercx)+'&y1='+

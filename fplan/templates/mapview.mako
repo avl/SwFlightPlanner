@@ -138,7 +138,7 @@ function loadmap()
 	'</table></form></div>'+
 	'<div style="display:block;background:#d0d0d0	" class="second" id="detail-pane">'+
 	'<ul><li>Enter a name for your trip above.</li>'+
-	'<li>Click in the map to enter waypoints.</li>'+
+	'<li>Click the \'Add\' button above, then click in the map to enter waypoints.</li>'+
 	'<li>Right click in the map to move or delete waypoints.</li></ul>'+
 	'</div>'
 	;

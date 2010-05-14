@@ -4,9 +4,9 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 import fplan.lib.mapper as mapper
 import StringIO
-
+import math
+import cairo
 from fplan.lib.base import BaseController, render
-import Image,ImageDraw
 log = logging.getLogger(__name__)
 
 class MaptileController(BaseController):
@@ -22,6 +22,53 @@ class MaptileController(BaseController):
             int(request.params.get('zoom')),
             my,mx)
 
+        im=cairo.ImageSurface.create_from_png(path)
+        ctx=cairo.Context(im)
+        
+        
+        if session.get('showarea','')!='':                
+            wp=[]
+            print session.get('showarea','')
+            for vert in mapper.parse_lfv_area(session.get('showarea')):
+                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),int(session['zoom']))
+                wp.append((mercx-mx,mercy-my))       
+            print "wp:",wp
+            if len(wp)>0:           
+                ctx.new_path()
+                ctx.set_line_width(2.0)
+                if len(wp)==1:
+                    w,=wp
+                    ctx.arc(w[0],w[1],8,0,2*math.pi)
+                    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,0.25))
+                    ctx.fill_preserve()
+                    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
+                    ctx.stroke()
+                elif len(wp)==2:
+                    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
+                    ctx.new_path()
+                    ctx.move_to(*wp[0])
+                    ctx.line_to(*wp[1])
+                    ctx.stroke()
+                    ctx.arc(wp[0][0],wp[0][1],8,0,2*math.pi)
+                    ctx.stroke()
+                    ctx.new_path()
+                    ctx.arc(wp[1][0],wp[1][1],8,0,2*math.pi)
+                    ctx.stroke()                                        
+                else:                    
+                    for w in wp:                        
+                        ctx.line_to(*w)
+                    ctx.close_path()   
+                    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,0.25))             
+                    ctx.fill_preserve()
+                    ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
+                    ctx.stroke()
+    
+        
+        buf= StringIO.StringIO()
+        im.write_to_png(buf)
+        png=buf.getvalue()
+        
+        """
         im=Image.open(path)
         
         draw=ImageDraw.Draw(im)
@@ -43,7 +90,8 @@ class MaptileController(BaseController):
         
         buf= StringIO.StringIO()
         im.save(buf, format= 'PNG')
-        png=buf.getvalue()              
+        png=buf.getvalue()
+        """              
         
         #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
         response.headers['Content-Type'] = 'image/png'
