@@ -1,0 +1,17 @@
+
+
+dependencies:
+mapnik
+cairo
+python-cairo
+python-mapnik
+shapelib
+pyshapelib (not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)
+
+
+Openstreetmap (optional, only needed to regenerate map tiles):
+follow:
+http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
+
+
+

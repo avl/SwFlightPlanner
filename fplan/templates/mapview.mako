@@ -23,6 +23,7 @@ saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
 showarea='${c.showarea.replace("\n"," ").replace("'"," ")}';
+mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
 
 tilestart=[];//upper left corner of tile grid
 tiles=[];
@@ -132,6 +133,8 @@ function loadmap()
 	'<div class="first"><form id="showdataformbuttons" action="">'+
 	'<button onclick="visualize_data();return false" title="Show an area, point or track on the map, for example from NOTAM.">Upload Track/Area</button>'+
 	'</form></div>'+
+
+	'<div id="mapinfo" class="first" style="display:none"></div>'+
 
 	'<div class="first"><form id="fplanform" action="">'+
 	'<table id="tab_fplan" width="100%">'+

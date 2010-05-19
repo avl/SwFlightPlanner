@@ -27,16 +27,20 @@ class Page(object):
         return cnt
     def get_partially_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
         out=[]
+        #print "Extracting %d-%d"%(y1,y2)
         for item in self.items:
+            #print "Considering item: %s"%(item,)
             if item.x2<x1: continue;
             if item.x1>x2: continue;
             if item.y2<y1: continue;
             if item.y1>y2: continue;
+            #print "         ^Selected"
             out.append(item)
         if xsort:
             out.sort(key=lambda x:x.x1)
         if ysort:
-            out.sort(key=lambda x:x.y1)        
+            out.sort(key=lambda x:x.y1) 
+        #print "Returning: %s"%(out,)       
         return out
     def get_all_text(self):
         out=[]
@@ -57,8 +61,8 @@ class Page(object):
             out.sort(key=lambda x:x.y1)        
         return out
     def get_lines(self,items,fudge=0.25):
-        si=sorted(items,key=lambda x:x.y1)
-        si=sorted(si,key=lambda x:x.x1)
+        si=sorted(items,key=lambda x:x.x1)
+        si=sorted(si,key=lambda x:x.y1)
         last=None
         out=[]
         linesize=None

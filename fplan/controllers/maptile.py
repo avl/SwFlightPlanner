@@ -7,22 +7,39 @@ import StringIO
 import math
 import cairo
 from fplan.lib.base import BaseController, render
+from fplan.lib.tilegen_worker import generate_big_tile
+from fplan.lib.airspace import get_airspaces
 log = logging.getLogger(__name__)
 
 class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
     
+    def get_airspace(self):
+        lat=float(request.params.get('lat'))
+        lon=float(request.params.get('lon'))
+        out=[]
+        
+        return "<ul>"+"".join("<li><b>%s</b>: %s - %s</li>"%(space['name'],space['floor'],space['ceiling']) for space in get_airspaces(lat,lon))+"</ul>"
+
     def get(self):
         # Return a rendered template
         #return render('/maptile.mako')
         # or, return a response
         my=int(request.params.get('mercy'))
         mx=int(request.params.get('mercx'))
-        path="/home/anders/saker/avl_fplan_world/tiles/%d/%d/%d.png"%(
-            int(request.params.get('zoom')),
-            my,mx)
-
-        im=cairo.ImageSurface.create_from_png(path)
+        zoomlevel=int(request.params.get('zoom'))
+        
+        airspaces=True
+        
+        
+        if airspaces:
+            im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")
+        else:        
+            path="/home/anders/saker/avl_fplan_world/tiles/%d/%d/%d.png"%(
+                zoomlevel,
+                my,mx)
+            im=cairo.ImageSurface.create_from_png(path)
+            
         ctx=cairo.Context(im)
         
         
@@ -96,3 +113,4 @@ class MaptileController(BaseController):
         #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
         response.headers['Content-Type'] = 'image/png'
         return png
+        

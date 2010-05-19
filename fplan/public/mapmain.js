@@ -662,6 +662,23 @@ function on_mouseout()
 	mouse_is_down=0;
 	end_drag_mode(last_mousemove_x,last_mousemove_y);
 }
+function show_mapinfo(mercx,mercy)
+{
+    function on_get_mapinfo(req)
+    {
+        var div=document.getElementById("mapinfo");
+    	div.style.display='block';
+        div.innerHTML=req.responseText;
+    }
+	var latlon=merc2latlon([mercx,mercy]);
+    var params={};
+	params['lat']=latlon[0];
+	params['lon']=latlon[1];
+	
+	var def=doSimpleXMLHttpRequest(mapinfourl,params);
+	def.addCallback(on_get_mapinfo);
+
+}
 function on_mouseup(event)
 {
 	if (event.which!=1)
@@ -679,6 +696,8 @@ function on_mouseup(event)
 		extra='<li>Left click on a waypoint or track-line to get more information about it.</li>';
 	else
 		extra='';
+		
+    show_mapinfo(relx,rely);
 	provide_help('<ul><li>Use the "Add"-button above to add new waypoints.</li>'+extra+'</ul>');				
 	
 	if (popupvisible)
