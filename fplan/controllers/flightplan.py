@@ -39,6 +39,26 @@ class FlightplanController(BaseController):
         print "returning json:",ret
         return ret   
   
+    def gpx(self):
+        # Return a rendered template
+        #return render('/flightplan.mako')
+        # or, return a response
+        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
+             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all()
+        c.waypoints=[]
+        c.trip=session['current_trip']
+        for wp in waypoints:                    
+            lat,lon=mapper.from_str(wp.pos)
+            c.waypoints.append(dict(
+                lat=lat,
+                lon=lon,
+                name=wp.waypoint
+                ))
+        #response.headers['Content-Type'] = 'application/xml'               
+        response.content_type = 'application/octet-stream'               
+        response.charset="utf8"
+        return render('/gpx.mako')
+
 
     def index(self):
         # Return a rendered template

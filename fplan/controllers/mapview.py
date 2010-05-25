@@ -4,7 +4,7 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from fplan.model import meta,User,Trip,Waypoint
 import fplan.lib.mapper as mapper
-import fplan.lib.gen_tile as gen_tile
+#import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
 
 
@@ -57,6 +57,7 @@ class MapviewController(BaseController):
                     session['showarea']=sha
                     print "Saved showarea:",sha                
                 session.save()
+            
             #print "Req:",request.params
             oldtrip=None
             if oldname.strip():
@@ -198,6 +199,7 @@ class MapviewController(BaseController):
             else:
                 trip=trips[0]
             session['current_trip']=trip.trip
+            session.save()
             trip=None
 
         zoomlevel=int(session.get('zoom',5))

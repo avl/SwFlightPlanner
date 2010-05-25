@@ -18,6 +18,9 @@ def make_map():
     map.connect('/error/{action}', controller='error')
     map.connect('/error/{action}/{id}', controller='error')
 
+
+    map.connect('/flightplan/{id}.gpx', controller='flightplan', action="gpx")
+
     # CUSTOM ROUTES HERE
 
     map.connect('/{controller}/{action}')

@@ -26,7 +26,18 @@ def max_merc_y(zoomlevel):
 def max_merc_x(zoomlevel):
     return 256*(2**zoomlevel)
 
-	
+def approx_scale(merc_coords,zoomlevel,length_in_nautical_miles):
+    """Return the number of mercator proj 'pixels'
+    which correspond most closely to the distance given in nautical miles.
+    This scale is only valid at the latitude of the given mercator coords. 
+    """  
+    x,y=merc_coords
+    factor=(2.0**(zoomlevel))
+    lat=unmerc((128*factor-y)/128.0/factor*merc(85.05113))
+    latrad=lat/(180.0/math.pi)
+    scale_diff=math.cos(latrad)
+    return 256*factor*(float(length_in_nautical_miles)/(360*60.0))/scale_diff
+    
 def _from_decimal(x):
 	"""From decimal lat/lon tuple to to format: N47-13'30" E12-49'37" """
 	if x<0: return "-"+from_decimal(-x)
@@ -66,16 +77,26 @@ def _to_deg_min(x):
 	min=(x%(60*10000))/10000.0
 	return deg,min
     
-def parse_lfv_format(lat,lon):
+class MapperBadFormat(Exception):pass    
+def parse_lfv_format(lat,lon):    
+    """Throws MapperBadFormat if format can not be parsed"""
+    if not lat[0:4].isdigit():
+        raise MapperBadFormat()    
     latdeg=float(lat[0:2])
     latmin=float(lat[2:4])
     if len(lat)>5:
+        if not lat[4:6].isdigit():
+            raise MapperBadFormat()
         latsec=float(lat[4:6])
     else:
         latsec=0
+    if not lon[0:5].isdigit():
+        raise MapperBadFormat()    
     londeg=float(lon[0:3])
     lonmin=float(lon[3:5])
     if len(lon)>6:
+        if not lon[5:7].isdigit():
+            raise MapperBadFormat()
         lonsec=float(lon[5:7])
     else:
         lonsec=0
@@ -83,9 +104,14 @@ def parse_lfv_format(lat,lon):
     londec=londeg+lonmin/60.0+lonsec/(60.0*60.0)
     if lat[-1]=='S':
         latdec=-latdec
+    elif lat[-1]!='N':
+        raise MapperBadFormat()
     if lon[-1]=='W':
         londec=-londec
+    elif lon[-1]!='E':
+        raise MapperBadFormat()
     return '%.10f,%.10f'%(latdec,londec)
+
 parse_coords=parse_lfv_format
 def format_lfv(lat,lon):
     out=[]   

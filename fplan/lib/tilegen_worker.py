@@ -1,4 +1,3 @@
-import mapnik
 import sys, os, tempfile
 import fplan.lib.mapper as mapper
 import math
@@ -8,8 +7,13 @@ import Pyro.core
 import Image
 import cairo
 import numpy
-from fplan.extract.extracted_cache import get_airspaces
-prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
+from fplan.extract.extracted_cache import get_airspaces,get_obstacles
+
+use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles"
+
+if not use_existing_tiles:
+    prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
+    import mapnik
 
 def get_dirpath(cachedir,zoomlevel,x1,y1):
     assert (x1%tilepixelsize)==0
@@ -22,7 +26,6 @@ def get_path(cachedir,zoomlevel,x1,y1):
     return os.path.join(get_dirpath(cachedir,zoomlevel,x1,y1),str(x1)+".png")
     
 
-use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles"
     
 def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
     imgx,imgy=pixelsize
@@ -93,18 +96,34 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         im=cairo.ImageSurface.create_for_data(swapped,cairo.FORMAT_RGB24,imgx,imgy)
     
 
+    ctx=cairo.Context(im)
     for space in get_airspaces():        
         
-        ctx=cairo.Context(im)
         for coord in space['points']:
             merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
             ctx.line_to(merc[0]-x1,merc[1]-y1)
+        areacol,solidcol=dict(TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+                    R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)))[space['type']]
+                    
         ctx.close_path()   
-        ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.15))
+        ctx.set_source(cairo.SolidPattern(*areacol))
         ctx.fill_preserve()
-        ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,1))
+        ctx.set_source(cairo.SolidPattern(*solidcol))
         ctx.stroke()
-  
+    for obst in get_obstacles():    
+        if zoomlevel>=9:    
+            ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
+            merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
+            pos=(merc[0]-x1,merc[1]-y1)
+            radius=(int(obst['height'])/25)+5
+            ctx.new_path()
+            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+            ctx.fill_preserve()
+            ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.75))
+            ctx.new_path()
+            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+            ctx.stroke()                                        
+        
     
     
     if return_format=="PIL":   

@@ -6,6 +6,7 @@
 
 from elementtree import ElementTree
 import fetchdata
+import re
 
 class Item(object):
     def __init__(self,text,x1,y1,x2,y2):
@@ -16,6 +17,11 @@ class Item(object):
         self.y2=y2
     def __repr__(self):
         return "Item(%.1f,%.1f - %.1f,%.1f : %s)"%(self.x1,self.y1,self.x2,self.y2,repr(self.text))
+def uprint(s):
+    if type(s)==unicode:
+        print s.encode('utf8')
+    else:
+        print s
 
 class Page(object):
     def __init__(self,items):
@@ -25,6 +31,12 @@ class Page(object):
         for item in self.items:
             cnt+=item.text.count(str)
         return cnt
+    def get_by_regex(self,regex):
+        out=[]
+        for item in self.items:
+            if re.match(regex,item.text):
+                out.append(item)
+        return out
     def get_partially_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
         out=[]
         #print "Extracting %d-%d"%(y1,y2)
@@ -83,7 +95,6 @@ class Page(object):
                 out.append(item.text.strip())
             last=item
         return out
-        
         
 class Parser(object):
     def load_xml(self,path,loadhook=None):
