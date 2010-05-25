@@ -41,7 +41,6 @@ def parse_obstacles():
         lines=page.get_lines(in_rect)
         for line in lines:
             if line.strip()=="within radius 300 m.":
-                res[-1]['kind']+="within radius 300 m"
                 continue
             if line.strip()=="": continue
             if line.startswith("AMDT"):
@@ -56,7 +55,7 @@ def parse_obstacles():
             if m:
                 name,lat,lon,height,elev,more=m.groups()                
                 uprint("Found match: %s"%(m.groups(),))
-                light_and_type=re.match(r"(.*?)\s*("+"|".join(obsttypes)+")$",more)
+                light_and_type=re.match(r"(.*?)\s*("+"|".join(obsttypes)+")",more)
                 if not light_and_type:
                     raise Exception(u"Unknown obstacle type:%s"%(more,))
                 light,kind=light_and_type.groups()

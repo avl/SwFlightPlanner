@@ -115,7 +115,13 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
             merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
             pos=(merc[0]-x1,merc[1]-y1)
-            radius=(int(obst['height'])/25)+5
+            
+            draw_radius_nm=(int(obst['height'])*2.0*0.16e-3)
+            draw_radius_pixels=mapper.approx_scale(merc,zoomlevel,draw_radius_nm)
+            radius=draw_radius_pixels
+            if radius<4:
+                radius=4
+            
             ctx.new_path()
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.fill_preserve()
