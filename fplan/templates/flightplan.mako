@@ -69,6 +69,9 @@ You have no waypoints yet! Go to the map and click to add some, or click the "ad
 </td>
 </tr>
 </table>
+<p>
+Total distance: ${c.totdist} NM.
+</p>
 <button id="addbutton" onclick="fpaddwaypoint(null)">Add</button>
 </form>
 

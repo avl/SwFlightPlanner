@@ -55,6 +55,7 @@ class MapviewController(BaseController):
                     session['showarea']=''
                 else:
                     session['showarea']=sha
+                    session['showtrack']=None
                     print "Saved showarea:",sha                
                 session.save()
             
@@ -98,6 +99,7 @@ class MapviewController(BaseController):
                     u=us[0]
                     u.pos=wp['pos']
                     u.waypoint=wp['name']
+                    u.ordinal=wp['ordinal']
                     #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
             meta.Session.flush()
             meta.Session.commit();
@@ -109,6 +111,7 @@ class MapviewController(BaseController):
         
     
     def zoom(self):
+        print "zoom called"
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
                 
@@ -142,6 +145,8 @@ class MapviewController(BaseController):
                     pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
                     latlon=mapper.merc2latlon(pos,13)
                     session['last_pos']=mapper.latlon2merc(latlon,zoom)
+            #elif session.get('showtrack',None)!=None:
+            #    pass
             else:
                 #mapper.parse_lfv_area()
                 session['zoom']=6               
@@ -178,7 +183,19 @@ class MapviewController(BaseController):
         session.save()        
         redirect_to(h.url_for(controller='mapview',action="index"))
     
+    def upload_track(self):
+        print "In upload",request.params.get("gpstrack",None)
+        t=request.params.get("gpstrack",None)
+        if t!=None:
+            session['showtrack']=str(t.value)
+            print "Filesize",len(session['showtrack'])
+            session['showarea']=''
+            session.save()
+            
+        redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
+        
     def index(self):
+        print "index called"
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         
@@ -208,13 +225,12 @@ class MapviewController(BaseController):
         c.merc_x=int(pos[0]);
         c.merc_y=int(pos[1]);        
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
+             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         c.tripname=session['current_trip']
         c.showarea=session.get('showarea','')
-        if session.get('showarea','')=='':
-            c.tilestyle="plain"
-        else:
-            c.tilestyle="showarea"   
+        c.showtrack=session.get('showtrack',None)!=None
+        print "Showtrack: %s"%(c.showtrack,)
+        c.show_airspaces=session.get('showairspaces',True)
         print "Zoomlevel active: ",zoomlevel
         
         c.zoomlevel=zoomlevel

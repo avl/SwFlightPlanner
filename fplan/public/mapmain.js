@@ -74,6 +74,25 @@ function save_data(cont)
 	def.addCallback(save_data_cb);
 }
 
+function on_change_showairspace()
+{
+	var elem=document.getElementById('showairspaces');
+	if (elem.checked)
+	{
+		showairspaces=1;
+	}
+	else
+	{
+		showairspaces=0;
+	}
+	for(var i=0;i<tiles.length;++i)
+	{
+		var tile=tiles[i];		
+		tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
+	}
+	
+}
+
 
 function tab_modify_pos(idx,pos)
 {
@@ -906,8 +925,18 @@ function upload_areadata()
  	save_data(upload_areadata_impl);
 	return false;
 }
-
-function visualize_data()
+function upload_trackdata()
+{	
+	function upload_trackdata_impl()
+	{
+		var tform=document.getElementById('uploadtrackform');
+		tform.submit();		
+	}
+	
+ 	save_data(upload_trackdata_impl);
+	return false;
+}
+function visualize_area_data()
 {
 	setdetailpane(
 			"#ffffc0",
@@ -919,6 +948,19 @@ function visualize_data()
 			'</textarea>'+
 			'<button onclick="return upload_areadata()">Upload</button>'+
 			'<p style="font-size:70%"><b>Example:</b><br/>554937N 0133636E - 553500N 0133850E - 552620N 0134720E - 550715N 0134720E - 550540N 0125958E - 551458N 0125956E - 554358N 0130656E - 554857N 0130636E - 554937N 0133636E</p>'+
+			'</form>'
+			);
+			
+}
+function visualize_track_data()
+{
+	setdetailpane(
+			"#ffffc0",
+			'block',
+			'<form enctype="multipart/form-data" id="uploadtrackform" action="'+uploadtrackurl+'" method="POST">'+			
+			'Upload a GARMIN .gpx-file:'+
+			'<input type="file" name="gpstrack"/>'+
+			'<button onclick="return upload_trackdata()">Upload</button>'+
 			'</form>'
 			);
 			

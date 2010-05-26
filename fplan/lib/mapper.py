@@ -135,6 +135,27 @@ def format_lfv(lat,lon):
         else:
             out.append("%03d%02d%02d%s"%(degrees,minutes,seconds,H))
     return " ".join(out)
+
+def format_lfv_ats(lat,lon):
+    out=[]   
+    for c,(pos,neg) in [(lat,('N','S')),(lon,('E','W'))]:
+        if c<0:
+            sign=-1
+            H=neg
+            c=-c
+            assert c>=0
+        else:
+            H=pos
+            sign=1
+        totseconds=int(round(c*60.0*60.0))
+        degrees=totseconds//3600
+        totseconds-=3600*degrees
+        minutes=totseconds//60
+        if pos=='N': #latitude            
+            out.append("%02d%02d%s"%(degrees,minutes,H))
+        else:
+            out.append("%03d%02d%s"%(degrees,minutes,H))
+    return "".join(out)
         
 def parse_lfv_area(area):
     for lat,lon in re.findall(r"(\d{4,6}(?:,\d+)?[NS])\s*(\d{5,7}(?:,\d+)?[EW])",area):
@@ -161,32 +182,33 @@ def to_aviation_format(latlon):
     
 
 def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
-	pos1=start
-	pos2=end
-	if pos1==pos2: return 0,0
-	#print "Distance between called: <%s>, <%s>"%(pos1,pos2)
-	a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
-	b=[_from_decimal(float(pos)) for pos in pos2.split(",")]	
-	#x="""geod +ellps=WGS84 <<EOF -I +units=km
-	#42d15' -71d07' 45d31' -123d41'
-	#EOF
-	#"""	
-	#Coord order is: North/south, east/west, north/south2, east/west2
-	x="""geod -p -f %%.6f -F %%.6f  +ellps=WGS84 <<EOF -I +units=km
-%s %s %s %s
-EOF"""%(a[0],a[1],b[0],b[1])
-	#print "ARGS:",x
-	#print "Popen:",x
-	res=popen2.popen2(x)[0].read()
-	#print "popen res: ",repr(res)
-	splat=res.split('\t')
-	dist=splat[2].split('\n')[0]
-	if dist=="nan": return 0,0 #this seems to happen when distance is too short for geod program
-	dist=float(dist)
-	bearing=splat[0].strip()
-	assert bearing!="nan"
-	bearing=float(bearing)
-	return bearing,dist
+    """bearing in degrees, distnace in km"""
+    pos1=start
+    pos2=end
+    if pos1==pos2: return 0,0
+    #print "Distance between called: <%s>, <%s>"%(pos1,pos2)
+    a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
+    b=[_from_decimal(float(pos)) for pos in pos2.split(",")]	
+    #x="""geod +ellps=WGS84 <<EOF -I +units=km
+    #42d15' -71d07' 45d31' -123d41'
+    #EOF
+    #"""	
+    #Coord order is: North/south, east/west, north/south2, east/west2
+    x="""geod -p -f %%.6f -F %%.6f  +ellps=WGS84 <<EOF -I +units=km
+    %s %s %s %s
+    EOF"""%(a[0],a[1],b[0],b[1])
+    #print "ARGS:",x
+    #print "Popen:",x
+    res=popen2.popen2(x)[0].read()
+    #print "popen res: ",repr(res)
+    splat=res.split('\t')
+    dist=splat[2].split('\n')[0]
+    if dist=="nan": return 0,0 #this seems to happen when distance is too short for geod program
+    dist=float(dist)
+    bearing=splat[0].strip()
+    assert bearing!="nan"
+    bearing=float(bearing)
+    return bearing,dist
 	
 		
 

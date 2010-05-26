@@ -25,7 +25,7 @@ function fpaddwaypoint(pos,name,rowdata)
 		var s='';
 		for(var i=0;i<rowdata.length;++i)
 		{
-			s=s+'<td><input size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value=""/></td>\n';		
+			s=s+'<td><input size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 	}

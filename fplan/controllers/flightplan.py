@@ -44,7 +44,7 @@ class FlightplanController(BaseController):
         #return render('/flightplan.mako')
         # or, return a response
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all()
+             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all()
         c.waypoints=[]
         c.trip=session['current_trip']
         for wp in waypoints:                    
@@ -59,21 +59,47 @@ class FlightplanController(BaseController):
         response.charset="utf8"
         return render('/gpx.mako')
 
+    def ats(self):
+        # Return a rendered template
+        #return render('/flightplan.mako')
+        # or, return a response
+        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
+             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all()
+        c.waypoints=[]
+        c.trip=session['current_trip']
+        for wp in waypoints:
+            lat,lon=mapper.from_str(wp.pos)            
+            c.waypoints.append(dict(
+                name=wp.waypoint,
+                pos=mapper.format_lfv_ats(lat,lon)
+                ))
+        #response.headers['Content-Type'] = 'application/xml'               
+        return render('/ats.mako')
+
+
 
     def index(self):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).all())
+             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         
         
+        
+        c.totdist=0.0
+        for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
+            bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
+            c.totdist+=dist/1.852
             
         def get(what,a,b):
-            print "A:",a
-            if what=='tt':
+            print "A:",a,what
+            if what in ['tt','D']:
                 bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-                return "%03.0f"%(bear,)
+                if what=='tt':
+                    return "%03.0f"%(bear,)
+                elif what=='D':
+                    return "%.1f"%(dist/1.852,)
             if what in ['winddir','windvel','temp','var','alt','tas']:
                 routes=meta.Session.query(Route).filter(sa.and_(
                     Route.user==session['user'],Route.trip==session['current_trip'],
@@ -93,7 +119,7 @@ class FlightplanController(BaseController):
                         return route.tas
                 return ""            
                 
-            return "42"
+            return "9999"
         c.get=get
 
          

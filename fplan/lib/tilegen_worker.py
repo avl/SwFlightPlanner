@@ -9,11 +9,11 @@ import cairo
 import numpy
 from fplan.extract.extracted_cache import get_airspaces,get_obstacles
 
-use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles"
-
+#use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles"
+use_existing_tiles=None
 if not use_existing_tiles:
-    prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
     import mapnik
+    prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
 
 def get_dirpath(cachedir,zoomlevel,x1,y1):
     assert (x1%tilepixelsize)==0
@@ -148,7 +148,7 @@ def test_stockholm_tile():
     p="output.png"
     if hasattr(im,'crop'):
         #print "PIL-image"
-        view = im.crop(((0,0,2048,2048)))
+        view = im.crop((0,0,2048,2048))
         view.save(p,'png')
     else:
         #print "Cairo image"
@@ -188,8 +188,12 @@ def do_work_item(planner,coord,descr):
                     pass #probably raise, dir now exists
             
             p=get_path(cadir,zoomlevel,mx1+i,my1+j)
-            view = im.view(metax1+i,metay1+j,256,256)
+
+            view = im.crop((metax1+i,metay1+j,metax1+i+256,metay1+j+256))
             view.save(p,'png')
+
+            #view = im.view(metax1+i,metay1+j,256,256)
+            #view.save(p,'png')
             thesum=md5.md5(open(p).read()).hexdigest()
             assert type(thesum)==str            
             alt=planner.get_alternate(str(thesum),p)

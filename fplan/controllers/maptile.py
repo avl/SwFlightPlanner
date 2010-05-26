@@ -10,6 +10,8 @@ from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
 from fplan.lib.airspace import get_airspaces
 log = logging.getLogger(__name__)
+from fplan.lib.parse_gpx import parse_gpx
+
 
 class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
@@ -44,6 +46,7 @@ class MaptileController(BaseController):
         
         
         if session.get('showarea','')!='':                
+            print "Showarea rendering active"
             wp=[]
             print session.get('showarea','')
             for vert in mapper.parse_lfv_area(session.get('showarea')):
@@ -79,6 +82,21 @@ class MaptileController(BaseController):
                     ctx.fill_preserve()
                     ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
                     ctx.stroke()
+                    
+        if session.get('showtrack',None)!=None:                
+            print "Showtrack rendering active"
+            gpxcontents=session.get('showtrack')
+            ctx.new_path()
+            ctx.set_line_width(2.0)
+            ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
+            #lastmecc
+            for p in parse_gpx(gpxcontents):
+                merc=mapper.latlon2merc(p,zoomlevel)
+                p=((merc[0]-mx,merc[1]-my))
+                ctx.line_to(*p)
+            ctx.stroke()                                        
+                
+            
     
         
         buf= StringIO.StringIO()

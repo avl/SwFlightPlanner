@@ -24,6 +24,9 @@ searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
 showarea='${c.showarea.replace("\n"," ").replace("'"," ")}';
 mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
+uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
+
+showairspaces=${"1" if c.show_airspaces else "0"};
 
 tilestart=[];//upper left corner of tile grid
 tiles=[];
@@ -32,11 +35,14 @@ overlay_top=0;
 
 function calctileurl(zoomlevel,mercx,mercy)
 {
-%if c.tilestyle=="showarea":
+%if c.showarea or c.showtrack:
 	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy;
 %endif
-%if c.tilestyle!="showarea":
-	return '/tiles/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
+%if c.showairspaces:
+	return '/tiles/plain/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
+%endif
+%if not c.showairspaces:
+	return '/tiles/airspace/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
 %endif
 }
 
@@ -131,7 +137,9 @@ function loadmap()
 	'<button onclick="menu_add_new_waypoints();return false" title="Add a new waypoint. Click here, then click start and end point in map.">Add</button>'+
 	'</form></div>'+
 	'<div class="first"><form id="showdataformbuttons" action="">'+
-	'<button onclick="visualize_data();return false" title="Show an area, point or track on the map, for example from NOTAM.">Upload Track/Area</button>'+
+	'<input type="checkbox" onchange="on_change_showairspace()" id="showairspaces" name="showairspaces" ${'checked="1"' if c.show_airspaces else ''|n} />Show airspaces'+
+	'<br/><button onclick="visualize_track_data();return false" title="Show a point or track on the map, for example from a GPS logger.">Upload Track</button>'+
+	'<br/><button onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+
 	'</form></div>'+
 
 	'<div id="mapinfo" class="first" style="display:none"></div>'+
