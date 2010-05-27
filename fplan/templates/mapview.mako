@@ -22,7 +22,6 @@ ysegcnt=0;
 saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
-showarea='${c.showarea.replace("\n"," ").replace("'"," ")}';
 mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
 uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
 
@@ -36,14 +35,16 @@ overlay_top=0;
 function calctileurl(zoomlevel,mercx,mercy)
 {
 %if c.showarea or c.showtrack:
-	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy;
+	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces;
 %endif
-%if c.showairspaces:
-	return '/tiles/plain/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
-%endif
-%if not c.showairspaces:
-	return '/tiles/airspace/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
-%endif
+	if (showairspaces)
+	{
+		return '/tiles/airspace/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
+	}
+	else
+	{
+		return '/tiles/plain/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
+	}
 }
 
 
@@ -106,8 +107,8 @@ function loadmap()
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+
 	'<div class="popopt" id="menu-move" onclick="move_waypoint()">Move Waypoint</div>'+
-	/*'<div class="popopt" onclick="close_menu()">Close menu</div>'+*/
 	'<div class="popopt" onclick="center_map()">Center Map</div>'+ 
+	'<div class="popopt" onclick="hidepopup()">Close menu</div>'+
 	'</div>'+
 	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
 	'<input type="hidden" name="zoom" value="">'+
@@ -132,14 +133,25 @@ function loadmap()
 	'<input id="oldtripname" name="oldtripname" type="hidden" value="${c.tripname}" />'+
 	'</form>'+
 	'</div>'+
-	'<div class="first"><form id="fplanformbuttons" action="">'+
-	'<button onclick="remove_all_waypoints();return false" title="Remove all waypoints">Remove All</button>'+
-	'<button onclick="menu_add_new_waypoints();return false" title="Add a new waypoint. Click here, then click start and end point in map.">Add</button>'+
-	'</form></div>'+
 	'<div class="first"><form id="showdataformbuttons" action="">'+
+	'Show on map:<br/>'+
 	'<input type="checkbox" onchange="on_change_showairspace()" id="showairspaces" name="showairspaces" ${'checked="1"' if c.show_airspaces else ''|n} />Show airspaces'+
+%if not c.showarea and not c.showtrack:
 	'<br/><button onclick="visualize_track_data();return false" title="Show a point or track on the map, for example from a GPS logger.">Upload Track</button>'+
 	'<br/><button onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+
+%endif	
+%if c.showtrack:
+	'<br/><button onclick="clear_uploaded_data();return false" title="Clear uploaded track">Clear Track</button>'+
+%endif	
+%if c.showarea:
+	'<br/><button onclick="clear_uploaded_data();return false" title="Clear uploaded area">Clear Area</button>'+
+%endif	
+
+	'</form></div>'+
+	'<div class="first"><form id="fplanformbuttons" action="">'+
+	'Waypoints:<br/>'+
+	'<button onclick="remove_all_waypoints();return false" title="Remove all waypoints">Remove All</button>'+
+	'<button onclick="menu_add_new_waypoints();return false" title="Add a new waypoint. Click here, then click start and end point in map.">Add</button>'+
 	'</form></div>'+
 
 	'<div id="mapinfo" class="first" style="display:none"></div>'+

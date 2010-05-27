@@ -1,6 +1,10 @@
 
 use_great_circles=0;
 
+/* Used by show-area feature. Set to the area, then
+save is called. Save saves this variable */
+showarea='';
+
 function setdetailpane(bgcol,display,cont)
 {
 	var h=document.getElementById('detail-pane');
@@ -68,7 +72,7 @@ function save_data(cont)
 	params['tripname']=document.getElementById('entertripname').value;
 	params['oldtripname']=document.getElementById('oldtripname').value;
 	params['showarea']=showarea;
-	
+	params['showairspaces']=showairspaces;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -85,14 +89,17 @@ function on_change_showairspace()
 	{
 		showairspaces=0;
 	}
-	for(var i=0;i<tiles.length;++i)
-	{
-		var tile=tiles[i];		
-		tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
-	}
+	reload_map();
 	
 }
-
+function reload_map()
+{
+	for(var i=0;i<tiles.length;++i)
+	{
+		var tile=tiles[i];
+		tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
+	}
+}
 
 function tab_modify_pos(idx,pos)
 {
@@ -415,7 +422,6 @@ function draw_great_circle(curw,endw)
 		ps=great_circle_points(cur,end,parseInt(numseg));		
 		for(var i=1;i<ps.length;++i)
 		{
-				//alert('GC: '+(ps[i-1]));
 			var l=clipline(
 			    merc2screen_x(latlon2merc(ps[i-1])[0]),
 	    		merc2screen_y(latlon2merc(ps[i-1])[1]),
@@ -676,6 +682,7 @@ function add_waypoint(name,pos)
 
 mouse_is_down=0;
 var initial_mouse_down=[-100,-100];
+
 function on_mouseout()
 {
 	mouse_is_down=0;
@@ -716,7 +723,6 @@ function on_mouseup(event)
 	else
 		extra='';
 		
-    show_mapinfo(relx,rely);
 	provide_help('<ul><li>Use the "Add"-button above to add new waypoints.</li>'+extra+'</ul>');				
 	
 	if (popupvisible)
@@ -751,15 +757,8 @@ function on_mouseup(event)
 	{
 		if (wps.length==0)
 		{
-			if (!check_and_clear_selections())
-			{/*
-				anchorx=relx;
-				anchory=rely;		
-				tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
-				wps.push([anchorx,anchory]);
-				waypointstate='addwaypoint';
-				*/
-			}
+		    show_mapinfo(relx,rely);		
+			check_and_clear_selections();			
 		}
 		else
 		{	
@@ -773,15 +772,8 @@ function on_mouseup(event)
 				}
 				else
 				{
-					if (!check_and_clear_selections())				
-					{/*
-						anchorx=wps[wps.length-1][0];
-						anchory=wps[wps.length-1][1];
-						waypointstate='addwaypoint';
-						draw_jg();
-						draw_dynamic_lines(relx,rely);
-						*/
-					}		
+				    show_mapinfo(relx,rely);		
+					check_and_clear_selections();				
 				}
 			}
 			else
@@ -919,10 +911,19 @@ function upload_areadata()
 	function upload_areadata_impl()
 	{
 		dozoom('auto',0);
-	}
-	
+	}	
 	showarea=document.getElementById('visualize_data_text').value;
  	save_data(upload_areadata_impl);
+	return false;
+}
+function clear_uploaded_data()
+{
+	function clear_uploaded_data_impl()
+	{
+		reload_map();	
+	}
+	showarea='.';
+ 	save_data(clear_uploaded_data_impl);
 	return false;
 }
 function upload_trackdata()
@@ -952,15 +953,29 @@ function visualize_area_data()
 			);
 			
 }
+
+function uploadtrack_show_period_sel()
+{
+	var d=document.getElementById('trackdataperiod');
+	d.style.display='block';
+}
+
 function visualize_track_data()
 {
+	var d=new Date();
+	var year=d.getFullYear();
+	var mon=d.getMonth();
+	var day=d.getDate();
 	setdetailpane(
 			"#ffffc0",
 			'block',
 			'<form enctype="multipart/form-data" id="uploadtrackform" action="'+uploadtrackurl+'" method="POST">'+			
 			'Upload a GARMIN .gpx-file:'+
 			'<input type="file" name="gpstrack"/>'+
-			'<button onclick="return upload_trackdata()">Upload</button>'+
+			'<button onclick="return upload_trackdata()">Upload</button><br/>'+
+			'<a href="#" onclick="uploadtrack_show_period_sel()">Select time period</a><br/>'+
+			'<div id="trackdataperiod" style="display:none">Start: <input type="text" name="start" value="1990-01-01 00:00:00"/><br/>'+
+			'End: <input type="text" name="end" value="'+year+'-'+mon+'-'+day+' 23:59:00"/></div>'+
 			'</form>'
 			);
 			

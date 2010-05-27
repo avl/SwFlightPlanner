@@ -6,7 +6,7 @@ from fplan.model import meta,User,Trip,Waypoint
 import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
-
+from fplan.lib.parse_gpx import parse_gpx
 
 import sqlalchemy as sa
 import routes.util as h
@@ -53,12 +53,17 @@ class MapviewController(BaseController):
                 sha=request.params['showarea']
                 if (sha=='.'):
                     session['showarea']=''
+                    session['showtrack']=None
                 else:
                     session['showarea']=sha
                     session['showtrack']=None
                     print "Saved showarea:",sha                
-                session.save()
             
+            if int(request.params.get('showairspaces',0)):
+                session['showairspaces']=True
+            else:
+                session['showairspaces']=False
+                
             #print "Req:",request.params
             oldtrip=None
             if oldname.strip():
@@ -101,6 +106,9 @@ class MapviewController(BaseController):
                     u.waypoint=wp['name']
                     u.ordinal=wp['ordinal']
                     #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
+            
+            session.save()
+
             meta.Session.flush()
             meta.Session.commit();
             
@@ -145,8 +153,21 @@ class MapviewController(BaseController):
                     pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
                     latlon=mapper.merc2latlon(pos,13)
                     session['last_pos']=mapper.latlon2merc(latlon,zoom)
-            #elif session.get('showtrack',None)!=None:
-            #    pass
+            elif session.get('showtrack',None)!=None:
+                strack=session.get('showtrack')
+                zoom=13
+                minx,miny=mapper.latlon2merc(strack.bb1,zoom)
+                maxx,maxy=mapper.latlon2merc(strack.bb2,zoom)
+                size=max(maxx-minx,maxy-miny,1)
+                nominal_size=400
+                while zoom>=0 and size>nominal_size:
+                    zoom-=1
+                    size/=2.0                            
+                    session['zoom']=zoom                    
+                pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
+                latlon=mapper.merc2latlon(pos,13)
+                session['last_pos']=mapper.latlon2merc(latlon,zoom)
+                
             else:
                 #mapper.parse_lfv_area()
                 session['zoom']=6               
@@ -187,12 +208,13 @@ class MapviewController(BaseController):
         print "In upload",request.params.get("gpstrack",None)
         t=request.params.get("gpstrack",None)
         if t!=None:
-            session['showtrack']=str(t.value)
-            print "Filesize",len(session['showtrack'])
+            if len(t.value)>30000000:
+                redirect_to(h.url_for(controller='error',action="document",message="GPX file is too large."))
+            session['showtrack']=parse_gpx(t.value,request.params.get('start'),request.params.get('end'))
             session['showarea']=''
             session.save()
-            
         redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
+            
         
     def index(self):
         print "index called"
@@ -229,7 +251,6 @@ class MapviewController(BaseController):
         c.tripname=session['current_trip']
         c.showarea=session.get('showarea','')
         c.showtrack=session.get('showtrack',None)!=None
-        print "Showtrack: %s"%(c.showtrack,)
         c.show_airspaces=session.get('showairspaces',True)
         print "Zoomlevel active: ",zoomlevel
         
