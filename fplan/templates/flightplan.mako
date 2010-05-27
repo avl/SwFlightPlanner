@@ -58,7 +58,7 @@ addLoadEvent(loadfplan);
 	style="display:none"
 %endif
 >
-You have no waypoints yet! Go to the map and click to add some, or click the "add" button below!
+You have no waypoints yet! Go to the map and click to add some!
 </div>
 
 <table id="flightplantable" class="bordered" cellspacing="0" borders="0">
@@ -72,7 +72,6 @@ You have no waypoints yet! Go to the map and click to add some, or click the "ad
 <p>
 Total distance: ${c.totdist} NM.
 </p>
-<button id="addbutton" onclick="fpaddwaypoint(null)">Add</button>
 </form>
 
 

@@ -8,7 +8,7 @@ import math
 import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
-from fplan.lib.airspace import get_airspaces
+from fplan.lib.airspace import get_airspaces,get_obstacles
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
 
@@ -17,11 +17,27 @@ class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
     
     def get_airspace(self):
+        zoomlevel=int(session.get('zoom',5))
         lat=float(request.params.get('lat'))
         lon=float(request.params.get('lon'))
         out=[]
         
-        return "<ul>"+"".join("<li><b>%s</b>: %s - %s</li>"%(space['name'],space['floor'],space['ceiling']) for space in get_airspaces(lat,lon))+"</ul>"
+        spaces="".join("<li><b>%s</b>: %s - %s</li>"%(space['name'],space['floor'],space['ceiling']) for space in get_airspaces(lat,lon))
+        
+        obstbytype=dict()
+        for obst in get_obstacles(lat,lon,zoomlevel):
+            obstbytype.setdefault(obst['kind'],[]).append(obst)
+            print "processing",obst
+        obstacles=[]
+        if len(obstbytype):
+            for kind,obsts in sorted(obstbytype.items()):
+                obstacles.append("<b>"+kind+":</b>")
+                obstacles.append(u"<ul>")
+                for obst in obsts:
+                    obstacles.append(u"<li><b>%s</b>: %s ft</li>"%(obst['name'],obst['height'])) 
+                obstacles.append(u"</ul>")
+            
+        return "<ul>%s</ul>%s"%(spaces,"".join(obstacles))
 
     def get(self):
         # Return a rendered template
@@ -32,15 +48,32 @@ class MaptileController(BaseController):
         zoomlevel=int(request.params.get('zoom'))
         
         airspaces=True
+        if 'showairspaces' in request.params:
+            airspaces=int(request.params['showairspaces'])
+
+        neededit=False
+        if session.get('showarea','')!='':
+            neededit=True                
+        if session.get('showtrack',None)!=None:
+            neededit=True                
         
-        
+        variant=None
         if airspaces:
-            im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")
-        else:        
-            path="/home/anders/saker/avl_fplan_world/tiles/%d/%d/%d.png"%(
+            variant="airspace"
+        else:
+            variant="plain"
+        path="/home/anders/saker/avl_fplan_world/tiles/%s/%d/%d/%d.png"%(
+                variant,
                 zoomlevel,
                 my,mx)
-            im=cairo.ImageSurface.create_from_png(path)
+        print "Opening",path
+        if not neededit:
+            response.headers['Content-Type'] = 'image/png'
+            return open(path).read()
+            
+            
+        
+        im=cairo.ImageSurface.create_from_png(path)
             
         ctx=cairo.Context(im)
         
@@ -85,12 +118,12 @@ class MaptileController(BaseController):
                     
         if session.get('showtrack',None)!=None:                
             print "Showtrack rendering active"
-            gpxcontents=session.get('showtrack')
+            track=session.get('showtrack')
             ctx.new_path()
             ctx.set_line_width(2.0)
             ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
             #lastmecc
-            for p in parse_gpx(gpxcontents):
+            for p in track.points:
                 merc=mapper.latlon2merc(p,zoomlevel)
                 p=((merc[0]-mx,merc[1]-my))
                 ctx.line_to(*p)

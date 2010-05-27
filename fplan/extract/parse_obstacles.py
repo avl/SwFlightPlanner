@@ -25,6 +25,16 @@ obsttypes=[
 "Tower",
 "Bridge pylon, 60 per minute"]
 
+
+def get_pixel_radius(o,zoomlevel):
+    merc=mapper.latlon2merc(mapper.from_str(o['pos']),zoomlevel)
+    draw_radius_nm=(int(o['height'])*2.0*0.16e-3)
+    draw_radius_pixels=mapper.approx_scale(merc,zoomlevel,draw_radius_nm)
+    radius=draw_radius_pixels
+    if radius<4:
+        radius=4
+    return radius
+
 def parse_obstacles():
     p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_5_4_en.pdf",lambda x: x)
     
@@ -59,6 +69,8 @@ def parse_obstacles():
                 if not light_and_type:
                     raise Exception(u"Unknown obstacle type:%s"%(more,))
                 light,kind=light_and_type.groups()
+
+                
                 res.append(
                     dict(
                         name=name,

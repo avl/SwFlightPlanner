@@ -1,6 +1,16 @@
 import fplan.lib.mapper as mapper
 from pyshapemerge2d import Line2,Vertex,Polygon,vvector
 import fplan.extract.extracted_cache as cache
+import fplan.extract.parse_obstacles as parse_obstacles
+
+def get_obstacles(lat,lon,zoomlevel):
+    clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
+    for obst in cache.get_obstacles():
+        x,y=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
+        radius=parse_obstacles.get_pixel_radius(obst,zoomlevel)
+        d=(clickx-x)**2+(clicky-y)**2
+        if d<=(radius+5)**2:
+           yield obst
 
 def get_airspaces(lat,lon):
     zoomlevel=14
