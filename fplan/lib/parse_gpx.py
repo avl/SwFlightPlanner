@@ -9,3 +9,4 @@ def parse_gpx(gpxcontents):
         lon=float(track.attrib['lon'].strip())
         out.append((lat,lon))
     return out
+
