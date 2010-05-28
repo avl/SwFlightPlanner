@@ -8,6 +8,7 @@ from elementtree import ElementTree
 import fetchdata
 import re
 
+
 class Item(object):
     def __init__(self,text,x1,y1,x2,y2):
         self.text=text

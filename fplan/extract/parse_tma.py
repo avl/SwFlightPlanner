@@ -5,8 +5,8 @@ import re
 import fplan.lib.mapper as mapper
 import sys,os
 import math
-from parse import uprint
 
+from fplan.lib.mapper import parse_coord_str,uprint
 
 
 class Item(object):
@@ -29,158 +29,7 @@ def parse_page_to_items(parser,page):
           ) for item in page.findall("text")]
     return items
 
-def parsecoord(seg):
-    latlon=seg.strip().split(" ")
-    if len(latlon)!=2:
-        raise mapper.MapperBadFormat()
-    lat,lon=latlon
-    coord=mapper.parse_coords(lat.strip(),lon.strip())
-    return coord
-def parse_dist(s):
-    uprint("In:%s"%s)
-    val,nautical,meters=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m))\b\s*",s).groups()
-    dval=float(val)
-    assert nautical!=None or meters!=None
-    if meters:
-        dval=dval/1852.0
-    return dval
 
-def minus(x,y):
-    return tuple(a-b for a,b in zip(x,y))
-def plus(x,y):
-    return tuple(a+b for a,b in zip(x,y))
-def scalarprod(x,y):
-    return sum(a*b for a,b in zip(x,y))
-
-def seg_angles(a1,a2,step):
-    assert a2>a1
-    dist=a2-a1
-    nominal_cnt=math.ceil(dist/step)
-    if nominal_cnt<=1:
-        yield a1
-        yield a2
-        return
-    delta=dist/float(nominal_cnt)
-    a=a1
-    for x in xrange(nominal_cnt):
-        yield a
-        a+=delta
-    yield a2
-     
-    
-def create_circle(center,dist_nm):
-    zoom=14
-    centermerc=mapper.latlon2merc(mapper.from_str(center),zoom)
-    radius_pixels=mapper.approx_scale(centermerc,zoom,dist_nm)
-    steps=dist_nm*math.pi*2/5.0
-    if steps<16:
-        steps=16
-    out=[]
-    angles=list(seg_angles(0,2.0*math.pi,math.pi*2.0/steps))
-    for cnt,a in enumerate(angles):
-        if cnt!=len(angles)-1:
-            x=math.cos(a)*radius_pixels
-            y=math.sin(a)*radius_pixels
-            out.append(plus((x,y),centermerc))
-    out2=[]
-    for o in out:
-        out2.append(mapper.to_str(mapper.merc2latlon(o,zoom)))
-    return out2
-    
-def create_seg_sequence(prevpos,center,nextpos,dist_nm):
-    zoom=14
-    prevmerc=mapper.latlon2merc(mapper.from_str(prevpos),zoom)
-    centermerc=mapper.latlon2merc(mapper.from_str(center),zoom)
-    nextmerc=mapper.latlon2merc(mapper.from_str(nextpos),zoom)
-    
-    d1=minus(prevmerc,centermerc)
-    d2=minus(nextmerc,centermerc)
-    a1=math.atan2(d1[1],d1[0])
-    a2=math.atan2(d2[1],d2[0])
-    
-    radius_pixels=mapper.approx_scale(centermerc,zoom,dist_nm)
-    
-    if a2<a1:
-        a2+=math.pi*2
-    if abs(a2-a1)<1e-6:
-        return []
-    steps=abs(a2-a1)/(math.pi*2.0)*dist_nm*math.pi*2/5.0
-    if steps<16:
-        steps=16
-    out=[]
-    angles=list(seg_angles(a1,a2,abs(a2-a1)/steps))
-    for cnt,a in enumerate(angles):
-        if cnt!=0 and cnt!=len(angles)-1:
-            x=math.cos(a)*radius_pixels
-            y=math.sin(a)*radius_pixels
-            out.append(plus((x,y),centermerc))
-    out2=[]
-    for o in out:
-        out2.append(mapper.to_str(mapper.merc2latlon(o,zoom)))
-    return out2
-
-def parse_area_segment(seg,prev,next):
-    try:
-        return [parsecoord(seg)]
-    except mapper.MapperBadFormat:
-        pass #continue processing
-    border=re.match("Swedish/Danish border northward to (.*)",seg)
-    if border:
-        lat,lon=border.groups()[0].strip().split(" ")
-        return [parsecoord(border.groups()[0])]
-    arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
-    if arc:
-        centerstr,radius=arc.groups()
-        uprint("Parsing coord: %s"%centerstr)
-        center=parsecoord(centerstr)
-        dist_nm=parse_dist(radius)
-        prevpos=parsecoord(prev)
-        nextpos=parsecoord(next)
-        uprint("Arc center: %s"%(center,))
-        uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
-        return create_seg_sequence(prevpos,center,nextpos,dist_nm)
-    uprint("Matching against: %s"%(seg,))
-    circ=re.match(r"\s*A circle with radius ([\d\.]+ (?:NM|m))\s+(?:\(.* km\))?\s*cent[red]{1,5}\s*on\s*(\d+N) (\d+E)\b.*",seg)
-    if circ:
-        radius,lat,lon=circ.groups()
-        assert prev==None and next==None        
-        uprint("Parsed circle:%s : %s"%(circ,circ.groups()))
-        dist_nm=parse_dist(radius)
-        zoom=14
-        center=mapper.parse_coords(lat,lon)
-        return create_circle(center,dist_nm)
-    
-    uprint("Unparsed area segment: %s"%(seg,))
-    return []
-
-def parse_coord_str(s):
-    borderspecs=[
-        "Swedish/Danish border northward to",
-        "Swedish/Norwegian border northward to",
-        ]
-    uprint("Parsing area: %s"%(s,))
-    items=s.split("-")
-    out=[]
-    for idx,pstr2 in enumerate(items):
-        prev=None
-        next=None
-        if idx!=0:
-            prev=items[idx-1]
-        if idx!=len(items)-1:
-            next=items[idx+1]
-        pstr=pstr2
-        #print "Coord str: <%s>"%(pstr,)
-        
-        for spec in borderspecs:
-            if pstr2.count(spec):
-                pstr=pstr2.replace(spec,"")
-                break                
-        if pstr.strip()=="": continue
-        pd=parse_area_segment(pstr,prev,next)
-        uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
-        out.extend(pd)
-        
-    return out
 def is_r_or_danger_area_name(name):
     uprint("Is danger/R: %s"%(name,))
     if re.match("ES\s+[DR]\d+[A-Za-z]?",name):

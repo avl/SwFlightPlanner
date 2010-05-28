@@ -7,11 +7,11 @@ import Pyro.core
 import Image
 import cairo
 import numpy
-from fplan.extract.extracted_cache import get_airspaces,get_obstacles
+from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields
 import fplan.extract.parse_obstacles as parse_obstacles
 
-use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles/plain"
-#use_existing_tiles=None
+#use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles/plain"
+use_existing_tiles=None
 if not use_existing_tiles:
     import mapnik
     prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
@@ -103,8 +103,11 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         for coord in space['points']:
             merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
             ctx.line_to(merc[0]-x1,merc[1]-y1)
-        areacol,solidcol=dict(TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
-                    R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)))[space['type']]
+        areacol,solidcol=dict(
+                    TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+                    R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
+                    CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75))
+                    )[space['type']]
                     
         ctx.close_path()   
         ctx.set_source(cairo.SolidPattern(*areacol))
@@ -125,6 +128,23 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.new_path()
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.stroke()                                        
+    for airfield in get_airfields():
+        ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))
+        merc=mapper.latlon2merc(mapper.from_str(airfield['pos']),zoomlevel)
+        pos=(merc[0]-x1,merc[1]-y1)
+        if zoomlevel<=11:            
+            radius=5
+        else:
+            radius=5<<(zoomlevel-11)
+        
+        ctx.new_path()
+        ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+        ctx.fill_preserve()
+        ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.75))
+        ctx.new_path()
+        ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+        ctx.stroke()
+    
         
     
     

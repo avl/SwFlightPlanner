@@ -62,18 +62,24 @@ class MaptileController(BaseController):
             variant="airspace"
         else:
             variant="plain"
-        path="/home/anders/saker/avl_fplan_world/tiles/%s/%d/%d/%d.png"%(
-                variant,
-                zoomlevel,
-                my,mx)
-        print "Opening",path
-        if not neededit:
-            response.headers['Content-Type'] = 'image/png'
-            return open(path).read()
-            
             
         
-        im=cairo.ImageSurface.create_from_png(path)
+        generate_on_fly=False
+        
+        if generate_on_fly:
+            im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    
+        else:
+            path="/home/anders/saker/avl_fplan_world/tiles/%s/%d/%d/%d.png"%(
+                    variant,
+                    zoomlevel,
+                    my,mx)
+            print "Opening",path
+            if not neededit:
+                response.headers['Content-Type'] = 'image/png'
+                return open(path).read()
+                            
+            
+            im=cairo.ImageSurface.create_from_png(path)
             
         ctx=cairo.Context(im)
         

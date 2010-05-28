@@ -1,3 +1,4 @@
+#encoding=utf8
 import re
 from itertools import count
 import popen2
@@ -81,22 +82,22 @@ class MapperBadFormat(Exception):pass
 def parse_lfv_format(lat,lon):    
     """Throws MapperBadFormat if format can not be parsed"""
     if not lat[0:4].isdigit():
-        raise MapperBadFormat()    
+        raise MapperBadFormat("%s,%s"%(lat,lon))    
     latdeg=float(lat[0:2])
     latmin=float(lat[2:4])
     if len(lat)>5:
         if not lat[4:6].isdigit():
-            raise MapperBadFormat()
+            raise MapperBadFormat("%s,%s"%(lat,lon))    
         latsec=float(lat[4:6])
     else:
         latsec=0
     if not lon[0:5].isdigit():
-        raise MapperBadFormat()    
+        raise MapperBadFormat("%s,%s"%(lat,lon))    
     londeg=float(lon[0:3])
     lonmin=float(lon[3:5])
     if len(lon)>6:
         if not lon[5:7].isdigit():
-            raise MapperBadFormat()
+            raise MapperBadFormat("%s,%s"%(lat,lon))    
         lonsec=float(lon[5:7])
     else:
         lonsec=0
@@ -105,11 +106,11 @@ def parse_lfv_format(lat,lon):
     if lat[-1]=='S':
         latdec=-latdec
     elif lat[-1]!='N':
-        raise MapperBadFormat()
+        raise MapperBadFormat("%s,%s"%(lat,lon))    
     if lon[-1]=='W':
         londec=-londec
     elif lon[-1]!='E':
-        raise MapperBadFormat()
+        raise MapperBadFormat("%s,%s"%(lat,lon))    
     return '%.10f,%.10f'%(latdec,londec)
 
 parse_coords=parse_lfv_format
@@ -212,3 +213,164 @@ def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
 	
 		
 
+
+def minus(x,y):
+    return tuple(a-b for a,b in zip(x,y))
+def plus(x,y):
+    return tuple(a+b for a,b in zip(x,y))
+def scalarprod(x,y):
+    return sum(a*b for a,b in zip(x,y))
+def parsecoord(seg):
+    latlon=seg.strip().split(" ")
+    if len(latlon)!=2:
+        raise MapperBadFormat()
+    lat,lon=latlon
+    coord=parse_coords(lat.strip(),lon.strip())
+    return coord
+
+def seg_angles(a1,a2,step):
+    assert a2>a1
+    dist=a2-a1
+    nominal_cnt=math.ceil(dist/step)
+    if nominal_cnt<=1:
+        yield a1
+        yield a2
+        return
+    delta=dist/float(nominal_cnt)
+    a=a1
+    for x in xrange(nominal_cnt):
+        yield a
+        a+=delta
+    yield a2
+     
+    
+def create_circle(center,dist_nm):
+    zoom=14
+    centermerc=latlon2merc(from_str(center),zoom)
+    radius_pixels=approx_scale(centermerc,zoom,dist_nm)
+    steps=dist_nm*math.pi*2/5.0
+    if steps<16:
+        steps=16
+    out=[]
+    angles=list(seg_angles(0,2.0*math.pi,math.pi*2.0/steps))
+    for cnt,a in enumerate(angles):
+        if cnt!=len(angles)-1:
+            x=math.cos(a)*radius_pixels
+            y=math.sin(a)*radius_pixels
+            out.append(plus((x,y),centermerc))
+    out2=[]
+    for o in out:
+        out2.append(to_str(merc2latlon(o,zoom)))
+    return out2
+    
+def create_seg_sequence(prevpos,center,nextpos,dist_nm):
+    zoom=14
+    prevmerc=latlon2merc(from_str(prevpos),zoom)
+    centermerc=latlon2merc(from_str(center),zoom)
+    nextmerc=latlon2merc(from_str(nextpos),zoom)
+    
+    d1=minus(prevmerc,centermerc)
+    d2=minus(nextmerc,centermerc)
+    a1=math.atan2(d1[1],d1[0])
+    a2=math.atan2(d2[1],d2[0])
+    
+    radius_pixels=approx_scale(centermerc,zoom,dist_nm)
+    
+    if a2<a1:
+        a2+=math.pi*2
+    if abs(a2-a1)<1e-6:
+        return []
+    steps=abs(a2-a1)/(math.pi*2.0)*dist_nm*math.pi*2/5.0
+    if steps<16:
+        steps=16
+    out=[]
+    angles=list(seg_angles(a1,a2,abs(a2-a1)/steps))
+    for cnt,a in enumerate(angles):
+        if cnt!=0 and cnt!=len(angles)-1:
+            x=math.cos(a)*radius_pixels
+            y=math.sin(a)*radius_pixels
+            out.append(plus((x,y),centermerc))
+    out2=[]
+    for o in out:
+        out2.append(to_str(merc2latlon(o,zoom)))
+    return out2
+def uprint(s):
+    if type(s)==unicode:
+        print s.encode('utf8')
+    else:
+        print s
+def parse_dist(s):
+    uprint("In:%s"%s)
+    val,nautical,meters=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m))\b\s*",s).groups()
+    dval=float(val)
+    assert nautical!=None or meters!=None
+    if meters:
+        dval=dval/1852.0
+    return dval
+
+
+def parse_area_segment(seg,prev,next):
+    try:
+        c=[parsecoord(seg)]
+        #print "Parsed as regualr coord: ",c
+        return c
+    except MapperBadFormat:
+        pass #continue processing
+    border=re.match("Swedish/Danish border northward to (.*)",seg)
+    if border:
+        lat,lon=border.groups()[0].strip().split(" ")
+        return [parsecoord(border.groups()[0])]
+    arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
+    if arc:
+        centerstr,radius=arc.groups()
+        #uprint("Parsing coord: %s"%centerstr)
+        center=parsecoord(centerstr)
+        dist_nm=parse_dist(radius)
+        prevpos=parsecoord(prev)
+        nextpos=parsecoord(next)
+        #uprint("Arc center: %s"%(center,))
+        #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
+        return create_seg_sequence(prevpos,center,nextpos,dist_nm)
+    uprint("Matching against: %s"%(seg,))
+    circ=re.match(r"\s*A circle with radius ([\d\.]+ (?:NM|m))\s+(?:\(.* km\))?\s*cent[red]{1,5}\s*on\s*(\d+N) (\d+E)\b.*",seg)
+    if circ:
+        radius,lat,lon=circ.groups()
+        assert prev==None and next==None        
+        #uprint("Parsed circle:%s : %s"%(circ,circ.groups()))
+        dist_nm=parse_dist(radius)
+        zoom=14
+        center=parse_coords(lat,lon)
+        return create_circle(center,dist_nm)
+    
+    #uprint("Unparsed area segment: %s"%(seg,))
+    return []
+
+def parse_coord_str(s):
+    borderspecs=[
+        "Swedish/Danish border northward to",
+        "Swedish/Norwegian border northward to",
+        ]
+    #uprint("Parsing area: %s"%(s,))
+    
+    items=s.replace(u"–","-").strip().split("-")
+    out=[]
+    for idx,pstr2 in enumerate(items):
+        prev=None
+        next=None
+        if idx!=0:
+            prev=items[idx-1]
+        if idx!=len(items)-1:
+            next=items[idx+1]
+        pstr=pstr2.strip()
+        #print "Coord str: <%s>"%(pstr,)
+        
+        for spec in borderspecs:
+            if pstr.count(spec):
+                pstr=pstr.replace(spec,"")
+                break                
+        if pstr.strip()=="": continue
+        pd=parse_area_segment(pstr,prev,next)
+        #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
+        out.extend(pd)
+        
+    return out

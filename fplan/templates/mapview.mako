@@ -34,6 +34,9 @@ overlay_top=0;
 
 function calctileurl(zoomlevel,mercx,mercy)
 {
+/*temporary:*/
+	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces;
+
 %if c.showarea or c.showtrack:
 	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces;
 %endif
