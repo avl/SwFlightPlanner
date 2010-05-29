@@ -1,3 +1,31 @@
+function on_updaterow(idx,col)
+{
+	function get(wcol)
+	{
+		var vid='fplanrow'+idx+wcol;
+		var e=document.getElementById(vid);
+		return parseFloat(e.value);
+	}
+
+	
+	if (col=='TAS' || col=='TT' || col=='W' || col=='V')
+	{
+		var tas=get('TAS');
+		var tt=get('TT');
+		var w=get('W');
+		var v=get('V');
+		var variation=get('Var');
+		var dev=get('Dev');
+		
+	
+	}
+	if (col=='TAS' || col=='TT' || col=='W' || col=='V' || col=='Var' || col=='Dev')
+	{
+	}	
+	
+
+	return;	
+}
 function fpaddwaypoint(pos,name,rowdata)
 {
 	var noyet=document.getElementById('nowaypointsyet');
@@ -24,8 +52,8 @@ function fpaddwaypoint(pos,name,rowdata)
 		var elem=tab.insertRow(-1);
 		var s='';
 		for(var i=0;i<rowdata.length;++i)
-		{
-			s=s+'<td><input size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+		{			
+			s=s+'<td><input id="fplanrow'+idx+fpcolshort[i]+'" onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 	}

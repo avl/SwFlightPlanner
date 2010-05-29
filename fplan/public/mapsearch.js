@@ -38,7 +38,7 @@ function searchsel(delta)
 
 function on_search_keydown(event)
 {
-
+	
 	if (searchpopup)
 	{	
 		//38=up, 40=ner, 13 = enter

@@ -12,6 +12,16 @@ def get_obstacles(lat,lon,zoomlevel):
         if d<=(radius+5)**2:
            yield obst
 
+def get_airfields(lat,lon,zoomlevel):
+    clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
+    for airp in cache.get_airfields():
+        x,y=mapper.latlon2merc(mapper.from_str(airp['pos']),zoomlevel)
+        radius=20
+        d=(clickx-x)**2+(clicky-y)**2
+        if d<=(radius)**2:
+           yield airp
+
+
 def get_airspaces(lat,lon):
     zoomlevel=14
     px,py=mapper.latlon2merc((lat,lon),zoomlevel)

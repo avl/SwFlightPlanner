@@ -136,6 +136,11 @@ def parse_page(parser,pagenr,kind="TMA"):
         last_coord_idx=None
         uprint("D:<%s> (area:%s)"%(d,arealines))
         assert len(arealines)
+        if arealines[0].strip()=="Danger area EK D395 and D396 are":
+            arealines=arealines[1:]
+        if arealines[0].strip()=="situated within TMA":
+            arealines=arealines[1:]
+
         for idx in xrange(len(arealines)):
             if arealines[idx].lower().startswith("established"):
                 last_coord_idx=idx
@@ -177,6 +182,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         pa['name']=d['name']
         pa['floor']=floor
         pa['ceiling']=ceiling
+        print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
         pa['points']=list(parse_coord_str(" ".join(arealines[:last_coord_idx])))
         for p in pa['points']:
             assert p.count(",")==1 

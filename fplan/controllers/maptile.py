@@ -8,7 +8,7 @@ import math
 import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
-from fplan.lib.airspace import get_airspaces,get_obstacles
+from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
 
@@ -23,6 +23,8 @@ class MaptileController(BaseController):
         out=[]
         
         spaces="".join("<li><b>%s</b>: %s - %s</li>"%(space['name'],space['floor'],space['ceiling']) for space in get_airspaces(lat,lon))
+        if spaces=="":
+            spaces="Uncontrolled below FL095"
         
         obstbytype=dict()
         for obst in get_obstacles(lat,lon,zoomlevel):
@@ -36,8 +38,16 @@ class MaptileController(BaseController):
                 for obst in obsts:
                     obstacles.append(u"<li><b>%s</b>: %s ft</li>"%(obst['name'],obst['height'])) 
                 obstacles.append(u"</ul>")
-            
-        return "<ul>%s</ul>%s"%(spaces,"".join(obstacles))
+
+        airports=[]
+        fields=list(get_airfields(lat,lon,zoomlevel))
+        if len(fields):
+            airports.append("<b>Airfield:</b><ul>")
+            for airp in fields:
+                airports.append(u"<li><b>%s</b> - %s</li>"%(airp.get('icao','ZZZZ'),airp['name']))
+            airports.append("</ul>")
+                    
+        return "<b>Airspace:</b><ul>%s</ul>%s%s"%(spaces,"".join(obstacles),"".join(airports))
 
     def get(self):
         # Return a rendered template
@@ -64,9 +74,9 @@ class MaptileController(BaseController):
             variant="plain"
             
         
-        generate_on_fly=False
+        generate_on_the_fly=False
         
-        if generate_on_fly:
+        if generate_on_the_fly:
             im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    
         else:
             path="/home/anders/saker/avl_fplan_world/tiles/%s/%d/%d/%d.png"%(

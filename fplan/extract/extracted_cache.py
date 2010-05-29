@@ -3,6 +3,7 @@ from fplan.extract.parse_obstacles import parse_obstacles
 from fplan.extract.extract_airfields import extract_airfields
 import pickle
 import os
+
 from threading import Lock
 aipdata=[]
 lock=Lock()
@@ -48,3 +49,6 @@ def get_obstacles():
 def get_airfields():
     aipdata=get_aipdata()
     return aipdata['airfields']
+if __name__=='__main__':
+    get_aipdata()
+    

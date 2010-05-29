@@ -7,6 +7,7 @@ from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
+from fplan.extract.extracted_cache import get_airfields
 import json
 import re
 
@@ -29,15 +30,18 @@ class FlightplanController(BaseController):
 
 
         print "Searching for ",searchstr
-        airports=meta.Session.query(Airport).filter(
-                sa.or_(Airport.airport.like('%%%s%%'%(searchstr,)),
-                Airport.icao.like('%%%s%%'%(searchstr,)))
-                ).limit(20).all()    
+        searchstr=searchstr.lower()
+        airports=[]
+        for airp in get_airfields():
+            if airp['name'].lower().count(searchstr) or \
+                airp['icao'].lower().count(searchstr):
+                airports.append(airp)  
         if len(airports)==0:
-            return ""        
-        ret=json.dumps([[x.airport,mapper.from_str(x.pos)] for x in airports])
+            return ""
+        airports.sort()
+        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in airports[:15]])
         print "returning json:",ret
-        return ret   
+        return ret
   
     def gpx(self):
         # Return a rendered template
@@ -93,33 +97,36 @@ class FlightplanController(BaseController):
             c.totdist+=dist/1.852
             
         def get(what,a,b):
-            print "A:",a,what
-            if what in ['tt','D']:
+            print "A:",a.pos,b.pos,what
+            if what in ['TT','D']:
                 bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-                if what=='tt':
+                print "Bear,dist:",bear,dist
+                if what=='TT':
                     return "%03.0f"%(bear,)
                 elif what=='D':
                     return "%.1f"%(dist/1.852,)
-            if what in ['winddir','windvel','temp','var','alt','tas']:
+            if what in ['W','V','Var','Alt','TAS']:
                 routes=meta.Session.query(Route).filter(sa.and_(
                     Route.user==session['user'],Route.trip==session['current_trip'],
                     Route.waypoint1==a.pos,Route.waypoint2==b.pos)).all()
                 
                 if len(routes)==1:
                     route=routes[0]
-                    if what=='winddir':
+                    if what=='W':
                         return route.winddir
-                    elif what=='windvel':
+                    elif what=='V':
                         return route.windvel
-                    elif what=='var':
+                    elif what=='Var':
                         return route.variation
-                    elif what=='alt':
+                    elif what=='Alt':
                         return route.altitude                    
-                    elif what=='tas':
+                    elif what=='TAS':
+                        if not route.tas:
+                            return 75                        
                         return route.tas
                 return ""            
                 
-            return "9999"
+            return ""
         c.get=get
 
          

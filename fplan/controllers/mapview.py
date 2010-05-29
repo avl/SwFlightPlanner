@@ -2,7 +2,7 @@ import logging
 import math
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint
+from fplan.model import meta,User,Trip,Waypoint,Route
 import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
@@ -79,6 +79,7 @@ class MapviewController(BaseController):
             
             oldwps=set([wp.pos for wp in meta.Session.query(Waypoint).filter(sa.and_(
                     Waypoint.user==user.user,Waypoint.trip==trip.trip)).all()])
+            
             newwps=set(wps.keys())
             #print "NEW WPS",wps
             removed=oldwps.difference(newwps)
@@ -89,10 +90,11 @@ class MapviewController(BaseController):
                     sa.and_(Waypoint.user==user.user,Waypoint.trip==trip.trip,
                             Waypoint.pos==rem)).delete()
                 #print "\n\n====DELETING!=====\n%s\n\n"%(rem,)
-                    
+            resultant_by_ordinal=dict()
             for add in added:                
                 wp=wps[add]
                 waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'])
+                resultant_by_ordinal[int(wp['ordinal'])]=waypoint
                 #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
             for upd in updated:
@@ -105,7 +107,33 @@ class MapviewController(BaseController):
                     u.pos=wp['pos']
                     u.waypoint=wp['name']
                     u.ordinal=wp['ordinal']
+                    resultant_by_ordinal[int(wp['ordinal'])]=u
                     #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
+            
+                    
+            seq=list(sorted(resultant_by_ordinal.items()))
+            newroutes=set()
+            for (ord1,waypoint1),(ord2,waypoint2) in zip(seq[:-1],seq[1:]):
+                assert int(ord1)+1==int(ord2)
+                newroutes.add((waypoint1.pos,waypoint2.pos))
+            oldroutes=set([(route.waypoint1,route.waypoint2) for route in meta.Session.query(Route).filter(sa.and_(
+                    Route.user==user.user,Route.trip==trip.trip)).all()])
+            
+            #Routes:
+            removed=oldroutes.difference(newroutes)
+            added=newroutes.difference(oldroutes)
+            updated=newroutes.intersection(oldroutes)
+            print "Removed:",removed
+            print "Added:",added
+            print "Update:",updated
+            for rem1,rem2 in removed:
+                meta.Session.query(Route).filter(
+                    sa.and_(Route.user==user.user,Route.trip==trip.trip,
+                            Route.waypoint1==rem1,Route.waypoint2==rem2)).delete()
+            for a1,a2 in added:
+                r=Route(user.user,trip.trip,
+                        a1,a2,0,75,0,0,1000)
+                meta.Session.add(r)
             
             session.save()
 

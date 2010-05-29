@@ -26,7 +26,7 @@ function loadfplan()
 	var rowdata=[
 	%if cnt!=len(c.waypoints)-1:
 	%for whati,what in h.izip(h.count(),c.cols):
-	'${c.get(what['short'],c.waypoints[cnt-1],c.waypoints[cnt+1])}'${',' if whati!=len(c.cols)-1 else ''}\
+	'${c.get(what['short'],c.waypoints[cnt],c.waypoints[cnt+1])}'${',' if whati!=len(c.cols)-1 else ''}\
 	%endfor
 	%endif
 	];	

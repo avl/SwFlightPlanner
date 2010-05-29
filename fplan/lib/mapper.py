@@ -332,7 +332,7 @@ def parse_area_segment(seg,prev,next):
         #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
         return create_seg_sequence(prevpos,center,nextpos,dist_nm)
     uprint("Matching against: %s"%(seg,))
-    circ=re.match(r"\s*A circle with radius ([\d\.]+ (?:NM|m))\s+(?:\(.* km\))?\s*cent[red]{1,5}\s*on\s*(\d+N) (\d+E)\b.*",seg)
+    circ=re.match(r"\s*A circle with radius ([\d\.]+ (?:NM|m))\s+(?:\(.* k?m\))?\s*cent[red]{1,5}\s*on\s*(\d+N) (\d+E)\b.*",seg)
     if circ:
         radius,lat,lon=circ.groups()
         assert prev==None and next==None        
@@ -350,7 +350,7 @@ def parse_coord_str(s):
         "Swedish/Danish border northward to",
         "Swedish/Norwegian border northward to",
         ]
-    #uprint("Parsing area: %s"%(s,))
+    uprint("Parsing area: %s"%(s,))
     
     items=s.replace(u"–","-").strip().split("-")
     out=[]
@@ -370,7 +370,8 @@ def parse_coord_str(s):
                 break                
         if pstr.strip()=="": continue
         pd=parse_area_segment(pstr,prev,next)
-        #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
+        uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
         out.extend(pd)
-        
+    if len(out)<3:
+        raise Exception("Too few items in coord-str: <%s>"%(s,))
     return out

@@ -3,7 +3,7 @@ from parse import Parser
 import re
 import sys
 from fplan.lib.mapper import parse_coord_str
-
+import extra_airfields
 from fplan.lib.mapper import parse_coords,uprint
     
 def extract_airfields():
@@ -157,7 +157,7 @@ def extract_airfields():
                             if gnd:
                                 return "%s"%(foot,)
                             else:
-                                return "%s GND"
+                                return "%s GND"%(foot,)
                         if m:
                             upper,amsl1,agnd1,middle,amsl2,agnd2=m.groups()                        
                             subspacealts['TIZ']=dict(ceil=fmt(middle,amsl2,agnd2),floor="GND") 
@@ -200,6 +200,8 @@ def extract_airfields():
                             
             #Now find any ATS-airspace
             
+    for extra in extra_airfields.extra_airfields:
+        ads.append(extra)
             
     print ads
     for ad in ads:

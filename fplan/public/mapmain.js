@@ -688,6 +688,12 @@ function on_mouseout()
 	mouse_is_down=0;
 	end_drag_mode(last_mousemove_x,last_mousemove_y);
 }
+function clear_mapinfo()
+{
+    var div=document.getElementById("mapinfo");
+    div.style.display='none';
+ 	div.innerHTML='';
+}
 function show_mapinfo(mercx,mercy)
 {
     function on_get_mapinfo(req)
@@ -733,6 +739,7 @@ function on_mouseup(event)
 	}	
 	if (waypointstate=='addwaypoint' || waypointstate=='addfirstwaypoint')
 	{
+		clear_mapinfo();
 		tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
 		wps.push([client2merc_x(event.clientX),client2merc_y(event.clientY)]);
 
@@ -746,6 +753,7 @@ function on_mouseup(event)
 	}
 	else if (waypointstate=='moving')
 	{
+		clear_mapinfo();
 		wps[movingwaypoint]=[relx,rely];
 		tab_modify_pos(movingwaypoint,[relx,rely]);
 		waypointstate='none';
@@ -762,6 +770,7 @@ function on_mouseup(event)
 		}
 		else
 		{	
+			clear_mapinfo();
 			var closest_i=get_close_waypoint(client2merc_x(event.clientX),client2merc_y(event.clientY));
 			if (closest_i==-1)
 			{			
@@ -778,6 +787,7 @@ function on_mouseup(event)
 			}
 			else
 			{
+				clear_mapinfo();
 				select_waypoint(closest_i);
 			}
 		}
