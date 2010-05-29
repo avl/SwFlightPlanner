@@ -8,7 +8,7 @@ import Pyro.core
 import Pyro.naming
 
 
-def generate_work_packages():
+def generate_work_packages(tma):
     limits="55,10,69,24"
     lat1,lon1,lat2,lon2=limits.split(",")
     lat1=float(lat1)
@@ -60,11 +60,13 @@ def generate_work_packages():
                            metay1=metay1,
                            metax2=metax2,
                            metay2=metay2,
+                           render_tma=tma
                            ))
                 
 class TilePlanner(Pyro.core.ObjBase):
-    def init(self,cachedir):
-        self.work=dict(generate_work_packages())
+    def init(self,cachedir,tma):
+        self.tma=int(tma)
+        self.work=dict(generate_work_packages(self.tma))
         self.inprog=dict()
         self.filemap=dict()
         self.cachedir=cachedir
@@ -98,7 +100,7 @@ daemon=Pyro.core.Daemon()
 ns=Pyro.naming.NameServerLocator().getNS()
 daemon.useNameServer(ns)
 p=TilePlanner()
-p.init(sys.argv[1])
+p.init(sys.argv[1],sys.argv[2])
 uri=daemon.connect(p,"planner")
 daemon.requestLoop()
 

@@ -97,25 +97,27 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         im=cairo.ImageSurface.create_for_data(swapped,cairo.FORMAT_RGB24,imgx,imgy)
     
 
+
     ctx=cairo.Context(im)
-    for space in get_airspaces():        
-        
-        for coord in space['points']:
-            merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
-            ctx.line_to(merc[0]-x1,merc[1]-y1)
-        areacol,solidcol=dict(
-                    TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
-                    R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
-                    CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75))
-                    )[space['type']]
-                    
-        ctx.close_path()   
-        ctx.set_source(cairo.SolidPattern(*areacol))
-        ctx.fill_preserve()
-        ctx.set_source(cairo.SolidPattern(*solidcol))
-        ctx.stroke()
+    if tma:
+        for space in get_airspaces():        
+            
+            for coord in space['points']:
+                merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
+                ctx.line_to(merc[0]-x1,merc[1]-y1)
+            areacol,solidcol=dict(
+                        TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+                        R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
+                        CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75))
+                        )[space['type']]
+                        
+            ctx.close_path()   
+            ctx.set_source(cairo.SolidPattern(*areacol))
+            ctx.fill_preserve()
+            ctx.set_source(cairo.SolidPattern(*solidcol))
+            ctx.stroke()
     for obst in get_obstacles():
-        if zoomlevel>=9:    
+        if zoomlevel>=9:
             ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
             merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
             pos=(merc[0]-x1,merc[1]-y1)            
@@ -178,16 +180,19 @@ def test_stockholm_tile():
 tilepixelsize=256
 
 
+
+
 def do_work_item(planner,coord,descr):
     zoomlevel,mx1,my1,mx2,my2=coord
     metax1=descr['metax1']
     metax2=descr['metax2']
     metay1=descr['metay1']
     metay2=descr['metay2']
+    render_tma=descr['render_tma']
     maxy=mapper.max_merc_y(zoomlevel)
     maxx=mapper.max_merc_x(zoomlevel)
     
-    im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel)
+    im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel,tma=render_tma)
     cadir=planner.get_cachedir()            
     for j in xrange(0,2048,tilepixelsize):
         for i in xrange(0,2048,tilepixelsize):
@@ -216,7 +221,7 @@ def do_work_item(planner,coord,descr):
             if alt:
                 #print "Creating hardlink from %s -> %s"%(alt,p)
                 os.unlink(p)
-                os.link(alt,p)
+                os.symlink(os.path.relpath(alt,os.path.dirname(p)),p)
 
 
 # finds object automatically if you're running the Name Server.
