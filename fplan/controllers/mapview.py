@@ -132,7 +132,7 @@ class MapviewController(BaseController):
                             Route.waypoint1==rem1,Route.waypoint2==rem2)).delete()
             for a1,a2 in added:
                 r=Route(user.user,trip.trip,
-                        a1,a2,0,75,0,0,1000)
+                        a1,a2,0,0,75,None,1000)
                 meta.Session.add(r)
             
             session.save()

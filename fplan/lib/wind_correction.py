@@ -15,8 +15,8 @@ import math
 f=1.0/(180.0/math.pi)
 
 tt=90
-wind=180
-windvel=10
+wind=0
+windvel=25
 tas=75
 
 
@@ -27,25 +27,15 @@ wind_y=math.sin(winddir*f)*windvel
 print "wind_x: %f, wind_y: %f"%(wind_x,wind_y)             
 
 #sin(wca)*tas = wind_y 
-wca=math.asin(wind_y/tas)/f
+wca=-math.asin(wind_y/tas)/f
 print "wca:",wca
-tas_x=math.cos(-wca*f)*tas
-tas_y=math.sin(-wca*f)*tas
+tas_x=math.cos(wca*f)*tas
+tas_y=math.sin(wca*f)*tas
 print "tas_x: %f, tas_y: %f"%(tas_x,tas_y)
-
+print "TAS is still:",math.sqrt(tas_x**2+tas_y**2)
 GS = math.sqrt((tas_x+wind_x)*(tas_x+wind_x)+(tas_y+wind_y)*(tas_y+wind_y));
 
 print "GS: %f"%(GS,)
-
-
-
-
-
-
-
-
-
-
 
 
 

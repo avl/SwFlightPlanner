@@ -78,7 +78,7 @@ route_table = sa.Table("route",meta.metadata,
                         sa.Column('winddir',Float(),primary_key=False,nullable=False),
                         sa.Column('windvel',Float(),primary_key=False,nullable=False),
                         sa.Column('tas',Float(),primary_key=False,nullable=False),
-                        sa.Column('variation',Float(),primary_key=False,nullable=False),
+                        sa.Column('variation',Float(),primary_key=False,nullable=True),
                         sa.Column('altitude',String(6),primary_key=False,nullable=False),
                         sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
                                                 onupdate="CASCADE",ondelete="CASCADE"),                                                                                
@@ -109,6 +109,7 @@ class Route(object):
         self.waypoint1=waypoint1
         self.waypoint2=waypoint2
         self.winddir=winddir
+        print "Creating Route with windvel",windvel
         self.windvel=windvel
         self.tas=tas        
         self.variation=variation

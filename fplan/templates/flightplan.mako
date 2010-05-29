@@ -12,6 +12,7 @@ fpcolshort=[];
 fpcoldesc=[];
 fpcolextra=[];
 fpcolwidth=[];
+num_rows=${len(c.waypoints)};
 function loadfplan()
 {
 %for col in c.cols:
@@ -34,6 +35,7 @@ function loadfplan()
 
 %endfor
 
+	fpmain_init();
 }
 
 function navigate_to(where)
@@ -70,7 +72,8 @@ You have no waypoints yet! Go to the map and click to add some!
 </tr>
 </table>
 <p>
-Total distance: ${c.totdist} NM.
+Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
+Total time: <input id="tottime" type="text" readonly="1" value="" size="4">.
 </p>
 </form>
 
