@@ -28,7 +28,8 @@ Float=sa.types.Float
 
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
-                        sa.Column("password",Unicode(100),nullable=False)
+                        sa.Column("password",Unicode(100),nullable=False),
+                        sa.Column("isregistered",Boolean(),nullable=False)
                         )
 
 rating_table = sa.Table("rating",meta.metadata,
@@ -141,9 +142,7 @@ class User(object):
     def __init__(self, user, password):        
         self.user = user
         self.password = password
-        self.last_map_pos="59.3,17.7"
-        self.last_map_size=0.5       
-        self.current_trip=None 
+        self.isregistered=False
     def __unicode__(self):
         return "User(%s)"%(self.user,)
     def __repr__(self):

@@ -7,6 +7,7 @@ from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
+import routes.util as h
 from fplan.extract.extracted_cache import get_airfields
 import json
 import re
