@@ -97,7 +97,7 @@ class FlightplanController(BaseController):
             c.totdist+=dist/1.852
             
         def get(what,a,b):
-            print "A:",a.pos,b.pos,what
+            print "A:<%s>"%(what,),a.pos,b.pos
             if what in ['TT','D']:
                 bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
                 print "Bear,dist:",bear,dist
@@ -106,18 +106,17 @@ class FlightplanController(BaseController):
                 elif what=='D':
                     return "%.1f"%(dist/1.852,)
             if what in ['W','V','Var','Alt','TAS']:
-                routes=meta.Session.query(Route).filter(sa.and_(
+                routes=list(meta.Session.query(Route).filter(sa.and_(
                     Route.user==session['user'],Route.trip==session['current_trip'],
-                    Route.waypoint1==a.pos,Route.waypoint2==b.pos)).all()
-                
+                    Route.waypoint1==a.pos,Route.waypoint2==b.pos)).all())
                 if len(routes)==1:
                     route=routes[0]
                     if what=='W':
-                        return route.winddir
+                        return int(route.winddir+0.5)
                     elif what=='V':
-                        return route.windvel
+                        return int(route.windvel+0.5)
                     elif what=='Var':
-                        return route.variation
+                        return route.variation if route.variation!=None else ''
                     elif what=='Alt':
                         return route.altitude                    
                     elif what=='TAS':
@@ -137,13 +136,13 @@ class FlightplanController(BaseController):
                 dict(width=5,short='Alt',desc="Altitude/Flight Level",extra="(Altitude above mean sea level/flight level, e.g 4500ft or FL045)"),
                 dict(width=3,short='TAS',desc="True Air Speed (kt)",extra="(the speed of the aircraft in relation to the air around it)"),
                 dict(width=3,short='TT',desc="True Track (deg)",extra="(the true direction the aircraft is flying, relative to ground)"),
-                dict(width=2,short='WCA',desc="Wind correction angle (deg)",extra=" (the compensation due to wind needed to stay on the True Track. Negative means you have to aim left, positive to aim right)"),
+                dict(width=3,short='WCA',desc="Wind correction angle (deg)",extra=" (the compensation due to wind needed to stay on the True Track. Negative means you have to aim left, positive to aim right)"),
                 dict(width=2,short='Var',desc="Variation (deg)",extra="(How much to the right of the true north pole, the compass is pointing. Negative numbers means the compass points to the left of the true north pole)"),
                 dict(width=2,short='Dev',desc="Deviation (deg)",extra="(How much to the right of the magnetic north, the aircraft compass will be pointing, while travelling in the direction of the true track)"),
                 dict(width=3,short='CH',desc="Compass Heading (deg)",extra="(The heading that should be flown on the airplane compass to end up at the right place)"),
                 dict(width=3,short='D',desc="Distance (NM)",extra=""),
                 dict(width=3,short='GS',desc="Ground Speed (kt)",extra=""),
-                dict(width=3,short='Time',desc="Time (minutes)",extra="")
+                dict(width=5,short='Time',desc="Time (hours, minutes)",extra="")
                 ]
        
         

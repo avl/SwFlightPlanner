@@ -63,6 +63,9 @@ function loadmap()
 	screen_size_x=parseInt(w);
 	screen_size_y=parseInt(h);
 	
+	var sidebar_a=document.getElementById('sidebar-a');
+	sidebar_a.style.height=content.style.height;
+	
 	map_topleft_merc=[parseInt(${c.merc_x}-0.5*w),parseInt(${c.merc_y}-0.5*h)];
 	if (map_topleft_merc[1]<0)
 		map_topleft_merc[1]=0;
