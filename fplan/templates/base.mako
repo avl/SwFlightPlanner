@@ -29,7 +29,7 @@ addLoadEvent(fixcontentsize);
 </div>
 <div id="right-nav">
 	<dl>
-		<dt id="nav-profile"><a href="#">Profile</a></dt>
+		<dt id="nav-profile"><a  onclick="navigate_to('${h.url_for(controller="profile",action="index")}')" href="#">Profile</a></dt>
 		<dt id="nav-settings"><a href="#">Settings</a></dt>
 	</dl>
 </div>

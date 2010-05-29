@@ -1,4 +1,4 @@
-function get(wcol)
+function get(idx,wcol)
 {
 	var vid='fplanrow'+idx+wcol;
 	var e=document.getElementById(vid);
@@ -8,7 +8,7 @@ function get(wcol)
 		return 0.0;			
 	return parseFloat(e.value);
 }
-function gete(wcol)
+function gete(idx,wcol)
 {
 	var vid='fplanrow'+idx+wcol;
 	var e=document.getElementById(vid);
@@ -69,12 +69,12 @@ function on_updaterow(idx,col)
 	var next=0;
 	if (col=='all' || col=='TAS' || col=='W' || col=='V')
 	{
-		var tas=get('TAS');
-		var tt=get('TT');
-		var wind=get('W');
-		var windvel=get('V');
-		var variation=get('Var');
-		var dev=get('Dev');
+		var tas=get(idx,'TAS');
+		var tt=get(idx,'TT');
+		var wind=get(idx,'W');
+		var windvel=get(idx,'V');
+		var variation=get(idx,'Var');
+		var dev=get(idx,'Dev');
 		var pi=3.14159265;
 		var f=1.0/(180.0/pi);
 		var wca=0;
@@ -108,30 +108,30 @@ function on_updaterow(idx,col)
 			}			
 		}		
 		/* True = Air + Wind -> Air = True - Wind*/
-		var wcae=gete('WCA');
+		var wcae=gete(idx,'WCA');
 		if (wca>0)
 			wcae.value='+'+wca.toFixed(0);
 		else
 			wcae.value=''+wca.toFixed(0);
 		
-		var gse=gete('GS');
+		var gse=gete(idx,'GS');
 		gse.value=GS.toFixed(0);
 		next=1;	
 	}
 	if (next || col=='TAS' || col=='W' || col=='V' || col=='Var' || col=='Dev')
 	{
-		var tt=get('TT');
-		var wca=get('WCA');
-		var var_=get('Var');
-		var dev=get('Dev');
-		var ch=gete('CH');
+		var tt=get(idx,'TT');
+		var wca=get(idx,'WCA');
+		var var_=get(idx,'Var');
+		var dev=get(idx,'Dev');
+		var ch=gete(idx,'CH');
 		ch.value=parseInt(0.5+tt+wca-var_-dev)%360;
 	}	
 	if (next || col=='TAS' || col=='W' || col=='V' || col=='Var' || col=='Dev')
 	{
-		var gs=get('GS');
-		var D=get('D');
-		var time=gete('Time');
+		var gs=get(idx,'GS');
+		var D=get(idx,'D');
+		var time=gete(idx,'Time');
 		if (gs>0.0)
 		{
 			time_hours=D/gs;

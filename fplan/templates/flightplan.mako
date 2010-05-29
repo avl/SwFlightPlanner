@@ -73,7 +73,8 @@ You have no waypoints yet! Go to the map and click to add some!
 </table>
 <p>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
-Total time: <input id="tottime" type="text" readonly="1" value="" size="4">.
+Total time: <input id="tottime" type="text" readonly="1" value="" size="4">.<br/>
+Show waypoints in format suitable for <u><a href="${h.url_for(controller="flightplan",action="ats")}">ATS-flightplan</a></u>.
 </p>
 </form>
 
