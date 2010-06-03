@@ -9,6 +9,7 @@ import cairo
 import numpy
 from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields
 import fplan.extract.parse_obstacles as parse_obstacles
+import StringIO
 
 #use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles/plain"
 use_existing_tiles=None
@@ -26,6 +27,8 @@ def get_dirpath(cachedir,zoomlevel,x1,y1):
 def get_path(cachedir,zoomlevel,x1,y1):
     return os.path.join(get_dirpath(cachedir,zoomlevel,x1,y1),str(x1)+".png")
     
+
+
 
     
 def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
@@ -208,20 +211,16 @@ def do_work_item(planner,coord,descr):
                 except:
                     pass #probably raise, dir now exists
             
-            p=get_path(cadir,zoomlevel,mx1+i,my1+j)
+            #p=get_path(cadir,zoomlevel,mx1+i,my1+j)
 
             view = im.crop((metax1+i,metay1+j,metax1+i+256,metay1+j+256))
-            view.save(p,'png')
-
-            #view = im.view(metax1+i,metay1+j,256,256)
-            #view.save(p,'png')
-            thesum=md5.md5(open(p).read()).hexdigest()
-            assert type(thesum)==str            
-            alt=planner.get_alternate(str(thesum),p)
-            if alt:
-                #print "Creating hardlink from %s -> %s"%(alt,p)
-                os.unlink(p)
-                os.symlink(os.path.relpath(alt,os.path.dirname(p)),p)
+            
+            
+            io=StringIO.StringIO()
+            view.save(io,'png')
+            io.seek(0)
+            data=io.read()
+            planner.finish_work((zoomlevel,mx1+i,my1+j),data)
 
 
 # finds object automatically if you're running the Name Server.
@@ -233,7 +232,6 @@ def run():
             break
         coord,descr=wi
         do_work_item(planner,coord,descr)
-        planner.finish_work(coord)
         
 if __name__=="__main__":
     run()
