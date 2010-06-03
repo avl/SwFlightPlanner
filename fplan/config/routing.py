@@ -18,6 +18,7 @@ def make_map():
     map.connect('/error/{action}', controller='error')
     map.connect('/error/{action}/{id}', controller='error')
 
+    map.connect('/', controller='splash', action="index")
 
     map.connect('/flightplan/{id}.gpx', controller='flightplan', action="gpx")
 
