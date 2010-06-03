@@ -139,6 +139,7 @@ class MaptileController(BaseController):
             ctx.set_line_width(2.0)
             ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
             #lastmecc
+            print "%d points"%(len(track.points))
             for p in track.points:
                 merc=mapper.latlon2merc(p,zoomlevel)
                 p=((merc[0]-mx,merc[1]-my))
