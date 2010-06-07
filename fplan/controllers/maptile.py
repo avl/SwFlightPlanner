@@ -20,6 +20,7 @@ class MaptileController(BaseController):
         zoomlevel=int(session.get('zoom',5))
         lat=float(request.params.get('lat'))
         lon=float(request.params.get('lon'))
+        clickmerc=mapper.latlon2merc((lat,lon),zoomlevel)
         out=[]
         
         spaces="".join("<li><b>%s</b>: %s - %s</li>"%(space['name'],space['floor'],space['ceiling']) for space in get_airspaces(lat,lon))
@@ -39,6 +40,25 @@ class MaptileController(BaseController):
                     obstacles.append(u"<li><b>%s</b>: %s ft</li>"%(obst['name'],obst['height'])) 
                 obstacles.append(u"</ul>")
 
+        tracks=[]
+        if session.get('showtrack',None)!=None:                
+            track=session.get('showtrack')
+            print "%d points"%(len(track.points))
+            mindiff=1e30
+            height=None
+            for p,pheight in track.points: 
+                print "Track lat/lon: ",p,"click lat/lon:",(lat,lon)
+                merc=mapper.latlon2merc(p,zoomlevel)
+                diff=math.sqrt((clickmerc[0]-merc[0])**2+(clickmerc[1]-merc[1])**2)
+                print diff
+                if diff<mindiff:
+                    mindiff=diff
+                    height=pheight
+            print "Mindiff:",mindiff
+            if mindiff<15:
+                tracks.append(u"<b>GPS track altitude:</b><ul><li>%d ft</li></ul>"%(height/0.3048,))
+                                              
+
         airports=[]
         fields=list(get_airfields(lat,lon,zoomlevel))
         if len(fields):
@@ -47,7 +67,7 @@ class MaptileController(BaseController):
                 airports.append(u"<li><b>%s</b> - %s</li>"%(airp.get('icao','ZZZZ'),airp['name']))
             airports.append("</ul>")
                     
-        return "<b>Airspace:</b><ul>%s</ul>%s%s"%(spaces,"".join(obstacles),"".join(airports))
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s"%(spaces,"".join(obstacles),"".join(airports),"".join(tracks))
 
     def get(self):
         # Return a rendered template
@@ -140,7 +160,7 @@ class MaptileController(BaseController):
             ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
             #lastmecc
             print "%d points"%(len(track.points))
-            for p in track.points:
+            for p,height in track.points:
                 merc=mapper.latlon2merc(p,zoomlevel)
                 p=((merc[0]-mx,merc[1]-my))
                 ctx.line_to(*p)
