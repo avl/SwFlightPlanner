@@ -3,16 +3,17 @@ import fplan.extract.parse_llf_forecast as parse_llf_forecast
 from pyshapemerge2d import Line2,Vertex,Polygon,vvector
 import fplan.lib.mapper as mapper
 import math
-
+from datetime import datetime,timedelta
 class Weather():
     def get_wind(self,elev):
         if type(elev)!=int:
             elev=elev.strip()
-            if elev.startswith("FL"): elev=elev[2:].strip() #Gross simplification
-            if elev.endswith("ft"): elev=elev[:-2].strip()
+            print "Parsing elev: ",elev
+            if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
+            if elev.lower().endswith("ft"): elev=elev[:-2].strip()
             assert elev.isdigit()
         ielev=int(elev)
-        
+        print "Ielev: ",ielev
         twothousand,fl50,fl100=self.winds['2000'],self.winds['FL50'],self.winds['FL100']
         def dcos(x):
             return math.cos(x/(180.0/math.pi))
@@ -23,22 +24,39 @@ class Weather():
             ay=dsin(a['direction'])*a['knots']
             bx=dcos(b['direction'])*b['knots']
             by=dsin(b['direction'])*b['knots']
-            x=0.5*(ax*(1.0-f)+bx*f)
-            y=0.5*(ay*(1.0-f)+by*f)
+            x=(ax*(1.0-f)+bx*f)
+            y=(ay*(1.0-f)+by*f)
             direction=(180.0/math.pi)*math.atan2(y,x)
             if direction<0: direction+=360.0
             knots=math.sqrt(x**2+y**2)
-            return dict(direction=direction,knots=knots)
+            res=dict(direction=direction,knots=knots)
+            print "\nInterpolated %s and %s with f=%s into %s\n"%(a,b,f,res)
+            return res
         
-        if elev<2000:
+        if ielev<2000:
             return dict(knots=twothousand['knots'],direction=twothousand['direction'])
-        elif elev<5000:
-            return ipol(twothousand,fl50,(elev-2000.0)/(5000.0-2000.0))            
-        elif elev<10000:
-            return ipol(fl50,fl100,(elev-5000.0)/(10000.0-5000.0))
-        return dict(knots=0,direction=0)            
-        
-    
+        elif ielev<5000:
+            return ipol(twothousand,fl50,(ielev-2000.0)/(5000.0-2000.0))
+        elif ielev<10000:
+            return ipol(fl50,fl100,(ielev-5000.0)/(10000.0-5000.0))
+        elif ielev>=10000:
+            return dict(knots=fl100['knots'],direction=fl100['direction'])
+        return dict(knots=0,direction=0)
+
+
+parsed_weather_cache=None
+def get_parsed_weather():
+    global parsed_weather_cache
+    if parsed_weather_cache:
+        cache,when=parsed_weather_cache
+        if datetime.utcnow()-when<timedelta(60*5):
+            return cache
+    fc=parse_llf_forecast.run('A')
+    fc.update(parse_llf_forecast.run('B'))
+    fc.update(parse_llf_forecast.run('C'))
+    parsed_weather_cache=(fc,datetime.utcnow())
+    return fc
+
 def get_weather(lat,lon):
     zoomlevel=13
     px,py=mapper.latlon2merc((lat,lon),zoomlevel)
@@ -77,9 +95,13 @@ def get_weather(lat,lon):
     part=rest[:-2]
     seg=rest[-2:]
     
+    try:
+        fc=get_parsed_weather()
+    except Exception,cause:
+        print "Couldn't fetch weather: ",cause
+        return None
     
-    fc=parse_llf_forecast.run()
-    
+    print "Reading weather from %s, %s"%(mainarea,part)
     w.winds=fc[(mainarea,part)]['winds']
     #print "Winds at position:",w.winds
     #llf=parse_llf_forecast.run()

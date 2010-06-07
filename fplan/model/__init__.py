@@ -39,56 +39,55 @@ rating_table = sa.Table("rating",meta.metadata,
                         sa.Column("valid",Boolean(),nullable=False),
                         sa.Column("lapse_date",DateTime(),nullable=True)
                         )
-plane_type_table = sa.Table("plane_type",meta.metadata,
-                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
-                        sa.Column('plane_type',Unicode(50),nullable=False,primary_key=False),
-                        sa.Column('tas_sealevel_cruise',Float(),nullable=False,primary_key=False),
-                        sa.Column('power_sealevel_cruise',Float(),nullable=False,primary_key=False),
-                        sa.Column("fuel_consumption_sealevel_cruise",Float(),nullable=False,primary_key=False),
-                        sa.Column('ceiling',Float(),nullable=False,primary_key=False),
-                        sa.Column('stall_speed',Float(),nullable=False,primary_key=False),                        
-                        )
 
-plane_table = sa.Table("plane",meta.metadata,
+
+aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
-                        sa.Column('plane',Unicode(32),primary_key=True,nullable=False),#Registration, like SE-VLI
-                        sa.Column('plane_type',Unicode(50),nullable=False),
-                        sa.ForeignKeyConstraint(['user', 'plane_type'], ['plane_type.user', 'plane_type.plane_type'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                        sa.Column('aircraft',Unicode(32),primary_key=True,nullable=False,default="SE-XYZ"),#Registration, like SE-VLI
+                        sa.Column('cruise_speed',Float(),primary_key=False,nullable=False,default=75),                        
+                        sa.Column('cruise_burn',Float(),primary_key=False,nullable=False,default=18),                        
+                        sa.Column('climb_speed',Float(),primary_key=False,nullable=False,default=60),                        
+                        sa.Column('climb_rate',Float(),primary_key=False,nullable=False,default=400),                        
+                        sa.Column('climb_burn',Float(),primary_key=False,nullable=False,default=22),                        
+                        sa.Column('descent_speed',Float(),primary_key=False,nullable=False,default=85),                        
+                        sa.Column('descent_rate',Float(),primary_key=False,nullable=False,default=750),                        
+                        sa.Column('descent_burn',Float(),primary_key=False,nullable=False,default=10)                      
                         )
 
 trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('plane',Unicode(32),nullable=True,primary_key=False),
-                        sa.ForeignKeyConstraint(['user', 'plane'], ['plane.user', 'plane.plane'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                        sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
+                        sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
+
 
 waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('pos',String(30),primary_key=True,nullable=False),
-                        sa.Column('ordinal',Integer(),primary_key=False,nullable=False),
+                        sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
+                        sa.Column('pos',String(30),primary_key=False,nullable=False),
                         sa.Column('waypoint',Unicode(50),primary_key=False,nullable=False),
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
 route_table = sa.Table("route",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('waypoint1',String(30),primary_key=True,nullable=False),                        
-                        sa.Column('waypoint2',String(30),primary_key=True,nullable=False),                        
+                        sa.Column('waypoint1',Integer(),primary_key=True,nullable=False),                        
+                        sa.Column('waypoint2',Integer(),primary_key=True,nullable=False),                        
                         sa.Column('winddir',Float(),primary_key=False,nullable=False),
                         sa.Column('windvel',Float(),primary_key=False,nullable=False),
                         sa.Column('tas',Float(),primary_key=False,nullable=False),
                         sa.Column('variation',Float(),primary_key=False,nullable=True),
                         sa.Column('altitude',String(6),primary_key=False,nullable=False),
-                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
+                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
                                                 onupdate="CASCADE",ondelete="CASCADE"),                                                                                
-                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.pos'],
+                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
                                                 onupdate="CASCADE",ondelete="CASCADE")                                                                                
                         )
                         
                         
-
+"""
 airport_table = sa.Table("airport",meta.metadata,                         
                         sa.Column('airport',Unicode(50),primary_key=True,nullable=False),                        
                         sa.Column('icao',String(4),primary_key=False,nullable=False),                        
@@ -102,9 +101,9 @@ obstacle_table = sa.Table("obstacle",meta.metadata,
                         sa.Column('base_altitude_msl',Float(),nullable=True,primary_key=False),
                         sa.Column('top_altitude_msl',Float(),nullable=False,primary_key=False)
                         )
-
+"""
 class Route(object):
-    def __init__(self,user,trip,waypoint1,waypoint2,winddir,windvel,tas,variation,altitude):
+    def __init__(self,user,trip,waypoint1,waypoint2,winddir=None,windvel=None,tas=None,variation=None,altitude="1000"):
         self.user=user
         self.trip=trip
         self.waypoint1=waypoint1
@@ -147,12 +146,19 @@ class User(object):
         return "User(%s)"%(self.user,)
     def __repr__(self):
         return "User(%s)"%(self.user,)
+class Aircraft(object):
+    pass
     
+orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(User, user_table)
-orm.mapper(Trip, trip_table)
+orm.mapper(Trip, trip_table, properties=dict(
+    acobj=orm.relation(Aircraft,lazy=True)))
+
 orm.mapper(Waypoint, waypoint_table)
 orm.mapper(Route, route_table)
-orm.mapper(Airport, airport_table)
+
+
+#orm.mapper(Airport, airport_table)
 
 
 ## Non-reflected tables may be defined and mapped at module level

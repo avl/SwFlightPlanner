@@ -6,7 +6,10 @@
 
 <script type="text/javascript">
 
+tripname='${c.tripname}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
+fetchweatherurl='${h.url_for(controller="flightplan",action="weather")}';
+saveurl='${h.url_for(controller="flightplan",action="save")}';
 fpcolnum=${len(c.cols)};
 fpcolshort=[];
 fpcoldesc=[];
@@ -41,18 +44,29 @@ function loadfplan()
 function navigate_to(where)
 {	
 	function finish_nav()
-	{				
+	{					    
 		window.location.href=where;
 	}
-	finish_nav();
+	save_data(finish_nav);
 }
 
 addLoadEvent(loadfplan);
 
 </script>
 
-
 <div style="height:100%;width:100%;overflow:auto;">
+
+<div id="sub-nav">
+	<dl>
+		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#"><b>Overview</b></a></dt>
+		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#">ATS-flightplan</a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#">Fuel-plan</a></dt>
+	</dl>
+</div>
+
+<h1>
+${c.tripname}
+</h1>
 
 <form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
 <div class="bordered" id="nowaypointsyet"
@@ -72,9 +86,9 @@ You have no waypoints yet! Go to the map and click to add some!
 </tr>
 </table>
 <p>
+<button onclick="fetch_winds();return false;">Fetch Wind Information</button><br/>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
 Total time: <input id="tottime" type="text" readonly="1" value="" size="4">.<br/>
-Show waypoints in format suitable for <u><a href="${h.url_for(controller="flightplan",action="ats")}">ATS-flightplan</a></u>.
 </p>
 </form>
 

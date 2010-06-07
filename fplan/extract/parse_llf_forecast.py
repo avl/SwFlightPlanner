@@ -1,17 +1,16 @@
 #encoding=utf8
 import re
-cur_area='b'
-path="/home/anders/saker/avl_fplan_world/weather/area_%s.html"%(cur_area,)
+import fetchdata
 
 def parse_groundwinds(w):
     for line in w.split('\n'):
         if not line.startswith(u'Område'):
             continue
         area,descr=line.split(':',1)
-def parse_area(a):
+def parse_area(a,cur_area):
     a=a.strip()
     letter,part=a.split(" ",1)
-    assert letter.lower()==cur_area
+    assert letter.lower()==cur_area.lower()
     assert part.startswith("DEN ")
     part=part[4:]
     #print 'part:',part
@@ -19,7 +18,9 @@ def parse_area(a):
         u'NORRA DELEN':'n',
         u'NORDVÄSTRA DELEN':'nw',
         u'SÖDRA DELEN':'s',
-        u'SYDÖSTRA DELEN':'se'
+        u'SYDÖSTRA DELEN':'se',
+        u'MELLERSTA DELEN':'m',
+        u'SYDVÄSTRA DELEN':'sw'
         }
     return letter,mapping[part.strip()]
 #    return a.strip()
@@ -47,8 +48,8 @@ def parse_winds(w):
     return ret
             
         
-def run():
-    data=open(path).read()
+def run(cur_area):     
+    data=fetchdata.get_raw_weather_for_area(cur_area)
     weather=dict()
     for prog_str in re.findall(r"<PRE>(.*?)</PRE>",data,re.DOTALL):
         prog_str=prog_str.replace("\xa0"," ")
@@ -86,11 +87,11 @@ Lägsta QNH
             d[key]=val
         #print "Area:",parse_area(d['area'])
         #print "Winds:",parse_winds(d['wind'])
-        d['shortarea']=parse_area(d['area'])
+        d['shortarea']=parse_area(d['area'],cur_area)
         d['winds']=parse_winds(d['wind'])
         #print m
         #print "================================================================"
         weather[d['shortarea']]=d
     return weather
 if __name__=='__main__':
-    run()
+    run('B')

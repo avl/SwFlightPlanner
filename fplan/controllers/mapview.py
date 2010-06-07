@@ -21,7 +21,7 @@ class MapviewController(BaseController):
             if not key.count('_')==2: continue
             row,ordinal,key=key.split("_")
             assert row=='row'            
-            wpst.setdefault(ordinal,dict())[key]=val
+            wpst.setdefault(int(ordinal),dict())[key]=val
         wps=dict()
         for ordinal,wp in wpst.items():
             wp['ordinal']=ordinal
@@ -34,7 +34,7 @@ class MapviewController(BaseController):
             if (dist<1.0/3600.0):
                 wp['pos']=wp['origpos']
                 print "Wp #%s has not moved"%(ordinal,)
-            d=wps.setdefault(wp['pos'],dict())
+            d=wps.setdefault(wp['ordinal'],dict())
             d.update(wp)
             
         return wps
@@ -77,7 +77,7 @@ class MapviewController(BaseController):
                 trip = Trip(user.user, tripname)
                 meta.Session.add(trip)                    
             
-            oldwps=set([wp.pos for wp in meta.Session.query(Waypoint).filter(sa.and_(
+            oldwps=set([(wp.ordinal) for wp in meta.Session.query(Waypoint).filter(sa.and_(
                     Waypoint.user==user.user,Waypoint.trip==trip.trip)).all()])
             
             newwps=set(wps.keys())
@@ -85,37 +85,39 @@ class MapviewController(BaseController):
             removed=oldwps.difference(newwps)
             added=newwps.difference(oldwps)
             updated=newwps.intersection(oldwps)
-            for rem in removed:
+            for remord in removed:
                 meta.Session.query(Waypoint).filter(
                     sa.and_(Waypoint.user==user.user,Waypoint.trip==trip.trip,
-                            Waypoint.pos==rem)).delete()
+                            Waypoint.ordinal==remord)).delete()
                 #print "\n\n====DELETING!=====\n%s\n\n"%(rem,)
             resultant_by_ordinal=dict()
             for add in added:                
                 wp=wps[add]
                 waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'])
-                resultant_by_ordinal[int(wp['ordinal'])]=waypoint
+                resultant_by_ordinal[wp['ordinal']]=waypoint
                 #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
             for upd in updated:
                 wp=wps[upd]
                 us=meta.Session.query(Waypoint).filter(
                     sa.and_(Waypoint.user==user.user,Waypoint.trip==trip.trip,
-                            Waypoint.pos==upd)).all()
+                            Waypoint.ordinal==upd)).all()
                 if len(us)>0:
                     u=us[0]
                     u.pos=wp['pos']
                     u.waypoint=wp['name']
                     u.ordinal=wp['ordinal']
-                    resultant_by_ordinal[int(wp['ordinal'])]=u
+                    resultant_by_ordinal[wp['ordinal']]=u
                     #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
             
-                    
+            print "Resultant by ordinal: %s"%(resultant_by_ordinal,)
             seq=list(sorted(resultant_by_ordinal.items()))
             newroutes=set()
             for (ord1,waypoint1),(ord2,waypoint2) in zip(seq[:-1],seq[1:]):
+                if not int(ord1)+1==int(ord2):
+                    print "Waypoints %s and %s not consecutive (#%d, #%d)"%(waypoint1,waypoint2,int(ord1),int(ord2))
                 assert int(ord1)+1==int(ord2)
-                newroutes.add((waypoint1.pos,waypoint2.pos))
+                newroutes.add((waypoint1.ordinal,waypoint2.ordinal))
             oldroutes=set([(route.waypoint1,route.waypoint2) for route in meta.Session.query(Route).filter(sa.and_(
                     Route.user==user.user,Route.trip==trip.trip)).all()])
             
@@ -123,9 +125,9 @@ class MapviewController(BaseController):
             removed=oldroutes.difference(newroutes)
             added=newroutes.difference(oldroutes)
             updated=newroutes.intersection(oldroutes)
-            print "Removed:",removed
-            print "Added:",added
-            print "Update:",updated
+            print "Removed routes:",removed
+            print "Added routes:",added
+            print "Kept routes: ",updated
             for rem1,rem2 in removed:
                 meta.Session.query(Route).filter(
                     sa.and_(Route.user==user.user,Route.trip==trip.trip,

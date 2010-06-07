@@ -11,8 +11,18 @@ function navigate_to(where)
 	finish_nav();
 }
 </script>
+<div style="height:100%;width:100%;overflow:auto;">
+
+<div id="sub-nav">
+	<dl>
+		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#">Overview</a></dt>
+		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#"><b>ATS-flightplan</b></a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#">Fuel-plan</a></dt>
+	</dl>
+</div>
 
 <h1>${c.trip}</h1>
+
 <br/>
 <h2>Waypoints</h2>
 %for w in c.waypoints:
@@ -36,7 +46,7 @@ DCT ${w['pos']} \
 %endfor
 <br/>
 </span>
-<div>
-Back to regular <u><a href="${h.url_for(controller="flightplan",action="index")}">flightplan</a></u>.
 </div>
+
 </div>
+

@@ -47,4 +47,5 @@ def getxml(relpath):
     os.utime(cachenamexml,(modt,modt))
     return open(cachenamexml).read() 
 
-
+def get_raw_weather_for_area(cur_area):
+    return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()

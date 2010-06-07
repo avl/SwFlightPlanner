@@ -2,7 +2,7 @@ import logging
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route,Airport
+from fplan.model import meta,User,Trip,Waypoint,Route
 from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
 log = logging.getLogger(__name__)
@@ -11,13 +11,13 @@ import routes.util as h
 from fplan.extract.extracted_cache import get_airfields
 import json
 import re
+import fplan.lib.weather as weather
 
 class FlightplanController(BaseController):
     def search(self):
         searchstr=request.params.get('search','')
 
         latlon_match=re.match(r"(\d+)\.(\d+)([NS])(\d+)\.(\d+)([EW])",searchstr)
-        print "latlon_match",latlon_match
         if latlon_match:
             latdeg,latdec,ns,londeg,londec,ew=latlon_match.groups()
             lat=float(latdeg)+float("0."+latdec)
@@ -26,11 +26,10 @@ class FlightplanController(BaseController):
                 lat=-lat
             if ew in ['W','w']:
                 lon=-lon
-            print "latlon",lat,lon
             return json.dumps([['Unknown Waypoint',[lat,lon]]])                
 
 
-        print "Searching for ",searchstr
+        #print "Searching for ",searchstr
         searchstr=searchstr.lower()
         airports=[]
         for airp in get_airfields():
@@ -43,7 +42,73 @@ class FlightplanController(BaseController):
         ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in airports[:15]])
         print "returning json:",ret
         return ret
-  
+    def save(self):
+        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
+             Waypoint.user==session['user'],
+             Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
+        for idx,way in enumerate(waypoints[:-1]):
+            print "Found waypoint #%d"%(idx,)    
+            route=meta.Session.query(Route).filter(sa.and_(
+                Route.user==session['user'],
+                Route.trip==request.params['tripname'],
+                Route.waypoint1==way.ordinal,
+                )).one()
+            for col,att in [
+                ('W','winddir'),
+                ('V','windvel'),
+                ('TAS','tas'),
+                ('Alt','altitude'),
+                ('Var','variation'),
+                ]:
+                                                
+                key="%s_%d"%(col,idx)
+                val=request.params[key]
+                print "Value of key %s: %s"%(key,val)
+                setattr(route,att,val)
+                
+        meta.Session.flush()
+        meta.Session.commit()
+        return "ok"
+
+    def weather(self):
+        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
+             Waypoint.user==session['user'],
+             Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
+             
+        ret=[]
+        alts=request.params.get('alts','')
+        if alts==None:
+            altvec=[]
+        else:
+            altvec=alts.split(",")
+        for way,altitude in zip(waypoints[:-1],altvec):
+             print("Looking for waypoint: %s"%(way.pos,))
+             #N+1 selects....
+             route=meta.Session.query(Route).filter(sa.and_(
+                  Route.user==session['user'],
+                  Route.trip==request.params['tripname'],
+                  Route.waypoint1==way.ordinal,
+                  )).one()
+             way2=meta.Session.query(Waypoint).filter(sa.and_(
+                  Waypoint.user==session['user'],
+                  Waypoint.trip==request.params['tripname'],
+                  Waypoint.ordinal==route.waypoint2,
+                  )).one()
+             merc1=mapper.latlon2merc(mapper.from_str(way.pos),14)
+             merc2=mapper.latlon2merc(mapper.from_str(way2.pos),14)
+             center=(0.5*(merc1[0]+merc2[0]),0.5*(merc1[1]+merc2[1]))
+             lat,lon=mapper.merc2latlon(center,14)
+             print "Fetching weather for %s,%s, %s"%(lat,lon,route.altitude)
+             we=weather.get_weather(lat,lon)
+             if we==None:
+                 ret.append(['',''])                 
+             else:
+                 wi=we.get_wind(altitude)
+                 print "Got winds:",wi
+                 ret.append([wi['direction'],wi['knots']])
+        jsonstr=json.dumps(ret)
+        print "returning json:",jsonstr
+        return jsonstr
     def gpx(self):
         # Return a rendered template
         #return render('/flightplan.mako')
@@ -90,18 +155,16 @@ class FlightplanController(BaseController):
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         
-        
-        
         c.totdist=0.0
         for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
             bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
             c.totdist+=dist/1.852
             
         def get(what,a,b):
-            print "A:<%s>"%(what,),a.pos,b.pos
+            #print "A:<%s>"%(what,),a.pos,b.pos
             if what in ['TT','D']:
                 bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-                print "Bear,dist:",bear,dist
+                #print "Bear,dist:",bear,dist
                 if what=='TT':
                     return "%03.0f"%(bear,)
                 elif what=='D':
@@ -109,7 +172,7 @@ class FlightplanController(BaseController):
             if what in ['W','V','Var','Alt','TAS']:
                 routes=list(meta.Session.query(Route).filter(sa.and_(
                     Route.user==session['user'],Route.trip==session['current_trip'],
-                    Route.waypoint1==a.pos,Route.waypoint2==b.pos)).all())
+                    Route.waypoint1==a.ordinal,Route.waypoint2==b.ordinal)).all())
                 if len(routes)==1:
                     route=routes[0]
                     if what=='W':
@@ -128,7 +191,7 @@ class FlightplanController(BaseController):
                 
             return ""
         c.get=get
-
+        c.tripname=session['current_trip']
          
         c.cols=[
                 dict(width=3,short='W',desc="Wind Direction (deg)",extra=""),
@@ -149,3 +212,13 @@ class FlightplanController(BaseController):
         
         
         return render('/flightplan.mako')
+    def fuel(self):
+        class Temp(object): pass
+        
+        c.routes=[Temp(),Temp()]
+        c.routes[0].start_name="A"
+        c.routes[0].end_name="B"
+        c.routes[1].start_name="B"
+        c.routes[1].end_name="C"
+        return render('/fuel.mako')
+        

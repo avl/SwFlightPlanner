@@ -110,6 +110,16 @@ background-color:#cfcfff;
 #right-nav dl { margin: 0.1em; padding: 0; }
 #right-nav dl dt { margin: 0.1em; padding: 0; display: inline }
 
+#sub-nav dl { 	
+    font-family:Verdana, sans-serif;
+    background: #d0d0ff;
+	font-size: 12px;
+    margin: 0.1em; 
+    padding: 0; 
+}
+#sub-nav dl dt { margin: 0.1em; padding: 0; display: inline }
+
+
 #header {
 	font-family:Verdana, sans-serif;
 	font-size: 12px;

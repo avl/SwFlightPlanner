@@ -1,9 +1,11 @@
+modifiable_cols=[];
+
 function get(idx,wcol)
 {
 	var vid='fplanrow'+idx+wcol;
 	var e=document.getElementById(vid);
 	if (e==null)
-		alert(vid);
+		alert('Null:'+vid);
 	if (e.value=='')
 		return 0.0;			
 	return parseFloat(e.value);
@@ -14,6 +16,37 @@ function gete(idx,wcol)
 	var e=document.getElementById(vid);
 	return e;
 }
+function fetch_winds()
+{
+	function weather_cb(req)
+	{	
+		if (req.responseText!='')
+		{
+			weather=evalJSONRequest(req);
+			for(var i=0;i<weather.length;++i)
+			{
+				var w=gete(i,'W');
+				var v=gete(i,'V');
+				w.value=weather[i][0];
+				v.value=weather[i][1];
+    			on_updaterow(i,'all');
+			}
+		}	
+	}
+	var params={};	
+	var alts='';
+	for(var i=0;i<num_rows-1;++i)
+	{
+	    if (i!=0) alts+=',';
+	    /*FIXME: Filter out any ',' from alt field*/
+	    alts+=gete(i,'Alt').value;
+	}
+	params['alts']=alts;
+	params['tripname']=tripname;
+	var def=doSimpleXMLHttpRequest(fetchweatherurl,params);
+	def.addCallback(weather_cb);
+}
+
 function save_data(cont)
 {
 	function save_data_cb(req)
@@ -29,22 +62,17 @@ function save_data(cont)
 		}
 	}
 	
-	var glist=document.getElementById('tab_fplan');
 	var params={};
-	for(var i=0;i<num_rows;i++)
+	for(var i=0;i<num_rows-1;i++)
 	{
-		var rowelem=glist.rows[i];		
-		var namefield=rowelem.cells[1].childNodes[0];
-		var posfield=rowelem.cells[2].childNodes[0];
-		var origposfield=rowelem.cells[2].childNodes[1];
-		params[namefield.name]=namefield.value;
-		params[posfield.name]=posfield.value;
-		params[origposfield.name]=origposfield.value;
+        for(var j=0;j<modifiable_cols.length;++j)
+        {
+            var wh=modifiable_cols[j];
+            var val=get(i,wh);
+            params[wh+'_'+i]=val;
+        }	    
 	}			
-	params['tripname']=document.getElementById('entertripname').value;
-	params['oldtripname']=document.getElementById('oldtripname').value;
-	params['showarea']=showarea;
-	params['showairspaces']=showairspaces;
+	params['tripname']=tripname;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -188,8 +216,10 @@ function fpaddwaypoint(pos,name,rowdata)
 		{			
 			var ro='';
 			var wh=fpcolshort[i];
-			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time') 
+			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA')  
 				ro='readonly="1"';
+			else
+			    modifiable_cols.push(wh);
 			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
