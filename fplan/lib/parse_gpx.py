@@ -29,6 +29,7 @@ def parse_gpx(gpxcontents,startstr,endstr):
         lat=float(track.attrib['lat'].strip())
         lon=float(track.attrib['lon'].strip())
         tim=track.find("{http://www.topografix.com/GPX/1/1}time").text.strip()
+        ele=float(track.find("{http://www.topografix.com/GPX/1/1}ele").text.strip())
         Y,M,D,h,m,s=re.match("(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):([\.\d]+)Z",tim.strip()).groups()
         micros=int((1e6)*(float(s)%1.0))
         s=int(float(s))
@@ -42,7 +43,7 @@ def parse_gpx(gpxcontents,startstr,endstr):
         else:
             d=2*threshold
         if d>threshold**2:            
-            out.points.append((lat,lon))
+            out.points.append(((lat,lon),int(ele)))
             lastlon=lon
             lastlat=lat
             if lat<minlat: minlat=lat

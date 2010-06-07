@@ -6,9 +6,12 @@ import fplan.lib.mapper as mapper
 import math
 import Pyro.core
 import Pyro.naming
+from struct import pack
 
+from blobfile import BlobFile
+        
 
-def generate_work_packages(tma):
+def generate_work_packages(tma,blobs,cachedir):
     limits="55,10,69,24"
     lat1,lon1,lat2,lon2=limits.split(",")
     lat1=float(lat1)
@@ -50,10 +53,13 @@ def generate_work_packages(tma):
                 lata,lonb=mapper.merc2latlon((mx2,my2),zoomlevel)
                 if latb<lat1: continue
                 if lata>lat2: continue
-                if lonb<lon1: continue
-                if lona>lon2: continue                    
+                if lonb<lon1: continue                
+                if lona>lon2: continue                                
                     
                 coord=(zoomlevel,mx1,my1,mx2,my2)
+
+                blobs[zoomlevel]=BlobFile(os.path.join(cachedir,"level"+str(zoomlevel)),zoomlevel,mx1,my1,mx2,my2,'w')
+                
                 yield (coord,dict(
                            checkedout=None,
                            metax1=metax1,
@@ -66,10 +72,11 @@ def generate_work_packages(tma):
 class TilePlanner(Pyro.core.ObjBase):
     def init(self,cachedir,tma):
         self.tma=int(tma)
-        self.work=dict(generate_work_packages(self.tma))
+        self.blobs=dict()
+        self.work=dict(generate_work_packages(self.tma,self.blobs,cachedir))
         self.inprog=dict()
-        self.filemap=dict()
         self.cachedir=cachedir
+        
     def get_work(self):
         if len(self.work)==0:
             return None #Finished
@@ -78,19 +85,17 @@ class TilePlanner(Pyro.core.ObjBase):
         return (coord,descr)
     def get_cachedir(self):
         return self.cachedir
-    def finish_work(self,coord):
+    def finish_work(self,coord,data):
         self.inprog.pop(coord)
         cprog=len(self.inprog)
         ctot=len(self.work)
+        zoom,x1,y1=coord
+        self.blobs[zoom].add_tile(x1,y1,data)
         print "Work left: %d (in progress: %d)"%(cprog+ctot,cprog)
         if cprog+ctot==0:
             print "Finished! You may exit this program now"
-    def get_alternate(self,md5sum,path):
-        ex=self.filemap.get(md5sum,None)
-        if ex==None:
-            self.filemap[md5sum]=path
-            return None
-        return ex
+            for blob in self.blobs.values():
+                blob.close()
 
     def giveup_work(self,coord):
         descr=self.inprog.pop(coord)
