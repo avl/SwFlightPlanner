@@ -75,11 +75,12 @@ route_table = sa.Table("route",meta.metadata,
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('waypoint1',Integer(),primary_key=True,nullable=False),                        
                         sa.Column('waypoint2',Integer(),primary_key=True,nullable=False),                        
-                        sa.Column('winddir',Float(),primary_key=False,nullable=False),
-                        sa.Column('windvel',Float(),primary_key=False,nullable=False),
-                        sa.Column('tas',Float(),primary_key=False,nullable=False),
+                        sa.Column('winddir',Float(),primary_key=False,nullable=False,default=0),
+                        sa.Column('windvel',Float(),primary_key=False,nullable=False,default=0),
+                        sa.Column('tas',Float(),primary_key=False,nullable=False,default=75),
                         sa.Column('variation',Float(),primary_key=False,nullable=True),
-                        sa.Column('altitude',String(6),primary_key=False,nullable=False),
+                        sa.Column('deviation',Float(),primary_key=False,nullable=True),
+                        sa.Column('altitude',String(6),primary_key=False,nullable=False,default='1000'),
                         sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
                                                 onupdate="CASCADE",ondelete="CASCADE"),                                                                                
                         sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
@@ -103,7 +104,7 @@ obstacle_table = sa.Table("obstacle",meta.metadata,
                         )
 """
 class Route(object):
-    def __init__(self,user,trip,waypoint1,waypoint2,winddir=None,windvel=None,tas=None,variation=None,altitude="1000"):
+    def __init__(self,user,trip,waypoint1,waypoint2,winddir=None,windvel=None,tas=None,variation=None,altitude=None):
         self.user=user
         self.trip=trip
         self.waypoint1=waypoint1
@@ -134,9 +135,10 @@ class Airport(object):
         self.pos=pos
         self.elev=elev
 class Trip(object):
-    def __init__(self, user, trip):
+    def __init__(self, user, trip, aircraft=None):
         self.user=user
         self.trip=trip
+        self.aircraft=aircraft
 class User(object):
     def __init__(self, user, password):        
         self.user = user
@@ -147,7 +149,9 @@ class User(object):
     def __repr__(self):
         return "User(%s)"%(self.user,)
 class Aircraft(object):
-    pass
+    def __init__(self,user,aircraft):
+        self.user=user
+        self.aircraft=aircraft
     
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(User, user_table)

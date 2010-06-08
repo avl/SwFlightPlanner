@@ -4,14 +4,12 @@ from pyshapemerge2d import Line2,Vertex,Polygon,vvector
 import fplan.lib.mapper as mapper
 import math
 from datetime import datetime,timedelta
+
+
 class Weather():
     def get_wind(self,elev):
         if type(elev)!=int:
-            elev=elev.strip()
-            print "Parsing elev: ",elev
-            if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
-            if elev.lower().endswith("ft"): elev=elev[:-2].strip()
-            assert elev.isdigit()
+            elev=mapper.parse_elev(elev)
         ielev=int(elev)
         print "Ielev: ",ielev
         twothousand,fl50,fl100=self.winds['2000'],self.winds['FL50'],self.winds['FL100']

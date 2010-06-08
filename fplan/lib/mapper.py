@@ -375,3 +375,14 @@ def parse_coord_str(s):
     if len(out)<3:
         raise Exception("Too few items in coord-str: <%s>"%(s,))
     return out
+    
+
+def parse_elev(elev):    
+    if type(elev)==int: return float(elev)
+    if type(elev)==float: return elev
+    elev=elev.strip()
+    if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
+    if elev.lower().endswith("ft"): elev=elev[:-2].strip()
+    assert elev.isdigit()
+    return int(elev)
+    

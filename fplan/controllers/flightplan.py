@@ -59,6 +59,7 @@ class FlightplanController(BaseController):
                 ('TAS','tas'),
                 ('Alt','altitude'),
                 ('Var','variation'),
+                ('Dev','deviation')
                 ]:
                                                 
                 key="%s_%d"%(col,idx)
