@@ -1,7 +1,7 @@
 import os
 from struct import pack,unpack
 import md5
-    
+import sys    
     
 class BlobFile(object):
     
@@ -10,42 +10,74 @@ class BlobFile(object):
         assert y>=0
         tx,ty=(x-self.x1)/self.tilesize,(y-self.y1)/self.tilesize
         return tx,ty
-    def __init__(self,name,zoomlevel,x1,y1,x2,y2,mode):
+    def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r'):
+        print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
+            name,zoomlevel,x1,y1,x2,y2,mode)
         self.mode=mode
         if mode=="w":
             if os.path.dirname(name).strip() and not os.path.exists(os.path.dirname(name)):
                 os.makedirs(os.path.dirname(name))
             if os.path.exists(name):
+                print "File %s already existed"%(name,)
                 self.f=open(name,"r+")
                 self.size=os.path.getsize(name)            
             else:            
+                print "File did not exist"
                 self.f=open(name,"w+")
                 self.size=0
+            print "Opened %s for writing"%(name,)
+            self.x1=x1
+            self.y1=y1
+            self.x2=x2
+            self.y2=y2
+            self.zoomlevel=zoomlevel
         else:
             assert mode=="r"
             self.f=open(name,"r")
+            self.size=os.path.getsize(name)
+            params=[]
+            buf=self.f.read(5*4)
+            for i in xrange(5):
+                params.append(unpack('>I',buf[4*i:4*i+4])[0])
+            assert x1==x2==y1==y2==zoomlevel==None
+            print "unpaked:",params
+            self.x1,self.y1,self.x2,self.y2,self.zoomlevel=params
+            x1=self.x1
+            y1=self.y1
+            x2=self.x2
+            y2=self.y2
+            zoomlevel=self.zoomlevel
+ 
         print x2,x1
         assert x2>x1
         assert y2>y1
         self.tilesize=256
-        self.x1=x1
-        self.y1=y1
-        self.x2=x2
-        self.y2=y2
         self.tx1,self.ty1=self.get_tile_number(x1,y1)
         self.tx2,self.ty2=self.get_tile_number(x2,y2)
         self.sx=self.tx2-self.tx1+1
         self.sy=self.ty2-self.ty1+1
+        print "Tilecount for zoomlevel %d: %d"%(zoomlevel,self.sx*self.sy)
         self.dupmap=dict()
         assert self.sx>0
         assert self.sy>0
-        
+        print "File size: %d"%(self.size,)
         if self.size!=0:
-            assert self.size>=8*self.sx*self.sy
+            assert self.size>=4*self.sx*self.sy+4*5
         else:
+            assert mode=='w'
             assert len(pack('>I',0))==4
-            self.f.write("".join(pack('>I',0) for x in xrange(2*self.sx*self.sy)))
-            self.size=8*self.sx*self.sy
+            numwords=self.sx*self.sy
+            print "Writing %d words to file %s"%(numwords,name)
+            self.f.write("".join(pack('>I',param) for param in [self.x1,self.y1,self.x2,self.y2,self.zoomlevel]))
+            self.size+=4*5
+            self.size+=4*numwords
+            while numwords>0:
+                towrite=numwords
+                if towrite>4096:
+                    towrite=4096
+                self.f.write("".join(pack('>I',0) for x in xrange(towrite)))
+                numwords-=towrite
+            self.f.flush()
     def get_size(self):
         return self.size
     def add_tile(self,x,y,data):
@@ -55,25 +87,38 @@ class BlobFile(object):
         if p==None:
             self.f.seek(0,2) #seek to end of file        
             p=self.f.tell()
-            print "writing %d bytes to %d"%(len(data),p)
+            print "writing %d bytes to %d (coords: %d,%d zoom: %d)"%(len(data),p,x,y,self.zoomlevel)
+            self.f.write(pack(">I",len(data)))
             self.f.write(data)
             self.dupmap[hash]=p
             self.size+=len(data)
+        else:
+            print "Using cached value for:"
         tx,ty=self.get_tile_number(x,y)        
-        assert tx>=0 and tx<self.sx
-        assert ty>=0 and ty<self.sy
-        print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
-        self.f.seek(8*(tx+ty*self.sx))        
-        print "Writing %d to off %d"%(p,self.f.tell())
+        if not ( tx>=0 and tx<self.sx) or not (ty>=0 and ty<self.sy):
+            print "Not adding tile at %d,%d, since it is outside the range of %d,%d-%d,%d"%(tx,ty,0,0,self.sx,self.sy)
+            return
+        #print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
+        self.f.seek(30+4*(tx+ty*self.sx))        
         self.f.write(pack(">I",p))
-        self.f.write(pack(">I",len(data)))
+        #self.f.write(pack(">I",len(data)))
     def get_tile(self,x,y):
         tx,ty=self.get_tile_number(x,y)
-        self.f.seek(8*(tx+ty*self.sx))
+        pos=30+4*(tx+ty*self.sx)
+        print "Seeking to pos %d in file of size %d"%(pos,self.size)
+        self.f.seek(pos)
+            
         p=unpack(">I",self.f.read(4))[0]
-        s=unpack(">I",self.f.read(4))[0]
+        print "Tile number coords: %d,%d = %d"%(tx,ty,p)
+        if p==0:
+            print "No tile at position"
+            return None
+        assert p!=0
+        #s=unpack(">I",self.f.read(4))[0]
         print "Seeking to: ",p
         self.f.seek(p)
+        s=unpack(">I",self.f.read(4))[0]
+        assert s>0
         return self.f.read(s)
         
     def close(self):
@@ -97,3 +142,13 @@ def test_blobfile():
     assert b.get_tile(512,256)=="svejs"
     assert b.get_tile(1024,256)=="svejs"
     assert b.get_tile(512,1024)=="svejs"
+    
+if __name__=="__main__":
+     b=BlobFile(sys.argv[1])
+     t=b.get_tile(int(sys.argv[2]),int(sys.argv[3]))
+     w=open(sys.argv[4],"w")
+     w.write(t)
+     w.close()
+     
+     
+     

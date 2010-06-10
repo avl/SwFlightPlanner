@@ -873,6 +873,8 @@ last_mousemove_x=0;
 last_mousemove_y=0;
 dragmode=0;
 dragstart=[];
+accum_pan_dx=0;
+accum_pan_dy=0;
 function on_mousemovemap(event)
 {
 	last_mousemove_x=event.clientX;
@@ -884,10 +886,14 @@ function on_mousemovemap(event)
 	{
 		if (dragmode==1)
 		{
-			var dx=parseInt(event.clientX-dragstart[0]);
-			var dy=parseInt(event.clientY-dragstart[1]);
+		    var evcx=parseInt(event.clientX);
+		    var evcy=parseInt(event.clientY);
+			var dx=evcx-dragstart[0];
+			var dy=evcy-dragstart[1];
 			//alert('drag:'+dx+' , '+dy);
 			pan_map(dx,dy);						
+			dragstart[0]=evcx;
+			dragstart[1]=evcy;
 		}
 		else
 		{
@@ -896,8 +902,10 @@ function on_mousemovemap(event)
 			if (Math.max(dx,dy)>20)
 			{
 				dragmode=1;
-				dragstarttopleftmerc=[map_topleft_merc[0],map_topleft_merc[1]];
-				dragstarttilestart=[tilestart[0],tilestart[1]];
+				//dragstarttopleftmerc=[map_topleft_merc[0],map_topleft_merc[1]];
+				//dragstarttilestart=[tilestart[0],tilestart[1]];
+				accum_pan_dx=0;
+				accum_pan_dy=0;
 				dragstart=[event.clientX,event.clientY];
 				
 			}
@@ -1164,7 +1172,7 @@ function end_drag_mode(clientX,clientY)
 	if (dragmode==1)
 	{
 		dragmode=0;
-		var dx=parseInt(clientX-dragstart[0]);
+		/*var dx=parseInt(clientX-dragstart[0]);
 		var dy=parseInt(clientY-dragstart[1]);
 		for(var i=0;i<tiles.length;++i)
 		{
@@ -1175,8 +1183,15 @@ function end_drag_mode(clientX,clientY)
 		dragstarttopleftmerc[0]=map_topleft_merc[0];
 		dragstarttilestart[0]=tilestart[0];
 		dragstarttopleftmerc[1]=map_topleft_merc[1];
-		dragstarttilestart[1]=tilestart[1];
-		pan_map(0,0); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
+		dragstarttilestart[1]=tilestart[1];*/
+		var dx=parseInt(clientX-dragstart[0]);
+		var dy=parseInt(clientY-dragstart[1]);
+		pan_map(dx,dy); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
+        accum_pan_dx=0;
+        accum_pan_dy=0;
+    	var overlay2=document.getElementById('overlay2');
+	    overlay2.style.left=''+(overlay_left)+'px';
+	    overlay2.style.top=''+(overlay_top)+'px';
 		jgq.clear();
 		draw_jg();
 		return 1;
@@ -1185,18 +1200,27 @@ function end_drag_mode(clientX,clientY)
 }
 function pan_map(dx,dy)
 {
+    dx=parseInt(dx);
+    dy=parseInt(dy);
 	var h=screen_size_y;
 	var w=screen_size_x;
-	map_topleft_merc[0]=dragstarttopleftmerc[0]-dx;
-	map_topleft_merc[1]=dragstarttopleftmerc[1]-dy;
-	tilestart[0]=dragstarttilestart[0]-dx;
-	tilestart[1]=dragstarttilestart[1]-dy;
+	//tilestart[0]-=dx;//dragstarttilestart[0]-dx;
+	//tilestart[1]-=dy;//dragstarttilestart[1]-dy;
+	
+	clipped=clip_mappos(map_topleft_merc[0]-dx,map_topleft_merc[1]-dy);
+	var delta=[clipped[0]-map_topleft_merc[0],clipped[1]-map_topleft_merc[1]];
+	dx=-delta[0];
+	dy=-delta[1];
+	map_topleft_merc[0]-=dx; //=dragstarttopleftmerc[0]-dx;
+	map_topleft_merc[1]-=dy; //=dragstarttopleftmerc[1]-dy;
 	
 	for(var i=0;i<tiles.length;++i)
 	{
-		var tile=tiles[i];		
-		var x=tile.x1+dx;
-		var y=tile.y1+dy;
+		var tile=tiles[i];	
+		tile.x1+=dx;
+		tile.y1+=dy;	
+		var x=tile.x1;+dx;
+		var y=tile.y1;+dy;
 		var need_reload=0;
 		if (x+tilesize<=-tilesize/4)
 		{ //tile has passed too far to the left
@@ -1242,8 +1266,9 @@ function pan_map(dx,dy)
 		tile.img.style.left=''+x+'px';
 		tile.img.style.top=''+y+'px';
 	}
-
+    accum_pan_dx+=dx;
+    accum_pan_dy+=dy;
 	var overlay2=document.getElementById('overlay2');
-	overlay2.style.left=''+(overlay_left+dx)+'px';
-	overlay2.style.top=''+(overlay_top+dy)+'px';
+	overlay2.style.left=''+(overlay_left+accum_pan_dx)+'px';
+	overlay2.style.top=''+(overlay_top+accum_pan_dy)+'px';
 }

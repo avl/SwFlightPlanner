@@ -7,7 +7,7 @@ import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
 from fplan.lib.parse_gpx import parse_gpx
-
+from fplan.lib.maptilereader import merc_limits
 import sqlalchemy as sa
 import routes.util as h
 log = logging.getLogger(__name__)
@@ -283,7 +283,7 @@ class MapviewController(BaseController):
         c.showtrack=session.get('showtrack',None)!=None
         c.show_airspaces=session.get('showairspaces',True)
         print "Zoomlevel active: ",zoomlevel
-        
+        c.merc_limx1,c.merc_limy1,c.merc_limx2,c.merc_limy2=merc_limits(zoomlevel)
         c.zoomlevel=zoomlevel
         return render('/mapview.mako')
         

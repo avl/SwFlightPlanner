@@ -34,22 +34,16 @@ overlay_top=0;
 
 function calctileurl(zoomlevel,mercx,mercy)
 {
-/*temporary:
 	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces;
-*/
-%if c.showarea or c.showtrack:
-	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces;
-%endif
-	if (showairspaces)
-	{
-		return '/tiles/airspace/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
-	}
-	else
-	{
-		return '/tiles/plain/'+zoomlevel+'/'+mercy+'/'+mercx+'.png';
-	}
 }
-
+function clip_mappos(mercx,mercy)
+{
+    if (mercx<${c.merc_limx1}) mercx=${c.merc_limx1};
+    if (mercy<${c.merc_limy1}) mercy=${c.merc_limy1};
+    if (mercx>${c.merc_limx2}) mercx=${c.merc_limx2};
+    if (mercy>${c.merc_limy2}) mercy=${c.merc_limy2};
+    return [mercx,mercy];
+}
 
 function loadmap()
 {

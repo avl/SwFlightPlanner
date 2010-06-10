@@ -11,9 +11,16 @@ from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfie
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 
-#use_existing_tiles="/home/anders/saker/avl_fplan_world/tiles/plain"
-use_existing_tiles=None
-if not use_existing_tiles:
+have_mapnik=False
+
+def use_existing_tiles(tma):
+    if have_mapnik: return None
+    if tma:
+        return "/home/anders/saker/avl_fplan_world/tiles/airspace"
+    else:
+        return "/home/anders/saker/avl_fplan_world/tiles/plain"
+    
+if not have_mapnik:
     import mapnik
     prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
 
@@ -34,7 +41,7 @@ def get_path(cachedir,zoomlevel,x1,y1):
 def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
     imgx,imgy=pixelsize
 
-    if not use_existing_tiles:
+    if not use_existing_tiles(tma):
         #print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
         #print "Generating tile"
         mapfile = "/home/anders/saker/avl_fplan_world/mapnik_render/osm.xml"
@@ -83,7 +90,12 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         for i in xrange(0,pixelsize[0],256):
             for j in xrange(0,pixelsize[1],256):
                 #print "i,j: %d,%d"%(i,j)
-                sub=Image.open(get_path(use_existing_tiles,zoomlevel,x1+i,y1+j))
+                fname=get_path(use_existing_tiles(tma),zoomlevel,x1+i,y1+j)
+                if os.path.exists(fname):
+                    sub=Image.open(fname)
+                else:
+                    print "Warning, missing data: ",fname
+                    sub=Image.open("fplan/public/nodata.png")
                 im.paste(sub,(i,j,i+256,j+256))
                 
         buf=im.tostring()
@@ -134,6 +146,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.stroke()                                        
     for airfield in get_airfields():
+        if zoom<5:
+            continue
         ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))
         merc=mapper.latlon2merc(mapper.from_str(airfield['pos']),zoomlevel)
         pos=(merc[0]-x1,merc[1]-y1)
@@ -186,7 +200,13 @@ tilepixelsize=256
 
 
 def do_work_item(planner,coord,descr):
+    print "do work item",coord
     zoomlevel,mx1,my1,mx2,my2=coord
+    assert mx1%tilepixelsize==0
+    assert mx2%tilepixelsize==0
+    assert my1%tilepixelsize==0
+    assert my2%tilepixelsize==0
+    
     metax1=descr['metax1']
     metax2=descr['metax2']
     metay1=descr['metay1']
@@ -197,6 +217,7 @@ def do_work_item(planner,coord,descr):
     
     im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel,tma=render_tma)
     cadir=planner.get_cachedir()            
+    subwork=[]
     for j in xrange(0,2048,tilepixelsize):
         for i in xrange(0,2048,tilepixelsize):
             
@@ -204,23 +225,23 @@ def do_work_item(planner,coord,descr):
                 continue
             if my1+j+tilepixelsize>maxy:
                 continue
-            dirpath=get_dirpath(cadir,zoomlevel,mx1+i,my1+j)
-            if not os.path.exists(dirpath):
-                try:
-                    os.makedirs(dirpath)
-                except:
-                    pass #probably raise, dir now exists
+                
+            #dirpath=get_dirpath(cadir,zoomlevel,mx1+i,my1+j)
+            #if not os.path.exists(dirpath):
+            #    try:
+            #        os.makedirs(dirpath)
+            #    except:
+            #        pass #probably raise, dir now exists
             
             #p=get_path(cadir,zoomlevel,mx1+i,my1+j)
 
             view = im.crop((metax1+i,metay1+j,metax1+i+256,metay1+j+256))
-            
-            
             io=StringIO.StringIO()
             view.save(io,'png')
             io.seek(0)
             data=io.read()
-            planner.finish_work((zoomlevel,mx1+i,my1+j),data)
+            subwork.append((zoomlevel,mx1+i,my1+j,data))
+    planner.finish_work(coord,subwork)
 
 
 # finds object automatically if you're running the Name Server.
@@ -231,8 +252,12 @@ def run():
         if wi==None:
             break
         coord,descr=wi
-        do_work_item(planner,coord,descr)
-        
+        try:
+            do_work_item(planner,coord,descr)
+        except:
+            planner.giveup_work(coord)
+            raise
+            
 if __name__=="__main__":
     run()
     

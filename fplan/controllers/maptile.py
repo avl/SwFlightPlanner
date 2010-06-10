@@ -8,6 +8,7 @@ import math
 import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
+from fplan.lib import maptilereader
 from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
@@ -99,17 +100,13 @@ class MaptileController(BaseController):
         if generate_on_the_fly:
             im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    
         else:
-            path="/home/anders/saker/avl_fplan_world/tiles/%s/%d/%d/%d.png"%(
-                    variant,
-                    zoomlevel,
-                    my,mx)
-            print "Opening",path
+            rawtile=maptilereader.gettile(variant,zoomlevel,mx,my)
             if not neededit:
                 response.headers['Content-Type'] = 'image/png'
-                return open(path).read()
-                            
-            
-            im=cairo.ImageSurface.create_from_png(path)
+                return rawtile
+            io=StringIO.StringIO(rawtile)
+            io.seek(0)
+            im=cairo.ImageSurface.create_from_png(io)
             
         ctx=cairo.Context(im)
         
