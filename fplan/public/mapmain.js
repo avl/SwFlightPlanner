@@ -73,6 +73,8 @@ function save_data(cont)
 	params['oldtripname']=document.getElementById('oldtripname').value;
 	params['showarea']=showarea;
 	params['showairspaces']=showairspaces;
+	params['pos']=''+parseInt(map_topleft_merc[0]+screen_size_x/2)+','+parseInt(map_topleft_merc[1]+screen_size_y/2);
+	params['zoomlevel']=map_zoomlevel;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -206,7 +208,8 @@ function tab_add_waypoint(idx,pos,origpos,name)
    	elem.onclick=onclick_waypoint;
     elem.innerHTML=''+
     '<td>#'+idx+':</td>'+
-    '<td><input type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/></td>'+
+    '<td><input type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
+    '<img onclick="reoder_wp('+idx+',-1)" src="/uparrow.png" /><img onclick="reorder_wp('+idx+',1)" src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_origpos" value="'+origpos+'"/>'+
@@ -938,7 +941,7 @@ function clear_uploaded_data()
 {
 	function clear_uploaded_data_impl()
 	{
-		reload_map();	
+		window.location.href=selfurl; /*Navigate to same page, will imply a reload of the map tiles (which are non-cacheable)*/
 	}
 	showarea='.';
  	save_data(clear_uploaded_data_impl);
@@ -982,7 +985,7 @@ function visualize_track_data()
 {
 	var d=new Date();
 	var year=d.getFullYear();
-	var mon=d.getMonth();
+	var mon=d.getMonth()+1;
 	var day=d.getDate();
 	setdetailpane(
 			"#ffffc0",

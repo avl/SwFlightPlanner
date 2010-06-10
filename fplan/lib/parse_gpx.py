@@ -41,7 +41,7 @@ def parse_gpx(gpxcontents,startstr,endstr):
         if lastlat!=None and lastlon!=None:            
             d=(lastlat-lat)**2+(lastlon-lon)**2
         else:
-            d=2*threshold
+            d=2*(threshold**2)
         if d>threshold**2:            
             out.points.append(((lat,lon),int(ele)))
             lastlon=lon
@@ -52,5 +52,6 @@ def parse_gpx(gpxcontents,startstr,endstr):
             if lon>maxlon: maxlon=lon
     out.bb1=(maxlat,minlon)
     out.bb2=(minlat,maxlon)
+    print "Bbs:",out.bb1,out.bb2
     return out
 

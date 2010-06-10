@@ -19,6 +19,7 @@ screen_size_y=0;
 tilesize=256;
 xsegcnt=0;
 ysegcnt=0;
+selfurl='${h.url_for(controller="mapview",action="index")}';
 saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
@@ -38,10 +39,10 @@ function calctileurl(zoomlevel,mercx,mercy)
 }
 function clip_mappos(mercx,mercy)
 {
+    if (mercx+screen_size_x>${c.merc_limx2}) mercx=${c.merc_limx2}-screen_size_x;
+    if (mercy+screen_size_y>${c.merc_limy2}) mercy=${c.merc_limy2}-screen_size_y;
     if (mercx<${c.merc_limx1}) mercx=${c.merc_limx1};
     if (mercy<${c.merc_limy1}) mercy=${c.merc_limy1};
-    if (mercx>${c.merc_limx2}) mercx=${c.merc_limx2};
-    if (mercy>${c.merc_limy2}) mercy=${c.merc_limy2};
     return [mercx,mercy];
 }
 
@@ -61,8 +62,7 @@ function loadmap()
 	sidebar_a.style.height=content.style.height;
 	
 	map_topleft_merc=[parseInt(${c.merc_x}-0.5*w),parseInt(${c.merc_y}-0.5*h)];
-	if (map_topleft_merc[1]<0)
-		map_topleft_merc[1]=0;
+	map_topleft_merc=clip_mappos(map_topleft_merc[0],map_topleft_merc[1]);
 
 
 	tilestart=[map_topleft_merc[0],map_topleft_merc[1]];

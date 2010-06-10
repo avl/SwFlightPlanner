@@ -22,10 +22,10 @@ def generate_work_packages(tma,blobs,cachedir):
     meta=0 #50 Change back to if using mapnik
     if meta==0:
         print "\n\n\n\n\n=====================================================================\nWARNING! meta==0!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n"
-    for zoomlevel in xrange(7):
+    for zoomlevel in xrange(10):
         maxy=mapper.max_merc_y(zoomlevel)
         maxx=mapper.max_merc_x(zoomlevel)
-        limitsx1,limitsy1,limitsx2,limitsy2=merc_limits(zoomlevel)
+        limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel)
         assert limitx2>limitx1
         assert limity2>limity1
         print "Limits: %f,%f - %f,%f"%(limitx1,limity1,limitx2,limity2)
@@ -100,21 +100,27 @@ class TilePlanner(Pyro.core.ObjBase):
         if not coord in self.inprog: 
             print "finish_work was called with unknown work package: %s of size %d bytes"%(coord,len(data))
         self.inprog.pop(coord)
+        print "finish 1"
         cprog=len(self.inprog)
         ctot=len(self.work)
+        print "finish 2"
         zoom,x1,y1,x2,y2=coord
         for zoomlevel,x,y,pngdata in data:
             assert zoomlevel==zoom
             self.blobs[zoomlevel].add_tile(x,y,pngdata)
+        print "finish 3"
         print "Work left: %d (in progress: %d)"%(cprog+ctot,cprog)
+        print "finish 4"
         if cprog+ctot==0:
             print "Finished! You may exit this program now"
             for blob in self.blobs.values():
                 blob.close()
+        print "finish 5"
 
     def giveup_work(self,coord):
-        descr=self.inprog.pop(coord)
-        self.work[coord]=descr
+        if coord in self.inprog:
+            descr=self.inprog.pop(coord)
+            self.work[coord]=descr
         
 daemon=Pyro.core.Daemon()
 ns=Pyro.naming.NameServerLocator().getNS()

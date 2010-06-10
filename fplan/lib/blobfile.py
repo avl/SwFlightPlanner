@@ -2,6 +2,7 @@ import os
 from struct import pack,unpack
 import md5
 import sys    
+from threading import Lock
     
 class BlobFile(object):
     
@@ -11,6 +12,7 @@ class BlobFile(object):
         tx,ty=(x-self.x1)/self.tilesize,(y-self.y1)/self.tilesize
         return tx,ty
     def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r'):
+        self.lock=Lock()
         print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
             name,zoomlevel,x1,y1,x2,y2,mode)
         self.mode=mode
@@ -81,45 +83,62 @@ class BlobFile(object):
     def get_size(self):
         return self.size
     def add_tile(self,x,y,data):
-        assert self.mode=="w"
-        hash=md5.md5(data).digest()
-        p=self.dupmap.get(hash,None)
-        if p==None:
-            self.f.seek(0,2) #seek to end of file        
-            p=self.f.tell()
-            print "writing %d bytes to %d (coords: %d,%d zoom: %d)"%(len(data),p,x,y,self.zoomlevel)
-            self.f.write(pack(">I",len(data)))
-            self.f.write(data)
-            self.dupmap[hash]=p
-            self.size+=len(data)
-        else:
-            print "Using cached value for:"
-        tx,ty=self.get_tile_number(x,y)        
-        if not ( tx>=0 and tx<self.sx) or not (ty>=0 and ty<self.sy):
-            print "Not adding tile at %d,%d, since it is outside the range of %d,%d-%d,%d"%(tx,ty,0,0,self.sx,self.sy)
-            return
-        #print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
-        self.f.seek(30+4*(tx+ty*self.sx))        
-        self.f.write(pack(">I",p))
-        #self.f.write(pack(">I",len(data)))
+        """Threadsafe"""
+        self.lock.acquire()
+        try:
+            assert self.mode=="w"
+            hash=md5.md5(data).digest()
+            p=self.dupmap.get(hash,None)
+            if p==None:
+                self.f.seek(0,2) #seek to end of file        
+                p=self.f.tell()
+                print "writing %d bytes to %d (coords: %d,%d zoom: %d)"%(len(data),p,x,y,self.zoomlevel)
+                self.f.write(pack(">I",len(data)))
+                self.f.write(data)
+                self.dupmap[hash]=p
+                self.size+=len(data)
+            else:
+                print "Using cached value for:",x,y,'zoom:',self.zoomlevel
+            tx,ty=self.get_tile_number(x,y)        
+            if not ( tx>=0 and tx<self.sx) or not (ty>=0 and ty<self.sy):
+                print "Not adding tile at %d,%d, since it is outside the range of %d,%d-%d,%d"%(tx,ty,0,0,self.sx,self.sy)
+                return
+            #print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
+            self.f.seek(30+4*(tx+ty*self.sx))        
+            self.f.write(pack(">I",p))
+            #self.f.write(pack(">I",len(data)))
+        finally:
+            self.lock.release()
     def get_tile(self,x,y):
-        tx,ty=self.get_tile_number(x,y)
-        pos=30+4*(tx+ty*self.sx)
-        print "Seeking to pos %d in file of size %d"%(pos,self.size)
-        self.f.seek(pos)
-            
-        p=unpack(">I",self.f.read(4))[0]
-        print "Tile number coords: %d,%d = %d"%(tx,ty,p)
-        if p==0:
-            print "No tile at position"
-            return None
-        assert p!=0
-        #s=unpack(">I",self.f.read(4))[0]
-        print "Seeking to: ",p
-        self.f.seek(p)
-        s=unpack(">I",self.f.read(4))[0]
-        assert s>0
-        return self.f.read(s)
+        """Threadsafe"""
+        self.lock.acquire()
+        try:
+            tx,ty=self.get_tile_number(x,y)
+            pos=30+4*(tx+ty*self.sx)
+            #print "Seeking to pos %d in file of size %d"%(pos,self.size)
+            self.f.seek(pos)
+                
+            p=unpack(">I",self.f.read(4))[0]
+            #print "Tile number coords: %d,%d = %d"%(tx,ty,p)
+            if p==0:
+                print "No tile at position %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
+                return None
+            self.f.seek(p)
+            sbuf=self.f.read(4)
+            if len(sbuf)!=4:
+                print "Couldn't read tile %d,%d at zoomlevel %d"%(x,y,self.zoomlevel)
+            s=unpack(">I",sbuf)[0]
+            #print "Read offset: %d"%(s,)
+            if s>self.size:
+                print "Offset too large. Offset: %d, filesize: %d"%(s,self.size)
+                return None
+            assert s>0
+            if p==0:
+                print "Zero size image at %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
+                return None
+            return self.f.read(s)
+        finally:
+            self.lock.release()
         
     def close(self):
         self.f.close()

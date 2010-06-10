@@ -14,6 +14,36 @@ log = logging.getLogger(__name__)
 
 class MapviewController(BaseController):      
 
+    def set_pos_zoom(self,latlon=None,zoom=None):
+        print "Setting pos to %s"%(latlon,)
+        if latlon==None:
+            assert zoom==None
+            zoomlevel=session.get('zoom',None)
+            if zoomlevel==None:
+                zoomlevel=5
+                merc_x,merc_y=mapper.latlon2merc((58,18),zoomlevel)
+            else:
+                merc_x,merc_y=session['last_pos']
+        else:
+            assert zoom!=None            
+            zoomlevel=zoom
+            if zoomlevel<5:
+                zoomlevel=5
+            if zoomlevel>13:
+                zoomlevel=13            
+            merc_x,merc_y=mapper.latlon2merc(latlon,zoomlevel)
+            
+        merc_limx1,merc_limy1,merc_limx2,merc_limy2=merc_limits(zoomlevel,conservative=False)
+        if merc_x>merc_limx2: merc_x=merc_limx2
+        if merc_y>merc_limy2: merc_y=merc_limy2
+        if merc_x<merc_limx1: merc_x=merc_limx1
+        if merc_y<merc_limy1: merc_y=merc_limy1
+    
+        session['last_pos']=(merc_x,merc_y)
+        session['zoom']=zoomlevel
+        print "Setting pos to %s"%(mapper.merc2latlon(session['last_pos'],zoomlevel),)
+        session.save()        
+
     def get_waypoints(self,parms):
         wpst=dict()
         print "Parms:",parms
@@ -42,6 +72,12 @@ class MapviewController(BaseController):
         
     def save(self):
         try:
+            if 'pos' in request.params and 'zoomlevel' in request.params:
+                save_merc_x,save_merc_y=[int(x) for x in request.params['pos'].split(",")]
+                save_zoom=int(request.params['zoomlevel'])
+                pos=mapper.merc2latlon((save_merc_x,save_merc_y),save_zoom)
+                self.set_pos_zoom(pos,save_zoom)
+                
 
             wps=self.get_waypoints(request.params)
             
@@ -167,9 +203,8 @@ class MapviewController(BaseController):
                     miny=min(miny,merc[1])
                     maxx=max(maxx,merc[0])
                     maxy=max(maxy,merc[1])                
-                if maxy<-1e29:                                    
-                    session['zoom']=6 #no vertices...   
-                    session['last_pos']=mapper.latlon2merc((59,18),6)
+                if maxy<-1e29:
+                    self.set_pos_zoom((59,18),6,)
                 else:
                     size=max(maxx-minx,maxy-miny)
                     if (maxx==minx and maxy==miny):
@@ -179,29 +214,26 @@ class MapviewController(BaseController):
                         while zoom>=0 and size>nominal_size:
                             zoom-=1
                             size/=2.0                            
-                    session['zoom']=zoom                    
                     pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
                     latlon=mapper.merc2latlon(pos,13)
-                    session['last_pos']=mapper.latlon2merc(latlon,zoom)
+                    self.set_pos_zoom(latlon,zoom)
             elif session.get('showtrack',None)!=None:
                 strack=session.get('showtrack')
                 zoom=13
-                minx,miny=mapper.latlon2merc(strack.bb1,zoom)
-                maxx,maxy=mapper.latlon2merc(strack.bb2,zoom)
+                minx,miny=mapper.latlon2merc(strack.bb1,13)
+                maxx,maxy=mapper.latlon2merc(strack.bb2,13)
+                pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
+                latlon=mapper.merc2latlon(pos,13)
+                print "AutoZooming  to pos",latlon
                 size=max(maxx-minx,maxy-miny,1)
                 nominal_size=400
                 while zoom>=0 and size>nominal_size:
                     zoom-=1
                     size/=2.0                            
-                    session['zoom']=zoom                    
-                pos=(int(0.5*(maxx+minx)),int(0.5*(maxy+miny)))                    
-                latlon=mapper.merc2latlon(pos,13)
-                session['last_pos']=mapper.latlon2merc(latlon,zoom)
-                
+                self.set_pos_zoom(latlon,zoom)
             else:
                 #mapper.parse_lfv_area()
-                session['zoom']=6               
-                session['last_pos']=mapper.latlon2merc((59,18),6)
+                self.set_pos_zoom((59,18),6)
             print "Autozoom zooming to level %d at %s"%(session['zoom'],session['last_pos'])
         else:
             zoomlevel=float(request.params['zoom'])
@@ -210,28 +242,8 @@ class MapviewController(BaseController):
             print "Zoomlevel: %s"%(zoomlevel,)
     
             pos=mapper.from_str(request.params['center'])
-            session['last_pos']=pos
-            session['zoom']=zoomlevel
+            self.set_pos_zoom(pos,zoomlevel)
 
-        pos=session['last_pos']
-        zoomlevel=session['zoom']
-
-        mercmaxx=mapper.max_merc_x(zoomlevel)    
-        mercmaxy=mapper.max_merc_y(zoomlevel)
-            
-        pos=list(pos)          
-        if pos[0]<0:
-            pos[0]=0
-        if pos[0]>mercmaxx:
-            pos[0]=mercmaxx    
-        if pos[1]<0:
-            pos[1]=0
-        if pos[1]>mercmaxy:
-            pos[1]=mercmaxy    
-        
-        session['last_pos']=pos
-        session['zoom']=zoomlevel
-        session.save()        
         redirect_to(h.url_for(controller='mapview',action="index"))
     
     def upload_track(self):
@@ -247,10 +259,11 @@ class MapviewController(BaseController):
             
         
     def index(self):
-        print "index called"
+        print "index called",request.params
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         
+            
         if 'current_trip' in session and meta.Session.query(Trip).filter(sa.and_(
                 Trip.user==session['user'],
                 Trip.trip==session['current_trip']
@@ -271,11 +284,15 @@ class MapviewController(BaseController):
             session.save()
             trip=None
 
-        zoomlevel=int(session.get('zoom',5))
-        pos=session.get('last_pos',mapper.latlon2merc((59,18),zoomlevel)) #Pos is always in the _old_ zoomlevel, even if zoomlevel changes (for now)
-                                
-        c.merc_x=int(pos[0]);
-        c.merc_y=int(pos[1]);        
+
+        self.set_pos_zoom()
+        zoomlevel=session['zoom']
+        c.merc_x,c.merc_y=session['last_pos']
+        
+        c.merc_limx1,c.merc_limy1,c.merc_limx2,c.merc_limy2=merc_limits(zoomlevel,conservative=False)
+
+        
+                                        
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         c.tripname=session['current_trip']
@@ -283,7 +300,6 @@ class MapviewController(BaseController):
         c.showtrack=session.get('showtrack',None)!=None
         c.show_airspaces=session.get('showairspaces',True)
         print "Zoomlevel active: ",zoomlevel
-        c.merc_limx1,c.merc_limy1,c.merc_limx2,c.merc_limy2=merc_limits(zoomlevel)
         c.zoomlevel=zoomlevel
         return render('/mapview.mako')
         

@@ -9,7 +9,7 @@ for variant in variants:
         path="/home/anders/saker/avl_fplan_world/tiles/%s/level%d"%(
                 variant,
                 zoomlevel)
-        print "Reading: ",path
+        #print "Reading: ",path
         if os.path.exists(path):
             blobcache[(variant,zoomlevel)]=BlobFile(path)
         
@@ -18,20 +18,23 @@ def latlon_limits():
     lat1,lon1,lat2,lon2=limits.split(",")
     return float(lat1),float(lon1),float(lat2),float(lon2)
 
-def merc_limits(zoomlevel):
+def merc_limits(zoomlevel,conservative=False):
     def ints(xs): return [int(x) for x in xs]
     lat1,lon1,lat2,lon2=latlon_limits()
     limitx1,limity1=ints(mapper.latlon2merc((lat2,lon1),zoomlevel))
     limitx2,limity2=ints(mapper.latlon2merc((lat1,lon2),zoomlevel))
-    tilesize=256
-    tilesizemask=tilesize-1
-    limitx1&=~tilesizemask
-    limity1&=~tilesizemask
-    limitx2&=~tilesizemask
-    limity2&=~tilesizemask
-    limitx2+=tilesize
-    limity2+=tilesize
-    return limitx1,limity1,limitx2,limity2
+    if conservative:
+        return limitx1,limity1,limitx2,limity2
+    else:
+        tilesize=256
+        tilesizemask=tilesize-1
+        limitx1&=~tilesizemask
+        limity1&=~tilesizemask
+        limitx2&=~tilesizemask
+        limity2&=~tilesizemask
+        limitx2+=tilesize
+        limity2+=tilesize
+        return limitx1,limity1,limitx2,limity2
 
 
 def gettile(variant,zoomlevel,mx,my):
@@ -39,7 +42,7 @@ def gettile(variant,zoomlevel,mx,my):
     blob=blobcache.get((variant,zoomlevel),None)
     if blob==None:
         return open("fplan/public/nodata.png").read()
-    print "Reading level: ",zoomlevel
+    #print "Reading level: ",zoomlevel
     d=blob.get_tile(mx,my)
     if d:
         return d;

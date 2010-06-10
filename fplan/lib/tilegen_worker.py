@@ -146,7 +146,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.stroke()                                        
     for airfield in get_airfields():
-        if zoom<5:
+        if zoomlevel<6:
             continue
         ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))
         merc=mapper.latlon2merc(mapper.from_str(airfield['pos']),zoomlevel)
