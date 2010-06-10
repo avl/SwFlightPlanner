@@ -241,7 +241,7 @@ class MapviewController(BaseController):
             if zoomlevel>13: zoomlevel=13
             print "Zoomlevel: %s"%(zoomlevel,)
     
-            pos=mapper.from_str(request.params['center'])
+            pos=mapper.merc2latlon(tuple([int(x) for x in request.params['center'].split(",")]),zoomlevel)
             self.set_pos_zoom(pos,zoomlevel)
 
         redirect_to(h.url_for(controller='mapview',action="index"))

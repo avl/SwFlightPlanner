@@ -261,7 +261,7 @@ function dozoom(how,pos)
 	}
 	
 	form.zoom.value=''+(zoomparam);
-	form.center.value=''+mercx+','+mercy;
+	form.center.value=''+parseInt(mercx)+','+parseInt(mercy);
 		
 	form.submit();
 }
@@ -1158,13 +1158,12 @@ function menu_add_new_waypoints()
 
 function center_map()
 {
-	var latlon=merc2latlon([lastrightclickx,lastrightclicky]);
-	var lat=latlon[0];
-	var lon=latlon[1];
+	var merc_x=lastrightclickx;
+	var merc_y=lastrightclicky;
 	function implement_center()
 	{
 		var form=document.getElementById('helperform');
-		form.center.value=''+lat+','+lon;
+		form.center.value=''+merc_x+','+merc_y;
 		form.submit();
 	}
 	save_data(implement_center);	

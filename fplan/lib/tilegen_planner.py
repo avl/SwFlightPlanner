@@ -19,10 +19,10 @@ def generate_work_packages(tma,blobs,cachedir):
     lon1=float(lon1)
     lon2=float(lon2)
     
-    meta=0 #50 Change back to if using mapnik
-    if meta==0:
-        print "\n\n\n\n\n=====================================================================\nWARNING! meta==0!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n"
-    for zoomlevel in xrange(10):
+    meta=50 #Change back to if using mapnik
+    #if meta==0:
+    #    print "\n\n\n\n\n=====================================================================\nWARNING! meta==0!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n"
+    for zoomlevel in xrange(14):
         maxy=mapper.max_merc_y(zoomlevel)
         maxx=mapper.max_merc_x(zoomlevel)
         limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel)
