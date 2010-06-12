@@ -103,9 +103,10 @@ class MapviewController(BaseController):
             #print "Req:",request.params
             oldtrip=None
             if oldname.strip():
-                oldtrips=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user,Trip.trip==oldname)).all()
-                if len(oldtrips)==1:
-                    oldtrip=oldtrips[0]
+                oldname=tripname
+            oldtrips=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user,Trip.trip==oldname)).all()
+            if len(oldtrips)==1:
+                oldtrip=oldtrips[0]
             if oldtrip:
                 trip=oldtrip
                 trip.trip=tripname
@@ -299,6 +300,7 @@ class MapviewController(BaseController):
         c.showarea=session.get('showarea','')
         c.showtrack=session.get('showtrack',None)!=None
         c.show_airspaces=session.get('showairspaces',True)
+        c.fastmap=user.fastmap;
         print "Zoomlevel active: ",zoomlevel
         c.zoomlevel=zoomlevel
         return render('/mapview.mako')

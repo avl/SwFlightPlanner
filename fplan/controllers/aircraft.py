@@ -56,7 +56,18 @@ class AircraftController(BaseController):
         print "aircraft.save idx=",self.idx,request.params,"pid:",os.getpid()
         if 'orig_aircraft' in request.params:
             self.do_save()
-        if 'add_button' in request.params:            
+        if request.params.get('del_button',False):
+            meta.Session.query(Aircraft).filter(sa.and_(
+                    Aircraft.user==session['user'],
+                    Aircraft.aircraft==request.params['orig_aircraft'])).delete()
+            session['cur_aircraft']=None
+            session.save()
+            
+        if request.params['change_aircraft']!=session['cur_aircraft']:
+            session['cur_aircraft']=request.params['change_aircraft']
+            session.save()
+        print "Request params:",request.params
+        if request.params.get('add_button',False):
             i=None
             cur_acname="SE-XYZ"
             while True:
@@ -68,20 +79,10 @@ class AircraftController(BaseController):
                     break
                 if i==None: i=2
                 else: i+=1                
-            a=Aircraft()
-            a.user=session['user']
-            a.aircraft=cur_acname
+            a=Aircraft(session['user'],cur_acname)
             meta.Session.add(a)
             session['cur_aircraft']=cur_acname
-            session.save()
-        if 'change_aircraft' in request.params:
-            session['cur_aircraft']=request.params['change_aircraft']
-            session.save()
-        if 'del_button' in request.params:
-            meta.Session.query(Aircraft).filter(sa.and_(
-                    Aircraft.user==session['user'],
-                    Aircraft.aircraft==request.params['orig_aircraft'])).delete()
-            session['cur_aircraft']=None
+            print "cur_aircraft=",session['cur_aircraft']
             session.save()
         meta.Session.flush()
         meta.Session.commit()

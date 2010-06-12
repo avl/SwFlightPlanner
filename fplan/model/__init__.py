@@ -29,7 +29,8 @@ Float=sa.types.Float
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
                         sa.Column("password",Unicode(100),nullable=False),
-                        sa.Column("isregistered",Boolean(),nullable=False)
+                        sa.Column("isregistered",Boolean(),nullable=False),
+                        sa.Column('fastmap',Boolean(),nullable=False,default=True)
                         )
 
 rating_table = sa.Table("rating",meta.metadata,

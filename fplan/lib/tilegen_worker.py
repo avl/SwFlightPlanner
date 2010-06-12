@@ -175,7 +175,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         assert return_format=="cairo"
         pass
     
-    #print "Returnign rendered image and map"
+    #print "Returning rendered image and map"
     return im
 
 def test_stockholm_tile():

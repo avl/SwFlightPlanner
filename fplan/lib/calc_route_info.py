@@ -29,7 +29,7 @@ def wind_computer(winddir,windvel,tt,tas):
             GS=0
     return GS,wca
 
-def get_route(c,user,trip):
+def get_route(user,trip):
     print "Getting ",user,trip
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==user,Trip.trip==trip)).one()
@@ -58,12 +58,12 @@ def get_route(c,user,trip):
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
         rt.d=D/1.852
 
+    print "Looking for ac:",tripobj.aircraft
     ac=meta.Session.query(Aircraft).filter(sa.and_(
         Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).one()
 
     climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
     descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
-    cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
 
     def alt_change_dist(delta):
         if delta==0: return 0,cruise_gs,ac.cruise_burn,''
@@ -75,7 +75,11 @@ def get_route(c,user,trip):
             return t*descent_gs,descent_gs,ac.descent_burn,'descent'
     
     for rt in routes:
-        rt.tas=tripobj.acobj.cruise_speed
+        if not rt.tas:
+            rt.tas=ac.cruise_speed
+        cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+
+
         if hasattr(rt,'prevrt'):
             prev_alt=mapper.parse_elev(rt.prevrt.altitude)
         else:
@@ -90,7 +94,7 @@ def get_route(c,user,trip):
         enddelta=next_alt-mid_alt
         begindist,beginspeed,beginburn,beginwhat=alt_change_dist(begindelta)
         enddist,endspeed,endburn,endwhat=alt_change_dist(enddelta)
-        print "Begindist: %s ft %s, %f, enddist: %s ft %s, %f"%(begindelta,beginwhat,begindist,enddelta,endwhat,enddist)
+        print "Begindist: delta=%s %s, dist: %f, enddist: delta: %s ft %s, dist:%f"%(begindelta,beginwhat,begindist,enddelta,endwhat,enddist)
         if begindist>rt.d and enddist==0:
             rt.climbperformance="notok"
             begindist=rt.d                 
@@ -103,9 +107,10 @@ def get_route(c,user,trip):
             rt.climbperformance="ok"
         begintime=begindist/beginspeed
         endtime=enddist/endspeed
+        print "Mid-dist: %f, Mid-cruise: %f"%(rt.d-(begindist+enddist),cruise_gs)
         midtime=(rt.d-(begindist+enddist))/cruise_gs
-        print "Midtime: %s"%(midtime,)
-        rt.tas=rt.d/(begintime+midtime+endtime)
+        print "Begintime: %s midtime: %s endtime: %s"%(begintime,midtime,endtime)
+        rt.avg_tas=rt.d/(begintime+midtime+endtime)
         rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
                         
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
@@ -158,8 +163,7 @@ def test_route_info():
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==u'anders',Trip.trip==u'mytrip')).one()
     class Temp(object): pass
-    c=Temp()
-    route=get_route(c,u'anders',u'mytrip')['routes']
+    route=get_route(u'anders',u'mytrip')['routes']
     D=60.153204103671705
     assert abs(route[0].d-D)<1e-5
     print route[0].__dict__

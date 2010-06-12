@@ -87,6 +87,10 @@ class BlobFile(object):
         self.lock.acquire()
         try:
             assert self.mode=="w"
+            tx,ty=self.get_tile_number(x,y)        
+            if not ( tx>=0 and tx<self.sx) or not (ty>=0 and ty<self.sy):
+                print "Not adding tile at %d,%d, since it is outside the range of %d,%d-%d,%d"%(tx,ty,0,0,self.sx,self.sy)
+                return
             hash=md5.md5(data).digest()
             p=self.dupmap.get(hash,None)
             if p==None:
@@ -99,10 +103,6 @@ class BlobFile(object):
                 self.size+=len(data)
             else:
                 print "Using cached value for:",x,y,'zoom:',self.zoomlevel
-            tx,ty=self.get_tile_number(x,y)        
-            if not ( tx>=0 and tx<self.sx) or not (ty>=0 and ty<self.sy):
-                print "Not adding tile at %d,%d, since it is outside the range of %d,%d-%d,%d"%(tx,ty,0,0,self.sx,self.sy)
-                return
             #print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
             self.f.seek(30+4*(tx+ty*self.sx))        
             self.f.write(pack(">I",p))

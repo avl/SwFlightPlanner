@@ -16,8 +16,9 @@ class BaseController(WSGIController):
         # Authentication required?
         
         #print "User:",session.get('user',None)
-        if (not ('user' in session)) or meta.Session.query(User).filter(
-                User.user==session['user']).count()==0:
+        users=meta.Session.query(User).filter(
+                User.user==session['user']).all()
+        if (not ('user' in session)) or len(users)==0:
             #create a default user which may subsequently be renamed if user wishes to
             base=""
             for seed in open("/dev/urandom").read(8):
@@ -33,10 +34,13 @@ class BaseController(WSGIController):
                     meta.Session.commit()
                     print "Users:",meta.Session.query(User).all()
                     session['user']=cand
+                    session['realuser']=False
                     session.save()
                     return
             raise Exception("Couldn't generate temporary user name")
-        
+        if len(users)==1:
+            if session.get('isreg',False)!=users[0].isregistered:
+                session['isreg']=users[0].isregistered
     def __call__(self, environ, start_response):
         """Invoke the Controller"""
         # WSGIController.__call__ dispatches to the Controller method

@@ -16,6 +16,38 @@ function gete(idx,wcol)
 	var e=document.getElementById(vid);
 	return e;
 }
+/*
+function fetch_acparams()
+{
+	function ac_cb(req)
+	{
+		if (req.responseText!='')
+		{
+			var ac=evalJSONRequest(req);
+			for(var i=0;i<ac.length;++i)
+			{
+				var tas=gete(i,'TAS');
+				tas.value=''+ac[i].toFixed(1);
+    			on_updaterow(i,'all');
+			}
+		}	
+	}
+	var ace=document.getElementById('curaircraft');
+	var params={};	
+	var alts='';
+	for(var i=0;i<num_rows-1;++i)
+	{
+	    if (i!=0) alts+=',';
+	    //FIXME: Filter out any ',' from alt field
+	    alts+=gete(i,'Alt').value;
+	}
+	params['alts']=alts;
+	params['tripname']=tripname;
+	params['aircraft']=ace.value;
+	var def=doSimpleXMLHttpRequest(fetchacurl,params);
+	def.addCallback(ac_cb);
+}
+*/
 function fetch_winds()
 {
 	function weather_cb(req)
@@ -189,8 +221,6 @@ function on_updaterow(idx,col)
 }
 function fpaddwaypoint(pos,name,rowdata)
 {
-	var noyet=document.getElementById('nowaypointsyet');
-	noyet.display='none';
 	searchpopup=0;
 
 	
@@ -236,3 +266,8 @@ function fpmain_init()
 		on_updaterow(i,'all');
 	}
 }
+
+
+
+
+

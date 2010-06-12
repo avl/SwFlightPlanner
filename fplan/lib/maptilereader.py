@@ -41,11 +41,13 @@ def gettile(variant,zoomlevel,mx,my):
 
     blob=blobcache.get((variant,zoomlevel),None)
     if blob==None:
+        print "Zoomlevel %d not loaded"%(zoomlevel,)
         return open("fplan/public/nodata.png").read()
     #print "Reading level: ",zoomlevel
     d=blob.get_tile(mx,my)
     if d:
         return d;
+    print "Missing tile at merc %d,%d zoom %d"%(mx,my,zoomlevel)
     return open("fplan/public/nodata.png").read()
                     
 

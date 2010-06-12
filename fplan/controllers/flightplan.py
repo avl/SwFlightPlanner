@@ -2,7 +2,7 @@ import logging
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route
+from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft
 from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
 log = logging.getLogger(__name__)
@@ -12,6 +12,7 @@ from fplan.extract.extracted_cache import get_airfields
 import json
 import re
 import fplan.lib.weather as weather
+from fplan.lib.calc_route_info import get_route
 
 class FlightplanController(BaseController):
     def search(self):
@@ -43,6 +44,8 @@ class FlightplanController(BaseController):
         print "returning json:",ret
         return ret
     def save(self):
+        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+            Trip.trip==request.params['tripname'])).one()
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
@@ -66,11 +69,40 @@ class FlightplanController(BaseController):
                 val=request.params[key]
                 print "Value of key %s: %s"%(key,val)
                 setattr(route,att,val)
-                
+        acname=request.params.get('aircraft','').strip()
+        if acname!="":
+            trip.aircraft=acname
         meta.Session.flush()
         meta.Session.commit()
         return "ok"
+    def fetchac(self):
+        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+            Trip.trip==session['current_trip'])).one()
+        trip.aircraft=request.params['aircraft']
+        
+        alts=request.params.get('alts','')
+        if alts==None:
+            altvec=[]
+        else:
+            altvec=alts.split(",")
+        for idx,alt in enumerate(altvec):
+             route=meta.Session.query(Route).filter(sa.and_(
+                  Route.user==session['user'],
+                  Route.trip==request.params['tripname'],
+                  Route.waypoint1==idx,
+                  Route.waypoint2==idx+1,
+                  )).one()
+             route.altitude=alt
 
+        rts=get_route(session['user'],request.params['tripname'])['routes']
+        ret=[]
+        for rt in rts:
+            print "Processing rt:",rt 
+            ret.append(rt.tas)
+        jsonstr=json.dumps(ret)
+        print "returning json:",jsonstr
+        return jsonstr
+        
     def weather(self):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],
@@ -153,6 +185,8 @@ class FlightplanController(BaseController):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
+        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+            Trip.trip==session['current_trip'])).one()
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         
@@ -210,16 +244,28 @@ class FlightplanController(BaseController):
                 dict(width=5,short='Time',desc="Time (hours, minutes)",extra="")
                 ]
        
-        
+        c.acname=trip.trip
+        c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
+                 Aircraft.user==session['user'])).all()
         
         return render('/flightplan.mako')
+    def select_aircraft(self):
+          
     def fuel(self):
-        class Temp(object): pass
-        
-        c.routes=[Temp(),Temp()]
-        c.routes[0].start_name="A"
-        c.routes[0].end_name="B"
-        c.routes[1].start_name="B"
-        c.routes[1].end_name="C"
+        routes=list(meta.Session.query(Route).filter(sa.and_(
+            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
+        tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
+            Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
+        if tripobj.acobj==None:
+            c.routes=[]
+            c.acwarn=True
+            c.ac=None
+        else:        
+            c.routes=get_route(session['user'],session['current_trip'])['routes']
+            c.acwarn=False
+            c.ac=tripobj.acobj
+            
         return render('/fuel.mako')
         

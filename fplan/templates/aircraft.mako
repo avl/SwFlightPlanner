@@ -32,7 +32,7 @@ addLoadEvent(loadaircraft);
 Aircraft
 </h1>
 <form id="acform" action="${h.url_for(controller="aircraft",action="save")}" method="POST">
-
+%if len(c.all_aircraft):
 <select onchange="onchange_aircraft()" name="change_aircraft">
 %for ac in c.all_aircraft:
 <option ${'selected="1"' if ac.aircraft==c.ac.aircraft else ''|n}>
@@ -40,6 +40,7 @@ ${ac.aircraft}
 </option>
 %endfor
 </select>
+%endif
 <input type="submit" name="add_button" value="Add aircraft"/>
 %if c.ac:
 <input type="submit" name="del_button" value="Delete aircraft"/>
@@ -74,9 +75,12 @@ ${ac.aircraft}
 </tr>
 
 </table>
-<input type="hidden" id="navigate_to" name="navigate_to" value="" />
 %endif        
+<input type="hidden" id="navigate_to" name="navigate_to" value="" />
+%if len(c.all_aircraft):
 <input type="submit" name="save_button" value="Save"/>
+%endif
+
 </form>
 </div>
 	

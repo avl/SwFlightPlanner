@@ -35,8 +35,11 @@ Change name: <input type="text" name="username" value="${c.user}" /><br/>
 <div id="password" style="display:none">
 %endif
 Enter a password: <input type="password" name="password1" value="" /><br/>
-Enter password again: <input type="password" name="password2" value="" />
+Enter password again: <input type="password" name="password2" value="" /><br/>
 </div>
+%if not c.initial:
+Dotted track (faster, but less pretty): <input type="checkbox" name="fastmap" ${'checked="1"' if c.fastmap else ''|n}"/><br/>
+%endif
 <input type="submit" name="save" value="Save"/>
 </form>
 

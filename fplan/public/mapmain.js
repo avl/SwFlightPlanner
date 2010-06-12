@@ -182,6 +182,39 @@ function to_latlon_str(pos)
 	latlon=merc2latlon(pos);
 	return ''+latlon[0]+','+latlon[1];
 }
+function reorder_wp(idx,delta)
+{
+    if (dragmode!=0)
+        return;
+    var odx=idx+delta;
+    if (odx<0) odx=wps.length-1;
+    if (odx>=wps.length) odx=0;
+    if (idx<0 || idx>=wps.length || odx<0 || odx>=wps.length)
+        return false;
+    var w1=wps[idx];        
+    var w2=wps[odx];        
+    wps[odx]=w1;
+    wps[idx]=w2;
+    
+    var glist=document.getElementById('tab_fplan');
+    var rowelem1=glist.rows[idx];		
+	var name1e=rowelem1.cells[1].childNodes[0];
+	var pos1e=rowelem1.cells[2].childNodes[0];
+    var rowelem2=glist.rows[odx];		
+	var name2e=rowelem2.cells[1].childNodes[0];
+	var pos2e=rowelem2.cells[2].childNodes[0];
+
+    var pos1=pos1e.value;
+    var pos2=pos2e.value;
+    var name1=name1e.value;
+    var name2=name2e.value;
+    pos1e.value=pos2;
+    pos2e.value=pos1;
+    name1e.value=name2;
+    name2e.value=name1;
+    
+	draw_jg();    
+}
 function tab_add_waypoint(idx,pos,origpos,name)
 {
 	anychangetosave=1;
@@ -209,7 +242,7 @@ function tab_add_waypoint(idx,pos,origpos,name)
     elem.innerHTML=''+
     '<td>#'+idx+':</td>'+
     '<td><input type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
-    '<img onclick="reoder_wp('+idx+',-1)" src="/uparrow.png" /><img onclick="reorder_wp('+idx+',1)" src="/downarrow.png" /> </td>'+
+    '<img onclick="reorder_wp('+idx+',-1)" src="/uparrow.png" /><img onclick="reorder_wp('+idx+',1)" src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_origpos" value="'+origpos+'"/>'+
@@ -283,12 +316,25 @@ function zoom_in(pos)
 }
 function handle_mouse_wheel(delta,event) 
 {
-	var relx=client2merc_x(event.clientX);
-	var rely=client2merc_y(event.clientY);
+	var screen_x=event.clientX-document.getElementById('mapcontainer').offsetLeft;
+	var screen_y=event.clientY-document.getElementById('mapcontainer').offsetTop;
+	var dx=screen_x-(screen_size_x/2);
+	var dy=screen_y-(screen_size_y/2);
+	var centerx=map_topleft_merc[0]+screen_size_x/2;
+	var centery=map_topleft_merc[1]+screen_size_y/2;	
 	if (delta>0)
-		zoom_in([relx,rely]);
+	{
+	    var x=centerx+dx/2;
+	    var y=centery+dy/2;
+		zoom_in([parseInt(x),parseInt(y)]);
+	}
 	if (delta<0)
-		zoom_out([relx,rely]); 		
+	{
+	    //newcenterx=2*(centerx+dx/2) => centerx=newcenterx/2-dx/2
+	    var x=centerx-dx;
+	    var y=centery-dy;
+		zoom_out([parseInt(x),parseInt(y)]); 		
+	}
 }
 
 
@@ -545,82 +591,154 @@ function client2merc_y(clientY)
 	var screen_y=clientY-document.getElementById('mapcontainer').offsetTop;
 	return map_topleft_merc[1]+screen_y;
 }
+function draw_hatched_line(jg,l)
+{
+    var geomlen=Math.sqrt((l[0]-l[2])*(l[0]-l[2])+(l[1]-l[3])*(l[1]-l[3]));
+    if (geomlen==0) return;
+    var dx=l[2]-l[0];
+    var dy=l[3]-l[1];
+    for(var p=50;p<geomlen-5;p+=50)
+    {
+        var cx=parseInt(l[0]+dx*p/geomlen);
+        var cy=parseInt(l[1]+dy*p/geomlen);
+	    jg.fillRect(
+	        cx-3,cy-3,6,6);
+    }
+
+}
 function draw_jg()
 {
 	jg.clear();
 
-	for(var pass=0;pass<2;pass++)
-	{		
-	    for(var i=0;i<wps.length;i++)
-	    {
-	    	if (waypointstate!='moving' || (
-	    		i-1!=movingwaypoint && i!=movingwaypoint))
-	    	{
-	    		if (pass==0)
-	    		{
-		    		if (i!=0)    		
-		    		{    			
-		    			if (selected_route_idx==i-1)
-		    				jg.setColor("#ffa0a0"); // green
-		    			else
-		    				jg.setColor("#00bf00");
-						
-						if (use_great_circles)
-						{
-							draw_great_circle(
-								wps[i-1],wps[i]);
-						}						
-						else
-						{				
-							var l=clipline(
-								merc2screen_x(wps[i-1][0]),
-								merc2screen_y(wps[i-1][1]),
-								merc2screen_x(wps[i][0]),
-								merc2screen_y(wps[i][1])
-				    			);
-				    		if (l.length)	    			
-			    				jg.drawLine(
-				    				l[0],l[1],l[2],l[3]
-					    			);
-				    	}
-			    	}
-			    }
-			    if (pass==1)
-			    {	
-			    	var screen_x=merc2screen_x(wps[i][0]);
-			    	var screen_y=merc2screen_y(wps[i][1]);
-			    	if (selected_waypoint_idx==i)
-			    	{
-			    		if (clippoint(screen_x,screen_y))
-			    		{
-				    		jg.setColor("#20207f");
-							jg.setFont("arial","14px",Font.BOLD);
-							jg.drawString(''+i,screen_x+6,screen_y-5);			    		
-				    		jg.setColor("#0000bf");
-					    	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
-				    		jg.setColor("#ffffff");
-				    		jg.fillEllipse(screen_x-3,screen_y-3,6,6);
-				    	}
-			    	}
-			    	else
-			    	{
-			    		if (clippoint(screen_x,screen_y))
-			    		{
-			    			jg.setColor("#207f20");
-							jg.setFont("arial","14px",Font.BOLD);
-							jg.drawString(''+i,screen_x+7,screen_y-5);			    		
-				    		jg.setColor("#00bf00");
-					    	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
-				    		jg.setColor("#ffffff");
-				    		jg.fillEllipse(screen_x-3,screen_y-3,6,6);
-				    	}			    	
-			    	}			    	
-				    
-				}
-			}
+    if (fastmap)
+    {
+        for(var i=0;i<wps.length;i++)
+        {
+        	if (waypointstate!='moving' || (
+        		i-1!=movingwaypoint && i!=movingwaypoint))
+        	{
+        		if (i!=0)    		
+        		{    			
+        			if (selected_route_idx==i-1)
+        				jg.setColor("#ffa0a0"); // green
+        			else
+        				jg.setColor("#00bf00");
+			
+			        var l=clipline(
+				        merc2screen_x(wps[i-1][0]),
+				        merc2screen_y(wps[i-1][1]),
+				        merc2screen_x(wps[i][0]),
+				        merc2screen_y(wps[i][1])
+            			);
+            		if (l.length)	    			
+            		{
+            		    draw_hatched_line(jg,l);
+	                }
+            	}
+            	var screen_x=merc2screen_x(wps[i][0]);
+            	var screen_y=merc2screen_y(wps[i][1]);
+        		if (clippoint(screen_x,screen_y))
+        		{
+                	if (selected_waypoint_idx==i)
+                	{
+                		jg.setColor("#20207f");
+			            jg.setFont("arial","14px",Font.BOLD);
+			            jg.drawString(''+i,screen_x+7,screen_y-5);			    		
+                		jg.setColor("#0000bf");
+	                	jg.fillRect(screen_x-5,screen_y-5,10,10);
+                		jg.setColor("#ffffff");
+                		jg.fillRect(screen_x-3,screen_y-3,6,6);
+                	}
+                	else
+                	{
+            			jg.setColor("#207f20");
+			            jg.setFont("arial","14px",Font.BOLD);
+			            jg.drawString(''+i,screen_x+7,screen_y-5);			    		
+                		jg.setColor("#00bf00");
+	                	jg.fillRect(screen_x-5,screen_y-5,10,10);
+                		jg.setColor("#ffffff");
+                		jg.fillRect(screen_x-3,screen_y-3,6,6);
+                	}			    	
+                }
+            }
 	    }
-	}    
+    }
+    else
+    {
+	    for(var pass=0;pass<2;pass++)
+	    {		
+	        for(var i=0;i<wps.length;i++)
+	        {
+	        	if (waypointstate!='moving' || (
+	        		i-1!=movingwaypoint && i!=movingwaypoint))
+	        	{
+	        		if (pass==0)
+	        		{
+		        		if (i!=0)    		
+		        		{    			
+		        			if (selected_route_idx==i-1)
+		        				jg.setColor("#ffa0a0"); // green
+		        			else
+		        				jg.setColor("#00bf00");
+						
+						    if (use_great_circles)
+						    {
+							    draw_great_circle(
+								    wps[i-1],wps[i]);
+						    }						
+						    else
+						    {				
+							    var l=clipline(
+								    merc2screen_x(wps[i-1][0]),
+								    merc2screen_y(wps[i-1][1]),
+								    merc2screen_x(wps[i][0]),
+								    merc2screen_y(wps[i][1])
+				        			);
+				        		if (l.length)	    			
+			        				jg.drawLine(
+				        				l[0],l[1],l[2],l[3]
+					        			);
+				        	}
+			        	}
+			        }
+			        if (pass==1)
+			        {	
+			        	var screen_x=merc2screen_x(wps[i][0]);
+			        	var screen_y=merc2screen_y(wps[i][1]);
+			        	if (selected_waypoint_idx==i)
+			        	{
+			        		if (clippoint(screen_x,screen_y))
+			        		{
+				        		jg.setColor("#20207f");
+							    jg.setFont("arial","14px",Font.BOLD);
+							    jg.drawString(''+i,screen_x+6,screen_y-5);			    		
+				        		jg.setColor("#0000bf");
+					        	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
+				        		jg.setColor("#ffffff");
+				        		jg.fillEllipse(screen_x-3,screen_y-3,6,6);
+				        	}
+			        	}
+			        	else
+			        	{
+			        		if (clippoint(screen_x,screen_y))
+			        		{
+			        			jg.setColor("#207f20");
+							    jg.setFont("arial","14px",Font.BOLD);
+							    jg.drawString(''+i,screen_x+7,screen_y-5);			    		
+				        		jg.setColor("#00bf00");
+					        	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
+				        		jg.setColor("#ffffff");
+				        		jg.fillEllipse(screen_x-3,screen_y-3,6,6);
+				        	}			    	
+			        	}			    	
+				        
+				    }
+			    }
+	        }
+	    }    
+	}
     jg.paint();
+    
 }
 
 waypointstate='none';
@@ -838,7 +956,9 @@ function draw_dynamic_lines(cx,cy)
 		jgq.clear();
 		l=clipline(merc2screen_x(anchorx),merc2screen_y(anchory),merc2screen_x(cx),merc2screen_y(cy));
 		if (l.length>0) 
-			jgq.drawLine(l[0],l[1],l[2],l[3]);
+		{
+		    draw_hatched_line(jgq,l);
+		}
 
 		if (clippoint(merc2screen_x(cx),merc2screen_y(cy)))
 		{
@@ -859,13 +979,13 @@ function draw_dynamic_lines(cx,cy)
 		{
 			l=clipline(merc2screen_x(wps[movingwaypoint-1][0]),merc2screen_y(wps[movingwaypoint-1][1]),merc2screen_x(cx),merc2screen_y(cy));
 			if (l.length>0)
-				jgq.drawLine(l[0],l[1],l[2],l[3]);
+    		    draw_hatched_line(jgq,l);
 		}
 		if (movingwaypoint!=wps.length-1)
 		{
 			l=clipline(merc2screen_x(wps[movingwaypoint+1][0]),merc2screen_y(wps[movingwaypoint+1][1]),merc2screen_x(cx),merc2screen_y(cy));
 			if (l.length>0)
-				jgq.drawLine(l[0],l[1],l[2],l[3]);
+    		    draw_hatched_line(jgq,l);
 		}
 		jgq.paint();
 		
@@ -922,7 +1042,7 @@ function on_mousemovemap(event)
 
 	var ol=document.getElementById('mapcontainer').offsetLeft;
 
-	document.getElementById("footer").innerHTML='offsetLeft: '+ol+'mtm'+map_topleft_merc[0]+' clientX:'+event.clientX+' clientY: '+event.clientY+' mercX: '+mercx+' mercY:'+mercy+' zoom: '+map_zoomlevel+' '+aviation_format_pos(latlon);
+	document.getElementById("footer").innerHTML=aviation_format_pos(latlon)+' (dbg: xm: '+mercx+' ym:'+mercy+' zoom: '+map_zoomlevel+')';
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }

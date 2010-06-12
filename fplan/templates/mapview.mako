@@ -25,7 +25,7 @@ searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
 mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
 uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
-
+fastmap=${"1" if c.fastmap else "0"};
 showairspaces=${"1" if c.show_airspaces else "0"};
 
 tilestart=[];//upper left corner of tile grid
@@ -99,9 +99,7 @@ function loadmap()
 	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;">'+	
 	imgs+
 	'<div id="overlay1" style="overflow:hidden;position:absolute;z-index:1;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div id="overlay2" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" id="overlay3" '+
-	'style="overflow:hidden;position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div id="overlay2" onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'</div>'+	
 	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+

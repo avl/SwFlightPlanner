@@ -30,7 +30,10 @@ addLoadEvent(fixcontentsize);
 </div>
 <div id="right-nav">
 	<dl>
-		<dt id="nav-profile"><a  onclick="navigate_to('${h.url_for(controller="profile",action="index")}')" href="#">Profile</a></dt>
+    <dt id="nav-profile">
+    ${h.get_username()|n}
+    <a  onclick="navigate_to('${h.url_for(controller="profile",action="index")}')" href="#">Profile</a></dt>
+    
 	</dl>
 </div>
 </div>

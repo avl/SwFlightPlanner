@@ -10,6 +10,7 @@ tripname='${c.tripname}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 fetchweatherurl='${h.url_for(controller="flightplan",action="weather")}';
 saveurl='${h.url_for(controller="flightplan",action="save")}';
+fetchacurl='${h.url_for(controller="flightplan",action="fetchac")}';
 fpcolnum=${len(c.cols)};
 fpcolshort=[];
 fpcoldesc=[];
@@ -68,14 +69,24 @@ addLoadEvent(loadfplan);
 ${c.tripname}
 </h1>
 
-<form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
-<div class="bordered" id="nowaypointsyet"
-%if len(c.waypoints)!=0:
-	style="display:none"
-%endif
->
-You have no waypoints yet! Go to the map and click to add some!
+%if len(c.waypoints)==0:
+<div class="bordered">
+You have no waypoints yet! Go to the map and click the 'Add' button in the upper right part of the screen. Then click in the map to add waypoints.
 </div>
+%endif
+%if len(c.waypoints)!=0:
+<form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
+%if False:
+%if len(c.all_aircraft):
+Aircraft: <select id="curaircraft" name="aircraft">
+%for ac in c.all_aircraft:
+<option ${'selected="1"' if ac.aircraft==c.acname else ''|n}>
+${ac.aircraft}
+</option>
+%endfor
+</select><br/>
+%endif
+%endif
 
 <table id="flightplantable" class="bordered" cellspacing="0" borders="0">
 <tr>
@@ -85,12 +96,19 @@ You have no waypoints yet! Go to the map and click to add some!
 </td>
 </tr>
 </table>
-<p>
-<button onclick="fetch_winds();return false;">Fetch Wind Information</button><br/>
+<button onclick="fetch_winds();return false;">Fetch Wind Information</button>
+
+%if False and len(c.all_aircraft):
+<button onclick="fetch_acparams();return false;">Fetch Values from Aircraft</button>
+%endif
+<br/>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
-Total time: <input id="tottime" type="text" readonly="1" value="" size="4">.<br/>
-</p>
+Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not counting time for climb).<br/>
+%if len(c.all_aircraft)==0:
+<a href="#" onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" ><u>Add</u> an aircraft to use on this trip.</a><br/>
+%endif
 </form>
+%endif
 
 
         
