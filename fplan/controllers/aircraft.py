@@ -63,7 +63,7 @@ class AircraftController(BaseController):
             session['cur_aircraft']=None
             session.save()
             
-        if request.params['change_aircraft']!=session['cur_aircraft']:
+        if request.params.get('change_aircraft',None)!=session.get('cur_aircraft',None) and request.params.get('change_aircraft',False):
             session['cur_aircraft']=request.params['change_aircraft']
             session.save()
         print "Request params:",request.params

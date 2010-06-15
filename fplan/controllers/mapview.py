@@ -10,12 +10,14 @@ from fplan.lib.parse_gpx import parse_gpx
 from fplan.lib.maptilereader import merc_limits
 import sqlalchemy as sa
 import routes.util as h
+import json
+
 log = logging.getLogger(__name__)
 
 class MapviewController(BaseController):      
 
     def set_pos_zoom(self,latlon=None,zoom=None):
-        print "Setting pos to %s"%(latlon,)
+        #print "Setting pos to %s"%(latlon,)
         if latlon==None:
             assert zoom==None
             zoomlevel=session.get('zoom',None)
@@ -68,7 +70,14 @@ class MapviewController(BaseController):
             d.update(wp)
             
         return wps
-            
+
+    def get_free_tripname(self,tripname):            
+        desiredname=tripname
+        attemptnr=2
+        while meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],Trip.trip==tripname)).count():
+            tripname=desiredname+"(%d)"%(attemptnr,)
+            attemptnr+=1
+        return tripname
         
     def save(self):
         try:
@@ -102,17 +111,21 @@ class MapviewController(BaseController):
                 
             #print "Req:",request.params
             oldtrip=None
-            if oldname.strip():
+            if not oldname.strip():
                 oldname=tripname
             oldtrips=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user,Trip.trip==oldname)).all()
             if len(oldtrips)==1:
                 oldtrip=oldtrips[0]
             if oldtrip:
                 trip=oldtrip
-                trip.trip=tripname
+                if trip.trip!=tripname:
+                    trip.trip=self.get_free_tripname(tripname)
+                session['current_trip']=trip.trip
             else:
+                tripname=self.get_free_tripname(tripname)
                 trip = Trip(user.user, tripname)
-                meta.Session.add(trip)                    
+                meta.Session.add(trip)
+                session['current_trip']=tripname
             
             oldwps=set([(wp.ordinal) for wp in meta.Session.query(Waypoint).filter(sa.and_(
                     Waypoint.user==user.user,Waypoint.trip==trip.trip)).all()])
@@ -179,7 +192,9 @@ class MapviewController(BaseController):
             meta.Session.flush()
             meta.Session.commit();
             
-            return "ok"
+            ret=json.dumps([tripname])
+            print "mapview returning json:",ret
+            return ret
         except Exception,cause:                    
             raise
             return "notok"        
@@ -258,13 +273,33 @@ class MapviewController(BaseController):
             session.save()
         redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
             
+    def trip_actions(self):
+        print "trip actions:",request.params
+        if request.params.get('addtripname',None):
+            tripname=self.get_free_tripname(request.params['addtripname'])
+            trip = Trip(session['user'], tripname)
+            print "Adding trip:",trip
+            meta.Session.add(trip)
+            session['current_trip']=tripname
+            session.save()       
+        if request.params.get('opentripname',None):
+            tripname=request.params['opentripname']
+            if meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+                Trip.trip==tripname)).count():
+                session['current_trip']=tripname
+                session.save()
+            
+        meta.Session.flush()
+        meta.Session.commit();
+        redirect_to(h.url_for(controller='mapview',action="index"))
+        
         
     def index(self):
-        print "index called",request.params
+        #print "index called",request.params
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         
-            
+        c.all_trips=list(meta.Session.query(Trip).filter(Trip.user==session['user']).all())
         if 'current_trip' in session and meta.Session.query(Trip).filter(sa.and_(
                 Trip.user==session['user'],
                 Trip.trip==session['current_trip']
@@ -301,7 +336,7 @@ class MapviewController(BaseController):
         c.showtrack=session.get('showtrack',None)!=None
         c.show_airspaces=session.get('showairspaces',True)
         c.fastmap=user.fastmap;
-        print "Zoomlevel active: ",zoomlevel
+        #print "Zoomlevel active: ",zoomlevel
         c.zoomlevel=zoomlevel
         return render('/mapview.mako')
         

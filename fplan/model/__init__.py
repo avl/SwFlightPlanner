@@ -160,7 +160,11 @@ orm.mapper(Trip, trip_table, properties=dict(
     acobj=orm.relation(Aircraft,lazy=True)))
 
 orm.mapper(Waypoint, waypoint_table)
-orm.mapper(Route, route_table)
+orm.mapper(Route, route_table,
+ properties=dict(
+    a=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint1),lazy=True),
+    b=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint2),lazy=True)
+))
 
 
 #orm.mapper(Airport, airport_table)

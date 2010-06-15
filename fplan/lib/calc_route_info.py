@@ -29,6 +29,8 @@ def wind_computer(winddir,windvel,tt,tas):
             GS=0
     return GS,wca
 
+class TechRoute(object):
+    pass
 def get_route(user,trip):
     print "Getting ",user,trip
     tripobj=meta.Session.query(Trip).filter(sa.and_(
@@ -73,7 +75,15 @@ def get_route(user,trip):
         if delta<0:
             t=(-delta/ac.descent_rate)/60.0
             return t*descent_gs,descent_gs,ac.descent_burn,'descent'
-    
+    def calc_midburn(tas):
+        if tas>ac.cruise_speed:
+            f=(tas/ac.cruise_speed)**2
+            return ac.cruise_burn*f
+        f2=(tas/ac.cruise_speed)
+        return ac.cruise_burn*f2
+    res=[]
+    accum_fuel=0
+    accum_time=0
     for rt in routes:
         if not rt.tas:
             rt.tas=ac.cruise_speed
@@ -107,17 +117,72 @@ def get_route(user,trip):
             rt.climbperformance="ok"
         begintime=begindist/beginspeed
         endtime=enddist/endspeed
-        print "Mid-dist: %f, Mid-cruise: %f"%(rt.d-(begindist+enddist),cruise_gs)
+        middist=rt.d-(begindist+enddist)
+        print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
         midtime=(rt.d-(begindist+enddist))/cruise_gs
         print "Begintime: %s midtime: %s endtime: %s"%(begintime,midtime,endtime)
+        def timefmt(h):
+            totmin=int(60*h)
+            h=int(totmin//60)
+            min_=totmin-h*60
+            return "%dh%02dm"%(h,min_)
+            
+
+        sub=[]
+        if abs(begintime)>1e-5:
+            out=TechRoute()
+            out.tas=ac.climb_speed
+            out.gs=climb_gs
+            out.wca=climb_wca
+            out.tt=rt.tt
+            out.d=begindist
+            accum_time+=begintime
+            out.accum_time=timefmt(accum_time)
+            out.time=timefmt(begintime)
+            out.fuel_burn=begintime*beginburn
+            out.what="climb"
+            sub.append(out)
+        if abs(midtime)>1e-5:
+            out=TechRoute()
+            out.tas=rt.tas
+            out.gs=cruise_gs
+            out.wca=cruise_wca
+            out.tt=rt.tt
+            out.d=middist
+            accum_time+=midtime
+            out.accum_time=timefmt(accum_time)
+            out.time=timefmt(midtime)
+            out.fuel_burn=midtime*calc_midburn(rt.tas)
+            out.what="cruise"
+            sub.append(out)
+        if abs(endtime)>1e-5:
+            out=TechRoute()
+            out.tas=ac.descent_speed
+            out.gs=descent_gs
+            out.wca=descent_wca
+            out.tt=rt.tt
+            out.d=enddist
+            accum_time+=endtime
+            out.accum_time=timefmt(accum_time)
+            out.time=timefmt(endtime)
+            out.what="descent"
+            out.fuel_burn=endtime*endburn
+            sub.append(out)
+        def val(x):
+            if x==None: return 0.0
+            return x
+        for out in sub:    
+            out.ch=out.tt+out.wca-val(rt.variation)-val(rt.deviation)
+            out.a=rt.a
+            out.b=rt.b
+            res.append(out)
+            accum_fuel+=out.fuel_burn
+            out.accum_fuel_burn=accum_fuel
         rt.avg_tas=rt.d/(begintime+midtime+endtime)
         rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
                         
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
                     
-        def val(x):
-            if x==None: return 0.0
-            return x
         rt.ch=rt.tt+rt.wca-val(rt.variation)-val(rt.deviation)
 
         if rt.gs>0.0:
@@ -125,8 +190,7 @@ def get_route(user,trip):
         else:
             rt.time_hours=None                          
     
-    return dict(waypoints=waypoints,
-                routes=routes)
+    return res
 
 def test_route_info():
     from fplan.config.environment import load_environment

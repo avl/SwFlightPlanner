@@ -39,12 +39,17 @@ function save_data(cont)
 	{
 		return;
 	}
+	var oldtripname=document.getElementById('oldtripname').value;
 	var progm=document.getElementById("progmessage");
 	function save_data_cb(req)
 	{	
 		opinprogress=0;
-		if (req.responseText=='ok')
+		if (req.responseText!='notok')
 		{
+			var param=evalJSONRequest(req);
+			var newtripname=param[0];
+			document.getElementById('oldtripname').value=newtripname;
+			document.getElementById('entertripname').value=newtripname;
 			progm.style.display='none';
 			if (cont!=null)
 				cont();		
@@ -1394,3 +1399,60 @@ function pan_map(dx,dy)
 	overlay2.style.left=''+(overlay_left+accum_pan_dx)+'px';
 	overlay2.style.top=''+(overlay_top+accum_pan_dy)+'px';
 }
+
+
+
+
+function add_new_trip()
+{
+    var me=document.getElementById('addtripfunctions');
+    if (me.style.display=='none')
+        me.style.display='block';
+    else
+        me.style.display='none';
+}
+function more_trip_functions()
+{
+    var me=document.getElementById('moretripfunctions');
+    if (me.style.display=='none')
+        me.style.display='block';
+    else
+        me.style.display='none';
+}
+function open_trip()
+{
+    var me=document.getElementById('opentripfunctions');
+    if (me.style.display=='none')
+        me.style.display='block';
+    else
+        me.style.display='none';
+}
+function on_add_trip()
+{
+	function finish_add_trip()
+	{				
+		document.getElementById('tripform').submit();
+	}
+	save_data(finish_add_trip);
+}
+function on_delete_trip()
+{
+	function finish_add_trip()
+	{				
+		document.getElementById('deletetripname').value='1';
+		document.getElementById('tripform').submit();
+	}
+	save_data(finish_add_trip);
+}
+function on_open_trip()
+{
+	function finish_add_trip()
+	{	
+	    document.getElementById('opentripname').value=document.getElementById('choose_trip').value;
+		document.getElementById('tripform').submit();
+	}
+	save_data(finish_add_trip);    
+}
+
+
+

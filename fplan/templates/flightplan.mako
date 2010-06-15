@@ -71,7 +71,7 @@ ${c.tripname}
 
 %if len(c.waypoints)==0:
 <div class="bordered">
-You have no waypoints yet! Go to the map and click the 'Add' button in the upper right part of the screen. Then click in the map to add waypoints.
+You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",action="index")}"><u>map</u></a> and click the 'Add' button in the upper right part of the screen. Then click in the map to add waypoints.
 </div>
 %endif
 %if len(c.waypoints)!=0:

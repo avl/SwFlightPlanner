@@ -114,6 +114,8 @@ class BlobFile(object):
         self.lock.acquire()
         try:
             tx,ty=self.get_tile_number(x,y)
+            if tx<0 or tx>=self.sx or ty<0 or ty>=self.sy:
+                return None
             pos=30+4*(tx+ty*self.sx)
             #print "Seeking to pos %d in file of size %d"%(pos,self.size)
             self.f.seek(pos)
@@ -126,7 +128,7 @@ class BlobFile(object):
             self.f.seek(p)
             sbuf=self.f.read(4)
             if len(sbuf)!=4:
-                print "Couldn't read tile %d,%d at zoomlevel %d"%(x,y,self.zoomlevel)
+                print "Couldn't read tile %d,%d at zoomlevel %d. Offset: %d, filesize: %d (x:%d,y:%d,sx:%d sy:%d)"%(x,y,self.zoomlevel,p,self.size,tx,ty,self.sx,self.sy)
             s=unpack(">I",sbuf)[0]
             #print "Read offset: %d"%(s,)
             if s>self.size:

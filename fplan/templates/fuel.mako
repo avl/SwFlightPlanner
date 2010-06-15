@@ -22,6 +22,7 @@ function navigate_to(where)
 </div>
 
 <h1>${c.trip}</h1>
+
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>You need to add an aircraft!</b></a>
 %endif
@@ -42,11 +43,23 @@ ${ac.aircraft}
 <br/>
 <h2>Legs</h2>
 <table>
+<tr>
+<td>From</td><td>To</td><td>Seg</td><td>Distance</td><td>Time(min)</td><td>Total Time(min)</td>
+<td>Fuel(L)</td>
+<td>Total Fuel(L)</td>
+</tr>
 %for route in c.routes:
 <tr>
 <td>
-${route.start_name} - ${route.end_name}
+${route.a.waypoint}</td><td> ${route.b.waypoint}
+<td>${route.what}</td>
+<td>${"%.1f"%(route.d,)}</td>
+<td>${route.time}</td>
+<td>${route.accum_time}</td>
+<td>${"%.1f"%(route.fuel_burn,)}</td>
+<td>${"%.1f"%(route.accum_fuel_burn,)}</td>
 </td>
+
 </tr>
 %endfor
 </table>

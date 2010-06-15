@@ -126,17 +126,50 @@ function loadmap()
 	'</form>'+
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
-	'<form id="tripform" action="">'+
+	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
 	'Trip:<input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${c.tripname}" />'+
+	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
+	'<div id="moretripfunctions" style="display:none">'+
+	'<button style="font-size:10px" onclick="add_new_trip();return false;">New</button>'+
+	'<button style="font-size:10px" onclick="on_delete_trip();return false;">Delete</button>'+
+	'<button style="font-size:10px" onclick="open_trip();return false;">Saved</button>'+
+	'</div>'+
+	'<div id="addtripfunctions" style="display:none">'+
+	'Enter name of new trip:<br/><input id="addtripname" name="addtripname" type="text" value="" />'+
+	'<button onclick="on_add_trip();return false;">Add</button>'+	
+	'</div>'+
+	'<div id="opentripfunctions" style="display:none">'+
+
+%if len(c.all_trips)>1 or (len(c.all_trips)==1 and c.all_trips[0].trip!=c.tripname):
+'Other saved trips:<br/><select name="choose_trip" id="choose_trip">'+
+%for ctrip in c.all_trips:
+%if ctrip.trip!=c.tripname:
+'<option>'+
+'${ctrip.trip}'+
+'</option>'+
+%endif
+%endfor
+'</select>'+
+	'<button onclick="on_open_trip();return false;">Open</button>'+	
+%endif
+%if not (len(c.all_trips)>1 or (len(c.all_trips)==1 and c.all_trips[0].trip!=c.tripname)):
+'You have no saved trips!'+
+%endif
+	'</div>'+
 	'<input id="oldtripname" name="oldtripname" type="hidden" value="${c.tripname}" />'+
+	'<input id="deletetripname" name="deletetripname" type="hidden" value="" />'+
+	'<input id="opentripname" name="opentripname" type="hidden" value="" />'+
 	'</form>'+
 	'</div>'+
 	'<div class="first"><form id="showdataformbuttons" action="">'+
 	'Show on map:<br/>'+
 	'<input type="checkbox" onchange="on_change_showairspace()" id="showairspaces" name="showairspaces" ${'checked="1"' if c.show_airspaces else ''|n} />Show airspaces'+
+	'<br/><button style="font-size:10px" onclick="zoom_in([map_topleft_merc[0]+screen_size_x/2,map_topleft_merc[1]+screen_size_y/2]);return false;">Zoom in</button>'+
+	'<button style="font-size:10px" onclick="zoom_out([map_topleft_merc[0]+screen_size_x/2,map_topleft_merc[1]+screen_size_y/2]);return false;">Zoom out</button>'+
+
 %if not c.showarea and not c.showtrack:
-	'<br/><button onclick="visualize_track_data();return false" title="Show a point or track on the map, for example from a GPS logger.">Upload Track</button>'+
-	'<br/><button onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+
+	'<br/><button style="font-size:10px"  onclick="visualize_track_data();return false" title="Show a point or track on the map, for example from a GPS logger.">Upload Track</button>'+
+	'<button style="font-size:10px"  onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+
 %endif	
 %if c.showtrack:
 	'<br/><button onclick="clear_uploaded_data();return false" title="Clear uploaded track">Clear Track</button>'+

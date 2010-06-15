@@ -47,7 +47,7 @@ def gettile(variant,zoomlevel,mx,my):
     d=blob.get_tile(mx,my)
     if d:
         return d;
-    print "Missing tile at merc %d,%d zoom %d"%(mx,my,zoomlevel)
+    #print "Missing tile at merc %d,%d zoom %d"%(mx,my,zoomlevel)
     return open("fplan/public/nodata.png").read()
                     
 

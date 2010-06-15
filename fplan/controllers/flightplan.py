@@ -14,6 +14,8 @@ import re
 import fplan.lib.weather as weather
 from fplan.lib.calc_route_info import get_route
 
+
+
 class FlightplanController(BaseController):
     def search(self):
         searchstr=request.params.get('search','')
@@ -250,12 +252,19 @@ class FlightplanController(BaseController):
         
         return render('/flightplan.mako')
     def select_aircraft(self):
-          
+        tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        tripobj.aircraft=request.params['change_aircraft']
+        meta.Session.flush()
+        meta.Session.commit()
+        redirect_to(h.url_for(controller='flightplan',action="fuel"))
+        
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
             Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        c.trip=tripobj.trip
         c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
         if tripobj.acobj==None:
@@ -263,7 +272,7 @@ class FlightplanController(BaseController):
             c.acwarn=True
             c.ac=None
         else:        
-            c.routes=get_route(session['user'],session['current_trip'])['routes']
+            c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
             

@@ -16,8 +16,11 @@ class BaseController(WSGIController):
         # Authentication required?
         
         #print "User:",session.get('user',None)
-        users=meta.Session.query(User).filter(
+        if 'user' in session:
+            users=meta.Session.query(User).filter(
                 User.user==session['user']).all()
+        else:
+            users=[]
         if (not ('user' in session)) or len(users)==0:
             #create a default user which may subsequently be renamed if user wishes to
             base=""
