@@ -34,7 +34,7 @@ user_table = sa.Table("user",meta.metadata,
                         )
 
 rating_table = sa.Table("rating",meta.metadata,
-                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column("rating",Unicode(100),primary_key=True,nullable=False),
                         sa.Column("description",Unicode(),nullable=False),
                         sa.Column("valid",Boolean(),nullable=False),
@@ -43,7 +43,7 @@ rating_table = sa.Table("rating",meta.metadata,
 
 
 aircraft_table = sa.Table("aircraft",meta.metadata,
-                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),primary_key=True,nullable=False,default="SE-XYZ"),#Registration, like SE-VLI
                         sa.Column('cruise_speed',Float(),primary_key=False,nullable=False,default=75),                        
                         sa.Column('cruise_burn',Float(),primary_key=False,nullable=False,default=18),                        
@@ -56,7 +56,7 @@ aircraft_table = sa.Table("aircraft",meta.metadata,
                         )
 
 trip_table = sa.Table("trip",meta.metadata,
-                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
                         sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
@@ -64,15 +64,15 @@ trip_table = sa.Table("trip",meta.metadata,
 
 
 waypoint_table = sa.Table("waypoint",meta.metadata,
-                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
-                        sa.Column('pos',String(30),primary_key=False,nullable=False),
+                        sa.Column('pos',String(50),primary_key=False,nullable=False),
                         sa.Column('waypoint',Unicode(50),primary_key=False,nullable=False),
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
 route_table = sa.Table("route",meta.metadata,
-                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user"),primary_key=True,nullable=False),
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('waypoint1',Integer(),primary_key=True,nullable=False),                        
                         sa.Column('waypoint2',Integer(),primary_key=True,nullable=False),                        
@@ -82,6 +82,7 @@ route_table = sa.Table("route",meta.metadata,
                         sa.Column('variation',Float(),primary_key=False,nullable=True),
                         sa.Column('deviation',Float(),primary_key=False,nullable=True),
                         sa.Column('altitude',String(6),primary_key=False,nullable=False,default='1000'),
+                        sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
                                                 onupdate="CASCADE",ondelete="CASCADE"),                                                                                
                         sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
@@ -93,7 +94,7 @@ route_table = sa.Table("route",meta.metadata,
 airport_table = sa.Table("airport",meta.metadata,                         
                         sa.Column('airport',Unicode(50),primary_key=True,nullable=False),                        
                         sa.Column('icao',String(4),primary_key=False,nullable=False),                        
-                        sa.Column('pos',String(30),nullable=False,primary_key=False),
+                        sa.Column('pos',String(50),nullable=False,primary_key=False),
                         sa.Column('elev',Float(),nullable=True,primary_key=False)
                         ) 
 obstacle_table = sa.Table("obstacle",meta.metadata,                         

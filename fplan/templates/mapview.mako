@@ -120,14 +120,14 @@ function loadmap()
 	
 	var sidebar=document.getElementById('sidebar-a');
 	sidebar.innerHTML=''+
-	'<div class="first" id="search-pane">'+
+	'<div class="first" id="search-pane" onkeydown="return on_search_keydown(event)" size="15" onkeyup="on_search_keyup(event)">'+
 	'<form id="searchform" action="">'+
-	'Search:<input onkeydown="return on_search_keydown(event)" size="15" onkeyup="on_search_keyup(event)" onblur="remove_searchpopup()" id="searchfield" name="searchfield" type="text" value="" />'+	
+	'Search:<input id="searchfield"  onblur="remove_searchpopup()" name="searchfield" type="text" value="" />'+	
 	'</form>'+
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
-	'Trip:<input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${c.tripname}" />'+
+	'Trip:<input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
 	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
 	'<div id="moretripfunctions" style="display:none">'+
 	'<button style="font-size:10px" onclick="add_new_trip();return false;">New</button>'+
@@ -156,7 +156,7 @@ function loadmap()
 'You have no saved trips!'+
 %endif
 	'</div>'+
-	'<input id="oldtripname" name="oldtripname" type="hidden" value="${c.tripname}" />'+
+	'<input id="oldtripname" name="oldtripname" type="hidden" value="${h.jsescape(c.tripname)}" />'+
 	'<input id="deletetripname" name="deletetripname" type="hidden" value="" />'+
 	'<input id="opentripname" name="opentripname" type="hidden" value="" />'+
 	'</form>'+
@@ -185,11 +185,13 @@ function loadmap()
 	'<button onclick="menu_add_new_waypoints();return false" title="Add a new waypoint. Click here, then click start and end point in map.">Add</button>'+
 	'</form></div>'+
 
-	'<div id="mapinfo" class="first" style="display:none"></div>'+
-
 	'<div class="first"><form id="fplanform" action="">'+
 	'<table id="tab_fplan" width="100%">'+
 	'</table></form></div>'+
+
+	'<div id="mapinfo" class="first" style="display:none"></div>'+
+
+	
 	'<div style="display:block;background:#d0d0d0	" class="second" id="detail-pane">'+
 	'<ul><li>Enter a name for your trip above.</li>'+
 	'<li>Click the \'Add\' button above, then click in the map to enter waypoints.</li>'+
@@ -238,7 +240,7 @@ function loadmap()
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
 	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,'${wp.pos}','${wp.waypoint}');
+	tab_add_waypoint(idx,me,'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}');
 	idx++;
 	%endfor
 	draw_jg();

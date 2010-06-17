@@ -15,4 +15,6 @@ def get_username():
     if session.get('isreg',False):
         return "Logged in as %s&nbsp;&nbsp;"%(cgi.escape(session['user']),)
     return "Anonymous <a href=\"%s\">Create User</a>"%(url_for(controller="profile",action="index"),)
-
+def jsescape(s):
+    return s.replace("'","\\'")
+    

@@ -889,14 +889,14 @@ function on_mouseup(event)
 	}
 	else
 	{
+	    show_mapinfo(relx,rely);		
+	    
 		if (wps.length==0)
 		{
-		    show_mapinfo(relx,rely);		
 			check_and_clear_selections();			
 		}
 		else
 		{	
-			clear_mapinfo();
 			var closest_i=get_close_waypoint(client2merc_x(event.clientX),client2merc_y(event.clientY));
 			if (closest_i==-1)
 			{			
@@ -907,13 +907,11 @@ function on_mouseup(event)
 				}
 				else
 				{
-				    show_mapinfo(relx,rely);		
 					check_and_clear_selections();				
 				}
 			}
 			else
 			{
-				clear_mapinfo();
 				select_waypoint(closest_i);
 			}
 		}
@@ -1439,7 +1437,7 @@ function on_delete_trip()
 {
 	function finish_add_trip()
 	{				
-		document.getElementById('deletetripname').value='1';
+		document.getElementById('deletetripname').value=document.getElementById('oldtripname').value;
 		document.getElementById('tripform').submit();
 	}
 	save_data(finish_add_trip);

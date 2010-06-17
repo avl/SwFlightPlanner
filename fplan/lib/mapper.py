@@ -241,7 +241,7 @@ def seg_angles(a1,a2,step):
         return
     delta=dist/float(nominal_cnt)
     a=a1
-    for x in xrange(nominal_cnt):
+    for x in xrange(int(nominal_cnt)):
         yield a
         a+=delta
     yield a2
@@ -303,7 +303,7 @@ def uprint(s):
     else:
         print s
 def parse_dist(s):
-    uprint("In:%s"%s)
+    #uprint("In:%s"%s)
     val,nautical,meters=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m))\b\s*",s).groups()
     dval=float(val)
     assert nautical!=None or meters!=None
@@ -334,7 +334,7 @@ def parse_area_segment(seg,prev,next):
         #uprint("Arc center: %s"%(center,))
         #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
         return create_seg_sequence(prevpos,center,nextpos,dist_nm)
-    uprint("Matching against: %s"%(seg,))
+    #uprint("Matching against: %s"%(seg,))
     circ=re.match(r"\s*A circle with radius ([\d\.]+ (?:NM|m))\s+(?:\(.* k?m\))?\s*cent[red]{1,5}\s*on\s*(\d+N) (\d+E)\b.*",seg)
     if circ:
         radius,lat,lon=circ.groups()
@@ -353,7 +353,7 @@ def parse_coord_str(s):
         "Swedish/Danish border northward to",
         "Swedish/Norwegian border northward to",
         ]
-    uprint("Parsing area: %s"%(s,))
+    #uprint("Parsing area: %s"%(s,))
     
     items=s.replace(u"–","-").strip().split("-")
     out=[]
@@ -373,19 +373,22 @@ def parse_coord_str(s):
                 break                
         if pstr.strip()=="": continue
         pd=parse_area_segment(pstr,prev,next)
-        uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
+        #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
         out.extend(pd)
     if len(out)<3:
         raise Exception("Too few items in coord-str: <%s>"%(s,))
     return out
     
-
+class NotAnAltitude(Exception):pass
 def parse_elev(elev):    
     if type(elev)==int: return float(elev)
     if type(elev)==float: return elev
+    if not isinstance(elev,basestring):
+        raise NotAnAltitude(repr(elev))
     elev=elev.strip()
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
-    assert elev.isdigit()
+    if not elev.isdigit():
+        raise NotAnAltitude(repr(elev))
     return int(elev)
     

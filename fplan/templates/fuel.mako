@@ -44,9 +44,10 @@ ${ac.aircraft}
 <h2>Legs</h2>
 <table>
 <tr>
-<td>From</td><td>To</td><td>Seg</td><td>Distance</td><td>Time(min)</td><td>Total Time(min)</td>
+<td>From</td><td>To</td><td>Seg</td><td>Distance</td><td>Tot. Dist.</td><td>Time(min)</td><td>Tot. Time(min)</td>
 <td>Fuel(L)</td>
 <td>Total Fuel(L)</td>
+<td>Start Alt</td><td>End Alt</td>
 </tr>
 %for route in c.routes:
 <tr>
@@ -54,16 +55,24 @@ ${ac.aircraft}
 ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${route.what}</td>
 <td>${"%.1f"%(route.d,)}</td>
+<td>${"%.1f"%(route.total_d,)}</td>
 <td>${route.time}</td>
 <td>${route.accum_time}</td>
 <td>${"%.1f"%(route.fuel_burn,)}</td>
 <td>${"%.1f"%(route.accum_fuel_burn,)}</td>
+<td>${"%.0f"%(route.startalt+0.01,)}</td>
+<td>${"%.0f"%(route.endalt+0.01,)}</td>
 </td>
 
 </tr>
 %endfor
 </table>
 %endif
-
+<div>
+<br/>
+<br/>
+WARNING! This information may only be used for quickly checking possible flights for plausibility.<br/>
+<b>BEFORE FLYING, YOU MUST DO YOUR OWN CALCULATIONS!</b>
+</div>
 </div>
 

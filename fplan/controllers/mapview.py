@@ -289,6 +289,11 @@ class MapviewController(BaseController):
                 session['current_trip']=tripname
                 session.save()
             
+        if request.params.get('deletetripname',None):
+            meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+                Trip.trip==request.params['deletetripname'])).delete()
+            del session['current_trip']
+            
         meta.Session.flush()
         meta.Session.commit();
         redirect_to(h.url_for(controller='mapview',action="index"))

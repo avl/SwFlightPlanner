@@ -7,7 +7,7 @@ import sys,os
 import math
 
 from fplan.lib.mapper import parse_coord_str,uprint
-
+from pyshapemerge2d import Polygon,Vertex,vvector
 
 class Item(object):
     def __init__(self,text,x1,y1,x2,y2):
@@ -31,11 +31,11 @@ def parse_page_to_items(parser,page):
 
 
 def is_r_or_danger_area_name(name):
-    uprint("Is danger/R: %s"%(name,))
+    #uprint("Is danger/R: %s"%(name,))
     if re.match("ES\s+[DR]\d+[A-Za-z]?",name):
-        uprint("Yes!")
+        #uprint("Yes!")
         return True
-    uprint("No!")
+    #uprint("No!")
     return False
 
 def filter_head_foot(xs):
@@ -134,7 +134,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         pa=dict()
         arealines=[l for l in d['Lateral limits'] if l.strip()!=""]
         last_coord_idx=None
-        uprint("D:<%s> (area:%s)"%(d,arealines))
+        #uprint("D:<%s> (area:%s)"%(d,arealines))
         assert len(arealines)
         if arealines[0].strip()=="Danger area EK D395 and D396 are":
             arealines=arealines[1:]
@@ -174,7 +174,7 @@ def parse_page(parser,pagenr,kind="TMA"):
                 heights.append(gnd.strip())
             if unl:
                 heights.append(unl.strip())
-        print "heights:",repr(heights)
+        #print "heights:",repr(heights)
         assert len(heights)==2
         ceiling=heights[0].strip()
         floor=heights[1].strip()
@@ -182,8 +182,17 @@ def parse_page(parser,pagenr,kind="TMA"):
         pa['name']=d['name']
         pa['floor']=floor
         pa['ceiling']=ceiling
-        print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
+        #print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
         pa['points']=list(parse_coord_str(" ".join(arealines[:last_coord_idx])))
+        vs=[]
+        for p in pa['points']:
+            x,y=mapper.latlon2merc(mapper.from_str(p),13)
+            vs.append(Vertex(int(x),int(y)))
+
+        p=Polygon(vvector(vs))
+        assert p.calc_area()>100*100
+        print "Area: %f"%(p.calc_area(),)
+        print "Point-counts:",len(pa['points'])
         for p in pa['points']:
             assert p.count(",")==1 
         pa['type']=kind
@@ -235,6 +244,6 @@ def parse_r_areas():
     
 if __name__=='__main__':
     parse_all_tma()
-    parse_r_areas()
+    #parse_r_areas()
 
 

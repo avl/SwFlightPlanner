@@ -6,7 +6,7 @@
 
 <script type="text/javascript">
 
-tripname='${c.tripname}';
+tripname='${h.jsescape(c.tripname)|n}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 fetchweatherurl='${h.url_for(controller="flightplan",action="weather")}';
 saveurl='${h.url_for(controller="flightplan",action="save")}';
@@ -35,7 +35,7 @@ function loadfplan()
 	%endfor
 	%endif
 	];	
-	fpaddwaypoint('${wp.pos}','${wp.waypoint}',rowdata);
+	fpaddwaypoint('${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata);
 
 %endfor
 

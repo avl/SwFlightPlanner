@@ -46,6 +46,7 @@ class FlightplanController(BaseController):
         print "returning json:",ret
         return ret
     def save(self):
+        print "Saving tripname:",request.params['tripname']
         trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
             Trip.trip==request.params['tripname'])).one()
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
@@ -118,6 +119,11 @@ class FlightplanController(BaseController):
             altvec=alts.split(",")
         for way,altitude in zip(waypoints[:-1],altvec):
              print("Looking for waypoint: %s"%(way.pos,))
+             try:
+                mapper.parse_elev(altitude)
+             except mapper.NotAnAltitude,cause:
+                 ret.append(['',''])                 
+                 continue #skip this alt
              #N+1 selects....
              route=meta.Session.query(Route).filter(sa.and_(
                   Route.user==session['user'],
@@ -219,6 +225,7 @@ class FlightplanController(BaseController):
                     elif what=='Var':
                         return route.variation if route.variation!=None else ''
                     elif what=='Alt':
+                        print "Altitude is:",repr(route.altitude)
                         return route.altitude                    
                     elif what=='TAS':
                         if not route.tas:

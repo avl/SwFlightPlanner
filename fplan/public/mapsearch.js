@@ -65,6 +65,16 @@ function on_search_keydown(event)
 	}
 	return true;
 }
+function search_select(idx)
+{
+    if (idx>=0 && idx<searchlastdata.length)
+    {
+	    var d=searchlastdata[idx];
+	    add_waypoint(d[0],d[1]);
+	}
+    remove_searchpopup();
+}
+
 function on_search_keyup(keyevent)
 {
 	if (keyevent.which==38 || keyevent.which==40 || keyevent.which==13)
@@ -99,7 +109,7 @@ function on_search_keyup(keyevent)
 			var inner='';
 			for(var i=0;i<searchlastdata.length;++i)
 			{
-				inner+='<p>'+searchlastdata[i][0]+'</p';
+				inner+='<p style="cursor:pointer" onclick="search_select('+i+')">'+searchlastdata[i][0]+'</p';
 			}
 			s.innerHTML=inner;
 		}

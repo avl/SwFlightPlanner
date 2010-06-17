@@ -8,7 +8,11 @@ function get(idx,wcol)
 		alert('Null:'+vid);
 	if (e.value=='')
 		return 0.0;			
-	return parseFloat(e.value);
+	return e.value;
+}
+function getf(idx,wcol)
+{
+	return parseFloat(get(idx,wcol));
 }
 function gete(idx,wcol)
 {
@@ -129,12 +133,12 @@ function on_updaterow(idx,col)
 	var next=0;
 	if (col=='all' || col=='TAS' || col=='W' || col=='V')
 	{
-		var tas=get(idx,'TAS');
-		var tt=get(idx,'TT');
-		var wind=get(idx,'W');
-		var windvel=get(idx,'V');
-		var variation=get(idx,'Var');
-		var dev=get(idx,'Dev');
+		var tas=getf(idx,'TAS');
+		var tt=getf(idx,'TT');
+		var wind=getf(idx,'W');
+		var windvel=getf(idx,'V');
+		var variation=getf(idx,'Var');
+		var dev=getf(idx,'Dev');
 		var pi=3.14159265;
 		var f=1.0/(180.0/pi);
 		var wca=0;
@@ -180,17 +184,17 @@ function on_updaterow(idx,col)
 	}
 	if (next || col=='TAS' || col=='W' || col=='V' || col=='Var' || col=='Dev')
 	{
-		var tt=get(idx,'TT');
-		var wca=get(idx,'WCA');
-		var var_=get(idx,'Var');
-		var dev=get(idx,'Dev');
+		var tt=getf(idx,'TT');
+		var wca=getf(idx,'WCA');
+		var var_=getf(idx,'Var');
+		var dev=getf(idx,'Dev');
 		var ch=gete(idx,'CH');
 		ch.value=parseInt(0.5+tt+wca-var_-dev)%360;
 	}	
 	if (next || col=='TAS' || col=='W' || col=='V' || col=='Var' || col=='Dev')
 	{
-		var gs=get(idx,'GS');
-		var D=get(idx,'D');
+		var gs=getf(idx,'GS');
+		var D=getf(idx,'D');
 		var time=gete(idx,'Time');
 		if (gs>0.0)
 		{
@@ -237,7 +241,7 @@ function fpaddwaypoint(pos,name,rowdata)
 	else
 		idx=(tab.rows.length-1)/2;
 	var elem=tab.insertRow(-1);
-	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input type="text" name="name'+idx+'" value="'+name+'"/></td>';
+	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input readonly="1" type="text" name="name'+idx+'" value="'+name+'"/></td>';
 	if (rowdata!=null && rowdata.length>0)
 	{
 		var elem=tab.insertRow(-1);

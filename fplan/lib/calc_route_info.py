@@ -68,42 +68,40 @@ def get_route(user,trip):
     descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
 
     def alt_change_dist(delta):
-        if delta==0: return 0,cruise_gs,ac.cruise_burn,''
+        if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
         if delta>0:
-            t=(delta/ac.climb_rate)/60.0
-            return t*climb_gs,climb_gs,ac.climb_burn,'climb'
+            t=(delta/float(ac.climb_rate))/60.0
+            return t*climb_gs,climb_gs,ac.climb_burn,'climb',ac.climb_rate
         if delta<0:
-            t=(-delta/ac.descent_rate)/60.0
-            return t*descent_gs,descent_gs,ac.descent_burn,'descent'
+            t=(-delta/float(ac.descent_rate))/60.0
+            return t*descent_gs,descent_gs,ac.descent_burn,'descent',-ac.descent_rate
+        assert 0
     def calc_midburn(tas):
         if tas>ac.cruise_speed:
-            f=(tas/ac.cruise_speed)**2
+            f=(tas/ac.cruise_speed)**3
             return ac.cruise_burn*f
         f2=(tas/ac.cruise_speed)
         return ac.cruise_burn*f2
     res=[]
     accum_fuel=0
     accum_time=0
+    tot_dist=0
+    prev_alt=0
     for rt in routes:
         if not rt.tas:
             rt.tas=ac.cruise_speed
         cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
 
-
-        if hasattr(rt,'prevrt'):
-            prev_alt=mapper.parse_elev(rt.prevrt.altitude)
-        else:
-            prev_alt=0
-        if hasattr(rt,'nextrt'):
-            next_alt=mapper.parse_elev(rt.nextrt.altitude)
-            mid_alt=mapper.parse_elev(rt.altitude)
-        else:
-            next_alt=0
-            mid_alt=mapper.parse_elev(rt.altitude)
+        mid_alt=mapper.parse_elev(rt.altitude)
         begindelta=mid_alt-prev_alt
-        enddelta=next_alt-mid_alt
-        begindist,beginspeed,beginburn,beginwhat=alt_change_dist(begindelta)
-        enddist,endspeed,endburn,endwhat=alt_change_dist(enddelta)
+
+        if hasattr(rt,'nextrt'):
+            enddelta=0
+        else:
+            enddelta=-mid_alt
+            
+        begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
+        enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
         print "Begindist: delta=%s %s, dist: %f, enddist: delta: %s ft %s, dist:%f"%(begindelta,beginwhat,begindist,enddelta,endwhat,enddist)
         if begindist>rt.d and enddist==0:
             rt.climbperformance="notok"
@@ -131,25 +129,24 @@ def get_route(user,trip):
         sub=[]
         if abs(begintime)>1e-5:
             out=TechRoute()
-            out.tas=ac.climb_speed
-            out.gs=climb_gs
-            out.wca=climb_wca
             out.tt=rt.tt
             out.d=begindist
             accum_time+=begintime
+            out.startalt=prev_alt
+            prev_alt+=beginrate*begintime*60
+            out.endalt=prev_alt
             out.accum_time=timefmt(accum_time)
             out.time=timefmt(begintime)
             out.fuel_burn=begintime*beginburn
-            out.what="climb"
+            out.what=beginwhat
             sub.append(out)
         if abs(midtime)>1e-5:
             out=TechRoute()
-            out.tas=rt.tas
-            out.gs=cruise_gs
-            out.wca=cruise_wca
             out.tt=rt.tt
             out.d=middist
             accum_time+=midtime
+            out.startalt=prev_alt
+            out.endalt=prev_alt
             out.accum_time=timefmt(accum_time)
             out.time=timefmt(midtime)
             out.fuel_burn=midtime*calc_midburn(rt.tas)
@@ -157,27 +154,43 @@ def get_route(user,trip):
             sub.append(out)
         if abs(endtime)>1e-5:
             out=TechRoute()
-            out.tas=ac.descent_speed
-            out.gs=descent_gs
-            out.wca=descent_wca
             out.tt=rt.tt
             out.d=enddist
             accum_time+=endtime
+            out.startalt=prev_alt
+            prev_alt+=endrate*endtime*60
+            out.endalt=prev_alt
             out.accum_time=timefmt(accum_time)
             out.time=timefmt(endtime)
-            out.what="descent"
+            out.what=endwhat
             out.fuel_burn=endtime*endburn
             sub.append(out)
         def val(x):
             if x==None: return 0.0
             return x
         for out in sub:    
+            if out.what=="climb":
+                out.tas=ac.climb_speed
+                out.gs=climb_gs
+                out.wca=climb_wca
+            elif out.what=="descent":
+                out.tas=ac.descent_speed
+                out.gs=descent_gs
+                out.wca=descent_wca
+            else:
+                out.tas=rt.tas
+                out.gs=cruise_gs
+                out.wca=cruise_wca
+            tot_dist+=out.d
+            out.total_d=tot_dist
             out.ch=out.tt+out.wca-val(rt.variation)-val(rt.deviation)
             out.a=rt.a
             out.b=rt.b
             res.append(out)
             accum_fuel+=out.fuel_burn
             out.accum_fuel_burn=accum_fuel
+            print "Processing out. %s-%s %s Alt: %s"%(
+                out.a.waypoint,out.b.waypoint,out.what,out.startalt)
         rt.avg_tas=rt.d/(begintime+midtime+endtime)
         rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
                         
