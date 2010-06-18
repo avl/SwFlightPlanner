@@ -33,12 +33,46 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column('fastmap',Boolean(),nullable=False,default=True)
                         )
 
+notam_table = sa.Table("notam",meta.metadata,
+                        sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
+                        sa.Column('issued',DateTime(),nullable=False),
+                        sa.Column('downloaded',DateTime(),nullable=False),
+                        sa.Column("notamtext",Unicode(),nullable=False)
+                        )
+                        
+notamupdate_table = sa.Table('notamupdate',meta.metadata,
+                        sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
+                        sa.Column('appearline',Integer(),nullable=False,primary_key=True),
+                        sa.Column('category',Unicode(),nullable=True),
+                        sa.Column('message',Unicode(),nullable=False),
+                        sa.Column('disappearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=True),                        
+                        )
+
+
+notamevent_table = sa.Table('notamevent',meta.metadata,
+                        sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
+                        sa.Column('appearline',Integer(),nullable=False,primary_key=True),
+                        sa.Column('disappeared',Boolean(),nullable=False,primary_key=True),
+                        )
+
+notamack_table = sa.Table('notamack',meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
+                        sa.Column('appearline',Integer(),nullable=False,primary_key=True),
+                        sa.Column('disappeared',Boolean(),nullable=False,primary_key=True),
+                        sa.ForeignKeyConstraint(
+                            ['appearnotam', 'appearline', 'disappeared'], 
+                            ['notamevent.appearnotam', 'notamevent.appearline', 'notamevent.disappeared'],
+                            onupdate="CASCADE",ondelete="CASCADE")
+                        )
+            
+
 rating_table = sa.Table("rating",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column("rating",Unicode(100),primary_key=True,nullable=False),
                         sa.Column("description",Unicode(),nullable=False),
                         sa.Column("valid",Boolean(),nullable=False),
-                        sa.Column("lapse_date",DateTime(),nullable=True)
+                        sa.Column("lapse_date",DateTime(),nullable=True),
                         )
 
 
@@ -166,6 +200,71 @@ orm.mapper(Route, route_table,
     a=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint1),lazy=True),
     b=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint2),lazy=True)
 ))
+
+
+class Notam(object):
+    def __init__(self,ordinal,issued,downloaded,notamtext):
+        self.ordinal=ordinal
+        self.issued=issued
+        self.downloaded=downloaded
+        self.notamtext=notamtext
+class NotamUpdate(object):
+    def __init__(self,appearnotam,appearline,category,message):
+        self.appearnotam=appearnotam
+        self.appearline=appearline
+        self.category=category
+        self.message=message
+        self.disappearnotam=None
+        
+
+class NotamEvent(object):
+    def __init__(self,update_obj):
+        self.appearnotam=update_obj.appearnotam
+        self.appearline=update_obj.appearline
+        self.disappeared=update_obj.disappearnotam!=None
+
+class NotamAck(object):
+    def __init__(self,user,event_obj):
+        self.user=user
+        self.appearnotam=event_obj.appearnotam
+        self.appearline=event_obj.appearline
+        self.disappeared=event_obj.disappearnotam!=None
+
+orm.mapper(Notam,notam_table)
+    
+orm.mapper(NotamUpdate, notamupdate_table,
+ properties=dict(
+    notam=orm.relation(Notam,
+        primaryjoin=(
+                notamupdate_table.columns.appearnotam==notam_table.columns.ordinal  ),
+        lazy=False)
+))
+                        
+orm.mapper(NotamEvent, notamevent_table,
+ properties=dict(
+    notamupdate=orm.relation(NotamUpdate,
+        primaryjoin=
+            sa.and_(
+                notamevent_table.columns.appearnotam==notamupdate_table.columns.appearnotam,
+                notamevent_table.columns.appearline==notamupdate_table.columns.appearline,
+                notamevent_table.columns.disappeared==notamupdate_table.columns.disappeared            
+            ),
+        lazy=False)
+))
+            
+
+orm.mapper(NotamAck, notamack_table,
+ properties=dict(
+    notamupdate=orm.relation(NotamUpdate,
+        primaryjoin=
+            sa.and_(
+                notamack_table.columns.appearnotam==notamupdate_table.columns.appearnotam,
+                notamack_table.columns.appearline==notamupdate_table.columns.appearline,
+                notamack_table.columns.disappeared==notamupdate_table.columns.disappeared            
+            ),
+        lazy=False)
+))
+
 
 
 #orm.mapper(Airport, airport_table)

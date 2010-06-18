@@ -49,3 +49,9 @@ def getxml(relpath):
 
 def get_raw_weather_for_area(cur_area):
     return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()
+    
+def get_raw_notam():
+    return open("/home/anders/saker/avl_traveltools/fplan/fplan/fplan/extract/notam_sample.html").read()
+
+
+
