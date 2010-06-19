@@ -162,8 +162,14 @@ def format_lfv_ats(lat,lon):
     return "".join(out)
         
 def parse_lfv_area(area):
+    found=False
     for lat,lon in re.findall(r"(\d{4,6}(?:,\d+)?[NS])\s*(\d{5,7}(?:,\d+)?[EW])",area):
         yield parse_lfv_format(lat.strip(),lon.strip())
+        found=True
+    if not found:
+        for lat,lon in re.findall(r"([-+]?\d{1,3}\.?\d*)\s*,\s*([-+]?\d{1,3}\.?\d*)",area):
+            yield "%.10f,%.10f"%(float(lat),float(lon))
+        
                 
    
 def to_aviation_format(latlon):

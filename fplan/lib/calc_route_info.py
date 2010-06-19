@@ -57,7 +57,9 @@ def get_route(user,trip):
         next.prevrt=prev
         prev.nextrt=next
     for rt in routes:
+        #print "D-calc: %s -> %s"%(rt.a.waypoint,rt.b.waypoint)
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
+        #print "Got D:",D
         rt.d=D/1.852
 
     print "Looking for ac:",tripobj.aircraft
@@ -106,7 +108,7 @@ def get_route(user,trip):
         if begindist>rt.d and enddist==0:
             rt.climbperformance="notok"
             begindist=rt.d                 
-        elif begindist+enddist>rt.d:
+        elif begindist+enddist>rt.d+1e-3:
             rt.climbperformance="notok"
             ratio=rt.d/(begindist+enddist)
             begindist*=ratio
@@ -117,8 +119,11 @@ def get_route(user,trip):
         endtime=enddist/endspeed
         middist=rt.d-(begindist+enddist)
         print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
-        midtime=(rt.d-(begindist+enddist))/cruise_gs
-        print "Begintime: %s midtime: %s endtime: %s"%(begintime,midtime,endtime)
+        if cruise_gs<1e-3:
+            midtime=999
+        else:
+            midtime=(rt.d-(begindist+enddist))/cruise_gs
+        print "d: %f, Begintime: %s midtime: %s endtime: %s"%(rt.d,begintime,midtime,endtime)
         def timefmt(h):
             totmin=int(60*h)
             h=int(totmin//60)
@@ -191,14 +196,18 @@ def get_route(user,trip):
             out.accum_fuel_burn=accum_fuel
             print "Processing out. %s-%s %s Alt: %s"%(
                 out.a.waypoint,out.b.waypoint,out.what,out.startalt)
-        rt.avg_tas=rt.d/(begintime+midtime+endtime)
+        print "Times:",begintime,midtime,endtime
+        if (begintime+midtime+endtime)>1e-3:
+            rt.avg_gs=rt.d/(begintime+midtime+endtime)
+        else:
+            rt.avg_gs=cruise_gs
         rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
                         
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
                     
         rt.ch=rt.tt+rt.wca-val(rt.variation)-val(rt.deviation)
 
-        if rt.gs>0.0:
+        if rt.gs>1e-3:
             rt.time_hours=rt.d/rt.gs;
         else:
             rt.time_hours=None                          

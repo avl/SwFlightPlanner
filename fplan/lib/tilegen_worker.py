@@ -254,7 +254,8 @@ def run():
         coord,descr=wi
         try:
             do_work_item(planner,coord,descr)
-        except:
+        except Exception,cause:
+            print "Worker encountered problem: %s"%(cause,)
             planner.giveup_work(coord)
             raise
             

@@ -243,11 +243,11 @@ orm.mapper(NotamUpdate, notamupdate_table,
 orm.mapper(NotamEvent, notamevent_table,
  properties=dict(
     notamupdate=orm.relation(NotamUpdate,
+        foreign_keys=[notamevent_table.columns.appearnotam,notamevent_table.columns.appearline],
         primaryjoin=
             sa.and_(
                 notamevent_table.columns.appearnotam==notamupdate_table.columns.appearnotam,
-                notamevent_table.columns.appearline==notamupdate_table.columns.appearline,
-                notamevent_table.columns.disappeared==notamupdate_table.columns.disappeared            
+                notamevent_table.columns.appearline==notamupdate_table.columns.appearline
             ),
         lazy=False)
 ))
@@ -255,12 +255,12 @@ orm.mapper(NotamEvent, notamevent_table,
 
 orm.mapper(NotamAck, notamack_table,
  properties=dict(
-    notamupdate=orm.relation(NotamUpdate,
+    notamevent=orm.relation(NotamEvent,
         primaryjoin=
             sa.and_(
-                notamack_table.columns.appearnotam==notamupdate_table.columns.appearnotam,
-                notamack_table.columns.appearline==notamupdate_table.columns.appearline,
-                notamack_table.columns.disappeared==notamupdate_table.columns.disappeared            
+                notamack_table.columns.appearnotam==notamevent_table.columns.appearnotam,
+                notamack_table.columns.appearline==notamevent_table.columns.appearline,
+                notamack_table.columns.disappeared==notamevent_table.columns.disappeared            
             ),
         lazy=False)
 ))

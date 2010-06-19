@@ -106,6 +106,7 @@ class BlobFile(object):
             #print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
             self.f.seek(30+4*(tx+ty*self.sx))        
             self.f.write(pack(">I",p))
+            self.f.flush()
             #self.f.write(pack(">I",len(data)))
         finally:
             self.lock.release()
