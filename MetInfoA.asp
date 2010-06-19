@@ -25,67 +25,75 @@
 <tr>
 <td>
 <P><span class="label1"> Område A - Södra Sverige</span>
-<P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Preliminär prognos för morgondagen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Fri Jun  4 05:15:03 UTC 2010
+<P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Preliminär prognos för morgondagen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 No information available.
-</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - översikt</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Fri Jun  4 05:15:03 UTC 2010
+</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - översikt</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
 ÖVERSIKT FÖR OMRÅDE A
-GÄLLANDE DEN 4 JUNI 2010 MELLAN 04 OCH 10 UTC.
+GÄLLANDE DEN 19 JUNI 2010 MELLAN 04 OCH 10 UTC.
 
 Väderöversikt
-En högtrycksrygg täcker södra Sverige och den ligger stilla. I 
-högtrycksryggen är det klart eller nästan klart. I högtrycksryggen 
-förekommer under dagen spridda cumulusmoln.
+Ett omfattande lågtryck har sitt centrum över sydvästra Sverige och 
+det rör sig långsamt åt söder. I samband med lågtrycket förekommer 
+regn, regnskurar, lokalt åska och under morgonen och förmiddagen 
+lokalt stratus.
 
 Sikt under 5 km eller molnbas under 1000 ft
-Väntas inte förekomma under perioden.
+Väntas förekomma lokalt under hela perioden i norra och sydvästra 
+delen samt i början av perioden i den sydöstra delen.
 
 Turbulens
 Väntas inte förekomma under perioden.
 
 Isbildning
-Väntas inte förekomma under perioden.
+Isbildning väntas under hela perioden i den norra delen.
 
-</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Norra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Fri Jun  4 05:15:03 UTC 2010
+</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Norra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
 PROGNOS FÖR OMRÅDE A DEN NORRA DELEN
-GÄLLANDE DEN 4 JUNI 2010 MELLAN 04 OCH 10 UTC.
+GÄLLANDE DEN 19 JUNI 2010 MELLAN 04 OCH 10 UTC.
 
 Turbulens
 Väntas inte förekomma under perioden.
 
 Isbildning
-Väntas inte förekomma under perioden.
+Hela området:  Under hela perioden lätt till måttlig is i moln. 
 
 Sikt/Väder/Moln
-Hela området:  Under hela perioden sikt över 20 km. Molnbas över 2000 
-ft. 
+Hela området utom 2a, 3a och 4a: I början av perioden sikt över 20 
+km, lokalt 3000-5000 m i regnskurar. Molnbas över 2000 ft, lokalt 
+1000-1500 ft. Inbäddade Cb.I mitten och slutet av perioden sikt över 
+20 km i regnskurar, lokalt 3000-5000 m. Molnbas över 2000 ft, lokalt 
+1000-1500 ft. Inbäddade Cb.
+Område 2a, 3a och 4a: Under hela perioden sikt 8-20 km i regn, lokalt 
+3000-5000 m i regnskurar. Molnbas över 2000 ft, lokalt under 500 ft. 
+Inbäddade Cb.
 
 Nollgradersisoterm
-Noll grader vid FL70.
+Noll grader vid 4000 ft.
 
 Vind vid marken
-Område 1 och 3b: NE/10 knop.
-Område 2, 4a, 4b och 4c: NE/5 knop, efterhand NW-N/5-10 knop.
-Område 3a: NE/20 knop.
-Område 4d: N/10 knop.
+Område 1: NW-N/20 knop, efterhand N/15-20 knop.
+Område 2: W/10 knop, efterhand NW/5-10 knop.
+Område 3: SW-W/10-15 knop, efterhand NW/5 knop.
+Område 4: SW/10 knop, efterhand S/5-10 knop.
 
 Vind och temperatur
-2000 ft: 010/10+09.
-FL50: 310/10+03.
-FL100: 330/15-04.
+2000 ft: 280/15+05, efterhand 350/10+05.
+FL50: 260/20-01.
+FL100: 280/30-10, efterhand 240/15-10.
 
 Lägsta QNH
-1018 hPa, lägst i öst.
+994 hPa.
 
-</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Sydöstra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Fri Jun  4 05:15:03 UTC 2010
+</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Sydöstra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
 PROGNOS FÖR OMRÅDE A DEN SYDÖSTRA DELEN
-GÄLLANDE DEN 4 JUNI 2010 MELLAN 04 OCH 10 UTC.
+GÄLLANDE DEN 19 JUNI 2010 MELLAN 04 OCH 10 UTC.
 
 Turbulens
 Väntas inte förekomma under perioden.
@@ -94,35 +102,44 @@ Isbildning
 Väntas inte förekomma under perioden.
 
 Sikt/Väder/Moln
-Hela området:  Under hela perioden sikt över 20 km. Molnbas över 2000 
-ft. 
+Område 1, 3, 4c och 5: Under hela perioden sikt över 20 km. Molnbas 
+över 2000 ft. 
+Område 2a och 2c: I början av perioden sikt över 20 km, lokalt under 
+3000 m i dimbankar. Molnbas över 2000 ft, lokalt under 500 ft. I 
+mitten och slutet av perioden sikt över 20 km, lokalt 8-20 km i 
+regnskurar. Molnbas över 2000 ft. Enstaka Cb.
+Område 2b och 2d: I början av perioden sikt över 20 km, lokalt under 
+3000 m i dimbankar. Molnbas över 2000 ft, lokalt under 500 ft. I 
+mitten och slutet av perioden sikt över 20 km. Molnbas över 2000 ft. 
+Område 4a och 4b: I början av perioden sikt över 20 km, lokalt 8-20 
+km. Molnbas över 2000 ft, lokalt 1000-1500 ft. I mitten och slutet av 
+perioden sikt över 20 km, lokalt 8-20 km i regnskurar. Molnbas över 
+2000 ft. Enstaka Cb.
 
 Nollgradersisoterm
-Noll grader vid FL70.
+Noll grader vid 4500 ft.
 
 Vind vid marken
-Område 1a: N/10 knop, efterhand sjöbris/5 knop.
-Område 1b: NW/5 knop, efterhand sjöbris/5 knop.
-Område 1c: NW/10 knop, efterhand sjöbris/5 knop.
-Område 2a och 2c: N/5 knop, efterhand NW-N/5-10 knop.
-Område 2b, 2d och 3b: N/5 knop, efterhand sjöbris/5 knop.
-Område 3a och 4: N/5-10 knop, efterhand NW-N/5-10 knop.
-Område 5a och 5b: N/5 knop, efterhand Variabel/5 knop.
-Område 5c: N/10 knop, efterhand Variabel/5 knop.
+Område 1a: SW/10 knop, efterhand S/5-10 knop.
+Område 1b och 1c: SW/10-15 knop, efterhand S/5-10 knop.
+Område 2: W/10 knop, efterhand SW/5-10 knop.
+Område 3: SW/10 knop, efterhand SW/5 knop.
+Område 4: W/10 knop.
+Område 5: SW/15-20 knop, efterhand SW/10 knop.
 
 Vind och temperatur
-2000 ft: 020/10+12.
-FL50: 350/10+04.
-FL100: 320/20-03.
+2000 ft: 250/10+06, efterhand 240/15+06.
+FL50: 250/15-01.
+FL100: 270/20-10, efterhand 250/10-10.
 
 Lägsta QNH
-1015 hPa, lägst i öst.
+996 hPa.
 
-</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Sydvästra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Fri Jun  4 05:15:03 UTC 2010
+</PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område A - Sydvästra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
 PROGNOS FÖR OMRÅDE A DEN SYDVÄSTRA DELEN
-GÄLLANDE DEN 4 JUNI 2010 MELLAN 04 OCH 10 UTC.
+GÄLLANDE DEN 19 JUNI 2010 MELLAN 04 OCH 10 UTC.
 
 Turbulens
 Väntas inte förekomma under perioden.
@@ -131,31 +148,32 @@ Isbildning
 Väntas inte förekomma under perioden.
 
 Sikt/Väder/Moln
-Område 1a, 2a, 2b och 3c: Under hela perioden sikt över 20 km. 
-Molnbas över 2000 ft. 
-Område 1b, 3a och 3b: I början av perioden sikt över 20 km, lokalt 
-5-8 km i dis. Molnbas över 2000 ft. I mitten och slutet av perioden 
-sikt över 20 km. Molnbas över 2000 ft. 
-Område 2c: I början av perioden sikt över 20 km, lokalt 8-20 km i 
-dis. Molnbas över 2000 ft. I mitten och slutet av perioden sikt över 
-20 km. Molnbas över 2000 ft. 
+Område 1a, 2a och 2b: I början av perioden sikt över 20 km, lokalt 
+3000-5000 m i regnskurar. Molnbas över 2000 ft, lokalt 1000-1500 ft. 
+Inbäddade Cb.I mitten och slutet av perioden sikt över 20 km i 
+regnskurar, lokalt 3000-5000 m. Molnbas över 2000 ft, lokalt 
+1000-1500 ft. Inbäddade Cb.
+Område 1b, 2c, 3a och 3b: Under hela perioden sikt över 20 km, lokalt 
+8-20 km i regnskurar. Molnbas över 2000 ft. Enstaka Cb.
+Område 3c: Under hela perioden sikt över 20 km. Molnbas över 2000 ft. 
 
 Nollgradersisoterm
-Noll grader vid FL80.
+Till en början:  Noll grader vid FL80.
+Efterhand:  Noll grader vid 4500 ft.
 
 Vind vid marken
-Område 1, 3a och 3c: NW/10 knop.
-Område 2a och 2b: NE/5 knop, efterhand NW-N/5-10 knop.
-Område 2c: N/5 knop, efterhand NW-N/5-10 knop.
-Område 3b: NW/5 knop, efterhand NW-N/5-10 knop.
+Område 1a: NW/10-20 knop.
+Område 1b: SW-W/10-15 knop, efterhand NW/10 knop.
+Område 2: W/10 knop, efterhand SW/5-10 knop.
+Område 3: SW-W/10-15 knop, efterhand SW/10-15 knop.
 
 Vind och temperatur
-2000 ft: 010/5+13.
-FL50: 350/5+04.
-FL100: 330/15-02.
+2000 ft: 260/15+06, efterhand 240/15+06.
+FL50: 270/15-01, efterhand 260/20+00.
+FL100: 280/20-10, efterhand 280/15-10.
 
 Lägsta QNH
-1017 hPa.
+995 hPa.
 
 </PRE></TD></TR></TABLE>
 </td>
