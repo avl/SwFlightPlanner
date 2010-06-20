@@ -44,7 +44,8 @@ ${ac.aircraft}
 <h2>Legs</h2>
 <table>
 <tr>
-<td>From</td><td>To</td><td>Seg</td><td>Distance</td><td>Tot. Dist.</td><td>Time(min)</td><td>Tot. Time(min)</td>
+<td>From</td><td>To</td><td>Seg</td><td>Distance</td><td>Tot. Dist.</td>
+<td>GS</td><td>Time(min)</td><td>Tot. Time(min)</td>
 <td>Fuel(L)</td>
 <td>Total Fuel(L)</td>
 <td>Start Alt</td><td>End Alt</td>
@@ -56,6 +57,7 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${route.what}</td>
 <td>${"%.1f"%(route.d,)}</td>
 <td>${"%.1f"%(route.total_d,)}</td>
+<td>${"%.0f"%(route.gs,)}</td>
 <td>${route.time}</td>
 <td>${route.accum_time}</td>
 <td>${"%.1f"%(route.fuel_burn,)}</td>

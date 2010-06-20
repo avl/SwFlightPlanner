@@ -66,18 +66,6 @@ def get_route(user,trip):
     ac=meta.Session.query(Aircraft).filter(sa.and_(
         Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).one()
 
-    climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
-    descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
-
-    def alt_change_dist(delta):
-        if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
-        if delta>0:
-            t=(delta/float(ac.climb_rate))/60.0
-            return t*climb_gs,climb_gs,ac.climb_burn,'climb',ac.climb_rate
-        if delta<0:
-            t=(-delta/float(ac.descent_rate))/60.0
-            return t*descent_gs,descent_gs,ac.descent_burn,'descent',-ac.descent_rate
-        assert 0
     def calc_midburn(tas):
         if tas>ac.cruise_speed:
             f=(tas/ac.cruise_speed)**3
@@ -90,6 +78,21 @@ def get_route(user,trip):
     tot_dist=0
     prev_alt=0
     for rt in routes:
+
+        climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
+        descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
+
+        def alt_change_dist(delta):
+            if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
+            if delta>0:
+                t=(delta/float(ac.climb_rate))/60.0
+                return t*climb_gs,climb_gs,ac.climb_burn,'climb',ac.climb_rate
+            if delta<0:
+                t=(-delta/float(ac.descent_rate))/60.0
+                return t*descent_gs,descent_gs,ac.descent_burn,'descent',-ac.descent_rate
+            assert 0
+
+
         if not rt.tas:
             rt.tas=ac.cruise_speed
         cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)

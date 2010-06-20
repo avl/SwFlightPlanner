@@ -43,9 +43,14 @@ notam_table = sa.Table("notam",meta.metadata,
 notamupdate_table = sa.Table('notamupdate',meta.metadata,
                         sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
                         sa.Column('appearline',Integer(),nullable=False,primary_key=True),
+                        sa.Column('prevnotam',Integer(),nullable=True,primary_key=False), #if this is an update of a previously existing item 
+                        sa.Column('prevline',Integer(),nullable=True,primary_key=False), #the prevnotam,prevline refer to that existing item.
                         sa.Column('category',Unicode(),nullable=True),
                         sa.Column('message',Unicode(),nullable=False),
-                        sa.Column('disappearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=True),                        
+                        sa.Column('disappearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=True),
+                        sa.ForeignKeyConstraint(
+                            ['prevnotam', 'prevline'], 
+                            ['notamupdate.appearnotam', 'notamupdate.appearline'])
                         )
 
 
@@ -237,6 +242,10 @@ orm.mapper(NotamUpdate, notamupdate_table,
     notam=orm.relation(Notam,
         primaryjoin=(
                 notamupdate_table.columns.appearnotam==notam_table.columns.ordinal  ),
+        lazy=False),
+    prev=orm.relation(NotamUpdate,
+        remote_side=[notamupdate_table.columns.appearnotam,
+                     notamupdate_table.columns.appearline],
         lazy=False)
 ))
                         
