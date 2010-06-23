@@ -1,20 +1,11 @@
-
-
-
-
-
-
-#Bålsta taxi: 0171-50049
-
-
-
+#encoding=utf8
 
 
 def get_latest_notam():
     """
     Get a sequence of the last
     """
-    return open("./fplan/fplan/fplan/extract/notam_sample.html").read()
+    return unicode(open("./fplan/extract/notam_sample.html").read(),'latin1')
     
 
 

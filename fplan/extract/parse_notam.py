@@ -4,26 +4,37 @@ from fplan.model import *
 from datetime import datetime
 
 class NotamItem(object):
-    def __init__(self,linenr):
+    def __init__(self,appearline,category):
         self.text=""
-        self.linenr=linenr
+        self.appearline=appearline
+        self.category=category
     def __cmp__(self,o):
-        return cmp(self.text,o.text)
+        if type(o)!=NotamItem: raise Exception("Bad type")
+        if type(self)!=NotamItem: raise Exception("Bad type")
+        return cmp((self.category,self.text),(o.category,o.text))
     def __hash__(self):
-        return hash(self.text)
-       
+        return hash((self.category,self.text))
+    def __repr__(self):
+        return "NotamItem(line=%d,category=%s,text_fragment=%s)"%(self.appearline,self.category,self.text.split("\n")[0][:50])
 class Notam(object):
-    def __init__(self,issued,downloaded,items):
+    def __init__(self,issued,downloaded,items,notamtext):
         self.issued=issued
         self.downloaded=downloaded
         self.items=items
-        
-def notam_from_lines(ls):
+        self.notamtext=notamtext
+    def __cmp__(self,o):
+        return self.issued==o.issued and self.items==o.items
+    def __hash__(self):
+        return hash((self.issued,self.items))
+
+def parse_notam(html):
+    almostraw="\n".join(pre for pre in re.findall(u"<pre>(.*?)</pre>",html,re.DOTALL))
+    ls=almostraw.splitlines(1)
     out=[]
-    category="unknown"
+    category=None
     issued=None
     stale=True
-    for linenr,l in enumerate(ls):
+    for appearline,l in enumerate(ls):
         cat=re.match(r"([^\s/]+/.*)\s*",l)
         if cat:
             category=cat.groups()[0].strip()
@@ -32,8 +43,12 @@ def notam_from_lines(ls):
             l=' '+l[1:]
         l=l.lstrip()
         if l.strip()=="CONTINUES ON NEXT PAGE": continue
+        if l.strip()=="END OF AIS FIR INFORMATION": continue
         
         iss=re.match(r"\s*AIS FIR INFORMATION\s+ISSUED\s+(\d{6})\s+(\d{4})\s+SFI\d+\s+PAGE\s+\d+\(\d+\)\s*",l)
+        if not iss:
+            iss=re.match(r"ISSUED BY ODIN ESSA AIS\s+(\d{6})\s+(\d{4})\s+HAVE A NICE FLIGHT",l)
+        #print "iss match <%s>: %s"%(l,iss!=None)
         if iss: 
             date,time=iss.groups()
             issued2=datetime.strptime("%s %s"%(date,time),"%y%m%d %H%M")            
@@ -41,39 +56,43 @@ def notam_from_lines(ls):
                 assert issued2==issued
             else:
                 issued=issued2
-
+            continue
         if re.match(r"\s*Last\s+updated\s+.* UTC \d{4}\s*",l):continue
         if re.match(r"\s*ALL ACTIVE AND INACTIVE NOTAM INCLUDED\s*",l):continue
         if re.match(r"\s*VALID\s+\d+-\d+\s*ALL\s*FL\s*CS:WWWESAA",l):continue
 
         if l=="":
-            if len(out) and out[-1][1].text!="":
+            if len(out) and out[-1].text!="":
                 stale=True
         else:
             if len(out)==0 or stale: 
                 stale=False
-                out.append([category,NotamItem(linenr)])
-            if category!=out[-1][0]:
-                out.append([category,NotamItem(linenr)])
-            if out[-1][1].text!="":
-                out[-1][1].text+=" "
-            out[-1][1].text+=l
+                out.append(NotamItem(appearline,category))
+            if category!=out[-1].category:
+                out.append(NotamItem(appearline,category))
+            if out[-1].text!="":
+                out[-1].text+=" "
+            out[-1].text+=l
 
-    items=[(a,b) for a,b in out if b.text.strip()]
+    def normalize_item(text):
+        return "\n".join([x.strip() for x in text.splitlines() if x.strip()])
+    items=[]
+    for b in out:
+        b.text=normalize_item(b.text)
+        if b.text:
+            items.append(b)
     downloaded=datetime.utcnow()
-    notam=Notam(issued,downloaded,items)
+    notam=Notam(issued,downloaded,items,"".join(ls))
     return notam
     
-def parse_notam(html):
-    return notam_from_lines("\n".join(pre for pre in re.findall(u"<pre>(.*?)</pre>",html,re.DOTALL)).splitlines(1))
 
 def how_similar(at,bt):
     #print "Hos similar:\n%s\n/\n%s"%(at,bt)
-    acat,aobj=at
-    bcat,bobj=bt
+    aobj=at
+    bobj=bt
     a=aobj.text
     b=bobj.text
-    if acat!=bcat: 
+    if aobj.category!=bobj.category: 
         #print "similar: 0 c"
         return 0
     afirst=a.splitlines()[0]
@@ -83,32 +102,39 @@ def how_similar(at,bt):
         return 0
     awords=set([x.strip() for x in re.split("\s+",a) if x.strip()])
     bwords=set([x.strip() for x in re.split("\s+",b) if x.strip()])
-    res=100.0*len(awords.union(bwords))/float(max(len(awords),len(bwords)))
+    #print "Unioncount:%d, maxcount: %d"%(len(awords.intersection(bwords)),max(len(awords),len(bwords)))
+    res=100.0*len(awords.intersection(bwords))/float(max(len(awords),len(bwords)))
     #print "Similar: ",res
     return res
 
     
 def diff_notam(a,b):
-    #print "Diffing a,b: \n%s\n--------\n%s"%(a[:100],b[:100])
+    #print "Diffing a,b: \n%s\n--------\n%s"%(a.notamtext[:100],b.notamtext[:100])
     aset=set(a.items)
     bset=set(b.items)
+    #print "A-items:%s"%(aset,)
+    #print "B-items:%s"%(bset,)
     new=bset.difference(aset)
     cancelled=aset.difference(bset)
+    #print "Raw cancelled:",cancelled
+    #print "Raw new:",new
     modified=set()
     cancelledlist=list(cancelled)
-    for c in cancelledlist:
-        cand=max(new,key=lambda n:how_similar(c,n))
-        if how_similar(c,cand)>10:
-            cancelled.remove(c)
-            new.remove(cand)
-            modified.add((c,cand))                    
+    if len(new):
+        for c in cancelledlist:
+            cand=max(new,key=lambda n:how_similar(c,n))
+            if how_similar(c,cand)>70:
+                cancelled.remove(c)
+                new.remove(cand)
+                modified.add((c,cand))                    
     
-    for n in sorted(modified):
-        print "\n=============================\nModified:\n%s\ninto\n%s"%n
-    for n in sorted(new):
-        print "New: %s\n%s"%n
-    for c in sorted(cancelled):
-        print "Cancelled: %s\n%s"%c
+    if False:
+        for n in sorted(modified):
+            print "\n=============================\nModified:\n%s\ninto\n%s"%n
+        for n in sorted(new):
+            print "New: %s/%s"%(n.category,n.text)
+        for c in sorted(cancelled):
+            print "Cancelled: %s\n%s"%c
         
     print "Total items: %d/%d, Added: %d, Removed: %d, Modified: %d"%(len(a.items),len(b.items),len(new),len(cancelled),len(modified))
     return dict(

@@ -46,7 +46,7 @@ notamupdate_table = sa.Table('notamupdate',meta.metadata,
                         sa.Column('prevnotam',Integer(),nullable=True,primary_key=False), #if this is an update of a previously existing item 
                         sa.Column('prevline',Integer(),nullable=True,primary_key=False), #the prevnotam,prevline refer to that existing item.
                         sa.Column('category',Unicode(),nullable=True),
-                        sa.Column('message',Unicode(),nullable=False),
+                        sa.Column('text',Unicode(),nullable=False),
                         sa.Column('disappearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=True),
                         sa.ForeignKeyConstraint(
                             ['prevnotam', 'prevline'], 
@@ -57,7 +57,7 @@ notamupdate_table = sa.Table('notamupdate',meta.metadata,
 notamevent_table = sa.Table('notamevent',meta.metadata,
                         sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
                         sa.Column('appearline',Integer(),nullable=False,primary_key=True),
-                        sa.Column('disappeared',Boolean(),nullable=False,primary_key=True),
+                        sa.Column('disappeared',Boolean(),nullable=False,primary_key=True)
                         )
 
 notamack_table = sa.Table('notamack',meta.metadata,
@@ -213,14 +213,19 @@ class Notam(object):
         self.issued=issued
         self.downloaded=downloaded
         self.notamtext=notamtext
+    def __repr__(self):
+        return u"Notam(%s,%s,%s,%d chars)"%(self.ordinal,self.issued,self.downloaded,len(self.notamtext))
 class NotamUpdate(object):
-    def __init__(self,appearnotam,appearline,category,message):
+    def __init__(self,appearnotam,appearline,category,text):
         self.appearnotam=appearnotam
         self.appearline=appearline
         self.category=category
-        self.message=message
+        self.text=text
         self.disappearnotam=None
-        
+    def __repr__(self):
+        return u"NotamUpdate(notam=%d,line=%d,category=%s,text=%s,disappear=%s,prev=%s)"%(
+            self.appearnotam,self.appearline,self.category,self.text[0:50].splitlines()[0],self.disappearnotam,self.prev)
+         
 
 class NotamEvent(object):
     def __init__(self,update_obj):
@@ -235,7 +240,17 @@ class NotamAck(object):
         self.appearline=event_obj.appearline
         self.disappeared=event_obj.disappearnotam!=None
 
-orm.mapper(Notam,notam_table)
+orm.mapper(Notam,notam_table,
+    properties=dict(
+        items=(orm.relation(NotamUpdate,
+            order_by=notamupdate_table.columns.appearline,
+            primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.appearnotam))),
+        removeditems=(orm.relation(NotamUpdate,
+            order_by=notamupdate_table.columns.appearline,
+            primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.disappearnotam))),
+    )
+)
+
     
 orm.mapper(NotamUpdate, notamupdate_table,
  properties=dict(
