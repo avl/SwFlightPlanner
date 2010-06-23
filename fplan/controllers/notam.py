@@ -12,6 +12,6 @@ class NotamController(BaseController):
     def index(self):
         c.notamupdates=\
             list(meta.Session.query(NotamUpdate).filter(
-                NotamUpdate.disappearnotam==sa.null()).order_by([sa.desc(NotamUpdate.appearnotam),NotamUpdate.appearline]).all())
+                NotamUpdate.disappearnotam==sa.null()).order_by([sa.desc(NotamUpdate.appearnotam),sa.asc(NotamUpdate.appearline)]).all())
         return render('/notam.mako')
 

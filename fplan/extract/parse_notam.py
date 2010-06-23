@@ -39,11 +39,17 @@ def parse_notam(html):
         if cat:
             category=cat.groups()[0].strip()
             continue
+        if l.strip()=="ESGT":
+            category="ESGT"
+            continue
         if len(l) and l[0]=='+':
             l=' '+l[1:]
         l=l.lstrip()
         if l.strip()=="CONTINUES ON NEXT PAGE": continue
         if l.strip()=="END OF AIS FIR INFORMATION": continue
+        if l.strip()=="ALL ACTIVE AND INACTIVE NOTAM INCLUDED": continue
+        if l.strip()=="FIR: ESAA": continue
+        if l.strip()=="AERODROMES INCLUDED: ALL": continue
         
         iss=re.match(r"\s*AIS FIR INFORMATION\s+ISSUED\s+(\d{6})\s+(\d{4})\s+SFI\d+\s+PAGE\s+\d+\(\d+\)\s*",l)
         if not iss:
