@@ -54,20 +54,13 @@ notamupdate_table = sa.Table('notamupdate',meta.metadata,
                         )
 
 
-notamevent_table = sa.Table('notamevent',meta.metadata,
-                        sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
-                        sa.Column('appearline',Integer(),nullable=False,primary_key=True),
-                        sa.Column('disappeared',Boolean(),nullable=False,primary_key=True)
-                        )
-
 notamack_table = sa.Table('notamack',meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
                         sa.Column('appearline',Integer(),nullable=False,primary_key=True),
-                        sa.Column('disappeared',Boolean(),nullable=False,primary_key=True),
                         sa.ForeignKeyConstraint(
-                            ['appearnotam', 'appearline', 'disappeared'], 
-                            ['notamevent.appearnotam', 'notamevent.appearline', 'notamevent.disappeared'],
+                            ['appearnotam', 'appearline'], 
+                            ['notamupdate.appearnotam', 'notamupdate.appearline'],
                             onupdate="CASCADE",ondelete="CASCADE")
                         )
             
@@ -227,18 +220,11 @@ class NotamUpdate(object):
             self.appearnotam,self.appearline,self.category,self.text[0:50].splitlines()[0],self.disappearnotam,self.prev)
          
 
-class NotamEvent(object):
-    def __init__(self,update_obj):
-        self.appearnotam=update_obj.appearnotam
-        self.appearline=update_obj.appearline
-        self.disappeared=update_obj.disappearnotam!=None
-
 class NotamAck(object):
-    def __init__(self,user,event_obj):
+    def __init__(self,user,notam,line):
         self.user=user
-        self.appearnotam=event_obj.appearnotam
-        self.appearline=event_obj.appearline
-        self.disappeared=event_obj.disappearnotam!=None
+        self.appearnotam=notam
+        self.appearline=line
 
 orm.mapper(Notam,notam_table,
     properties=dict(
@@ -264,30 +250,8 @@ orm.mapper(NotamUpdate, notamupdate_table,
         lazy=False)
 ))
                         
-orm.mapper(NotamEvent, notamevent_table,
- properties=dict(
-    notamupdate=orm.relation(NotamUpdate,
-        foreign_keys=[notamevent_table.columns.appearnotam,notamevent_table.columns.appearline],
-        primaryjoin=
-            sa.and_(
-                notamevent_table.columns.appearnotam==notamupdate_table.columns.appearnotam,
-                notamevent_table.columns.appearline==notamupdate_table.columns.appearline
-            ),
-        lazy=False)
-))
-            
 
-orm.mapper(NotamAck, notamack_table,
- properties=dict(
-    notamevent=orm.relation(NotamEvent,
-        primaryjoin=
-            sa.and_(
-                notamack_table.columns.appearnotam==notamevent_table.columns.appearnotam,
-                notamack_table.columns.appearline==notamevent_table.columns.appearline,
-                notamack_table.columns.disappeared==notamevent_table.columns.disappeared            
-            ),
-        lazy=False)
-))
+orm.mapper(NotamAck, notamack_table)
 
 
 
