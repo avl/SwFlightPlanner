@@ -190,7 +190,10 @@ def parse_page(parser,pagenr,kind="TMA"):
             vs.append(Vertex(int(x),int(y)))
 
         p=Polygon(vvector(vs))
-        assert p.calc_area()>100*100
+        if p.calc_area()<=30*30:
+            print pa
+            print "Area:",p.calc_area()
+        assert p.calc_area()>30*30
         print "Area: %f"%(p.calc_area(),)
         print "Point-counts:",len(pa['points'])
         for p in pa['points']:

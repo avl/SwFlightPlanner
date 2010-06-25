@@ -3,6 +3,8 @@ from struct import pack,unpack
 import md5
 import sys    
 from threading import Lock
+import threading
+
     
 class BlobFile(object):
     
@@ -13,6 +15,7 @@ class BlobFile(object):
         return tx,ty
     def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r'):
         self.lock=Lock()
+        assert mode in ["r","w"]
         print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
             name,zoomlevel,x1,y1,x2,y2,mode)
         self.mode=mode
@@ -26,6 +29,7 @@ class BlobFile(object):
             else:            
                 print "File did not exist"
                 self.f=open(name,"w+")
+                assert os.path.getsize(name)==0 
                 self.size=0
             print "Opened %s for writing"%(name,)
             self.x1=x1
@@ -35,10 +39,12 @@ class BlobFile(object):
             self.zoomlevel=zoomlevel
         else:
             assert mode=="r"
-            self.f=open(name,"r")
+            self.name=name
+            f=open(name,"r")
+            self.tls=threading.local()
             self.size=os.path.getsize(name)
             params=[]
-            buf=self.f.read(5*4)
+            buf=f.read(5*4)
             for i in xrange(5):
                 params.append(unpack('>I',buf[4*i:4*i+4])[0])
             assert x1==x2==y1==y2==zoomlevel==None
@@ -99,49 +105,72 @@ class BlobFile(object):
                 print "writing %d bytes to %d (coords: %d,%d zoom: %d)"%(len(data),p,x,y,self.zoomlevel)
                 self.f.write(pack(">I",len(data)))
                 self.f.write(data)
+                self.f.flush()
                 self.dupmap[hash]=p
                 self.size+=len(data)
             else:
                 print "Using cached value for:",x,y,'zoom:',self.zoomlevel
             #print "Get tile number for %d,%d  = %d,%d"%(x,y,tx,ty)
-            self.f.seek(30+4*(tx+ty*self.sx))        
+            self.f.seek(20+4*(tx+ty*self.sx))        
             self.f.write(pack(">I",p))
             self.f.flush()
             #self.f.write(pack(">I",len(data)))
         finally:
             self.lock.release()
+        print "Written file to %d,%d,%d, now checking"%(x,y,self.zoomlevel)
+        assert self.get_tile(x,y)==data
+        print "Ok  %d,%d,%d"%(x,y,self.zoomlevel)
+            
     def get_tile(self,x,y):
         """Threadsafe"""
-        self.lock.acquire()
+        
+        if self.mode!="r":        
+            self.lock.acquire()
+            f=self.f
+        else:
+            if hasattr(self.tls,'f'):
+                f=self.tls.f
+                assert f!=None
+            else:
+                print "Opening file %s for thread %s"%(self.name,threading.current_thread())
+                f=open(self.name,"r")
+                self.tls.f=f
+                
         try:
             tx,ty=self.get_tile_number(x,y)
             if tx<0 or tx>=self.sx or ty<0 or ty>=self.sy:
                 return None
-            pos=30+4*(tx+ty*self.sx)
+            pos=20+4*(tx+ty*self.sx)
             #print "Seeking to pos %d in file of size %d"%(pos,self.size)
-            self.f.seek(pos)
-                
-            p=unpack(">I",self.f.read(4))[0]
+            f.seek(pos)
+            t=f.read(4)
+            if len(t)!=4:
+                print "Blob not initialized correctly (%d,%d,%d)"%(x,y,self.zoomlevel)
+                return None
+            p=unpack(">I",t)[0]
             #print "Tile number coords: %d,%d = %d"%(tx,ty,p)
             if p==0:
                 print "No tile at position %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
                 return None
-            self.f.seek(p)
-            sbuf=self.f.read(4)
+            f.seek(p)
+            sbuf=f.read(4)
             if len(sbuf)!=4:
                 print "Couldn't read tile %d,%d at zoomlevel %d. Offset: %d, filesize: %d (x:%d,y:%d,sx:%d sy:%d)"%(x,y,self.zoomlevel,p,self.size,tx,ty,self.sx,self.sy)
+                return None
             s=unpack(">I",sbuf)[0]
             #print "Read offset: %d"%(s,)
             if s>self.size:
-                print "Offset too large. Offset: %d, filesize: %d"%(s,self.size)
+                print "Offset too large. Offset: %d, filesize: %d (%d,%d,%d)"%(s,self.size,x,y,self.zoomlevel)
                 return None
-            assert s>0
-            if p==0:
+            if p==0 or s==0:
                 print "Zero size image at %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
                 return None
-            return self.f.read(s)
+            assert s>0
+            return f.read(s)
         finally:
-            self.lock.release()
+            if self.mode!="r":
+                self.lock.release()
+            
         
     def close(self):
         self.f.close()

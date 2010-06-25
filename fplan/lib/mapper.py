@@ -229,6 +229,8 @@ def plus(x,y):
     return tuple(a+b for a,b in zip(x,y))
 def scalarprod(x,y):
     return sum(a*b for a,b in zip(x,y))
+
+
 def parsecoord(seg):
     latlon=seg.strip().split(" ")
     if len(latlon)!=2:
@@ -236,6 +238,14 @@ def parsecoord(seg):
     lat,lon=latlon
     coord=parse_coords(lat.strip(),lon.strip())
     return coord
+
+def parsecoords(seg):
+    coords=[]
+    for lat,lon in re.findall(r"(\d+\.?\d*N)\s*(\d+\.?\d*E\b)",seg):
+        coord=parse_coords(lat.strip(),lon.strip())
+        coords.append(coord)
+    return coords
+
 
 def seg_angles(a1,a2,step):
     assert a2>a1
@@ -319,12 +329,6 @@ def parse_dist(s):
 
 
 def parse_area_segment(seg,prev,next):
-    try:
-        c=[parsecoord(seg)]
-        #print "Parsed as regualr coord: ",c
-        return c
-    except MapperBadFormat:
-        pass #continue processing
     border=re.match("Swedish/Danish border northward to (.*)",seg)
     if border:
         lat,lon=border.groups()[0].strip().split(" ")
@@ -350,7 +354,14 @@ def parse_area_segment(seg,prev,next):
         zoom=14
         center=parse_coords(lat,lon)
         return create_circle(center,dist_nm)
-    
+
+    try:
+        c=parsecoords(seg)
+        #print "Parsed as regualr coord: ",c
+        return c
+    except MapperBadFormat:
+        pass #continue processing
+
     #uprint("Unparsed area segment: %s"%(seg,))
     return []
 

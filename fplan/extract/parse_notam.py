@@ -17,22 +17,22 @@ class NotamItem(object):
     def __repr__(self):
         return "NotamItem(line=%d,category=%s,text_fragment=%s)"%(self.appearline,self.category,self.text.split("\n")[0][:50])
 class Notam(object):
-    def __init__(self,issued,downloaded,items,notamtext):
-        self.issued=issued
+    def __init__(self,downloaded,items,notamtext):
         self.downloaded=downloaded
         self.items=items
         self.notamtext=notamtext
     def __cmp__(self,o):
-        return self.issued==o.issued and self.items==o.items
+        return self.items==o.items
     def __hash__(self):
-        return hash((self.issued,self.items))
+        return hash(self.items)
 
 def parse_notam(html):
-    almostraw="\n".join(pre for pre in re.findall(u"<pre>(.*?)</pre>",html,re.DOTALL))
+    print "html lines:",html.count("\n")
+    almostraw="\n".join(pre for pre in re.findall(u"<pre>(.*?)</pre>",html,re.DOTALL|re.IGNORECASE))
+    print "Raw lines: %d"%(len(almostraw),)
     ls=almostraw.splitlines(1)
     out=[]
     category=None
-    issued=None
     stale=True
     for appearline,l in enumerate(ls):
         cat=re.match(r"([^\s/]+/.*)\s*",l)
@@ -57,11 +57,7 @@ def parse_notam(html):
         #print "iss match <%s>: %s"%(l,iss!=None)
         if iss: 
             date,time=iss.groups()
-            issued2=datetime.strptime("%s %s"%(date,time),"%y%m%d %H%M")            
-            if issued:
-                assert issued2==issued
-            else:
-                issued=issued2
+            print "Issued:",date,time
             continue
         if re.match(r"\s*Last\s+updated\s+.* UTC \d{4}\s*",l):continue
         if re.match(r"\s*ALL ACTIVE AND INACTIVE NOTAM INCLUDED\s*",l):continue
@@ -83,12 +79,14 @@ def parse_notam(html):
     def normalize_item(text):
         return "\n".join([x.strip() for x in text.splitlines() if x.strip()])
     items=[]
+    seen=set()
     for b in out:
         b.text=normalize_item(b.text)
-        if b.text:
+        if b.text and not (b.text in seen):
+            seen.add(b.text)
             items.append(b)
     downloaded=datetime.utcnow()
-    notam=Notam(issued,downloaded,items,"".join(ls))
+    notam=Notam(downloaded,items,"".join(ls))
     return notam
     
 

@@ -4,6 +4,8 @@ import re
 import sys
 from fplan.lib.mapper import parse_coord_str
 import extra_airfields
+import fplan.lib.mapper as mapper
+from pyshapemerge2d import Vertex,Polygon,vvector
 from fplan.lib.mapper import parse_coords,uprint
     
 def extract_airfields():
@@ -150,7 +152,7 @@ def extract_airfields():
                     spaces=[]
                     print "subspacealts:",subspacealts
                     
-                    
+                    print "\nSubspacelines:\n===========================\n%s"%(subspacelines,)
                     if not '*' in subspacealts and len(subspacealts)!=len(subspacelines):
                         m=re.match("TIA\s+(\d{3,5}\s*ft\s*/.*(?:(MSL)?|(GND)).*?)\s*TIZ\s+(\d{3,5}\s*ft\s*/.*(?:(MSL)?|(GND)).*?)\s*",altlines[0])
                         def fmt(foot,msl,gnd):
@@ -185,6 +187,19 @@ def extract_airfields():
                             floor=subspacealts[altspacename]['floor'],
                             points=parse_coord_str(" ".join(subspacelines[spacename]))
                             )
+                        
+                        if True:
+                            vs=[]
+                            for p in space['points']:
+                                x,y=mapper.latlon2merc(mapper.from_str(p),13)
+                                vs.append(Vertex(int(x),int(y)))                    
+                            p=Polygon(vvector(vs))
+                            if p.calc_area()<=30*30:
+                                print space
+                                print "Area:",p.calc_area()
+                            assert p.calc_area()>30*30
+                            print "Area: %f"%(p.calc_area(),)
+                        
                         spaces.append(space)
                         print space
                         #if ad['icao']=="ESKN":

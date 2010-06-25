@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from fplan.extract.parse_notam import diff_notam,parse_notam
 import fplan.extract.parse_notam as pn
 from fplan.model import *
@@ -8,7 +10,10 @@ import sys,os
 from fplan.config.environment import load_environment
 from pylons import config
 
-
+from sqlalchemy import engine_from_config
+from paste.deploy import appconfig
+   
+    
 
 def notam_db_update():
     return notam_db_update_impl(get_latest_notam())
@@ -29,7 +34,7 @@ def notam_db_update_impl(html):
         prevdbitems=None
     latest=parse_notam(html)
     
-    if not prevobj or prevobj.issued!=latest.issued or prevobj.notamtext!=latest.notamtext:
+    if not prevobj or prevobj.notamtext!=latest.notamtext:
         #print "diff1",not prevobj
         #if prevobj:
         #    print "diff2",prevobj.issued!=latest.issued
@@ -41,7 +46,7 @@ def notam_db_update_impl(html):
                 previtems.append(pn.NotamItem(prev.appearline,prev.category))
                 previtems[-1].text=prev.text
                 previtems[-1].appearnotam=prev.appearnotam
-            prev=pn.Notam(prevobj.issued,prevobj.downloaded,previtems,prevobj.notamtext)
+            prev=pn.Notam(prevobj.downloaded,previtems,prevobj.notamtext)
             ordinal=prevobj.ordinal+1
             prev_ordinal=prevobj.ordinal
         else:
@@ -63,9 +68,9 @@ def notam_db_update_impl(html):
             cancelled=[]
             modified=[]
         #print "Latest issued:%s"%(latest.issued,)
-        notam=Notam(ordinal,latest.issued,datetime.utcnow(),latest.notamtext)
+        notam=Notam(ordinal,datetime.utcnow(),latest.notamtext)
         meta.Session.add(notam)
-        
+        print "Inserting %d, modifying %d, cancelling %d"%(len(new),len(modified),len(cancelled))
         for cancobj in cancelled:
             #print "Cancelled NotamItem: %s (appearnotam: %d)"%(cancobj,cancobj.appearnotam)
             origobjs=meta.Session.query(NotamUpdate).filter(sa.and_(
@@ -97,10 +102,17 @@ def notam_db_update_impl(html):
             
         meta.Session.flush()
 
-if __name__=='__main__':            
-    run_update()
 def run_update():
-    notam_db_update_impl(unicode(open(os.getenv("DL_NOTAM_PATH")).read(),'latin1'))
-    meta.Session.commit()
+    notam_db_update_impl(unicode(open(sys.argv[1]).read(),'latin1'))
+    if int(sys.argv[2])==1:
+        meta.Session.commit()
+    else:
+        print "NOT commiting, second argument must be 1 for commit"
     
+    
+if __name__=='__main__':       
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))
+    load_environment(conf.global_conf, conf.local_conf)
+    run_update()
+    sys.exit(0)
     

@@ -35,7 +35,6 @@ user_table = sa.Table("user",meta.metadata,
 
 notam_table = sa.Table("notam",meta.metadata,
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
-                        sa.Column('issued',DateTime(),nullable=False),
                         sa.Column('downloaded',DateTime(),nullable=False),
                         sa.Column("notamtext",Unicode(),nullable=False)
                         )
@@ -201,13 +200,12 @@ orm.mapper(Route, route_table,
 
 
 class Notam(object):
-    def __init__(self,ordinal,issued,downloaded,notamtext):
+    def __init__(self,ordinal,downloaded,notamtext):
         self.ordinal=ordinal
-        self.issued=issued
         self.downloaded=downloaded
         self.notamtext=notamtext
     def __repr__(self):
-        return u"Notam(%s,%s,%s,%d chars)"%(self.ordinal,self.issued,self.downloaded,len(self.notamtext))
+        return u"Notam(%s,%s,%s,%d chars)"%(self.ordinal,self.downloaded,len(self.notamtext))
 class NotamUpdate(object):
     def __init__(self,appearnotam,appearline,category,text):
         self.appearnotam=appearnotam
