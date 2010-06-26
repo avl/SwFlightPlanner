@@ -228,10 +228,12 @@ orm.mapper(Notam,notam_table,
     properties=dict(
         items=(orm.relation(NotamUpdate,
             order_by=notamupdate_table.columns.appearline,
-            primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.appearnotam))),
+            primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.appearnotam),
+            lazy=True)),
         removeditems=(orm.relation(NotamUpdate,
             order_by=notamupdate_table.columns.appearline,
-            primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.disappearnotam))),
+            primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.disappearnotam),
+            lazy=True)),
     )
 )
 
@@ -241,11 +243,11 @@ orm.mapper(NotamUpdate, notamupdate_table,
     notam=orm.relation(Notam,
         primaryjoin=(
                 notamupdate_table.columns.appearnotam==notam_table.columns.ordinal  ),
-        lazy=False),
+        lazy=True),
     prev=orm.relation(NotamUpdate,
         remote_side=[notamupdate_table.columns.appearnotam,
                      notamupdate_table.columns.appearline],
-        lazy=False)
+        lazy=True)
 ))
                         
 

@@ -103,7 +103,10 @@ def notam_db_update_impl(html):
         meta.Session.flush()
 
 def run_update():
-    notam_db_update_impl(unicode(open(sys.argv[1]).read(),'latin1'))
+    if sys.argv[1]=='clear':
+        meta.Session.query(Notam).delete()
+    else:
+        notam_db_update_impl(unicode(open(sys.argv[1]).read(),'latin1'))
     if int(sys.argv[2])==1:
         meta.Session.commit()
     else:
@@ -112,6 +115,7 @@ def run_update():
     
 if __name__=='__main__':       
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))
+    
     load_environment(conf.global_conf, conf.local_conf)
     run_update()
     sys.exit(0)

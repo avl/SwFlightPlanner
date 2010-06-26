@@ -329,10 +329,21 @@ def parse_dist(s):
 
 
 def parse_area_segment(seg,prev,next):
-    border=re.match("Swedish/Danish border northward to (.*)",seg)
-    if border:
-        lat,lon=border.groups()[0].strip().split(" ")
-        return [parsecoord(border.groups()[0])]
+    for borderspec in [
+        "Swedish/Danish border northward to (.*)",
+        "Swedish/Norwegian border northward to (.*)"
+        ]:
+        border=re.match(borderspec,seg)
+        if border:
+            
+            if prev.strip()=="671311N 0162302E":
+                return [parsecoord(x) for x in "673900N 0163343E - 673201N 0162439E - 673139N 0161704E - 671627N 0161903E - 671311N 0162302E ".split(" - ")]            
+            okprev=set(["560158N 0123925E","682121N 0195516E"])
+            if not prev.strip() in okprev:
+                print prev
+                raise Exception("Border spec not supported fully yet: %s"%(borderspec,))            
+            lat,lon=border.groups()[0].strip().split(" ")
+            return [parsecoord(border.groups()[0])]
     arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
     if arc:
         centerstr,radius=arc.groups()
@@ -366,10 +377,8 @@ def parse_area_segment(seg,prev,next):
     return []
 
 def parse_coord_str(s):
-    borderspecs=[
-        "Swedish/Danish border northward to",
-        "Swedish/Norwegian border northward to",
-        ]
+    #borderspecs=[
+    #    ]
     #uprint("Parsing area: %s"%(s,))
     
     items=s.replace(u"–","-").strip().split("-")
@@ -384,10 +393,10 @@ def parse_coord_str(s):
         pstr=pstr2.strip()
         #print "Coord str: <%s>"%(pstr,)
         
-        for spec in borderspecs:
-            if pstr.count(spec):
-                pstr=pstr.replace(spec,"")
-                break                
+        #for spec in borderspecs:
+        #    if pstr.count(spec):
+        #        pstr=pstr.replace(spec,"")
+        #        break                
         if pstr.strip()=="": continue
         pd=parse_area_segment(pstr,prev,next)
         #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))

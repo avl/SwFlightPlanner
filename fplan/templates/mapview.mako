@@ -121,22 +121,23 @@ function loadmap()
 	var sidebar=document.getElementById('sidebar-a');
 	sidebar.innerHTML=''+
 	'<div class="first" id="search-pane" onkeydown="return on_search_keydown(event)" size="15" onkeyup="on_search_keyup(event)">'+
-	'<form id="searchform" action="">'+
-	'Search:<input id="searchfield"  onblur="remove_searchpopup()" name="searchfield" type="text" value="" />'+	
+	'<form id="searchform" action="" onblur="remove_searchpopup()" >'+
+	'Search Destination:<br/><input id="searchfield"  name="searchfield" type="text" value="" />'+
+	'<button onclick="mapsearch_add_to_route_button();return false;" style="font-size:10px">Add</button>'+	
 	'</form>'+
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
-	'Trip:<input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
+	'Trip Name:<br/><input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
 	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
 	'<div id="moretripfunctions" style="display:none">'+
 	'<button style="font-size:10px" onclick="add_new_trip();return false;">New</button>'+
 	'<button style="font-size:10px" onclick="on_delete_trip();return false;">Delete</button>'+
-	'<button style="font-size:10px" onclick="open_trip();return false;">Saved</button>'+
+	'<button style="font-size:10px" onclick="open_trip();return false;">Previous Trips</button>'+
 	'</div>'+
 	'<div id="addtripfunctions" style="display:none">'+
 	'Enter name of new trip:<br/><input id="addtripname" name="addtripname" type="text" value="" />'+
-	'<button onclick="on_add_trip();return false;">Add</button>'+	
+	'<button style="font-size:10px" onclick="on_add_trip();return false;">Add</button>'+	
 	'</div>'+
 	'<div id="opentripfunctions" style="display:none">'+
 
@@ -180,12 +181,10 @@ function loadmap()
 
 	'</form></div>'+
 	'<div class="first"><form id="fplanformbuttons" action="">'+
-	'Waypoints:<br/>'+
-	'<button onclick="remove_all_waypoints();return false" title="Remove all waypoints">Remove All</button>'+
-	'<button onclick="menu_add_new_waypoints();return false" title="Add a new waypoint. Click here, then click start and end point in map.">Add</button>'+
-	'</form></div>'+
-
-	'<div class="first"><form id="fplanform" action="">'+
+	'Route/Waypoints:<br/>'+
+	'<button onclick="remove_all_waypoints();return false" style="font-size:10px" title="Remove all waypoints">Remove All</button>'+
+	'<button onclick="menu_add_new_waypoints();return false" style="font-size:10px" title="Add a new waypoint. Click here, then click start and end point in map.">Add from Map</button>'+
+	'</form><form id="fplanform" action="">'+
 	'<table id="tab_fplan" width="100%">'+
 	'</table></form></div>'+
 

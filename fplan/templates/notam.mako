@@ -23,11 +23,11 @@ Notam <input type="submit" style="font-size:10px" value="Mark all read"/>
 </form>
 </td>
 </tr>
-%for notamupdate in c.notamupdates:
-<tr id="notamcolor_${notamupdate.appearnotam}_${notamupdate.appearline}" style="background:${'#b0ffb0' if (notamupdate.appearnotam,notamupdate.appearline) in c.acks else '#ffd0b0'}">
+%for notamupdate,acks,downloaded in c.items:
+<tr id="notamcolor_${notamupdate.appearnotam}_${notamupdate.appearline}" style="background:${'#b0ffb0' if acks else '#ffd0b0'}">
 <td>
 <input onchange="click_item(${notamupdate.appearnotam},${notamupdate.appearline},1);return true" type="checkbox" id="notam_${notamupdate.appearnotam}_${notamupdate.appearline}" 
-${'checked="1"' if (notamupdate.appearnotam,notamupdate.appearline) in c.acks else ''|n}/>
+${'checked="1"' if acks else ''|n}/>
 </td>
 <td>
 <div style="font-size:10px">
@@ -39,7 +39,7 @@ ${line}<br/>
 %endfor
 </div>
 <div style="font-size:10px">
-Downloaded: <b>${notamupdate.notam.downloaded.strftime("%Y%m%d %H%M")}</b> <b><u>
+Downloaded: <b>${downloaded.strftime("%Y%m%d %H%M")}</b> <b><u>
 <a href="${h.url_for(controller="notam",action="show_ctx",notam=notamupdate.appearnotam,line=notamupdate.appearline)}#notam">
 See original-&gt;
 </a></u></b>

@@ -28,7 +28,7 @@ function navigate_to(where)
 %for w in c.waypoints:
 
 <p>
-<b>${w['name']}</b>:${w['pos']} 
+<b>${w['name']}</b>:${w['pos']} (exact: ${w['exactpos']}) 
 </p>
 
 %endfor
@@ -47,6 +47,18 @@ DCT ${w['pos']} \
 <br/>
 </span>
 </div>
+
+<br/>
+<h2>More exact format</h2>
+<p>
+(Same coordinates as above, but in the format of LFV point sequences)
+</p>
+<div>
+<span>	
+${" - ".join([w['exactpos'] for w in c.waypoints])}
+</span
+</div>
+
 
 </div>
 

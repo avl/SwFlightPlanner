@@ -4,7 +4,7 @@ import md5
 import sys    
 from threading import Lock
 import threading
-
+import time
     
 class BlobFile(object):
     
@@ -15,6 +15,7 @@ class BlobFile(object):
         return tx,ty
     def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r'):
         self.lock=Lock()
+        self.threads_reading=0
         assert mode in ["r","w"]
         print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
             name,zoomlevel,x1,y1,x2,y2,mode)
@@ -135,7 +136,7 @@ class BlobFile(object):
                 print "Opening file %s for thread %s"%(self.name,threading.current_thread())
                 f=open(self.name,"r")
                 self.tls.f=f
-                
+        self.threads_reading+=1  
         try:
             tx,ty=self.get_tile_number(x,y)
             if tx<0 or tx>=self.sx or ty<0 or ty>=self.sy:
@@ -166,8 +167,11 @@ class BlobFile(object):
                 print "Zero size image at %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
                 return None
             assert s>0
+            print "Threads reading simultaneously: %d"%(self.threads_reading,)
+             
             return f.read(s)
         finally:
+            self.threads_reading-=1  
             if self.mode!="r":
                 self.lock.release()
             

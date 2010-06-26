@@ -183,6 +183,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         pa['floor']=floor
         pa['ceiling']=ceiling
         #print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
+        #print pa
         pa['points']=list(parse_coord_str(" ".join(arealines[:last_coord_idx])))
         vs=[]
         for p in pa['points']:
@@ -247,6 +248,6 @@ def parse_r_areas():
     
 if __name__=='__main__':
     parse_all_tma()
-    #parse_r_areas()
+    parse_r_areas()
 
 

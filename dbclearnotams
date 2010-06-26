@@ -1,0 +1,4 @@
+#!/bin/bash
+fplan/lib/notam_db_update.py clear 1
+find notams -type f -name 0\* | xargs -n1 -IXX fplan/lib/notam_db_update.py XX 1
+

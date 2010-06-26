@@ -2,7 +2,7 @@ searchopinprogress=0;
 searchagain=0;
 searchagainfor='';
 searchpopup=0;
-searchpopup_sel=0;
+searchpopup_sel=-1;
 searchlastdata=[];
 
 function findPos(obj) {
@@ -22,6 +22,7 @@ function remove_searchpopup()
 	var s=document.getElementById('searchpopup');
 	s.style.display='none';
 	searchpopup=0;
+	searchlastdata=[];
 }
 function searchsel(delta)
 {
@@ -59,11 +60,25 @@ function on_search_keydown(event)
 				var d=searchlastdata[searchpopup_sel];
 				add_waypoint(d[0],d[1]);
 			}
-			remove_searchpopup();
+			if (searchpopup_sel==-1)
+			{
+				mapsearch_add_to_route_button();
+			}
 			return false;
 		}
 	}
 	return true;
+}
+function mapsearch_add_to_route_button()
+{
+	if (searchlastdata.length==0)
+	{
+		alert('The search matches no items!');
+		return;
+	}
+	var d=searchlastdata[0];
+	add_waypoint(d[0],d[1]);			
+	remove_searchpopup();	
 }
 function search_select(idx)
 {
@@ -111,6 +126,7 @@ function on_search_keyup(keyevent)
 			{
 				inner+='<p style="cursor:pointer" onclick="search_select('+i+')">'+searchlastdata[i][0]+'</p';
 			}
+			inner+='<p style="cursor:pointer;color:#808080" onclick="remove_searchpopup();"><u>close</u></p>';
 			s.innerHTML=inner;
 		}
 	
@@ -121,12 +137,18 @@ function on_search_keyup(keyevent)
 		}
 	}
 	
-	
-	var params={};	
-	params['search']=field.value;
-	var def=doSimpleXMLHttpRequest(searchairporturl,
-		params);
-	def.addCallback(search_cb);	
+	if (field.value=='')
+	{
+		remove_searchpopup();
+	}	
+	else
+	{	
+		var params={};	
+		params['search']=field.value;
+		var def=doSimpleXMLHttpRequest(searchairporturl,
+			params);
+		def.addCallback(search_cb);
+	}	
 }
 /*
 */

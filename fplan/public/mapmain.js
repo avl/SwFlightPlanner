@@ -124,18 +124,6 @@ function tab_remove_waypoint(idx)
 	glist.deleteRow(idx);
 	tab_renumber(idx);
 }
-function tab_renumber(idx)
-{
-	var glist=document.getElementById('tab_fplan');
-	for(var i=idx;i<glist.rows.length;i++)
-	{
-		var rowelem=glist.rows[i];		
-		rowelem.cells[0].innerHTML='<td>#'+i+':';
-		rowelem.cells[1].childNodes[0].name='row_'+i+'_name';
-		rowelem.cells[2].childNodes[0].name='row_'+i+'_pos';
-		rowelem.cells[2].childNodes[1].name='row_'+i+'_origpos';
-	}	
-}
 function tab_select_waypoints(idxs,col)
 {
 	var glist=document.getElementById('tab_fplan');
@@ -217,8 +205,8 @@ function reorder_wp(idx,delta)
     pos2e.value=pos1;
     name1e.value=name2;
     name2e.value=name1;
-    
-	draw_jg();    
+     
+	select_waypoint(odx); //calls draw_jg, so we don't have to	
 }
 function tab_add_waypoint(idx,pos,origpos,name)
 {
@@ -239,26 +227,47 @@ function tab_add_waypoint(idx,pos,origpos,name)
    	}
    	
    	var latlon=merc2latlon(pos);
-   	function onclick_waypoint()
+   	/*function onclick_waypoint()
    	{
    		select_waypoint(idx);
    	}
    	elem.onclick=onclick_waypoint;
+   	*/
     elem.innerHTML=''+
-    '<td>#'+idx+':</td>'+
+    '<td style="cursor:pointer">#'+idx+':</td>'+
     '<td><input type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
-    '<img onclick="reorder_wp('+idx+',-1)" src="/uparrow.png" /><img onclick="reorder_wp('+idx+',1)" src="/downarrow.png" /> </td>'+
+    '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_origpos" value="'+origpos+'"/>'+
     '</td>'+
     '';
-
-	if (idx!=wps.length)
-	{
-		tab_renumber(idx+1);	
-	}
 	
+	tab_renumber(idx);	
+	
+}
+function tab_renumber(idx_above)
+{
+	var glist=document.getElementById('tab_fplan');
+	for(var i=idx_above;i<glist.rows.length;i++)
+	{
+		tab_renumber_single(i);
+	}
+}
+function tab_renumber_single(i)
+{
+	var glist=document.getElementById('tab_fplan');
+	var rowelem=glist.rows[i];		
+	rowelem.cells[0].innerHTML='#'+i+':';
+	rowelem.cells[0].oncontextmenu=function(ev) { rightclick_waypoint_tab(i,ev); return false; };
+	rowelem.cells[0].onclick=function(ev) { select_waypoint(i); return false; };
+	
+	rowelem.cells[1].childNodes[0].onclick=function(ev) { select_waypoint(i); return false; };
+	rowelem.cells[1].childNodes[0].name='row_'+i+'_name';
+	rowelem.cells[1].childNodes[1].onclick=function(ev) { reorder_wp(i,-1);return false; }; 
+	rowelem.cells[1].childNodes[2].onclick=function(ev) { reorder_wp(i,+1);return false; }; 
+	rowelem.cells[2].childNodes[0].name='row_'+i+'_pos';
+	rowelem.cells[2].childNodes[1].name='row_'+i+'_origpos';
 }
 
 function on_key(event)
@@ -519,6 +528,21 @@ lastrightclickx=0;
 lastrightclicky=0;
 function on_rightclickmap(event)
 {
+	jgq.clear();
+	var relx=client2merc_x(event.clientX);
+	var rely=client2merc_y(event.clientY);
+
+	return as_if_rightclick(relx,rely,event);	
+}
+
+function rightclick_waypoint_tab(idx,event)
+{
+	var relxy=wps[idx];
+	as_if_rightclick(relxy[0],relxy[1],event);
+}
+
+function as_if_rightclick(relx,rely,event)
+{
 	if (waypointstate!='none')
 	{
 		waypointstate='none';
@@ -534,12 +558,9 @@ function on_rightclickmap(event)
 		draw_jg();
 		return false;
 	}	
-	jgq.clear();
-	var relx=client2merc_x(event.clientX);
-	var rely=client2merc_y(event.clientY);
+	
 	lastrightclickx=relx;
 	lastrightclicky=rely;
-	
 	var clo=get_close_line(relx,rely);
 	var cm=document.getElementById("mmenu");
 	found=0;
@@ -1286,7 +1307,8 @@ function center_map()
 	function implement_center()
 	{
 		var form=document.getElementById('helperform');
-		form.center.value=''+merc_x+','+merc_y;
+		form.center.value=''+parseInt(merc_x)+','+parseInt(merc_y);
+		form.zoom.value=map_zoomlevel; 
 		form.submit();
 	}
 	save_data(implement_center);	
@@ -1380,7 +1402,7 @@ function pan_map(dx,dy)
 		if (need_reload)
 		{
 			//tile.img.src='/boilerplate.jpg';
-			tile.img.src='/loading.png';
+			//tile.img.src='/loading.png';
 			tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
 				/*'/maptile/get?x1='+
 				(tile.mercx)+'&y1='+

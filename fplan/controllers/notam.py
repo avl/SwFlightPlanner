@@ -12,16 +12,16 @@ import routes.util as h
 class NotamController(BaseController):
 
     def index(self):
-        c.notamupdates=\
-            list(meta.Session.query(NotamUpdate).filter(
-                NotamUpdate.disappearnotam==sa.null()).order_by([sa.desc(NotamUpdate.appearnotam),sa.asc(NotamUpdate.appearline)]).all())
         
-        c.acks=set([(ack.appearnotam,ack.appearline) for ack in meta.Session.query(NotamAck).filter(sa.and_(
-                NotamAck.user==session['user'],
-                NotamUpdate.disappearnotam==sa.null(),
-                NotamAck.appearnotam==NotamUpdate.appearnotam,
-                NotamAck.appearline==NotamUpdate.appearline)).all()])
+        ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).group_by([NotamAck.appearnotam,NotamAck.appearline]).subquery()
+    
+        c.items=meta.Session.query(NotamUpdate,ack_cnt.c.acks,Notam.downloaded).outerjoin(
+                (ack_cnt,sa.and_(NotamUpdate.appearnotam==ack_cnt.c.appearnotam,NotamUpdate.appearline==ack_cnt.c.appearline))).outerjoin(
+                (Notam,Notam.ordinal==NotamUpdate.appearnotam)
+                 ).order_by(sa.desc(Notam.downloaded)).all()
         
+        
+        print "Start rendering mako"
         return render('/notam.mako')
     def show_ctx(self):
         notam=meta.Session.query(Notam).filter(

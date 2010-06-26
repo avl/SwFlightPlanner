@@ -182,7 +182,8 @@ class FlightplanController(BaseController):
             lat,lon=mapper.from_str(wp.pos)            
             c.waypoints.append(dict(
                 name=wp.waypoint,
-                pos=mapper.format_lfv_ats(lat,lon)
+                pos=mapper.format_lfv_ats(lat,lon),
+                exactpos=mapper.format_lfv(lat,lon)
                 ))
         #response.headers['Content-Type'] = 'application/xml'               
         return render('/ats.mako')
