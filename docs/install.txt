@@ -5,8 +5,11 @@ mapnik
 cairo
 python-cairo
 python-mapnik
+python-numpy
 shapelib
+poppler-utils
 pyshapelib (not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)
+proj
 
 
 Openstreetmap (optional, only needed to regenerate map tiles):

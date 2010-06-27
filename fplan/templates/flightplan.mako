@@ -3,6 +3,7 @@
 
 <script src="/MochiKit.js" type="text/javascript"></script>
 <script src="/fpmain.js" type="text/javascript"></script>
+<script src="/lib.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 
@@ -104,7 +105,7 @@ ${ac.aircraft}
 <br/>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
 Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not counting time for climb).<br/>
-%if len(c.all_aircraft)==0:
+%if False and len(c.all_aircraft)==0:
 <a href="#" onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" ><u>Add</u> an aircraft to use on this trip.</a><br/>
 %endif
 </form>

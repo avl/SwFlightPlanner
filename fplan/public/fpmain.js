@@ -250,10 +250,15 @@ function fpaddwaypoint(pos,name,rowdata)
 		{			
 			var ro='';
 			var wh=fpcolshort[i];
-			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA')  
+			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA')
+			{  
 				ro='readonly="1"';
+			}
 			else
+			{
+				ro='onkeypress="return not_enter(event)"';
 			    modifiable_cols.push(wh);
+			}
 			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;

@@ -14,12 +14,14 @@ function navigate_to(where)
 </script>
 
 <div id="notamcontent" style="height:100%;width:100%;overflow:auto;">
-
+<h1>Latest Notam Updates</h1>
 <table>
 <tr>
-<td>Read</td><td> 
+<td colspan="2"> 
 <form action="${h.url_for(controller="notam",action="markall")}" method="POST">
-Notam <input type="submit" style="font-size:10px" value="Mark all read"/>
+
+Click on items when you have read them.<br/>
+<input type="submit" style="font-size:10px" value="I have read them all!"/>
 </form>
 </td>
 </tr>

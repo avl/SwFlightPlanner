@@ -106,6 +106,7 @@ function loadmap()
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+
 	'<div class="popopt" id="menu-move" onclick="move_waypoint()">Move Waypoint</div>'+
 	'<div class="popopt" onclick="center_map()">Center Map</div>'+ 
+	'<div class="popopt" onclick="add_waypoint_here(event);">Add Waypoint Here</div>'+ 
 	'<div class="popopt" onclick="hidepopup()">Close menu</div>'+
 	'</div>'+
 	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
@@ -183,7 +184,7 @@ function loadmap()
 	'<div class="first"><form id="fplanformbuttons" action="">'+
 	'Route/Waypoints:<br/>'+
 	'<button onclick="remove_all_waypoints();return false" style="font-size:10px" title="Remove all waypoints">Remove All</button>'+
-	'<button onclick="menu_add_new_waypoints();return false" style="font-size:10px" title="Add a new waypoint. Click here, then click start and end point in map.">Add from Map</button>'+
+	'<button onclick="menu_add_new_waypoints();return false" style="font-size:10px" title="Add a new waypoint. Click here, then click start and end point in map.">Add on Map</button>'+
 	'</form><form id="fplanform" action="">'+
 	'<table id="tab_fplan" width="100%">'+
 	'</table></form></div>'+

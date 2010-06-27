@@ -31,6 +31,13 @@ addLoadEvent(loadaircraft);
 <h1>
 Aircraft
 </h1>
+
+%if c.flash:
+<p><span style="background-color:#80ff80;font-size:14px">
+${c.flash}
+</span></p><br/>
+%endif
+
 <form id="acform" action="${h.url_for(controller="aircraft",action="save")}" method="POST">
 %if len(c.all_aircraft):
 <select onchange="onchange_aircraft()" name="change_aircraft">
@@ -50,28 +57,28 @@ ${ac.aircraft}
 <input type="text" name="aircraft" value="${c.ac.aircraft}" /></td>
 </tr>
 <tr>
-<td>Cruise speed:</td><td><input type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt</td>
+<td>Cruise speed:</td><td><input ${c.fmterror('cruise_speed')|n} type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt ${c.msgerror('cruise_speed')}</td>
 </tr>
 <tr>
-<td>Cruise fuel burn:</td><td><input type="text" name="cruise_burn" value="${c.ac.cruise_burn}" />L/h</td>
+<td>Cruise fuel burn:</td><td><input ${c.fmterror('cruise_burn')|n} type="text" name="cruise_burn" value="${c.ac.cruise_burn}" />L/h ${c.msgerror('cruise_burn')}</td>
 </tr>
 <tr>
-<td>Cruise climb speed:</td><td><input type="text" name="climb_speed" value="${c.ac.climb_speed}" />kt</td>
+<td>Cruise climb speed:</td><td><input ${c.fmterror('climb_speed')|n} type="text" name="climb_speed" value="${c.ac.climb_speed}" />kt ${c.msgerror('climb_speed')}</td>
 </tr>
 <tr>
-<td>Cruise climb rate:</td><td><input type="text" name="climb_rate" value="${c.ac.climb_rate}" />feet/min</td>
+<td>Cruise climb rate:</td><td><input ${c.fmterror('climb_rate')|n} type="text" name="climb_rate" value="${c.ac.climb_rate}" />feet/min ${c.msgerror('climb_rate')}</td>
 </tr>
 <tr>
-<td>Cruise climb fuel burn:</td><td><input type="text" name="climb_burn" value="${c.ac.climb_burn}" />L/h</td>
+<td>Cruise climb fuel burn:</td><td><input ${c.fmterror('climb_burn')|n} type="text" name="climb_burn" value="${c.ac.climb_burn}" />L/h ${c.msgerror('climb_burn')}</td>
 </tr>
 <tr>
-<td>Descent speed:</td><td><input type="text" name="descent_speed" value="${c.ac.descent_speed}" />kt</td>
+<td>Descent speed:</td><td><input ${c.fmterror('descent_speed')|n} type="text" name="descent_speed" value="${c.ac.descent_speed}" />kt ${c.msgerror('descent_speed')}</td>
 </tr>
 <tr>
-<td>Descent rate:</td><td><input type="text" name="descent_rate" value="${c.ac.descent_rate}" />feet/min</td>
+<td>Descent rate:</td><td><input ${c.fmterror('descent_rate')|n} type="text" name="descent_rate" value="${c.ac.descent_rate}" />feet/min ${c.msgerror('descent_rate')}</td>
 </tr>
 <tr>
-<td>Descent fuel burn:</td><td><input type="text" name="descent_burn" value="${c.ac.descent_burn}" />L/h</td>
+<td>Descent fuel burn:</td><td><input ${c.fmterror('descent_burn')|n} type="text" name="descent_burn" value="${c.ac.descent_burn}" />L/h ${c.msgerror('descent_burn')}</td>
 </tr>
 
 </table>

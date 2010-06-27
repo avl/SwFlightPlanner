@@ -337,7 +337,7 @@ def parse_area_segment(seg,prev,next):
         if border:
             
             if prev.strip()=="671311N 0162302E":
-                return [parsecoord(x) for x in "673900N 0163343E - 673201N 0162439E - 673139N 0161704E - 671627N 0161903E - 671311N 0162302E ".split(" - ")]            
+                return [parsecoord(x) for x in "671627N 0161903E - 673139N 0161704E - 673201N 0162439E - 673900N 0163343E".split(" - ")]            
             okprev=set(["560158N 0123925E","682121N 0195516E"])
             if not prev.strip() in okprev:
                 print prev

@@ -194,8 +194,11 @@ class FlightplanController(BaseController):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
-        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
-            Trip.trip==session['current_trip'])).one()
+        trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+            Trip.trip==session['current_trip'])).all()
+        if len(trips)!=1:
+            return redirect_to(h.url_for(controller='mapview',action="index"))            
+        trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         

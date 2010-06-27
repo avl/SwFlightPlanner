@@ -816,6 +816,13 @@ function check_and_clear_selections()
 	return ret;
 }
 
+function add_waypoint_here(event)
+{
+	var m=merc2latlon([lastrightclickx,lastrightclicky]);
+	add_waypoint('Unnamed Waypoint',m);
+	hidepopup();
+	return false;
+}
 function add_waypoint(name,pos)
 {
 	var merc=latlon2merc(pos);
@@ -1402,7 +1409,7 @@ function pan_map(dx,dy)
 		if (need_reload)
 		{
 			//tile.img.src='/boilerplate.jpg';
-			//tile.img.src='/loading.png';
+			tile.img.src='/loading.png';
 			tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
 				/*'/maptile/get?x1='+
 				(tile.mercx)+'&y1='+
