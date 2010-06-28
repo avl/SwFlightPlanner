@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import os
 from datetime import datetime
+import socket
+host=socket.gethostname()
 
 def get_filedate(path):
     return datetime.fromtimestamp(os.path.getmtime(path))
@@ -48,10 +50,13 @@ def getxml(relpath):
     return open(cachenamexml).read() 
 
 def get_raw_weather_for_area(cur_area):
-    return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()
+    if host=='macbook':           
+        return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()
+    else:
+        raise Exception("TODO: Add correct urlopen call here!");
     
-def get_raw_notam():
-    return open("/home/anders/saker/avl_traveltools/fplan/fplan/fplan/extract/notam_sample.html").read()
+#def get_raw_notam():
+#    return open("/home/anders/saker/avl_traveltools/fplan/fplan/fplan/extract/notam_sample.html").read()
 
 
 

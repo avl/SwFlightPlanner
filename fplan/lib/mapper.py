@@ -89,9 +89,13 @@ def parse_lfv_format(lat,lon):
     latdeg=float(lat[0:2])
     latmin=float(lat[2:4])
     if len(lat)>5:
-        if not lat[4:6].isdigit():
-            raise MapperBadFormat("%s,%s"%(lat,lon))    
-        latsec=float(lat[4:6])
+        if lat[4]=='.':
+            latmin+=float(lat[4:-1])
+            latsec=0
+        else:
+            if not lat[4:6].isdigit():
+                raise MapperBadFormat("%s,%s"%(lat,lon))    
+            latsec=float(lat[4:-1])
     else:
         latsec=0
     if not lon[0:5].isdigit():
@@ -99,9 +103,13 @@ def parse_lfv_format(lat,lon):
     londeg=float(lon[0:3])
     lonmin=float(lon[3:5])
     if len(lon)>6:
-        if not lon[5:7].isdigit():
-            raise MapperBadFormat("%s,%s"%(lat,lon))    
-        lonsec=float(lon[5:7])
+        if lon[5]=='.':
+            lonmin+=float(lon[5:-1])
+            lonsec=0
+        else:
+            if not lon[5:7].isdigit():
+                raise MapperBadFormat("%s,%s"%(lat,lon))    
+            lonsec=float(lon[5:-1])
     else:
         lonsec=0
     latdec=latdeg+latmin/60.0+latsec/(60.0*60.0)
@@ -241,7 +249,7 @@ def parsecoord(seg):
 
 def parsecoords(seg):
     coords=[]
-    for lat,lon in re.findall(r"(\d+\.?\d*N)\s*(\d+\.?\d*E\b)",seg):
+    for lat,lon in re.findall(r"(\d+\.?\d*[NS])\s*(\d+\.?\d*[EW]\b)",seg):
         coord=parse_coords(lat.strip(),lon.strip())
         coords.append(coord)
     return coords

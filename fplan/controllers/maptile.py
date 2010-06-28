@@ -9,7 +9,7 @@ import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
 from fplan.lib import maptilereader
-from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields
+from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
 
@@ -67,8 +67,18 @@ class MaptileController(BaseController):
             for airp in fields:
                 airports.append(u"<li><b>%s</b> - %s</li>"%(airp.get('icao','ZZZZ'),airp['name']))
             airports.append("</ul>")
+        
+        sigpoints=[]
+        sigps=list(get_sigpoints(lat,lon,zoomlevel))
+        if len(sigps):
+            sigpoints.append("<b>Sig. points</b><ul>")
+            for sigp in sigps:
+                sigpoints.append(u"<li><b>%s</b></li>"%(sigp['name'],))
+            sigpoints.append("</ul>")
+       
+
                     
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s"%(spaces,"".join(obstacles),"".join(airports),"".join(tracks))
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s"%(spaces,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints))
 
     def get(self):
         # Return a rendered template

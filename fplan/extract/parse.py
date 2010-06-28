@@ -38,6 +38,8 @@ class Page(object):
             if re.match(regex,item.text):
                 out.append(item)
         return out
+    def get_all_items(self):
+        return self.items
     def get_partially_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
         out=[]
         #print "Extracting %d-%d"%(y1,y2)

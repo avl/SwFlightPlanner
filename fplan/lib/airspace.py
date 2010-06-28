@@ -21,6 +21,15 @@ def get_airfields(lat,lon,zoomlevel):
         if d<=(radius)**2:
            yield airp
 
+def get_sigpoints(lat,lon,zoomlevel):
+    clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
+    for sigp in cache.get_sig_points():
+        x,y=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
+        radius=10
+        d=(clickx-x)**2+(clicky-y)**2
+        if d<=(radius)**2:
+           yield sigp
+
 
 def get_airspaces(lat,lon):
     zoomlevel=14

@@ -20,7 +20,7 @@ def make_map():
 
     map.connect('/', controller='splash', action="index")
 
-    map.connect('/flightplan/{id}.gpx', controller='flightplan', action="gpx")
+    map.connect('/flightplan/{trip}.gpx', controller='flightplan', action="gpx")
 
     # CUSTOM ROUTES HERE
 

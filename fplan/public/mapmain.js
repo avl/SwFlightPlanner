@@ -152,7 +152,7 @@ function tab_select_waypoints(idxs,col)
 				"#a0a0ff",
 				'block',
 				'<h2>'+name+'</h2>'+
-				'<p><b>Position:</b>'+aviation_format_pos(merc2latlon(wps[idx]))+'</p>');
+				'<p><b>Position:</b>'+aviation_format_pos(merc2latlon(wps[idx]),2)+'</p>');
 	}
 	if (idxs.length==2)
 	{
@@ -211,9 +211,11 @@ function reorder_wp(idx,delta)
 function tab_add_waypoint(idx,pos,origpos,name)
 {
 	anychangetosave=1;
+
+   	var latlon=merc2latlon(pos);
 	
 	if (name==null)
-		name='Unnamed Waypoint';
+		name=default_wpname(latlon);
 	var glist=document.getElementById('tab_fplan');
 	var elem=0;
 	if (idx>=wps.length)
@@ -226,7 +228,6 @@ function tab_add_waypoint(idx,pos,origpos,name)
    		elem=glist.insertRow(idx);
    	}
    	
-   	var latlon=merc2latlon(pos);
    	/*function onclick_waypoint()
    	{
    		select_waypoint(idx);
@@ -235,7 +236,7 @@ function tab_add_waypoint(idx,pos,origpos,name)
    	*/
     elem.innerHTML=''+
     '<td style="cursor:pointer">#'+idx+':</td>'+
-    '<td><input type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
+    '<td><input size="15" style="background:#c0ffc0" type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
     '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
@@ -356,8 +357,15 @@ map_ysize=0;
 map_xsize=0;
 PI=3.1415926535897931;
 
-
-function aviation_format_pos(latlon)
+function zeropad(s2,cnt)
+{
+    var s=''+s2;
+    while (s.length<cnt)
+        s='0'+s;
+    //Fixme/TODO. cnt should be the number of digits to the left of the decimal.
+    return s;
+}
+function aviation_format_pos(latlon,prec)
 {
 	lat=latlon[0];
 	lon=latlon[1];
@@ -379,7 +387,7 @@ function aviation_format_pos(latlon)
 	var londeg=Math.floor(lon);
 	var lonmin=((lon+90)%1.0)*60.0;
 	
-	return latdeg.toFixed(0)+"'"+latmin.toFixed(2)+lathemi+londeg.toFixed(0)+"'"+lonmin.toFixed(2)+lonhemi;	
+	return ''+zeropad(latdeg.toFixed(0),2)+zeropad(latmin.toFixed(prec),2)+lathemi+zeropad(londeg.toFixed(0),3)+zeropad(lonmin.toFixed(prec),2)+lonhemi;	
 }
 function clippoint(x1,y1)
 {
@@ -548,11 +556,11 @@ function as_if_rightclick(relx,rely,event)
 		waypointstate='none';
 		if (wps.length==1)
 		{
-			provide_help('<ul><li>You have added a starting point, but no further waypoints. You need at least two points to define a journey!</li><li>Click the "Add" button above to add a new waypoint</li></ul>');
+			provide_help('<ul><li>You have added a starting point, but no further waypoints. You need at least two points to define a journey!</li><li>Click the "Add on Map" button above to add a new waypoint</li></ul>');
 		}
 		else
 		{
-			provide_help('<ul><li>Use the "Add" button up to the right to add more waypoints</li><li>To move or delete a waypoint, right-click it and choose add or delete.</li><li>To insert a new waypoint in the middle of the trip, right-click a track-line, and choose "Insert Waypoint".</li></ul>');
+			provide_help('<ul><li>Use the "Add on Map" button up to the right to add more waypoints</li><li>To move or delete a waypoint, right-click it and choose add or delete.</li><li>To insert a new waypoint in the middle of the trip, right-click a track-line, and choose "Insert Waypoint".</li></ul>');
 		}
 		jgq.clear();
 		draw_jg();
@@ -815,11 +823,14 @@ function check_and_clear_selections()
 	}
 	return ret;
 }
-
+function default_wpname(latlon)
+{
+    return aviation_format_pos(latlon,0);
+}
 function add_waypoint_here(event)
 {
 	var m=merc2latlon([lastrightclickx,lastrightclicky]);
-	add_waypoint('Unnamed Waypoint',m);
+	add_waypoint(default_wpname(m),m);
 	hidepopup();
 	return false;
 }
@@ -1073,7 +1084,7 @@ function on_mousemovemap(event)
 
 	var ol=document.getElementById('mapcontainer').offsetLeft;
 
-	document.getElementById("footer").innerHTML=aviation_format_pos(latlon)+' (dbg: xm: '+mercx+' ym:'+mercy+' zoom: '+map_zoomlevel+')';
+	document.getElementById("footer").innerHTML=aviation_format_pos(latlon,2)+' (dbg: xm: '+mercx+' ym:'+mercy+' zoom: '+map_zoomlevel+')';
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }
@@ -1300,7 +1311,7 @@ function menu_add_new_waypoints()
 		anchorx=wps[wps.length-1][0];
 		anchory=wps[wps.length-1][1];
 		waypointstate='addwaypoint';
-		provide_help('<ul><li>Click in map to select the next waypoint in your journey.</li></ul>');				
+		provide_help('<ul><li>Click in map to place the next waypoint in your journey.</li><li>Right click anywhere in map if you are done adding waypoints</li></ul>');				
 		draw_dynamic_lines(anchorx,anchory);
 	}
 

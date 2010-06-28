@@ -8,7 +8,7 @@ import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
-from fplan.extract.extracted_cache import get_airfields
+from fplan.extract.extracted_cache import get_airfields,get_sig_points
 import json
 import re
 import fplan.lib.weather as weather
@@ -34,15 +34,19 @@ class FlightplanController(BaseController):
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()
-        airports=[]
+        points=[]
         for airp in get_airfields():
             if airp['name'].lower().count(searchstr) or \
                 airp['icao'].lower().count(searchstr):
-                airports.append(airp)  
-        if len(airports)==0:
+                points.append(airp)  
+                
+        for sigpoint in get_sig_points():
+            if sigpoint['name'].lower().count(searchstr):
+                points.append(sigpoint)
+        if len(points)==0:
             return ""
-        airports.sort()
-        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in airports[:15]])
+        points.sort(key=lambda x:x['name'])
+        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in points[:15]])
         print "returning json:",ret
         return ret
     def save(self):
@@ -154,10 +158,18 @@ class FlightplanController(BaseController):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
-        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all()
+        tripname=session.get('current_trip',None)
+        if 'trip' in request.params:
+            tripname=request.params['trip']
+        if not tripname:
+            return u"Internal error. Missing trip-name."
+            
+        waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
+             Waypoint.user==session['user'],Waypoint.trip==tripname)).order_by(Waypoint.ordinal).all())
+        if len(waypoints)==0:
+            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
         c.waypoints=[]
-        c.trip=session['current_trip']
+        c.trip=tripname
         for wp in waypoints:                    
             lat,lon=mapper.from_str(wp.pos)
             c.waypoints.append(dict(
@@ -198,6 +210,7 @@ class FlightplanController(BaseController):
             Trip.trip==session['current_trip'])).all()
         if len(trips)!=1:
             return redirect_to(h.url_for(controller='mapview',action="index"))            
+        c.flash=request.params.get('flash',None)
         trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())

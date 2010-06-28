@@ -19,7 +19,7 @@ class ProfileController(BaseController):
         c.user=user.user
         c.password=''
         c.initial=not user.isregistered
-        c.fastmap=user.fastmap
+        c.notfastmap=not user.fastmap
         return render('/profile.mako')
     def save(self):
         print "in save:",request.params
@@ -33,10 +33,10 @@ class ProfileController(BaseController):
             else:
                 redirect_to(h.url_for(controller='profile',action="index",splash=u"Passwords do not match! Enter the same password twice."))
         user.isregistered=True
-        if 'fastmap' in request.params:
-            user.fastmap=True
-        else:
+        if 'notfastmap' in request.params:
             user.fastmap=False
+        else:
+            user.fastmap=True
         
         session['user']=user.user
         session.save()

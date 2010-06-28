@@ -123,13 +123,13 @@ function loadmap()
 	sidebar.innerHTML=''+
 	'<div class="first" id="search-pane" onkeydown="return on_search_keydown(event)" size="15" onkeyup="on_search_keyup(event)">'+
 	'<form id="searchform" action="" onblur="remove_searchpopup()" >'+
-	'Search Destination:<br/><input id="searchfield"  name="searchfield" type="text" value="" />'+
+	'Search Destination:<br/><input style="background:#ffffc0" id="searchfield"  name="searchfield" type="text" value="" />'+
 	'<button onclick="mapsearch_add_to_route_button();return false;" style="font-size:10px">Add</button>'+	
 	'</form>'+
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
-	'Trip Name:<br/><input onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
+	'Trip Name:<br/><input style="background:#c0ffc0" onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
 	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
 	'<div id="moretripfunctions" style="display:none">'+
 	'<button style="font-size:10px" onclick="add_new_trip();return false;">New</button>'+
@@ -137,7 +137,7 @@ function loadmap()
 	'<button style="font-size:10px" onclick="open_trip();return false;">Previous Trips</button>'+
 	'</div>'+
 	'<div id="addtripfunctions" style="display:none">'+
-	'Enter name of new trip:<br/><input id="addtripname" name="addtripname" type="text" value="" />'+
+	'Enter name of new trip:<br/><input style="background:#c0ffc0" id="addtripname" name="addtripname" type="text" value="" />'+
 	'<button style="font-size:10px" onclick="on_add_trip();return false;">Add</button>'+	
 	'</div>'+
 	'<div id="opentripfunctions" style="display:none">'+
@@ -193,9 +193,10 @@ function loadmap()
 
 	
 	'<div style="display:block;background:#d0d0d0	" class="second" id="detail-pane">'+
-	'<ul><li>Enter a name for your trip above.</li>'+
-	'<li>Click the \'Add\' button above, then click in the map to enter waypoints.</li>'+
-	'<li>Right click in the map to move or delete waypoints.</li></ul>'+
+	'<ul><li>Enter a name for your trip above (under Trip Name).</li>'+
+	'<li>Click the \'Add on Map\' button above, then click in the map to enter waypoints.</li>'+
+	'<li>Right click to stop adding waypoints.</li>'+
+	'<li>Right click again in the map to move or delete waypoints.</li></ul>'+
 	'</div>'
 	;
 	
