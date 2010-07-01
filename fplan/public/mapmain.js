@@ -359,10 +359,15 @@ PI=3.1415926535897931;
 
 function zeropad(s2,cnt)
 {
+    var i=0;
+    for(;i<s2.length;++i)
+    {
+        if (s2[i]=='.') break;
+    }
+    var need=cnt-i;
     var s=''+s2;
-    while (s.length<cnt)
+    for(i=0;i<need;++i)
         s='0'+s;
-    //Fixme/TODO. cnt should be the number of digits to the left of the decimal.
     return s;
 }
 function aviation_format_pos(latlon,prec)

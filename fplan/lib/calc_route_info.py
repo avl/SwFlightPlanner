@@ -139,6 +139,7 @@ def get_route(user,trip):
             out=TechRoute()
             out.tt=rt.tt
             out.d=begindist
+            out.relstartd=0
             accum_time+=begintime
             out.startalt=prev_alt
             prev_alt+=beginrate*begintime*60
@@ -147,11 +148,13 @@ def get_route(user,trip):
             out.time=timefmt(begintime)
             out.fuel_burn=begintime*beginburn
             out.what=beginwhat
+            out.legpart="begin"
             sub.append(out)
         if abs(midtime)>1e-5:
             out=TechRoute()
             out.tt=rt.tt
             out.d=middist
+            out.relstartd=begindist
             accum_time+=midtime
             out.startalt=prev_alt
             out.endalt=prev_alt
@@ -159,11 +162,13 @@ def get_route(user,trip):
             out.time=timefmt(midtime)
             out.fuel_burn=midtime*calc_midburn(rt.tas)
             out.what="cruise"
+            out.legpart="mid"
             sub.append(out)
         if abs(endtime)>1e-5:
             out=TechRoute()
             out.tt=rt.tt
             out.d=enddist
+            out.relstartd=begindist+middist
             accum_time+=endtime
             out.startalt=prev_alt
             prev_alt+=endrate*endtime*60
@@ -171,12 +176,30 @@ def get_route(user,trip):
             out.accum_time=timefmt(accum_time)
             out.time=timefmt(endtime)
             out.what=endwhat
+            out.legpart="end"
             out.fuel_burn=endtime*endburn
             sub.append(out)
+        
+        merca=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
+        mercb=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
+        
+        
+        
         def val(x):
             if x==None: return 0.0
             return x
         for out in sub:    
+            if rt.d<1e-5:
+                out.startpos=mapper.from_str(rt.a.pos)
+                out.endpos=mapper.from_str(rt.a.pos)
+            else:
+                drel1=out.relstartd/rt.d
+                drel2=(out.relstartd+out.d)/rt.d
+                mercs=[((1.0-rel)*merca[0]+rel*mercb[0],(1.0-rel)*merca[1]+rel*mercb[1]) for rel in [drel1,drel2]]
+                out.startpos=mapper.merc2latlon(mercs[0],13)
+                out.endpos=mapper.merc2latlon(mercs[1],13)
+                print "Name:",rt.a.waypoint,"Startpos:",out.startpos,"endpos:",out.endpos,"segment:",out.what
+                
             if out.what=="climb":
                 out.tas=ac.climb_speed
                 out.gs=climb_gs
@@ -194,6 +217,8 @@ def get_route(user,trip):
             out.ch=out.tt+out.wca-val(rt.variation)-val(rt.deviation)
             out.a=rt.a
             out.b=rt.b
+            out.winddir=rt.winddir
+            out.windvel=rt.windvel
             res.append(out)
             accum_fuel+=out.fuel_burn
             out.accum_fuel_burn=accum_fuel
