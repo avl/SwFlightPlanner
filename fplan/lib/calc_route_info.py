@@ -31,6 +31,7 @@ def wind_computer(winddir,windvel,tt,tas):
 
 class TechRoute(object):
     pass
+class DummyAircraft(object):pass
 def get_route(user,trip):
     print "Getting ",user,trip
     tripobj=meta.Session.query(Trip).filter(sa.and_(
@@ -63,9 +64,22 @@ def get_route(user,trip):
         rt.d=D/1.852
 
     print "Looking for ac:",tripobj.aircraft
-    ac=meta.Session.query(Aircraft).filter(sa.and_(
-        Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).one()
-
+    acs=meta.Session.query(Aircraft).filter(sa.and_(
+        Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).all()
+    if len(acs)==1:
+        ac,=acs
+    else:
+    
+        ac=DummyAircraft()
+        ac.cruise_speed=75
+        ac.cruise_burn=0
+        ac.climb_speed=60
+        ac.descent_speed=90
+        ac.climb_rate=300
+        ac.descent_rate=500
+        ac.climb_burn=0
+        ac.descent_burn=0
+        
     def calc_midburn(tas):
         if tas>ac.cruise_speed:
             f=(tas/ac.cruise_speed)**3
@@ -149,6 +163,7 @@ def get_route(user,trip):
             out.fuel_burn=begintime*beginburn
             out.what=beginwhat
             out.legpart="begin"
+            out.lastsub=0
             sub.append(out)
         if abs(midtime)>1e-5:
             out=TechRoute()
@@ -163,6 +178,7 @@ def get_route(user,trip):
             out.fuel_burn=midtime*calc_midburn(rt.tas)
             out.what="cruise"
             out.legpart="mid"
+            out.lastsub=0
             sub.append(out)
         if abs(endtime)>1e-5:
             out=TechRoute()
@@ -178,8 +194,10 @@ def get_route(user,trip):
             out.what=endwhat
             out.legpart="end"
             out.fuel_burn=endtime*endburn
+            out.lastsub=0
             sub.append(out)
-        
+        if len(sub):
+            sub[-1].lastsub=1        
         merca=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
         mercb=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
         

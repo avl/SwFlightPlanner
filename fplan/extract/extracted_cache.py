@@ -62,4 +62,4 @@ def get_sig_points():
     return aipdata['sig_points']
 if __name__=='__main__':
     get_aipdata()
-    
+  g  

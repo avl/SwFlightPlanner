@@ -9,10 +9,18 @@ from fplan.lib.base import BaseController, render
 import json
 log = logging.getLogger(__name__)
 import sqlalchemy as sa
-
+import fplan.extract.extracted_cache as extracted_cache
 class ApiController(BaseController):
 
     no_login_required=True #But we don't show personal data without user/pass
+
+    def get_airspaces(self):
+        out=[]
+        for space in extracted_cache.get_airspaces():
+            out.append(dict(
+                name=space['name']
+                type=space['type']
+                
 
     def get_trips(self):
         try:
@@ -48,16 +56,16 @@ class ApiController(BaseController):
             waypoints=[]
             rts=calc_route_info.get_route(user.user,trip.trip)
             if len(rts):
-                def add_wp(name,pos,altitude,winddir,windvel,gs,what,legpart):
+                def add_wp(name,pos,altitude,winddir,windvel,gs,what,legpart,lastsub):
                     d=dict(lat=pos[0],lon=pos[1],
-                        name=name,altitude=altitude,winddir=winddir,windvel=windvel,gs=gs,what=what,legpart=legpart)
+                        name=name,altitude=altitude,winddir=winddir,windvel=windvel,gs=gs,what=what,legpart=legpart,lastsub=lastsub)
                     waypoints.append(d)
                 rt0=rts[0]
                 add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.winddir,rt0.windvel,rt0.gs,
-                        "start","start")
+                        "start","start",1)
                             
                 for rt in rts:                        
-                    add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart)
+                    add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub)
 
             tripobj['waypoints']=waypoints
             return json.dumps(tripobj)
