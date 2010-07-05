@@ -3,6 +3,7 @@ import logging
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from fplan.model import meta,User,Trip,Waypoint,Route
+from fplan.lib import mapper
 import md5
 import fplan.lib.calc_route_info as calc_route_info
 from fplan.lib.base import BaseController, render
@@ -18,8 +19,13 @@ class ApiController(BaseController):
         out=[]
         for space in extracted_cache.get_airspaces():
             out.append(dict(
-                name=space['name']
-                type=space['type']
+                name=space['name'],
+                freqs=space['freqs'] if (space['freqs']!="" and space['freqs']!=None) else [],
+                floor=space['floor'],
+                ceiling=space['ceiling'],
+                points=[dict(lat=p[0],lon=p[1]) for p in [mapper.from_str(x) for x in space['points']]]))
+        
+        return json.dumps(dict(airspaces=out))
                 
 
     def get_trips(self):
