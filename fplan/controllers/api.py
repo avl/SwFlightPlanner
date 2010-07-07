@@ -25,8 +25,30 @@ class ApiController(BaseController):
                 ceiling=space['ceiling'],
                 points=[dict(lat=p[0],lon=p[1]) for p in [mapper.from_str(x) for x in space['points']]]))
         
-        return json.dumps(dict(airspaces=out))
-                
+        points=[]
+        for airp in extracted_cache.get_airfields():
+            lat,lon=mapper.from_str(airp['pos'])
+            points.append(dict(
+                name=airp['name'],
+                lat=lat,
+                lon=lon,
+                kind="airport",
+                alt=airp['elev']))
+        for obst in extracted_cache.get_obstacles():
+            lat,lon=mapper.from_str(obst['pos'])
+            points.append(dict(
+                name=obst['name'],
+                lat=lat,
+                lon=lon,
+                kind="obstacle",
+                alt=obst['height']))
+        rawtext=json.dumps(dict(airspaces=out,points=points))
+        if 'zip' in request.params:
+            response.headers['Content-Type'] = 'application/x-gzip-compressed'            
+            return zlib.compress(rawtext)
+        else:
+            return rawtext
+                    
 
     def get_trips(self):
         try:
