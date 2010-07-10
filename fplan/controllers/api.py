@@ -11,42 +11,75 @@ import json
 log = logging.getLogger(__name__)
 import sqlalchemy as sa
 import fplan.extract.extracted_cache as extracted_cache
+from pyshapemerge2d import Polygon,Vertex,vvector
+
+def cleanup_poly(latlonpoints):
+    mercpoints=[]
+    lastmerc=None
+    for latlon in latlonpoints:
+        merc=mapper.latlon2merc(latlon,13)
+        if merc==lastmerc:
+            continue
+        lastmerc=merc
+        mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
+    assert len(mercpoints)>2
+    if mercpoints[0]==mercpoints[-1]:
+        del mercpoints[-1]
+    poly=Polygon(vvector(mercpoints))
+    backtomerc=[mapper.merc2latlon((m.get_x(),m.get_y()),13) for m in mercpoints]
+    if poly.is_ccw():
+        return backtomerc
+    else:    
+        print "Reversed "+latlonpoints
+        return reversed(backtomerc)
+
 class ApiController(BaseController):
 
     no_login_required=True #But we don't show personal data without user/pass
 
     def get_airspaces(self):
+        print "Get airspaces called"
         out=[]
-        for space in extracted_cache.get_airspaces():
-            out.append(dict(
-                name=space['name'],
-                freqs=space['freqs'] if (space['freqs']!="" and space['freqs']!=None) else [],
-                floor=space['floor'],
-                ceiling=space['ceiling'],
-                points=[dict(lat=p[0],lon=p[1]) for p in [mapper.from_str(x) for x in space['points']]]))
-        
+        if 1:
+            for space in extracted_cache.get_airspaces():
+                lat,lon=mapper.from_str(space['points'][0])
+                if lat<57 or lat>62:
+                    continue
+                out.append(dict(
+                    name=space['name'],
+                    freqs=space['freqs'] if (space['freqs']!="" and space['freqs']!=None) else [],
+                    floor=space['floor'],
+                    ceiling=space['ceiling'],
+                    points=[dict(lat=p[0],lon=p[1]) for p in cleanup_poly([mapper.from_str(x) for x in space['points']])]))
+            
         points=[]
         for airp in extracted_cache.get_airfields():
             lat,lon=mapper.from_str(airp['pos'])
+            if lat<58.5 or lat>59.5:
+                continue
             points.append(dict(
                 name=airp['name'],
                 lat=lat,
                 lon=lon,
                 kind="airport",
                 alt=airp['elev']))
-        for obst in extracted_cache.get_obstacles():
-            lat,lon=mapper.from_str(obst['pos'])
-            points.append(dict(
-                name=obst['name'],
-                lat=lat,
-                lon=lon,
-                kind="obstacle",
-                alt=obst['height']))
+        if 1:
+            for obst in extracted_cache.get_obstacles():
+                lat,lon=mapper.from_str(obst['pos'])
+                if lat<58.5 or lat>59.5:
+                    continue
+                points.append(dict(
+                    name=obst['name'],
+                    lat=lat,
+                    lon=lon,
+                    kind="obstacle",
+                    alt=obst['height']))
         rawtext=json.dumps(dict(airspaces=out,points=points))
         if 'zip' in request.params:
             response.headers['Content-Type'] = 'application/x-gzip-compressed'            
             return zlib.compress(rawtext)
         else:
+            response.headers['Content-Type'] = 'text/plain'            
             return rawtext
                     
 
@@ -63,8 +96,12 @@ class ApiController(BaseController):
             out=[]        
             for trip in meta.Session.query(Trip).filter(Trip.user==user.user).order_by(Trip.trip).all():
                 out.append(trip.trip)
-            return json.dumps(dict(trips=out))
+            response.headers['Content-Type'] = 'text/plain'            
+            s=json.dumps(dict(trips=out))
+            print "Returning",repr(s)
+            return s
         except Exception,cause:
+            response.headers['Content-Type'] = 'text/plain'            
             return json.dumps(dict(error=repr(cause)))
             
     def get_trip(self):
@@ -96,7 +133,9 @@ class ApiController(BaseController):
                     add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub)
 
             tripobj['waypoints']=waypoints
+            response.headers['Content-Type'] = 'text/plain'            
             return json.dumps(tripobj)
         except Exception,cause:
+            response.headers['Content-Type'] = 'text/plain'            
             return json.dumps(dict(error=repr(cause)))
         
