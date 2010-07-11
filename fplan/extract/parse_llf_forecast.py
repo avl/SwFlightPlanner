@@ -80,7 +80,10 @@ Lägsta QNH
 (.*) hPa.*
 """
             ,prog_str,re.DOTALL)       
+        if prog==None:
+            print "No match for: "+prog_str
         keys=['area','date','t1','t2','turb','ice','weather','zerotherm','groundwind','wind','qnh']
+        print "prog.groups:",len(prog.groups()),"keys:",len(keys)
         assert len(keys)==len(prog.groups())
         d=dict()
         for key,val in zip(keys,prog.groups()):

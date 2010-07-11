@@ -60,6 +60,8 @@ def parse_obstacles():
             if line.startswith("ft ft Character"):
                 continue
             uprint("Matching line: %s"%(line,))
+            if line.strip()=="Reverse side intentionally blank":
+                continue
             m=re.match(r"\s*(?:\d{2}N \d{2}E)?\s*\d+\s*(.*?)(\d{6}\.?\d*N)\s*(\d{7}\.?\d*E)\s*(?:\(\*\))?\s*(\d+)\s*(\d+)\s*(.*)$",
                         line)
             if m:

@@ -62,11 +62,24 @@ def getxml(relpath):
     
     return open(cachenamexml).read() 
 
-def get_raw_weather_for_area(cur_area):
-    if host=='macbook':           
-        return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()
-    else:
-        raise Exception("TODO: Add correct urlopen call here!");
+
+weathercache=dict()
+weatherlookup=dict(A="http://www.lfv.se/MetInfo.asp?TextFile=llf.esms-day.txt&TextFile=llf.esms-tot.txt&TextFile=llf.esms-n.txt&TextFile=llf.esms-se.txt&TextFile=llf.esms-sw.txt&Subtitle=Omr%e5de%A0A%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0A%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0A%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0A%A0-%A0S%F6dra%A0Sverige&Frequency=60",
+       B="http://www.lfv.se/MetInfo.asp?TextFile=llf.essa-day.txt&TextFile=llf.essa-tot.txt&TextFile=llf.essa-n.txt&TextFile=llf.essa-nw.txt&TextFile=llf.essa-s.txt&TextFile=llf.essa-se.txt&Subtitle=Omr%e5de%A0B%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0B%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0B%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0Nordv%e4stra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0S%F6dra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0Syd%F6stra%A0delen&T=Omr%e5de%A0B%A0-%A0Mellersta%A0Sverige&Frequency=60",
+       C="http://www.lfv.se/MetInfo.asp?TextFile=llf.esnn-day.txt&TextFile=llf.esnn-tot.txt&TextFile=llf.esnn-n.txt&TextFile=llf.esnn-mid.txt&TextFile=llf.esnn-se.txt&TextFile=llf.esnn-sw.txt&Subtitle=Omr%e5de%A0C%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0C%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0C%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Mellersta%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0C%A0-%A0Norra%A0Sverige&Frequency=60")
+def get_raw_weather_for_area(cur_area2):
+    cur_area=cur_area2.upper()
+    #if host=='macbook':           
+    #    return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()    
+    cd=weathercache.get(cur_area,None)
+    if cd and (datetime.utcnow()-cd['time'])<timedelta(0,1800):
+        return cd['data']        
+    cd=dict()
+    url=weatherlookup[cur_area]
+    cd['data']=urlopen(url).read()
+    cd['time']=datetime.utcnow()
+    weathercache[cur_area]=cd
+    return cd['data']
     
 #def get_raw_notam():
 #    return open("/home/anders/saker/avl_traveltools/fplan/fplan/fplan/extract/notam_sample.html").read()
