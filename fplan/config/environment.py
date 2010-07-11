@@ -10,6 +10,7 @@ import fplan.lib.app_globals as app_globals
 import fplan.lib.helpers
 from fplan.config.routing import make_map
 from fplan.model import init_model
+import fplan.extract.extracted_cache as ec
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -43,3 +44,9 @@ def load_environment(global_conf, app_conf):
 
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
+    
+    #Default parsing
+    print "Default parse:"
+    ec.get_aipdata()
+    
+    
