@@ -109,11 +109,12 @@ def extract_airfields():
                     print "Spaces:",subspacelines
                     print "ICAO",ad['icao']
                     altlines=page.get_lines(page.get_partially_in_rect(vertitem.x2+1,vertitem.y1,100,airspaceclass.y1))
+                    print "Altlines:",altlines
                     anonymous_alt=False
                     for item in altlines:
                         if item.strip()=="": continue
                         print "Matchin alt <%s>"%(item,)
-                        m=re.match(r"(.*?)(?:(\d{3,5})\s*ft\s*/.*(?:(GND)|(MSL))|\s*(GND)\s*)",item)
+                        m=re.match(r"(.*?)(?:(\d{3,5})\s*ft\s*.*(?:(GND)|(MSL))|\s*(GND)\s*)",item)
                         if not m:
                             continue
                         name,alt,agnd,amsl,gnd=m.groups()

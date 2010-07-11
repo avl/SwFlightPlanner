@@ -235,7 +235,7 @@ def parse_all_tma():
     return res
 
 def parse_r_areas():
-    p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_5_1_en.pdf",lambda x: x)
+    p=parse.Parser("/AIP/ENR/ENR 5/ES_ENR_5_1_en.pdf",lambda x: x)
 	
     res=[]    
     for pagenr in xrange(2,p.get_num_pages()): 

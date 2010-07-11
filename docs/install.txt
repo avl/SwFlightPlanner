@@ -8,7 +8,7 @@ python-mapnik
 python-numpy
 shapelib
 poppler-utils
-pyshapelib (not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)
+pylons
 proj
 
 
@@ -17,4 +17,8 @@ follow:
 http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
 
 
+
+
+Not needed any more:
+pyshapelib (Not not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)
 

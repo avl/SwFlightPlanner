@@ -36,7 +36,7 @@ def get_pixel_radius(o,zoomlevel):
     return radius
 
 def parse_obstacles():
-    p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_5_4_en.pdf",lambda x: x)
+    p=parse.Parser("/AIP/ENR/ENR 5/ES_ENR_5_4_en.pdf",lambda x: x)
     
     res=[]    
     for pagenr in xrange(0,p.get_num_pages()):
