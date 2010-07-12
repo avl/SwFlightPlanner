@@ -4,7 +4,7 @@
 #Doesn't actually parse pdf-files, requires them to have been
 #turned into xml using pdftohtml
 
-from elementtree import ElementTree
+from xml.etree import ElementTree
 import fetchdata
 import re
 
