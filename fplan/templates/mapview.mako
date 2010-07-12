@@ -174,10 +174,10 @@ function loadmap()
 	'<button style="font-size:10px"  onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+
 %endif	
 %if c.showtrack:
-	'<br/><button onclick="clear_uploaded_data();return false" title="Clear uploaded track">Clear Track</button>'+
+	'<br/><button style="font-size:10px" onclick="clear_uploaded_data();return false" title="Clear uploaded track">Clear Track</button>'+
 %endif	
 %if c.showarea:
-	'<br/><button onclick="clear_uploaded_data();return false" title="Clear uploaded area">Clear Area</button>'+
+	'<br/><button style="font-size:10px" onclick="clear_uploaded_data();return false" title="Clear uploaded area">Clear Area</button>'+
 %endif	
 
 	'</form></div>'+

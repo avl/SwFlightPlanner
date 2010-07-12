@@ -94,7 +94,7 @@ class Page(object):
                     linesize=new_linesize
                 else:
                     if new_linesize>1.75*linesize:
-                        out.append("")                        
+                        out.append("")              
                 out.append(item.text.strip())
             last=item
         return out

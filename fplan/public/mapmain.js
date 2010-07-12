@@ -261,7 +261,7 @@ function tab_renumber_single(i)
 	var rowelem=glist.rows[i];		
 	rowelem.cells[0].innerHTML='#'+i+':';
 	rowelem.cells[0].oncontextmenu=function(ev) { rightclick_waypoint_tab(i,ev); return false; };
-	rowelem.cells[0].onclick=function(ev) { select_waypoint(i); return false; };
+	rowelem.cells[0].onclick=function(ev) { select_waypoint(i); clear_mapinfo(); hidedetailpane(); return false; };
 	
 	rowelem.cells[1].childNodes[0].onclick=function(ev) { select_waypoint(i); return false; };
 	rowelem.cells[1].childNodes[0].name='row_'+i+'_name';
