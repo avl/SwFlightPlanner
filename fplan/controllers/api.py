@@ -43,8 +43,8 @@ class ApiController(BaseController):
         if 1:
             for space in extracted_cache.get_airspaces():
                 lat,lon=mapper.from_str(space['points'][0])
-                if lat<57 or lat>62:
-                    continue
+                #if lat<57 or lat>62:
+                #    continue
                 out.append(dict(
                     name=space['name'],
                     freqs=space['freqs'] if (space['freqs']!="" and space['freqs']!=None) else [],
@@ -55,8 +55,8 @@ class ApiController(BaseController):
         points=[]
         for airp in extracted_cache.get_airfields():
             lat,lon=mapper.from_str(airp['pos'])
-            if lat<58.5 or lat>60.5:
-                continue
+            #if lat<58.5 or lat>60.5:
+            #    continue
             points.append(dict(
                 name=airp['name'],
                 lat=lat,
@@ -66,8 +66,8 @@ class ApiController(BaseController):
         if 1:
             for obst in extracted_cache.get_obstacles():
                 lat,lon=mapper.from_str(obst['pos'])
-                if lat<58.5 or lat>59.5:
-                    continue
+                #if lat<58.5 or lat>59.5:
+                #    continue
                 points.append(dict(
                     name=obst['name'],
                     lat=lat,
