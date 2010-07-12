@@ -70,10 +70,37 @@ def extract_airfields():
             if len(elev)==0:
                 print "Couldn't find elev for ",icao                
             ad['elev']=int(elev[0])
-            
+            freqs=[]
             found=False
             for pagenr in xrange(0,p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
+                
+                matches=page.get_by_regex(r".*ATS\s+COMMUNICATION\s+FACILITIES.*")
+                print "Matches of ATS COMMUNICATION FACILITIES on page %d: %s"%(pagenr,matches)
+                if len(matches)>0:
+                    commitem=matches[0]
+                    #commitem,=page.get_by_regex("ATS\s+COMMUNICATION\s+FACILITIES")
+                    curname=None
+                    for idx,item in enumerate(page.get_lines(page.get_partially_in_rect(0,commitem.y1,100,100))):
+                        if item.strip()=="":
+                            curname=None
+                        if re.match(".*RADIO\s+NAVIGATION\s+AND\s+LANDING\s+AIDS.*",item):
+                            break
+                        m=re.match(r"(.*?)\s*(\d{3}\.\d{1,3})\s+MHz.*",item)
+                        if not m: continue
+                        who,sfreq=m.groups()
+                        freq=float(sfreq)
+                        if abs(freq-121.5)<1e-4:
+                            if who.strip():
+                                curname=who
+                            continue #Ignore emergency frequency, it is understood
+                        if not who.strip():
+                            if curname==None: continue
+                            freqs.append((curname,freq))
+                        else:
+                            curname=who
+                            freqs.append((who,freq))
+                                
                 matches=page.get_by_regex(r".*ATS\s*AIRSPACE.*")
                 print "Matches of ATS_AIRSPACE on page %d: %s"%(pagenr,matches)
                 if len(matches)>0:
@@ -186,7 +213,8 @@ def extract_airfields():
                             name=spacename,
                             ceil=subspacealts[altspacename]['ceil'],
                             floor=subspacealts[altspacename]['floor'],
-                            points=parse_coord_str(" ".join(subspacelines[spacename]))
+                            points=parse_coord_str(" ".join(subspacelines[spacename])),
+                            freqs=freqs
                             )
                         
                         if True:

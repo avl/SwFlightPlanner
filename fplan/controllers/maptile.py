@@ -13,6 +13,40 @@ from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sig
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
 
+def format_freqs(freqitems):
+    out=[]
+    whodict=dict()
+    for idx,freqitem in enumerate(freqitems):
+        who,freq=freqitem
+        #who=who.replace("CONTROL","CTL")
+        whodict.setdefault(who,([],idx))[0].append(freq)
+    for who,(freqs,idx) in sorted(whodict.items(),key=lambda x:x[1][1]):
+        freqout=[]
+        for freq in freqs:
+            s="%.3f"%(freq,)
+            if s.endswith("00"):
+                s=s[:-2]
+            freqout.append("<b>"+s+"</b>")
+            
+        out.append("%s - %s"%(who,
+            " ".join(freqout)))
+    
+    return "".join(["<br/>&nbsp;&nbsp;%s"%(o,) for o in out])
+def parse_elev_for_sort_purposes(elev):    
+    elev=elev.lower()
+    if elev=="gnd":
+        return 0
+    if elev.count("/"):
+        elev,dummy=elev.split("/")
+    if elev.endswith("gnd"):
+        elev=elev[:-3]
+        
+    return mapper.parse_elev(elev)
+
+def sort_airspace_key(space):
+    floorelev=parse_elev_for_sort_purposes(space['floor'])    
+    ceilingelev=parse_elev_for_sort_purposes(space['ceiling'])        
+    return (-ceilingelev,floorelev,space['name'])
 
 class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
@@ -23,8 +57,8 @@ class MaptileController(BaseController):
         lon=float(request.params.get('lon'))
         clickmerc=mapper.latlon2merc((lat,lon),zoomlevel)
         out=[]
-        
-        spaces="".join("<li><b>%s</b>: %s - %s</li>"%(space['name'],space['floor'],space['ceiling']) for space in get_airspaces(lat,lon))
+        spaces="".join("<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+                get_airspaces(lat,lon),key=sort_airspace_key))
         if spaces=="":
             spaces="Uncontrolled below FL095"
         
@@ -38,7 +72,7 @@ class MaptileController(BaseController):
                 obstacles.append("<b>"+kind+":</b>")
                 obstacles.append(u"<ul>")
                 for obst in obsts:
-                    obstacles.append(u"<li><b>%s</b>: %s ft</li>"%(obst['name'],obst['height'])) 
+                    obstacles.append(u"<li><b>%s</b>: %s ft</li>"%(obst['name'],obst['elev'])) 
                 obstacles.append(u"</ul>")
 
         tracks=[]

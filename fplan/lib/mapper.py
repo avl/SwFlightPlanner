@@ -417,12 +417,15 @@ class NotAnAltitude(Exception):pass
 def parse_elev(elev):    
     if type(elev)==int: return float(elev)
     if type(elev)==float: return elev
+   
     if not isinstance(elev,basestring):
         raise NotAnAltitude(repr(elev))
     elev=elev.strip()
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
+    if elev.lower()=="unl": return 99999
+    #if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using a elevation map!!
     if not elev.isdigit():
-        raise NotAnAltitude(repr(elev))
+        raise NotAnAltitude(repr(elev))    
     return int(elev)
     

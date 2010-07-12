@@ -13,6 +13,8 @@ postgresql
 python-elementtree or python-xml
 python-dev
 python-psycopg2
+pyro
+
 
 
 Openstreetmap (optional, only needed to regenerate map tiles):
