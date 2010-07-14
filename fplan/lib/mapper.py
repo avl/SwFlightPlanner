@@ -4,6 +4,7 @@ from itertools import count
 import popen2
 import math
 import cStringIO
+import math
 
 def sec(x):
         return 1.0/math.cos(x)
@@ -80,6 +81,15 @@ def _to_deg_min(x):
     deg=x/(60*10000)
     min=(x%(60*10000))/10000.0
     return deg,min
+
+def approx_bearing_vec(vec_a,vec_b):
+    dx=vec_b.get_x()-vec_a.get_x()
+    dy=vec_b.get_y()-vec_a.get_y()
+    tt=90.0-(math.atan2(-dy,dx)*180.0/math.pi)
+    if tt<0: tt+=360.0
+    return tt
+    
+    
     
 class MapperBadFormat(Exception):pass    
 def parse_lfv_format(lat,lon):    
@@ -169,12 +179,12 @@ def format_lfv_ats(lat,lon):
             out.append("%03d%02d%s"%(degrees,minutes,H))
     return "".join(out)
         
-def parse_lfv_area(area):
+def parse_lfv_area(area,allow_decimal_format=True):
     found=False
     for lat,lon in re.findall(r"(\d{4,6}(?:,\d+)?[NS])\s*(\d{5,7}(?:,\d+)?[EW])",area):
         yield parse_lfv_format(lat.strip(),lon.strip())
         found=True
-    if not found:
+    if not found and allow_decimal_format:
         for lat,lon in re.findall(r"([-+]?\d{1,3}\.?\d*)\s*,\s*([-+]?\d{1,3}\.?\d*)",area):
             yield "%.10f,%.10f"%(float(lat),float(lon))
         

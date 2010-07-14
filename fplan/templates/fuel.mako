@@ -22,6 +22,9 @@ function navigate_to(where)
 </div>
 
 <h1>${c.trip}</h1>
+%for close in c.closetoroute:
+${close} <br/>
+%endfor
 
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>You need to add an aircraft!</b></a>

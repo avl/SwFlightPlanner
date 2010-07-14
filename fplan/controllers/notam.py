@@ -16,9 +16,12 @@ class NotamController(BaseController):
         ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).group_by([NotamAck.appearnotam,NotamAck.appearline]).subquery()
     
         c.items=meta.Session.query(NotamUpdate,ack_cnt.c.acks,Notam.downloaded).outerjoin(
-                (ack_cnt,sa.and_(NotamUpdate.appearnotam==ack_cnt.c.appearnotam,NotamUpdate.appearline==ack_cnt.c.appearline))).outerjoin(
+                (ack_cnt,sa.and_(
+                    NotamUpdate.appearnotam==ack_cnt.c.appearnotam,
+                    NotamUpdate.appearline==ack_cnt.c.appearline))).outerjoin(
                 (Notam,Notam.ordinal==NotamUpdate.appearnotam)
-                 ).order_by(sa.desc(Notam.downloaded)).all()
+                 ).order_by(sa.desc(Notam.downloaded)).filter(
+                        NotamUpdate.disappearnotam==sa.null()).all()
         
         
         print "Start rendering mako"
@@ -55,6 +58,7 @@ class NotamController(BaseController):
                 NotamAck.appearline==NotamUpdate.appearline)).all()])
         for u in notamupdates:
             if not ((u.appearnotam,u.appearline) in acks):
+                print "Acking ",(u.appearnotam,u.appearline,u.text)
                 ack=NotamAck(session['user'],u.appearnotam,u.appearline)
                 meta.Session.add(ack)
         meta.Session.flush()

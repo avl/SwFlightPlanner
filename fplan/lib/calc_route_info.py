@@ -31,6 +31,8 @@ def wind_computer(winddir,windvel,tt,tas):
 
 class TechRoute(object):
     pass
+
+
 class DummyAircraft(object):pass
 def get_route(user,trip):
     print "Getting ",user,trip
@@ -189,6 +191,8 @@ def get_route(user,trip):
             out.startalt=prev_alt
             prev_alt+=endrate*endtime*60
             out.endalt=prev_alt
+            if abs(out.endalt)<1e-6:
+                out.endalt=0
             out.accum_time=timefmt(accum_time)
             out.time=timefmt(endtime)
             out.what=endwhat

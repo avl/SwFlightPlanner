@@ -8,12 +8,14 @@ import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
-from fplan.extract.extracted_cache import get_airfields,get_sig_points
+from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
 import json
 import re
 import fplan.lib.weather as weather
 from fplan.lib.calc_route_info import get_route
-
+import fplan.lib.geo as geo
+import fplan.lib.notam_geo_search as notam_geo_search
+from itertools import chain
 
 
 class FlightplanController(BaseController):
@@ -295,10 +297,13 @@ class FlightplanController(BaseController):
             c.routes=[]
             c.acwarn=True
             c.ac=None
+            c.closetoroute=""
         else:        
             c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
-            
+            items=chain(notam_geo_search.get_notam_objs(),
+                        get_obstacles())
+            c.closetoroute=list(geo.get_stuff_near_route(c.routes,items,10.0,10))
         return render('/fuel.mako')
         
