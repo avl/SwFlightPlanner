@@ -121,15 +121,15 @@ class ApiController(BaseController):
             waypoints=[]
             rts=calc_route_info.get_route(user.user,trip.trip)
             if len(rts):
-                def add_wp(name,pos,altitude,winddir,windvel,gs,what,legpart,lastsub,d,tas):
+                def add_wp(name,pos,startalt,endalt,winddir,windvel,gs,what,legpart,lastsub,d,tas):
                     d=dict(lat=pos[0],lon=pos[1],
-                        name=name,altitude=altitude,winddir=winddir,windvel=windvel,gs=gs,what=what,legpart=legpart,lastsub=lastsub,d=d,tas=tas)
+                        name=name,startalt=startalt,endalt=endalt,winddir=winddir,windvel=windvel,gs=gs,what=what,legpart=legpart,lastsub=lastsub,d=d,tas=tas)
                     waypoints.append(d)
                 rt0=rts[0]
-                add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.winddir,rt0.windvel,rt0.gs,
+                add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.endalt,rt0.winddir,rt0.windvel,rt0.gs,
                         "start","start",1,0,rt0.tas)                            
                 for rt in rts:                        
-                    add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub,rt.d,rt.tas)
+                    add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.endalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub,rt.d,rt.tas)
 
             tripobj['waypoints']=waypoints
             response.headers['Content-Type'] = 'text/plain'            
