@@ -1,8 +1,48 @@
 import fplan.lib.mapper as mapper
 from pyshapemerge2d import Vector,Line2,Vertex
+from fplan.lib.get_terrain_elev import get_terrain_elev
 
 
-
+def get_terrain_near_route(rts,vertdist):
+    l=len(rts)
+    for idx,rt in enumerate(rts):
+        merca=rt.subposa
+        mercb=rt.subposb
+        d=int(rt.d)
+        if d<=0: d=1
+        along_nm=0
+        isfirstorlast=(idx==0 or idx==l-1)
+        while along_nm<d:
+            alongf=float(along_nm)/float(rt.d)
+            
+            merc=((1.0-alongf)*merca[0]+(alongf)*mercb[0],
+                  (1.0-alongf)*merca[1]+(alongf)*mercb[1])
+            alt=(1.0-alongf)*rt.startalt+(alongf)*rt.endalt
+            latlon=mapper.merc2latlon(merc,13)
+            elev=get_terrain_elev(latlon)
+            
+            if isfirstorlast and (along_nm<2.5 or along_nm>d-2.5):
+                along_nm+=1
+                continue
+            
+            if alt-elev<vertdist:
+                yield dict(
+                    name="Terrain warning",
+                    pos=mapper.to_str(latlon),
+                    elev="%.0f"%(elev,),
+                    dist=0,
+                    bearing=0,
+                    closestalt=alt,
+                    kind='terrain',
+                    dist_from_a=float(along_nm),
+                    a=rt.a,
+                    b=rt.b,
+                    ordinal=rt.a.ordinal)
+                along_nm+=10
+            else:
+                along_nm+=1
+            
+            
 
 def get_stuff_near_route(rts,items,dist,vertdist):
     for item in items:
@@ -17,16 +57,14 @@ def get_stuff_near_route(rts,items,dist,vertdist):
         onenm=mapper.approx_scale(itemmerc,13,1.0)
         for rt in rts:
             print "========================================="
-            apos=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
-            av=Vertex(int(apos[0]),int(apos[1]))
-            bpos=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
-            bv=Vertex(int(bpos[0]),int(bpos[1]))
+            av=Vertex(int(rt.subposa[0]),int(rt.subposa[1]))
+            bv=Vertex(int(rt.subposb[0]),int(rt.subposb[1]))
             l=Line2(av,bv)
             linelen=(bv-av).approxlength()
-            print rt.a.waypoint," - ",rt.b.waypoint
             actualclosest=l.approx_closest(itemv)
             print item['name'],"A: ",av,"B: ",bv,"clo:",actualclosest
             actualdist=(actualclosest-itemv).approxlength()/onenm
+            
             ls=(actualclosest-av).approxlength()
             print "Length from start:",ls
             print "Linelen:",linelen
@@ -36,6 +74,9 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 along=0
             print "Along:",along
             print "Startalt:",rt.startalt," endalt: ",rt.endalt
+            alongnm=rt.d*along
+            alongnm_a=rt.relstartd+alongnm
+            print "NM from ",rt.a.waypoint," is ",alongnm_a
             closealt=rt.startalt+(rt.endalt-rt.startalt)*along
             print "Altitude at point: ",closealt, " before: ",rt.a.waypoint,rt.b.waypoint
             altmargin=0
@@ -46,13 +87,18 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 itemalt=None
                 altmargin=0
             if actualdist<dist and altmargin<vertdist:
-                bear=mapper.approx_bearing_vec(itemv,actualclosest)            
+                bear=mapper.approx_bearing_vec(actualclosest,itemv)            
                 d=dict(item)
+                d['name']=d['kind']+': ' +d['name']
+                d['dist_from_a']=alongnm_a
                 d['dist']=actualdist
                 d['bearing']=bear
                 if itemalt!=None:
                     d['vertmargin']=altmargin
                 d['closestalt']=closealt
+                d['a']=rt.a
+                d['b']=rt.b
+                d['ordinal']=rt.a.ordinal
                 yield d
       
             

@@ -12,6 +12,7 @@ from fplan.lib import maptilereader
 from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
+from fplan.lib.get_terrain_elev import get_terrain_elev
 
 def format_freqs(freqitems):
     out=[]
@@ -111,8 +112,8 @@ class MaptileController(BaseController):
             sigpoints.append("</ul>")
        
 
-                    
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s"%(spaces,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints))
+        terrelev=get_terrain_elev((lat,lon))
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),terrelev)
 
     def get(self):
         # Return a rendered template

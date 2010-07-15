@@ -89,6 +89,13 @@ def approx_bearing_vec(vec_a,vec_b):
     if tt<0: tt+=360.0
     return tt
     
+def approx_dist_vec(vec_a,vec_b,zoomlevel):
+    onenm=approx_scale((vec_a.get_x(),vec_b.get_x()),zoomlevel,1.0)
+    dx=vec_b.get_x()-vec_a.get_x()
+    dy=vec_b.get_y()-vec_a.get_y()
+    mercd=math.sqrt(dx**2+dy**2)
+    return mercd/onenm
+    
     
     
 class MapperBadFormat(Exception):pass    
@@ -214,9 +221,13 @@ def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
     pos1=start
     pos2=end
     if pos1==pos2: return 0,0
-    #print "Distance between called: <%s>, <%s>"%(pos1,pos2)
-    a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
-    b=[_from_decimal(float(pos)) for pos in pos2.split(",")]    
+    if type(pos1)==tuple and type(pos2)==tuple:
+        a=pos1
+        b=pos2
+    else:
+        #print "Distance between called: <%s>, <%s>"%(pos1,pos2)
+        a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
+        b=[_from_decimal(float(pos)) for pos in pos2.split(",")]    
     #x="""geod +ellps=WGS84 <<EOF -I +units=km
     #42d15' -71d07' 45d31' -123d41'
     #EOF

@@ -23,13 +23,15 @@ def get_notam_objs():
                     obstacles.append(dict(
                         pos=coord,
                         elev=elev,
-                        name="Obstacle elev %d ft"%(elev,),
+                        kind='obstacle',
+                        name="Notam Obstacle elev %d ft"%(elev,),
                         notam=text))
                 continue
         if len(coords)<=2:
             for coord in coords:
                 others.append(dict(
                     pos=coord,
+                    kind='notam',
                     name="Notam Item",
                     notam=text))
         else:

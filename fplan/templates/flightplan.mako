@@ -36,7 +36,7 @@ function loadfplan()
 	%endfor
 	%endif
 	];	
-	fpaddwaypoint('${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata);
+	fpaddwaypoint('${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(unicode(wp.altitude,"latin1"))|n}');
 
 %endfor
 
@@ -63,6 +63,7 @@ addLoadEvent(loadfplan);
 		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#"><b>Overview</b></a></dt>
 		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#">ATS-flightplan</a></dt>
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#">Fuel-plan</a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}')" href="#">Obstacles</a></dt>
 	</dl>
 </div>
 

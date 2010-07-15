@@ -58,6 +58,14 @@ class FlightplanController(BaseController):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
+        print request.params
+        for idx,way in enumerate(waypoints):
+            altname='wpalt%d'%idx
+            way.altitude=request.params.get(altname,'')
+            try:
+                mapper.parse_elev(way.altitude)
+            except:
+                way.altitude=''
         for idx,way in enumerate(waypoints[:-1]):
             print "Found waypoint #%d"%(idx,)    
             route=meta.Session.query(Route).filter(sa.and_(
@@ -284,6 +292,63 @@ class FlightplanController(BaseController):
         meta.Session.flush()
         meta.Session.commit()
         redirect_to(h.url_for(controller='flightplan',action="fuel"))
+
+    def obstacles(self):    
+        routes=get_route(session['user'],session['current_trip'])
+        byord=dict()
+        tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        c.trip=tripobj.trip
+        vertdist=1000.0
+        items=chain(notam_geo_search.get_notam_objs(),
+                    get_obstacles()
+                    )
+        for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
+                        geo.get_terrain_near_route(routes,vertdist)):
+            byord.setdefault(closeitem['ordinal'],[]).append(closeitem)
+
+        out=[]
+        byordsorted=sorted(byord.items())
+        def classify(item):
+            print item
+            vertlimit=1000
+            if item.get('kind',None)=='terrain':
+                vertlimit=500                
+            margin=item['closestalt']-mapper.parse_elev(item['elev'])
+            if item['dist']>0.6/1.852:
+                return None #Not really too close anyway
+            if margin<0:
+                return "#ff3030"
+            if margin<vertlimit:
+                return "#ffd0d0"
+            return None    
+            
+        for idx,items in byordsorted:
+            cur=[]
+            seen=set()
+            for item in items:
+                along_nm=item['dist_from_a']
+                fromwhat=item['a'].waypoint                
+                ident=(item['name'],item['pos'],item.get('elev',None))
+                if ident in seen: continue
+                seen.add(ident)
+                cur.append(dict(
+                    along_nm=along_nm,
+                    fromwhat=fromwhat,
+                    kind=item.get('kind',None),
+                    bearing=item.get('bearing',None),
+                    dist=item['dist'],
+                    name=item['name'],
+                    closestalt=item['closestalt'],
+                    elev=item.get('elev',None)))
+                cur[-1]['color']=classify(cur[-1])
+            out.append((items[0]['a'].waypoint,sorted(cur,key=lambda x:x['along_nm'])))
+        c.items=out
+        if len(byordsorted)>0:
+            c.endwaypoint=byordsorted[-1][1][-1]['b'].waypoint
+        else:
+            c.endwaypoint=None
+        return render('/obstacles.mako')
         
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
@@ -297,13 +362,9 @@ class FlightplanController(BaseController):
             c.routes=[]
             c.acwarn=True
             c.ac=None
-            c.closetoroute=""
         else:        
             c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
-            items=chain(notam_geo_search.get_notam_objs(),
-                        get_obstacles())
-            c.closetoroute=list(geo.get_stuff_near_route(c.routes,items,10.0,10))
         return render('/fuel.mako')
         

@@ -636,7 +636,7 @@ function draw_hatched_line(jg,l)
     if (geomlen==0) return;
     var dx=l[2]-l[0];
     var dy=l[3]-l[1];
-    for(var p=50;p<geomlen-5;p+=50)
+    for(var p=30;p<geomlen-5;p+=30)
     {
         var cx=parseInt(l[0]+dx*p/geomlen);
         var cy=parseInt(l[1]+dy*p/geomlen);
