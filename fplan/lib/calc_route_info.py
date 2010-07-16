@@ -157,12 +157,18 @@ def get_route(user,trip):
             enddist*=ratio
         else:
             rt.climbperformance="ok"
-        begintime=begindist/beginspeed
-        endtime=enddist/endspeed
+        if beginspeed<1e-3:
+            begintime=9999.0
+        else:
+            begintime=begindist/beginspeed
+        if endspeed<1e-3:
+            endtime=9999.0
+        else:
+            endtime=enddist/endspeed
         middist=rt.d-(begindist+enddist)
         print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
         if cruise_gs<1e-3:
-            midtime=999
+            midtime=9999.0
         else:
             midtime=(rt.d-(begindist+enddist))/cruise_gs
         print "d: %f, Begintime: %s midtime: %s endtime: %s"%(rt.d,begintime,midtime,endtime)

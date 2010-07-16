@@ -9,6 +9,11 @@ extra_airfields=[
     dict(icao="ZZZZ",
          name=u"Finspång",
          pos=mapper.to_str(mapper.from_aviation_format("5843.990N01536.171E")),
-         elev=0),#TODO: Add real elev
+         elev=164),#TODO: Add real elev
+    dict(icao="ZZZZ",
+         name=u"Motala/Skärstad",
+         pos=mapper.to_str(mapper.from_aviation_format("5829.5N01506.2E")),
+         elev=338),#TODO: Add real elev
               
 ]
+
