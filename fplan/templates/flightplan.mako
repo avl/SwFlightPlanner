@@ -36,7 +36,7 @@ function loadfplan()
 	%endfor
 	%endif
 	];	
-	fpaddwaypoint('${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata);
+	fpaddwaypoint('${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(unicode(wp.altitude,"latin1"))|n}');
 
 %endfor
 
@@ -63,13 +63,18 @@ addLoadEvent(loadfplan);
 		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#"><b>Overview</b></a></dt>
 		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#">ATS-flightplan</a></dt>
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#">Fuel-plan</a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}')" href="#">Obstacles</a></dt>
 	</dl>
 </div>
 
 <h1>
 ${c.tripname}
 </h1>
-
+%if c.flash:
+<div style="background:#ffb0b0">
+<b>${c.flash}</b><br/>
+</div>
+%endif
 %if len(c.waypoints)==0:
 <div class="bordered">
 You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",action="index")}"><u>map</u></a> and click the 'Add' button in the upper right part of the screen. Then click in the map to add waypoints.
@@ -110,7 +115,10 @@ Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not
 %endif
 </form>
 %endif
-
+<br/>
+<h2>Download to GPS:</h2>
+Garmin <a href="${h.url_for(controller='flightplan',action='gpx',trip=c.tripname)}"><u>GPX Format</u></a>.<br/>
+<!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',trip=c.tripname)}">ITN Format</a>.<br/>-->
 
         
 </div>

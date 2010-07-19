@@ -8,12 +8,14 @@ import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
-from fplan.extract.extracted_cache import get_airfields
+from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
 import json
 import re
 import fplan.lib.weather as weather
 from fplan.lib.calc_route_info import get_route
-
+import fplan.lib.geo as geo
+import fplan.lib.notam_geo_search as notam_geo_search
+from itertools import chain
 
 
 class FlightplanController(BaseController):
@@ -34,15 +36,19 @@ class FlightplanController(BaseController):
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()
-        airports=[]
+        points=[]
         for airp in get_airfields():
             if airp['name'].lower().count(searchstr) or \
                 airp['icao'].lower().count(searchstr):
-                airports.append(airp)  
-        if len(airports)==0:
+                points.append(airp)  
+                
+        for sigpoint in get_sig_points():
+            if sigpoint['name'].lower().count(searchstr):
+                points.append(sigpoint)
+        if len(points)==0:
             return ""
-        airports.sort()
-        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in airports[:15]])
+        points.sort(key=lambda x:x['name'])
+        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in points[:15]])
         print "returning json:",ret
         return ret
     def save(self):
@@ -52,6 +58,14 @@ class FlightplanController(BaseController):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
+        print request.params
+        for idx,way in enumerate(waypoints):
+            altname='wpalt%d'%idx
+            way.altitude=request.params.get(altname,'')
+            try:
+                mapper.parse_elev(way.altitude)
+            except:
+                way.altitude=''
         for idx,way in enumerate(waypoints[:-1]):
             print "Found waypoint #%d"%(idx,)    
             route=meta.Session.query(Route).filter(sa.and_(
@@ -154,10 +168,18 @@ class FlightplanController(BaseController):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
-        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all()
+        tripname=session.get('current_trip',None)
+        if 'trip' in request.params:
+            tripname=request.params['trip']
+        if not tripname:
+            return u"Internal error. Missing trip-name."
+            
+        waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
+             Waypoint.user==session['user'],Waypoint.trip==tripname)).order_by(Waypoint.ordinal).all())
+        if len(waypoints)==0:
+            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
         c.waypoints=[]
-        c.trip=session['current_trip']
+        c.trip=tripname
         for wp in waypoints:                    
             lat,lon=mapper.from_str(wp.pos)
             c.waypoints.append(dict(
@@ -198,6 +220,7 @@ class FlightplanController(BaseController):
             Trip.trip==session['current_trip'])).all()
         if len(trips)!=1:
             return redirect_to(h.url_for(controller='mapview',action="index"))            
+        c.flash=request.params.get('flash',None)
         trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
@@ -269,6 +292,63 @@ class FlightplanController(BaseController):
         meta.Session.flush()
         meta.Session.commit()
         redirect_to(h.url_for(controller='flightplan',action="fuel"))
+
+    def obstacles(self):    
+        routes=get_route(session['user'],session['current_trip'])
+        byord=dict()
+        tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        c.trip=tripobj.trip
+        vertdist=1000.0
+        items=chain(notam_geo_search.get_notam_objs(),
+                    get_obstacles()
+                    )
+        for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
+                        geo.get_terrain_near_route(routes,vertdist)):
+            byord.setdefault(closeitem['ordinal'],[]).append(closeitem)
+
+        out=[]
+        byordsorted=sorted(byord.items())
+        def classify(item):
+            print item
+            vertlimit=1000
+            if item.get('kind',None)=='terrain':
+                vertlimit=500                
+            margin=item['closestalt']-mapper.parse_elev(item['elev'])
+            if item['dist']>0.6/1.852:
+                return None #Not really too close anyway
+            if margin<0:
+                return "#ff3030"
+            if margin<vertlimit:
+                return "#ffd0d0"
+            return None    
+            
+        for idx,items in byordsorted:
+            cur=[]
+            seen=set()
+            for item in items:
+                along_nm=item['dist_from_a']
+                fromwhat=item['a'].waypoint                
+                ident=(item['name'],item['pos'],item.get('elev',None))
+                if ident in seen: continue
+                seen.add(ident)
+                cur.append(dict(
+                    along_nm=along_nm,
+                    fromwhat=fromwhat,
+                    kind=item.get('kind',None),
+                    bearing=item.get('bearing',None),
+                    dist=item['dist'],
+                    name=item['name'],
+                    closestalt=item['closestalt'],
+                    elev=item.get('elev',None)))
+                cur[-1]['color']=classify(cur[-1])
+            out.append((items[0]['a'].waypoint,sorted(cur,key=lambda x:x['along_nm'])))
+        c.items=out
+        if len(byordsorted)>0:
+            c.endwaypoint=byordsorted[-1][1][-1]['b'].waypoint
+        else:
+            c.endwaypoint=None
+        return render('/obstacles.mako')
         
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
@@ -286,6 +366,5 @@ class FlightplanController(BaseController):
             c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
-            
         return render('/fuel.mako')
         

@@ -38,7 +38,7 @@ Enter a password: <input type="password" name="password1" value="" /><br/>
 Enter password again: <input type="password" name="password2" value="" /><br/>
 </div>
 %if not c.initial:
-Dotted track (faster, but less pretty): <input type="checkbox" name="fastmap" ${'checked="1"' if c.fastmap else ''|n}"/><br/>
+Track as line instead of dots (only for fast computers): <input type="checkbox" name="notfastmap" ${'checked="1"' if c.notfastmap else ''|n}"/><br/>
 %endif
 <input type="submit" name="save" value="Save"/>
 </form>

@@ -36,7 +36,7 @@ def get_pixel_radius(o,zoomlevel):
     return radius
 
 def parse_obstacles():
-    p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_5_4_en.pdf",lambda x: x)
+    p=parse.Parser("/AIP/ENR/ENR 5/ES_ENR_5_4_en.pdf",lambda x: x)
     
     res=[]    
     for pagenr in xrange(0,p.get_num_pages()):
@@ -60,6 +60,8 @@ def parse_obstacles():
             if line.startswith("ft ft Character"):
                 continue
             uprint("Matching line: %s"%(line,))
+            if line.strip()=="Reverse side intentionally blank":
+                continue
             m=re.match(r"\s*(?:\d{2}N \d{2}E)?\s*\d+\s*(.*?)(\d{6}\.?\d*N)\s*(\d{7}\.?\d*E)\s*(?:\(\*\))?\s*(\d+)\s*(\d+)\s*(.*)$",
                         line)
             if m:

@@ -4,4 +4,4 @@
 3: Borde gå att se riktning på en GPS-track.
 4: Borde gå att få waypoints där man byter luftrum.
 5: Borde gå att få frekvensinfo för luftrum, även visas i färdplan.
-
+6: Validering av höjder i flightplannen...

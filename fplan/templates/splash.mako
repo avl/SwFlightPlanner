@@ -47,6 +47,11 @@ Existing users:<br/>
 <form method="POST" action="${h.url_for(controller="splash",action="login")}">
 Username:<input name="username" type="text" value="" /><br/>
 Password:<input name="password" type="password" value="" /><br/>
+%if c.expl:
+<div style="background:#ffc0c0">
+${c.expl}
+</div>
+%endif
 <input type="submit" value="Login" name="login"/>
 </form>
 </div>

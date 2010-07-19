@@ -59,6 +59,8 @@ function on_search_keydown(event)
 			{
 				var d=searchlastdata[searchpopup_sel];
 				add_waypoint(d[0],d[1]);
+        	    document.getElementById('searchfield').value='';
+            	remove_searchpopup();	
 			}
 			if (searchpopup_sel==-1)
 			{
@@ -78,6 +80,7 @@ function mapsearch_add_to_route_button()
 	}
 	var d=searchlastdata[0];
 	add_waypoint(d[0],d[1]);			
+    document.getElementById('searchfield').value='';
 	remove_searchpopup();	
 }
 function search_select(idx)

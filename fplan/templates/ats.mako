@@ -18,6 +18,7 @@ function navigate_to(where)
 		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#">Overview</a></dt>
 		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#"><b>ATS-flightplan</b></a></dt>
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#">Fuel-plan</a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}')" href="#">Obstacles</a></dt>		
 	</dl>
 </div>
 
@@ -40,10 +41,30 @@ www.aro.lfv.se web-application.)
 </p>
 <br/>
 <div>
-<span style="background:#d0d0d0;border: 1px #808080 solid">	
+
+%if len(c.waypoints):
+<table>
+<tr>
+<td>
+Departure</td><td> <span style="background:#d0d0d0;border: 1px #808080 solid">	
+${c.waypoints[0]['pos']} ${c.waypoints[0]['name']}
+</span></td></tr><tr><td>
+Destination:</td><td> <span style="background:#d0d0d0;border: 1px #808080 solid">	
+${c.waypoints[-1]['pos']} ${c.waypoints[-1]['name']}
+</span></td>
+</tr>
+</table>
+%endif
+<br/>
+<table>
+<tr>
+<td>Route</td> <td><span style="background:#d0d0d0;border: 1px #808080 solid">	
 %for w in c.waypoints:
 DCT ${w['pos']} \
 %endfor
+</td>
+</tr>
+</table>
 <br/>
 </span>
 </div>

@@ -4,7 +4,7 @@
 #Doesn't actually parse pdf-files, requires them to have been
 #turned into xml using pdftohtml
 
-from elementtree import ElementTree
+from xml.etree import ElementTree
 import fetchdata
 import re
 
@@ -38,6 +38,8 @@ class Page(object):
             if re.match(regex,item.text):
                 out.append(item)
         return out
+    def get_all_items(self):
+        return self.items
     def get_partially_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
         out=[]
         #print "Extracting %d-%d"%(y1,y2)
@@ -92,7 +94,7 @@ class Page(object):
                     linesize=new_linesize
                 else:
                     if new_linesize>1.75*linesize:
-                        out.append("")                        
+                        out.append("")              
                 out.append(item.text.strip())
             last=item
         return out

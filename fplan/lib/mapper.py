@@ -4,6 +4,7 @@ from itertools import count
 import popen2
 import math
 import cStringIO
+import math
 
 def sec(x):
         return 1.0/math.cos(x)
@@ -80,6 +81,22 @@ def _to_deg_min(x):
     deg=x/(60*10000)
     min=(x%(60*10000))/10000.0
     return deg,min
+
+def approx_bearing_vec(vec_a,vec_b):
+    dx=vec_b.get_x()-vec_a.get_x()
+    dy=vec_b.get_y()-vec_a.get_y()
+    tt=90.0-(math.atan2(-dy,dx)*180.0/math.pi)
+    if tt<0: tt+=360.0
+    return tt
+    
+def approx_dist_vec(vec_a,vec_b,zoomlevel):
+    onenm=approx_scale((vec_a.get_x(),vec_b.get_x()),zoomlevel,1.0)
+    dx=vec_b.get_x()-vec_a.get_x()
+    dy=vec_b.get_y()-vec_a.get_y()
+    mercd=math.sqrt(dx**2+dy**2)
+    return mercd/onenm
+    
+    
     
 class MapperBadFormat(Exception):pass    
 def parse_lfv_format(lat,lon):    
@@ -89,9 +106,13 @@ def parse_lfv_format(lat,lon):
     latdeg=float(lat[0:2])
     latmin=float(lat[2:4])
     if len(lat)>5:
-        if not lat[4:6].isdigit():
-            raise MapperBadFormat("%s,%s"%(lat,lon))    
-        latsec=float(lat[4:6])
+        if lat[4]=='.':
+            latmin+=float(lat[4:-1])
+            latsec=0
+        else:
+            if not lat[4:6].isdigit():
+                raise MapperBadFormat("%s,%s"%(lat,lon))    
+            latsec=float(lat[4:-1])
     else:
         latsec=0
     if not lon[0:5].isdigit():
@@ -99,9 +120,13 @@ def parse_lfv_format(lat,lon):
     londeg=float(lon[0:3])
     lonmin=float(lon[3:5])
     if len(lon)>6:
-        if not lon[5:7].isdigit():
-            raise MapperBadFormat("%s,%s"%(lat,lon))    
-        lonsec=float(lon[5:7])
+        if lon[5]=='.':
+            lonmin+=float(lon[5:-1])
+            lonsec=0
+        else:
+            if not lon[5:7].isdigit():
+                raise MapperBadFormat("%s,%s"%(lat,lon))    
+            lonsec=float(lon[5:-1])
     else:
         lonsec=0
     latdec=latdeg+latmin/60.0+latsec/(60.0*60.0)
@@ -161,12 +186,12 @@ def format_lfv_ats(lat,lon):
             out.append("%03d%02d%s"%(degrees,minutes,H))
     return "".join(out)
         
-def parse_lfv_area(area):
+def parse_lfv_area(area,allow_decimal_format=True):
     found=False
     for lat,lon in re.findall(r"(\d{4,6}(?:,\d+)?[NS])\s*(\d{5,7}(?:,\d+)?[EW])",area):
         yield parse_lfv_format(lat.strip(),lon.strip())
         found=True
-    if not found:
+    if not found and allow_decimal_format:
         for lat,lon in re.findall(r"([-+]?\d{1,3}\.?\d*)\s*,\s*([-+]?\d{1,3}\.?\d*)",area):
             yield "%.10f,%.10f"%(float(lat),float(lon))
         
@@ -196,9 +221,13 @@ def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
     pos1=start
     pos2=end
     if pos1==pos2: return 0,0
-    #print "Distance between called: <%s>, <%s>"%(pos1,pos2)
-    a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
-    b=[_from_decimal(float(pos)) for pos in pos2.split(",")]    
+    if type(pos1)==tuple and type(pos2)==tuple:
+        a=pos1
+        b=pos2
+    else:
+        #print "Distance between called: <%s>, <%s>"%(pos1,pos2)
+        a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
+        b=[_from_decimal(float(pos)) for pos in pos2.split(",")]    
     #x="""geod +ellps=WGS84 <<EOF -I +units=km
     #42d15' -71d07' 45d31' -123d41'
     #EOF
@@ -241,7 +270,7 @@ def parsecoord(seg):
 
 def parsecoords(seg):
     coords=[]
-    for lat,lon in re.findall(r"(\d+\.?\d*N)\s*(\d+\.?\d*E\b)",seg):
+    for lat,lon in re.findall(r"(\d+\.?\d*[NS])\s*(\d+\.?\d*[EW]\b)",seg):
         coord=parse_coords(lat.strip(),lon.strip())
         coords.append(coord)
     return coords
@@ -409,12 +438,15 @@ class NotAnAltitude(Exception):pass
 def parse_elev(elev):    
     if type(elev)==int: return float(elev)
     if type(elev)==float: return elev
+   
     if not isinstance(elev,basestring):
         raise NotAnAltitude(repr(elev))
     elev=elev.strip()
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
+    if elev.lower()=="unl": return 99999
+    #if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using a elevation map!!
     if not elev.isdigit():
-        raise NotAnAltitude(repr(elev))
+        raise NotAnAltitude(repr(elev))    
     return int(elev)
     

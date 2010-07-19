@@ -32,10 +32,18 @@ addLoadEvent(fixcontentsize);
 	<dl>
     <dt><a onclick="navigate_to('${h.url_for(controller="notam",action="index")}')" href="#">Notam</a></dt>
     <dt id="nav-profile">
+    %if not h.real_user():
     ${h.get_username()|n}
-    <a onclick="navigate_to('${h.url_for(controller="profile",action="index")}')" href="#">Profile</a></dt>
-    
+    %endif
+    %if h.real_user():
+    <a onclick="navigate_to('${h.url_for(controller="profile",action="index")}')" href="#">Profile</a>
+    %endif    
+    </dt>
+    %if h.real_user():
+    <dt><a onclick="navigate_to('${h.url_for(controller="splash",action="logout")}')" href="#">Logout</a></dt>
+    %endif
 	</dl>
+
 </div>
 </div>
 

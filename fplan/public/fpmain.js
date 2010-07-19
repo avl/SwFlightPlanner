@@ -108,6 +108,12 @@ function save_data(cont)
             params[wh+'_'+i]=val;
         }	    
 	}			
+
+	for(var i=0;i<num_rows;i++)
+	{
+        var alt=document.getElementById('wpalt'+i).value;
+        params['wpalt'+i]=alt;            
+    }
 	params['tripname']=tripname;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
@@ -223,7 +229,7 @@ function on_updaterow(idx,col)
 
 	return;	
 }
-function fpaddwaypoint(pos,name,rowdata)
+function fpaddwaypoint(pos,name,rowdata,altitude)
 {
 	searchpopup=0;
 
@@ -241,7 +247,9 @@ function fpaddwaypoint(pos,name,rowdata)
 	else
 		idx=(tab.rows.length-1)/2;
 	var elem=tab.insertRow(-1);
-	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input readonly="1" type="text" name="name'+idx+'" value="'+name+'"/></td>';
+	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input readonly="1" type="text" name="name'+idx+'" value="'+name+'"/>'+
+	    'Altitude:<input title="Optional altitude for waypoint. Can be left blank." type="text" id="wpalt'+idx+'" name="alt'+idx+'" value="'+altitude+'"/></td>';
+
 	if (rowdata!=null && rowdata.length>0)
 	{
 		var elem=tab.insertRow(-1);

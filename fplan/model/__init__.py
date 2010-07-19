@@ -100,6 +100,7 @@ waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
                         sa.Column('pos',String(50),primary_key=False,nullable=False),
                         sa.Column('waypoint',Unicode(50),primary_key=False,nullable=False),
+                        sa.Column('altitude',String(6),primary_key=False,nullable=False,default=''),
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
 route_table = sa.Table("route",meta.metadata,
@@ -150,12 +151,13 @@ class Route(object):
         self.altitude=altitude
                  
 class Waypoint(object):
-    def __init__(self, user, trip, pos, ordinal, waypoint):
+    def __init__(self, user, trip, pos, ordinal, waypoint,altitude=''):
         self.user=user
         self.trip=trip
         self.pos=pos
         self.ordinal=ordinal
         self.waypoint=waypoint
+        self.altitude=altitude
     def get_lat(self):
         return float(self.pos.split(",")[0])
     def get_lon(self):
