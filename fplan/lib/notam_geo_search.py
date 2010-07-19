@@ -4,7 +4,7 @@ from pyshapemerge2d import Polygon,vvector,Vertex
 import fplan.lib.mapper as mapper
 import re
 
-def get_notam_objs():    
+def get_notam_objs(kind=None):    
     notamupdates=meta.Session.query(NotamUpdate).filter(
               NotamUpdate.disappearnotam==sa.null()).all()
     obstacles=[]
@@ -14,8 +14,8 @@ def get_notam_objs():
         text=u.text
         coords=list(mapper.parse_lfv_area(text,False))
         if len(coords)==0: continue
-        if text.startswith("OBST"):
-            elevs=re.findall(r"ELEV\s*\d+\s*FT",text)
+        if text.startswith("OBST") and (kind==None or kind=="obstacle"):
+            elevs=re.findall(r"ELEV\s*\(d+)\s*FT",text)
             elevs=[int(x) for x in elevs if x.isdigit()]
             if len(elevs)!=0:                
                 elev=max(elevs)
@@ -23,11 +23,11 @@ def get_notam_objs():
                     obstacles.append(dict(
                         pos=coord,
                         elev=elev,
-                        kind='obstacle',
-                        name="Notam Obstacle elev %d ft"%(elev,),
+                        kind='Notam',
+                        name=text.split("\n")[0][:50],
                         notam=text))
                 continue
-        if len(coords)<=2:
+        if len(coords)<=2 and (kind==None):
             for coord in coords:
                 others.append(dict(
                     pos=coord,

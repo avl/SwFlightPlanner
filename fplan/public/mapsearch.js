@@ -127,7 +127,7 @@ function on_search_keyup(keyevent)
 			var inner='';
 			for(var i=0;i<searchlastdata.length;++i)
 			{
-				inner+='<p style="cursor:pointer" onclick="search_select('+i+')">'+searchlastdata[i][0]+'</p';
+				inner+='<p style="cursor:pointer" onclick="search_select('+i+')">'+searchlastdata[i][0]+'</p>';
 			}
 			inner+='<p style="cursor:pointer;color:#808080" onclick="remove_searchpopup();"><u>close</u></p>';
 			s.innerHTML=inner;
