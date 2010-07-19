@@ -99,7 +99,8 @@ function loadmap()
 	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;">'+	
 	imgs+
 	'<div id="overlay1" style="overflow:hidden;position:absolute;z-index:1;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div id="overlay2" onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div id="overlay2" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div id="overlay3" onmouseout="on_mouseout()" oncontextmenu="return on_rightclickmap(event)" onmousemove="on_mousemovemap(event)" onmouseup="on_mouseup(event)" onmousedown="on_mousedown(event)" style="overflow:hidden;position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
 	'</div>'+	
 	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+
