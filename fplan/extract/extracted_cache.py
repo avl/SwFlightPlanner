@@ -97,15 +97,19 @@ def get_aip_download_time():
 last_update=None
 def run_update_iteration():
     global last_update
+    global aipdata
     try:
-        d=datetime.now()
-        if d.hour>=0 and d.hour<=4 and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6)): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
+        d=datetime.utcnow()
+        if (d.hour>=22 or d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6)): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
             last_update=datetime.utcnow()
             fetchdata.caching_enabled=False
+            aipdata=[]
             get_aipdata("aipdata.cache.new")
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
             time.sleep(2) #Just for debug, so that we have a chance to see that the aipdata is rewritten 
+        else:
+            print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
     except Exception,cause:
         print "aipdata-update, Exception:",cause
 
