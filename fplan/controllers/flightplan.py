@@ -334,6 +334,7 @@ class FlightplanController(BaseController):
                 seen.add(ident)
                 cur.append(dict(
                     along_nm=along_nm,
+                    dir_from_a=item['dir_from_a'],
                     fromwhat=fromwhat,
                     kind=item.get('kind',None),
                     bearing=item.get('bearing',None),

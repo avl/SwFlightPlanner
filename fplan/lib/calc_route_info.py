@@ -35,7 +35,7 @@ class TechRoute(object):
     pass
 def get_pos_elev(latlon):
     for airf in get_airfields():
-        print "Considering:",airf
+        #print "Considering:",airf
         apos=mapper.from_str(airf['pos'])
         dx=apos[0]-latlon[0]
         dy=apos[1]-latlon[1]
@@ -45,7 +45,7 @@ def get_pos_elev(latlon):
 
 class DummyAircraft(object):pass
 def get_route(user,trip):
-    print "Getting ",user,trip
+    #print "Getting ",user,trip
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==user,Trip.trip==trip)).one()
      
@@ -75,7 +75,7 @@ def get_route(user,trip):
         #print "Got D:",D
         rt.d=D/1.852
 
-    print "Looking for ac:",tripobj.aircraft
+    #print "Looking for ac:",tripobj.aircraft
     acs=meta.Session.query(Aircraft).filter(sa.and_(
         Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).all()
     if len(acs)==1:
@@ -108,7 +108,7 @@ def get_route(user,trip):
         climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
         descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
 
-
+        print "idx: %d, prev_alt=%s"%(idx,prev_alt)
         def alt_change_dist(delta):
             if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
             if delta>0:
@@ -141,22 +141,34 @@ def get_route(user,trip):
                 alt2=get_pos_elev(mapper.from_str(rt.b.pos))
         
         
-        begindelta=mid_alt-alt1
-        enddelta=alt2-mid_alt
-            
+        rt.climbperformance="ok"
+        begindelta=mid_alt-prev_alt
         begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
+        if begindist>rt.d:
+            print "Begin delta ",begindelta," not fulfilled"
+            ratio=rt.d/float(begindist)
+            begindist=rt.d
+            rt.climbperformance="notok"
+            begindelta*=ratio
+            mid_alt=prev_alt+begindelta                    
+
+        print "mid_alt",mid_alt
+        enddelta=alt2-mid_alt
+                
         enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
-        print "Begindist: delta=%s %s, dist: %f, enddist: delta: %s ft %s, dist:%f"%(begindelta,beginwhat,begindist,enddelta,endwhat,enddist)
-        if begindist>rt.d and enddist==0:
+        print "begindist: %f, enddist: %f, rt.d: %f"%(begindist,enddist,rt.d)
+        if enddist+begindist>rt.d:
+            print "End delta ",enddelta," not fulfilled"
+            enddist=rt.d-begindist            
             rt.climbperformance="notok"
-            begindist=rt.d                 
-        elif begindist+enddist>rt.d+1e-3:
-            rt.climbperformance="notok"
-            ratio=rt.d/(begindist+enddist)
-            begindist*=ratio
-            enddist*=ratio
-        else:
-            rt.climbperformance="ok"
+        
+        del begindelta
+        del enddelta
+        del mid_alt        
+        del alt1
+        del alt2
+            
+            
         if beginspeed<1e-3:
             begintime=9999.0
         else:
@@ -171,7 +183,7 @@ def get_route(user,trip):
             midtime=9999.0
         else:
             midtime=(rt.d-(begindist+enddist))/cruise_gs
-        print "d: %f, Begintime: %s midtime: %s endtime: %s"%(rt.d,begintime,midtime,endtime)
+        #print "d: %f, Begintime: %s midtime: %s endtime: %s"%(rt.d,begintime,midtime,endtime)
         def timefmt(h):
             totmin=int(60*h)
             h=int(totmin//60)
@@ -289,9 +301,9 @@ def get_route(user,trip):
             res.append(out)
             accum_fuel+=out.fuel_burn
             out.accum_fuel_burn=accum_fuel
-            print "Processing out. %s-%s %s Alt: %s"%(
-                out.a.waypoint,out.b.waypoint,out.what,out.startalt)
-        print "Times:",begintime,midtime,endtime
+            #print "Processing out. %s-%s %s Alt: %s"%(
+            #    out.a.waypoint,out.b.waypoint,out.what,out.startalt)
+        #print "Times:",begintime,midtime,endtime
         if (begintime+midtime+endtime)>1e-3:
             rt.avg_gs=rt.d/(begintime+midtime+endtime)
         else:
@@ -347,17 +359,17 @@ def test_route_info():
     route=get_route(u'anders',u'mytrip')['routes']
     D=60.153204103671705
     assert abs(route[0].d-D)<1e-5
-    print route[0].__dict__
+    #print route[0].__dict__
     assert route[0].ch==-4
     climbtime=10000/500.0/60.0
     climbdist=50.0*climbtime
     cruisedist=D-climbdist
-    print "Climbdist: %f, Cruisedist: %f"%(climbdist,cruisedist)
+    #print "Climbdist: %f, Cruisedist: %f"%(climbdist,cruisedist)
     cruisetime=cruisedist/75.0
     tottime=cruisetime+climbtime
-    print "Climbtime: %f, Cruisetime: %f, expected tot: %f, calculated tot time: %f"%(climbtime,cruisetime,climbtime+cruisetime,route[0].time_hours)
+    #print "Climbtime: %f, Cruisetime: %f, expected tot: %f, calculated tot time: %f"%(climbtime,cruisetime,climbtime+cruisetime,route[0].time_hours)
     assert abs(route[0].time_hours-tottime)<0.01
-    print route[1].wca
+    #print route[1].wca
     
     
     

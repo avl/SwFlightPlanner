@@ -3,6 +3,33 @@ from pyshapemerge2d import Vector,Line2,Vertex
 from fplan.lib.get_terrain_elev import get_terrain_elev
 
 
+dirs=["N",
+      "NNE",
+      "NE",
+      "ENE",
+      "E",
+      "ESE",
+      "SE",
+      "SSE",
+      "S",
+      "SSW",
+      "SW",
+      "WSW",
+      "W",
+      "WNW",
+      "NW",
+      "NNW"
+      ]
+def describe_dir(tt):
+    tt=tt%360.0
+    if tt<0: tt+=360.0
+    r=int(tt*(16.0/360.0)+1.0/32.0)
+    if r<0: r=0
+    if r>15: r=15
+    return dirs[r]
+
+    
+
 def get_terrain_near_route(rts,vertdist):
     l=len(rts)
     for idx,rt in enumerate(rts):
@@ -35,6 +62,7 @@ def get_terrain_near_route(rts,vertdist):
                     closestalt=alt,
                     kind='terrain',
                     dist_from_a=float(along_nm),
+                    dir_from_a=describe_dir(rt.tt),
                     a=rt.a,
                     b=rt.b,
                     ordinal=rt.a.ordinal)
@@ -91,6 +119,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 d=dict(item)
                 d['name']=d['kind']+': ' +d['name']
                 d['dist_from_a']=alongnm_a
+                d['dir_from_a']=describe_dir(rt.tt)
                 d['dist']=actualdist
                 d['bearing']=bear
                 if itemalt!=None:

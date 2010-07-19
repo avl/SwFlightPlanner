@@ -10,6 +10,14 @@ function navigate_to(where)
 	}
 	finish_nav();
 }
+
+function loadprofile()
+{
+	document.getElementById('password1').value='';
+	document.getElementById('password2').value='';
+}
+addLoadEvent(loadprofile);
+
 </script>
 
 <div>
@@ -34,8 +42,8 @@ Change name: <input type="text" name="username" value="${c.user}" /><br/>
 <a href="#" onclick="document.getElementById('password').style.display='block'">Change password</a><br/>
 <div id="password" style="display:none">
 %endif
-Enter a password: <input type="password" name="password1" value="" /><br/>
-Enter password again: <input type="password" name="password2" value="" /><br/>
+Enter a password: <input type="password" name="password1" id="password1" value="" /><br/>
+Enter password again: <input type="password" name="password2" id="password2" value="" /><br/>
 </div>
 %if not c.initial:
 Track as line instead of dots (only for fast computers): <input type="checkbox" name="notfastmap" ${'checked="1"' if c.notfastmap else ''|n}"/><br/>

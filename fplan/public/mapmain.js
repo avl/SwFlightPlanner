@@ -621,16 +621,23 @@ function client2merc_y(clientY)
 	var screen_y=clientY-document.getElementById('mapcontainer').offsetTop;
 	return map_topleft_merc[1]+screen_y;
 }
-function draw_hatched_line(jg,l)
+function draw_hatched_line(jg,l,c1,c2)
 {
     var geomlen=Math.sqrt((l[0]-l[2])*(l[0]-l[2])+(l[1]-l[3])*(l[1]-l[3]));
     if (geomlen==0) return;
     var dx=l[2]-l[0];
     var dy=l[3]-l[1];
+    var alt=0;
     for(var p=30;p<geomlen-5;p+=30)
     {
+    
         var cx=parseInt(l[0]+dx*p/geomlen);
         var cy=parseInt(l[1]+dy*p/geomlen);
+        alt=!alt;
+        if (alt)
+        	jg.setColor(c1);
+        else 
+        	jg.setColor(c2); 
 	    jg.fillRect(
 	        cx-3,cy-3,6,6);
     }
@@ -648,11 +655,19 @@ function draw_jg()
         		i-1!=movingwaypoint && i!=movingwaypoint))
         	{
         		if (i!=0)    		
-        		{    			
+        		{    		
+        			var c1='';
+        			var c2='';	
         			if (selected_route_idx==i-1)
-        				jg.setColor("#ffa0a0"); // green
+        			{
+        				c1="#700000";
+        				c2="#ff4040";
+        			}
         			else
-        				jg.setColor("#00bf00");
+        			{
+        				c1="#007000";
+        				c2="#40ff40";
+        			}
 			
 			        var l=clipline(
 				        merc2screen_x(wps[i-1][0]),
@@ -662,7 +677,7 @@ function draw_jg()
             			);
             		if (l.length)	    			
             		{
-            		    draw_hatched_line(jg,l);
+            		    draw_hatched_line(jg,l,c1,c2);
 	                }
             	}
             	var screen_x=merc2screen_x(wps[i][0]);
@@ -707,9 +722,10 @@ function draw_jg()
 		        		if (i!=0)    		
 		        		{    			
 		        			if (selected_route_idx==i-1)
-		        				jg.setColor("#ffa0a0"); // green
+		        				jg.setColor("#ff0000"); // red
 		        			else
-		        				jg.setColor("#00bf00");
+		        				jg.setColor("#008000");
+		        				
 						
 						    if (use_great_circles)
 						    {
@@ -997,7 +1013,7 @@ function draw_dynamic_lines(cx,cy)
 		l=clipline(merc2screen_x(anchorx),merc2screen_y(anchory),merc2screen_x(cx),merc2screen_y(cy));
 		if (l.length>0) 
 		{
-		    draw_hatched_line(jgq,l);
+		    draw_hatched_line(jgq,l,'#008000','#ffffff');
 		}
 
 		if (clippoint(merc2screen_x(cx),merc2screen_y(cy)))
@@ -1019,13 +1035,13 @@ function draw_dynamic_lines(cx,cy)
 		{
 			l=clipline(merc2screen_x(wps[movingwaypoint-1][0]),merc2screen_y(wps[movingwaypoint-1][1]),merc2screen_x(cx),merc2screen_y(cy));
 			if (l.length>0)
-    		    draw_hatched_line(jgq,l);
+    		    draw_hatched_line(jgq,l,'#008000','#ffffff');
 		}
 		if (movingwaypoint!=wps.length-1)
 		{
 			l=clipline(merc2screen_x(wps[movingwaypoint+1][0]),merc2screen_y(wps[movingwaypoint+1][1]),merc2screen_x(cx),merc2screen_y(cy));
 			if (l.length>0)
-    		    draw_hatched_line(jgq,l);
+    		    draw_hatched_line(jgq,l,'#008000','#ffffff');
 		}
 		jgq.paint();
 		

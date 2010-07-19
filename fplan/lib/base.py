@@ -8,7 +8,7 @@ from pylons import request, response, session
 from pylons.controllers.util import abort, redirect_to
 import routes.util as h 
 from fplan.model import meta,User
-
+from datetime import datetime
 class BaseController(WSGIController):
     def __before__(self):    
         if hasattr(self,"no_login_required") and self.no_login_required==True:
@@ -42,8 +42,12 @@ class BaseController(WSGIController):
                     return
             raise Exception("Couldn't generate temporary user name")
         if len(users)==1:
+            users[0].lastlogin=datetime.utcnow()
             if session.get('isreg',False)!=users[0].isregistered:
                 session['isreg']=users[0].isregistered
+            meta.Session.flush()
+            meta.Session.commit()
+            
     def __call__(self, environ, start_response):
         """Invoke the Controller"""
         # WSGIController.__call__ dispatches to the Controller method

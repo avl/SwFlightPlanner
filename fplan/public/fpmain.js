@@ -20,6 +20,8 @@ function gete(idx,wcol)
 	var e=document.getElementById(vid);
 	return e;
 }
+
+
 /*
 function fetch_acparams()
 {
@@ -52,6 +54,8 @@ function fetch_acparams()
 	def.addCallback(ac_cb);
 }
 */
+
+
 function fetch_winds()
 {
 	function weather_cb(req)
@@ -247,6 +251,7 @@ function fpaddwaypoint(pos,name,rowdata,altitude)
 	else
 		idx=(tab.rows.length-1)/2;
 	var elem=tab.insertRow(-1);
+	
 	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input readonly="1" type="text" name="name'+idx+'" value="'+name+'"/>'+
 	    'Altitude:<input title="Optional altitude for waypoint. Can be left blank." type="text" id="wpalt'+idx+'" name="alt'+idx+'" value="'+altitude+'"/></td>';
 

@@ -31,7 +31,7 @@ New users:<br/>
 <u><a style="font-size:30px" href="${h.url_for(controller="mapview",action="index")}">Start using directly!</a></u><br/>
 <br/>
 <div style="font-size:12px;color:#808080">
-Once in the system, and only if you like, you can select the menu option "profile" in the top right
+	Once in the system, and only if you like, you can select the menu option "Create User" in the top right
 corner of the screen, and create your own user name. But try the system out first, by
 clicking the link above!
 </div>

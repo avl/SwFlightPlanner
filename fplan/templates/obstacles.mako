@@ -18,19 +18,19 @@ function navigate_to(where)
 </div>
 
 <h1>${c.trip}</h1>
-
-%for waypoint,items in c.items:
-
-${waypoint}<br/>
+%if c.endwaypoint!=None:
 
 <table>
 <tr>
-<td>Where</td>
-<td>Direction</td>
-<td>Warning</td>
-<td>Obstacle/Terrain elevation</td>
-<td>Planned flying altitude</td>
+<td><b>Your position</b></td>
+<td><b>Bearing to obst.</b></td>
+<td><b>Warning</b></td>
+<td><b>Obstacle/Terrain elevation</b></td>
+<td><b>Planned flying altitude</b></td>
 </tr>
+
+%for waypoint,items in c.items:
+
 %for item in items:
 <tr
 %if item['color']:
@@ -38,7 +38,12 @@ style="background-color:${item['color']}"
 %endif
 >
 <td>
-${"%.0f"%(item['along_nm'],)}nm from ${waypoint}
+%if item['along_nm']<0.1:
+Near ${waypoint}
+%endif
+%if not (item['along_nm']<0.1):
+${"%.0f"%(item['along_nm'],)}nm ${item['dir_from_a']} ${waypoint}
+%endif
 </td>
 <td>
 %if item['dist']<0.01:
@@ -59,11 +64,9 @@ ${"%.0f"%(item['closestalt'],)}
 </td>
 </tr>
 %endfor
-</table>
 %endfor
 
-%if c.endwaypoint:
-${c.endwaypoint}<br/>
+</table>
 %endif
 %if c.endwaypoint==None:
 There are no obstacles close to the flightpath (vertically and horizontally).

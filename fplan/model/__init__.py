@@ -1,7 +1,7 @@
 """The application's model objects"""
 import sqlalchemy as sa
 from sqlalchemy import orm
-
+from datetime import datetime
 from fplan.model import meta
 
 def init_model(engine):
@@ -30,6 +30,7 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
                         sa.Column("password",Unicode(100),nullable=False),
                         sa.Column("isregistered",Boolean(),nullable=False),
+                        sa.Column("lastlogin",DateTime(),nullable=False),
                         sa.Column('fastmap',Boolean(),nullable=False,default=True)
                         )
 
@@ -179,6 +180,7 @@ class User(object):
         self.user = user
         self.password = password
         self.isregistered=False
+        self.lastlogin=datetime.utcnow()
     def __unicode__(self):
         return "User(%s)"%(self.user,)
     def __repr__(self):
