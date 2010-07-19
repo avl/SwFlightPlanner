@@ -6,6 +6,7 @@ from pylons.controllers.util import abort, redirect_to
 from md5 import md5
 from fplan.lib.base import BaseController, render
 import routes.util as h
+from fplan.extract.extracted_cache import get_aip_download_time
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +21,10 @@ class ProfileController(BaseController):
         c.password=''
         c.initial=not user.isregistered
         c.notfastmap=not user.fastmap
+        try:
+            c.aipupdate=get_aip_download_time()
+        except Exception,cause:
+            c.aipupdate=None
         return render('/profile.mako')
     def save(self):
         print "in save:",request.params

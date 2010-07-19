@@ -2,6 +2,7 @@ from time import sleep
 import os
 import urllib2
 import random
+import fplan.extract.extracted_cache as extracted_cache
 
 def download_notam():
     notamlist=[fname for fname in os.listdir("notams") if fname.isdigit() ]
@@ -38,6 +39,7 @@ def download_notams():
     if not os.path.exists("notams"):
         os.makedirs("notams")
     while True:
+        extracted_cache.run_update_iteration()        
         try:
             download_notam()
         except Exception,cause:
@@ -49,3 +51,4 @@ def download_notams():
 
 if __name__=="__main__":
     download_notams()
+    

@@ -5,6 +5,8 @@ import socket
 host=socket.gethostname()
 from urllib2 import urlopen
 
+caching_enabled=True #True for debug, set to false by background updater
+
 def get_filedate(path):
     return datetime.fromtimestamp(os.path.getmtime(path))
 
@@ -41,7 +43,7 @@ def getxml(relpath):
     cachenamepdf="/tmp/lfv/"+stripname(relpath)
     cachenamexml=changeext("/tmp/lfv/"+stripname(relpath),'.pdf',".xml")
     print "cachepath:"+cachenamexml
-    if os.path.exists(cachenamexml):
+    if caching_enabled and os.path.exists(cachenamexml):
         cacheddate=get_filedate(cachenamexml)
         print "cachedat:",cacheddate,"nowdate:",nowdate
         age=nowdate-cacheddate

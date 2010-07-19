@@ -51,5 +51,17 @@ Track as line instead of dots (only for fast computers): <input type="checkbox" 
 <input type="submit" name="save" value="Save"/>
 </form>
 
+<br/>
+<br/>
+<p style="font-size:12px">
+%if c.aipupdate!=None:
+Airspace database last updated: ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC.
+%endif
+%if c.aipupdate==None:
+Airspace database last updated: Unknown.
+%endif
+</p>
+
+
 </div>
 

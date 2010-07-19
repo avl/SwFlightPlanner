@@ -3,10 +3,12 @@ from fplan.extract.parse_obstacles import parse_obstacles
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
+import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 import pickle
 import os
-
+import shutil
+import time
 version=2
 
 from threading import Lock
@@ -62,6 +64,7 @@ def get_aipdata(cachefile="aipdata.cache"):
                         airspaces.append(pa)
             
             aipdata=dict(
+                downloaded=datetime.utcnow(),
                 airspaces=airspaces,
                 obstacles=parse_obstacles(),
                 airfields=airfields,
@@ -85,7 +88,32 @@ def get_airfields():
 def get_sig_points():
     aipdata=get_aipdata()
     return aipdata['sig_points']
-if __name__=='__main__':
-    get_aipdata("aipdata.cache.new")
-    print "wrote aipdata.cache.new"
+def get_aip_download_time():
+    aipdata=get_aipdata()
+    return aipdata.get('downloaded',None)
     
+
+
+last_update=None
+def run_update_iteration():
+    global last_update
+    try:
+        d=datetime.now()
+        if d.hour>=0 and d.hour<=4 and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6)): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
+            last_update=datetime.utcnow()
+            fetchdata.caching_enabled=False
+            get_aipdata("aipdata.cache.new")
+            shutil.move("aipdata.cache.new","aipdata.cache")
+            print "moved new aipdata to aipdata.cache"            
+            time.sleep(2) #Just for debug, so that we have a chance to see that the aipdata is rewritten 
+    except Exception,cause:
+        print "aipdata-update, Exception:",cause
+
+
+    
+if __name__=='__main__':
+    while True:
+        run_update_iteration()
+        
+
+
