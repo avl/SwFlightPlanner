@@ -17,8 +17,8 @@ class BlobFile(object):
         self.lock=Lock()
         self.threads_reading=0
         assert mode in ["r","w"]
-        print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
-            name,zoomlevel,x1,y1,x2,y2,mode)
+        #print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
+        #    name,zoomlevel,x1,y1,x2,y2,mode)
         self.mode=mode
         if mode=="w":
             if os.path.dirname(name).strip() and not os.path.exists(os.path.dirname(name)):
@@ -49,7 +49,7 @@ class BlobFile(object):
             for i in xrange(5):
                 params.append(unpack('>I',buf[4*i:4*i+4])[0])
             assert x1==x2==y1==y2==zoomlevel==None
-            print "unpaked:",params
+            #print "unpaked:",params
             self.x1,self.y1,self.x2,self.y2,self.zoomlevel=params
             x1=self.x1
             y1=self.y1
@@ -57,7 +57,7 @@ class BlobFile(object):
             y2=self.y2
             zoomlevel=self.zoomlevel
  
-        print x2,x1
+        #print x2,x1
         assert x2>x1
         assert y2>y1
         self.tilesize=256
@@ -65,11 +65,11 @@ class BlobFile(object):
         self.tx2,self.ty2=self.get_tile_number(x2,y2)
         self.sx=self.tx2-self.tx1+1
         self.sy=self.ty2-self.ty1+1
-        print "Tilecount for zoomlevel %d: %d"%(zoomlevel,self.sx*self.sy)
+        #print "Tilecount for zoomlevel %d: %d"%(zoomlevel,self.sx*self.sy)
         self.dupmap=dict()
         assert self.sx>0
         assert self.sy>0
-        print "File size: %d"%(self.size,)
+        #print "File size: %d"%(self.size,)
         if self.size!=0:
             assert self.size>=4*self.sx*self.sy+4*5
         else:
@@ -133,7 +133,7 @@ class BlobFile(object):
                 f=self.tls.f
                 assert f!=None
             else:
-                print "Opening file %s for thread %s"%(self.name,threading.current_thread())
+                #print "Opening file %s for thread %s"%(self.name,threading.current_thread())
                 f=open(self.name,"r")
                 self.tls.f=f
         self.threads_reading+=1  
@@ -167,7 +167,7 @@ class BlobFile(object):
                 print "Zero size image at %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
                 return None
             assert s>0
-            print "Threads reading simultaneously: %d"%(self.threads_reading,)
+            #print "Threads reading simultaneously: %d"%(self.threads_reading,)
              
             return f.read(s)
         finally:

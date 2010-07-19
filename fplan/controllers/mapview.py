@@ -43,7 +43,7 @@ class MapviewController(BaseController):
     
         session['last_pos']=(merc_x,merc_y)
         session['zoom']=zoomlevel
-        print "Setting pos to %s"%(mapper.merc2latlon(session['last_pos'],zoomlevel),)
+        #print "Setting pos to %s"%(mapper.merc2latlon(session['last_pos'],zoomlevel),)
         session.save()        
 
     def get_waypoints(self,parms):
@@ -57,18 +57,8 @@ class MapviewController(BaseController):
         wps=dict()
         for ordinal,wp in wpst.items():
             wp['ordinal']=ordinal
-            origpos=wp['origpos']
-            newpos=wp['pos']
-            olat,olon=mapper.from_str(origpos)
-            nlat,nlon=mapper.from_str(newpos)
-            dist=math.sqrt((olat-nlat)**2+(olon-nlon)**2)
-            print "Wp #%s dist: %s"%(ordinal,dist)
-            if (dist<1.0/3600.0):
-                wp['pos']=wp['origpos']
-                print "Wp #%s has not moved"%(ordinal,)
             d=wps.setdefault(wp['ordinal'],dict())
-            d.update(wp)
-            
+            d.update(wp)            
         return wps
 
     def get_free_tripname(self,tripname):            
@@ -154,7 +144,15 @@ class MapviewController(BaseController):
                             Waypoint.ordinal==upd)).all()
                 if len(us)>0:
                     u=us[0]
-                    u.pos=wp['pos']
+                    prevpos=mapper.from_str(u.pos)
+                    newpos=mapper.from_str(wp['pos'])
+                    approxdist=(prevpos[0]-newpos[0])**2+(prevpos[1]-newpos[1])**2
+                    if approxdist>(1.0/36000.0)**2: #if moved more than 0.1 arc-second, otherwise leave be.                                        
+                        u.pos=wp['pos']
+                        print "Waypoint %d moved! (%f deg)"%(u.ordinal,math.sqrt(approxdist))
+                    else:
+                        print "Waypoint %d has only moved a little (%f deg)"%(u.ordinal,math.sqrt(approxdist))
+                        
                     u.waypoint=wp['name']
                     u.ordinal=wp['ordinal']
                     resultant_by_ordinal[wp['ordinal']]=u

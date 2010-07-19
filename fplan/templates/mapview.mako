@@ -240,12 +240,12 @@ function loadmap()
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
 	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}');
+	tab_add_waypoint(idx,me,'${h.jsescape(wp.waypoint)|n}');
 	idx++;
 	%endfor
 	draw_jg();
 	anychangetosave=0;
-	setInterval("if (anychangetosave!=0) save_data(null)", 30*1000);
+	setInterval("if (anychangetosave!=0) save_data(null)", 5*1000);
 	
 	
 }

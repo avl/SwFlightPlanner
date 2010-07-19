@@ -69,10 +69,8 @@ function save_data(cont)
 		var rowelem=glist.rows[i];		
 		var namefield=rowelem.cells[1].childNodes[0];
 		var posfield=rowelem.cells[2].childNodes[0];
-		var origposfield=rowelem.cells[2].childNodes[1];
 		params[namefield.name]=namefield.value;
 		params[posfield.name]=posfield.value;
-		params[origposfield.name]=origposfield.value;
 	}			
 	params['tripname']=document.getElementById('entertripname').value;
 	params['oldtripname']=document.getElementById('oldtripname').value;
@@ -110,7 +108,6 @@ function reload_map()
 
 function tab_modify_pos(idx,pos)
 {
-	anychangetosave=1;
 	var glist=document.getElementById('tab_fplan');
 	var rowpos=glist.rows[idx].cells[2].childNodes[0];
 	var latlon=merc2latlon(pos);
@@ -119,7 +116,6 @@ function tab_modify_pos(idx,pos)
 }
 function tab_remove_waypoint(idx)
 {
-	anychangetosave=1;
 	var glist=document.getElementById('tab_fplan');
 	glist.deleteRow(idx);
 	tab_renumber(idx);
@@ -188,7 +184,7 @@ function reorder_wp(idx,delta)
     var w2=wps[odx];        
     wps[odx]=w1;
     wps[idx]=w2;
-    
+    anychangetosave=1;
     var glist=document.getElementById('tab_fplan');
     var rowelem1=glist.rows[idx];		
 	var name1e=rowelem1.cells[1].childNodes[0];
@@ -204,14 +200,11 @@ function reorder_wp(idx,delta)
     pos1e.value=pos2;
     pos2e.value=pos1;
     name1e.value=name2;
-    name2e.value=name1;
-     
+    name2e.value=name1; 
 	select_waypoint(odx); //calls draw_jg, so we don't have to	
 }
-function tab_add_waypoint(idx,pos,origpos,name)
-{
-	anychangetosave=1;
-	
+function tab_add_waypoint(idx,pos,name)
+{	
 	if (name==null)
 		name='Unnamed Waypoint';
 	var glist=document.getElementById('tab_fplan');
@@ -239,7 +232,6 @@ function tab_add_waypoint(idx,pos,origpos,name)
     '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
-    '<input type="hidden" name="row_'+idx+'_origpos" value="'+origpos+'"/>'+
     '</td>'+
     '';
 	
@@ -267,7 +259,6 @@ function tab_renumber_single(i)
 	rowelem.cells[1].childNodes[1].onclick=function(ev) { reorder_wp(i,-1);return false; }; 
 	rowelem.cells[1].childNodes[2].onclick=function(ev) { reorder_wp(i,+1);return false; }; 
 	rowelem.cells[2].childNodes[0].name='row_'+i+'_pos';
-	rowelem.cells[2].childNodes[1].name='row_'+i+'_origpos';
 }
 
 function on_key(event)
@@ -828,8 +819,9 @@ function add_waypoint(name,pos)
 	var merc=latlon2merc(pos);
 	relx=merc[0];
 	rely=merc[1];
-	tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),name);
+	tab_add_waypoint(wps.length,[relx,rely],name);
 	wps.push([relx,rely]);
+	anychangetosave=1;
 	jgq.clear();
 	draw_jg();
 }
@@ -894,9 +886,9 @@ function on_mouseup(event)
 	if (waypointstate=='addwaypoint' || waypointstate=='addfirstwaypoint')
 	{
 		clear_mapinfo();
-		tab_add_waypoint(wps.length,[relx,rely],to_latlon_str([relx,rely]),null);
+		tab_add_waypoint(wps.length,[relx,rely],null);
 		wps.push([client2merc_x(event.clientX),client2merc_y(event.clientY)]);
-
+		anychangetosave=1;
 		anchorx=wps[wps.length-1][0];
 		anchory=wps[wps.length-1][1];
 		waypointstate='addwaypoint';
@@ -909,6 +901,7 @@ function on_mouseup(event)
 	{
 		clear_mapinfo();
 		wps[movingwaypoint]=[relx,rely];
+		anychangetosave=1;		
 		tab_modify_pos(movingwaypoint,[relx,rely]);
 		waypointstate='none';
 		jgq.clear();
@@ -1232,6 +1225,7 @@ function remove_all_waypoints()
 		return;
 	var oldcnt=wps.length;
 	wps=[];
+	anychangetosave=1;
 	
 	for(var i=0;i<oldcnt;++i)
 		tab_remove_waypoint(oldcnt-i-1);
@@ -1253,6 +1247,7 @@ function remove_waypoint()
 				wpsout.push([wps[i][0],wps[i][1]]);
 		}
 		wps=wpsout;
+		anychangetosave=1;		
 		tab_remove_waypoint(closest_i);
 
 		draw_jg();		
@@ -1281,9 +1276,10 @@ function menu_insert_waypoint_mode()
 				tmpwps.push([clo[1],clo[2]]);
 		}
 		wps=tmpwps;
-		tab_add_waypoint(clo[0]+1,[relx,rely],to_latlon_str([relx,rely]),null);
+		anychangetosave=1;		
+		tab_add_waypoint(clo[0]+1,[relx,rely],null);
 		waypointstate='moving';
-		movingwaypoint=clo[0]+1;						
+		movingwaypoint=clo[0]+1;
 		draw_jg();
 		draw_dynamic_lines(relx,rely);
 	}

@@ -183,7 +183,7 @@ function latlon2merc(latlon)
 	var lat=latlon[0];
 	var lon=latlon[1];
     var factor=Math.pow(2.0,map_zoomlevel);
-    return [parseInt(factor*256.0*(lon+180.0)/360.0),parseInt(128*factor-128*factor*merc(lat)/merc(85.05113))];
+    return [factor*256.0*(lon+180.0)/360.0,128*factor-128*factor*merc(lat)/merc(85.05113)];
     
 }
 function merc2latlon(xy)
