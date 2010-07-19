@@ -13,10 +13,10 @@ class NotamController(BaseController):
 
     def index(self):
         
-        ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).group_by([NotamAck.appearnotam,NotamAck.appearline]).subquery()
+        ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).filter(NotamAck.user==session.get('user',None)).group_by([NotamAck.appearnotam,NotamAck.appearline]).subquery()
     
         c.items=meta.Session.query(NotamUpdate,ack_cnt.c.acks,Notam.downloaded).outerjoin(
-                (ack_cnt,sa.and_(
+                (ack_cnt,sa.and_(                    
                     NotamUpdate.appearnotam==ack_cnt.c.appearnotam,
                     NotamUpdate.appearline==ack_cnt.c.appearline))).outerjoin(
                 (Notam,Notam.ordinal==NotamUpdate.appearnotam)

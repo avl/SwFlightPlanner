@@ -15,7 +15,7 @@ def get_notam_objs(kind=None):
         coords=list(mapper.parse_lfv_area(text,False))
         if len(coords)==0: continue
         if text.startswith("OBST") and (kind==None or kind=="obstacle"):
-            elevs=re.findall(r"ELEV\s*\(d+)\s*FT",text)
+            elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
             elevs=[int(x) for x in elevs if x.isdigit()]
             if len(elevs)!=0:                
                 elev=max(elevs)
