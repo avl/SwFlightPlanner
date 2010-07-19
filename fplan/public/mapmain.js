@@ -34,11 +34,11 @@ function navigate_to(where)
 }
 function save_data(cont)
 {
-	anychangetosave=0;
 	if (opinprogress==1)
 	{
 		return;
 	}
+	anychangetosave=0;
 	var oldtripname=document.getElementById('oldtripname').value;
 	var progm=document.getElementById("progmessage");
 	function save_data_cb(req)
