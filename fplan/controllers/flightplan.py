@@ -300,9 +300,8 @@ class FlightplanController(BaseController):
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
         vertdist=1000.0
-        items=chain(notam_geo_search.get_notam_objs(),
-                    get_obstacles()
-                    )
+        items=chain(notam_geo_search.get_notam_objs(kind="obstacle"),
+                    get_obstacles())
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
                         geo.get_terrain_near_route(routes,vertdist)):
             byord.setdefault(closeitem['ordinal'],[]).append(closeitem)

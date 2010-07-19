@@ -139,7 +139,7 @@ class MaptileController(BaseController):
         else:
             variant="plain"
             
-        
+        cacheable=True
         generate_on_the_fly=False
         
         if generate_on_the_fly:
@@ -147,7 +147,10 @@ class MaptileController(BaseController):
         else:
             rawtile=maptilereader.gettile(variant,zoomlevel,mx,my)
             if not neededit:
+                cacheable=True
+                response.headers['Pragma'] = ''
                 response.headers['Content-Type'] = 'image/png'
+                response.headers['Cache-Control'] = 'max-age=3600'
                 return rawtile
             io=StringIO.StringIO(rawtile)
             io.seek(0)
@@ -156,7 +159,8 @@ class MaptileController(BaseController):
         ctx=cairo.Context(im)
         
         
-        if session.get('showarea','')!='':                
+        if session.get('showarea','')!='':
+            cacheable=False                
             print "Showarea rendering active"
             wp=[]
             print session.get('showarea','')
@@ -195,6 +199,7 @@ class MaptileController(BaseController):
                     ctx.stroke()
                     
         if session.get('showtrack',None)!=None:                
+            cacheable=False
             print "Showtrack rendering active"
             track=session.get('showtrack')
             ctx.new_path()
@@ -241,6 +246,9 @@ class MaptileController(BaseController):
         """              
         
         #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
-        response.headers['Content-Type'] = 'image/png'
+        if cacheable:
+            response.headers['Pragma'] = ''
+            response.headers['Cache-Control'] = 'max-age=3600'
+            response.headers['Content-Type'] = 'image/png'
         return png
         
