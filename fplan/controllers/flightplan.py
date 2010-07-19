@@ -314,7 +314,10 @@ class FlightplanController(BaseController):
             vertlimit=1000
             if item.get('kind',None)=='terrain':
                 vertlimit=500                
-            margin=item['closestalt']-mapper.parse_elev(item['elev'])
+            try:
+                margin=item['closestalt']-mapper.parse_elev(item['elev'])
+            except:
+                return "#0000ff" #Unknown margin, unknown height
             if item['dist']>0.6/1.852:
                 return None #Not really too close anyway
             if margin<0:

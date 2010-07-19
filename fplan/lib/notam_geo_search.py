@@ -11,11 +11,11 @@ def get_notam_objs():
     others=[]
     spaces=[]
     for u in notamupdates:
-        text=u.text
+        text=u.text.strip()
         coords=list(mapper.parse_lfv_area(text,False))
         if len(coords)==0: continue
         if text.startswith("OBST"):
-            elevs=re.findall(r"ELEV\s*\d+\s*FT",text)
+            elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
             elevs=[int(x) for x in elevs if x.isdigit()]
             if len(elevs)!=0:                
                 elev=max(elevs)
@@ -23,8 +23,8 @@ def get_notam_objs():
                     obstacles.append(dict(
                         pos=coord,
                         elev=elev,
-                        kind='obstacle',
-                        name="Notam Obstacle elev %d ft"%(elev,),
+                        kind='Notam',
+                        name=text.split("\n")[0],
                         notam=text))
                 continue
         if len(coords)<=2:
@@ -32,7 +32,7 @@ def get_notam_objs():
                 others.append(dict(
                     pos=coord,
                     kind='notam',
-                    name="Notam Item",
+                    name="Notam Item"+text,
                     notam=text))
         else:
             pass
