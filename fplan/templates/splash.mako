@@ -3,13 +3,13 @@
 <html style="height:100%;margin:0;padding:0;border:none;">
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<title>Flight Planner</title>
+	<title>SwFlightPlanner</title>
 	<meta http-equiv="Content-Language" content="en-us" />
 	<link href="/style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <title>
-Welcome to Flightplanner
+Welcome to SwFlightplanner
 </title>
 
 <body style="height:100%;margin:0;padding:0;border:none;">
@@ -19,7 +19,7 @@ Welcome to Flightplanner
 <table style="height:30%;vertical-align:middle;margin: 0 auto;">
 <tr>
 <td style="width:100%;text-align:center">
-<h1>Welcome to Flightplanner!</h1>
+<h1>Welcome to SwFlightPlanner!</h1>
 </td>
 </tr>
 </table>
@@ -58,6 +58,15 @@ ${c.expl}
 <br/>
 </td>
 
+</tr></table>
+
+<table style="height:30%;margin: 0 auto">
+<tr>
+<td style="width:75%;text-align:center;padding:2%;font-size:12px">
+This site uses <a href="http://en.wikipedia.org/wiki/HTTP_cookie">cookies</a> to store <a href="http://en.wikipedia.org/wiki/Unique_identifier">unique</a> session identifiers.<br/>
+<a href="/splash/about"><u>About this site</u></a>
+</td>
 </tr></table> 
+ 
 </body>
 </html>

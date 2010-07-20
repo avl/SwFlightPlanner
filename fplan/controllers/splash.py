@@ -6,7 +6,7 @@ from fplan.model import meta,User,Trip,Waypoint,Route
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 import routes.util as h
-
+from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
 
 log = logging.getLogger(__name__)
@@ -20,6 +20,13 @@ class SplashController(BaseController):
         del session['user']
         session.save()
         redirect_to(h.url_for(controller='splash',action="index"))
+    def about(self):
+        try:
+            c.aipupdate=get_aip_download_time()
+        except Exception,cause:
+            c.aipupdate=None
+        return render('/about.mako')
+    
     def login(self):
         users=meta.Session.query(User).filter(sa.and_(
                 User.user==request.params['username'])
