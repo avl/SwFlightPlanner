@@ -3,6 +3,7 @@ import os
 import urllib2
 import random
 import fplan.extract.extracted_cache as extracted_cache
+from datetime import datetime
 
 def download_notam():
     notamlist=[fname for fname in os.listdir("notams") if fname.isdigit() ]
@@ -45,6 +46,7 @@ def download_notams():
         except Exception,cause:
             print "download failed:",cause
             raise
+        print "Time now",datetime.utcnow()
         sleep(random.randrange(9000,10000))        
     
 
