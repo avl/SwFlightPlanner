@@ -118,6 +118,7 @@ def run_update_iteration():
 if __name__=='__main__':
     while True:
         run_update_iteration()
-        
+        time.sleep(3600)
+
 
 
