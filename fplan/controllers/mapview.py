@@ -11,6 +11,7 @@ from fplan.lib.maptilereader import merc_limits
 import sqlalchemy as sa
 import routes.util as h
 import json
+from md5 import md5
 
 log = logging.getLogger(__name__)
 
@@ -88,11 +89,12 @@ class MapviewController(BaseController):
                 sha=request.params['showarea']
                 if (sha=='.'):
                     session['showarea']=''
+                    session['showarea_id']=''
                     session['showtrack']=None
                 else:
                     session['showarea']=sha
+                    session['showarea_id']=md5(sha).hexdigest()
                     session['showtrack']=None
-                    print "Saved showarea:",sha                
             
             if int(request.params.get('showairspaces',0)):
                 session['showairspaces']=True
@@ -204,7 +206,6 @@ class MapviewController(BaseController):
                 User.user==session['user']).one()
                 
         if request.params['zoom']=='auto':
-            print "showarea: ",session.get('showarea','')
             if session.get('showarea','')!='':                
                 zoom=13
                 minx=1e30
@@ -268,6 +269,7 @@ class MapviewController(BaseController):
                 redirect_to(h.url_for(controller='error',action="document",message="GPX file is too large."))
             session['showtrack']=parse_gpx(t.value,request.params.get('start'),request.params.get('end'))
             session['showarea']=''
+            session['showarea_id']=''
             session.save()
         redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
             
@@ -341,5 +343,11 @@ class MapviewController(BaseController):
         c.fastmap=user.fastmap;
         #print "Zoomlevel active: ",zoomlevel
         c.zoomlevel=zoomlevel
+        c.dynamic_id=''
+        if session.get('showarea',''):
+            c.dynamic_id=session.get('showarea_id','')
+        if session.get('showtrack',''):
+            if hasattr(session['showtrack'],'dynamic_id'):
+                c.dynamic_id=session['showtrack'].dynamic_id
         return render('/mapview.mako')
         

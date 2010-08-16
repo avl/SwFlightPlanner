@@ -21,10 +21,11 @@ Openstreetmap (optional, only needed to regenerate map tiles):
 follow:
 http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
 
-
+Prepare database user 'flightplanner':
+create ROLE "flightplanner" SUPERUSER LOGIN;
+("SUPERUSER" may not be necessary)
 
 
 Not needed any more:
 shapelib
 pyshapelib (Not not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)
-

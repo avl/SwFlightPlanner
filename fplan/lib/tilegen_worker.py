@@ -11,20 +11,25 @@ from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfie
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 
-have_mapnik=True
+#have_mapnik=True
+have_mapnik=False
+#If changing this - also change 'meta=x' in tilegen_planner .
 
-def use_existing_tiles(tma):
+def use_existing_tiles():
     if have_mapnik: return None
-    if tma:
-        return "/home/anders/saker/avl_fplan_world/tiles/airspace"
-    else:
-        return "/home/anders/saker/avl_fplan_world/tiles/plain"
+    #if tma:
+    #    return "/home/anders/saker/avl_fplan_world/tiles/airspace"
+    #else:
+    return True
     
 if have_mapnik:
     import mapnik
     prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
+else:
+    import maptilereader
 
 def get_dirpath(cachedir,zoomlevel,x1,y1):
+    print "X1: %d, Y1: %d, tilepixelsize: %d"%(x1,y1,tilepixelsize)
     assert (x1%tilepixelsize)==0
     assert (y1%tilepixelsize)==0
     assert type(zoomlevel)==int
@@ -41,7 +46,7 @@ def get_path(cachedir,zoomlevel,x1,y1):
 def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
     imgx,imgy=pixelsize
 
-    if not use_existing_tiles(tma):
+    if not use_existing_tiles():
         #print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
         #print "Generating tile"
         mapfile = "/home/anders/saker/avl_fplan_world/mapnik_render/osm.xml"
@@ -90,12 +95,16 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         for i in xrange(0,pixelsize[0],256):
             for j in xrange(0,pixelsize[1],256):
                 #print "i,j: %d,%d"%(i,j)
-                fname=get_path(use_existing_tiles(tma),zoomlevel,x1+i,y1+j)
-                if os.path.exists(fname):
-                    sub=Image.open(fname)
-                else:
-                    print "Warning, missing data: ",fname
-                    sub=Image.open("fplan/public/nodata.png")
+                #fname=get_path(use_existing_tiles(),zoomlevel,x1+i,y1+j)
+                #if os.path.exists(fname):
+                #    sub=Image.open(fname)
+                #else:
+                #    print "Warning, missing data: ",fname
+                #    sub=Image.open("fplan/public/nodata.png")
+                rawtile=maptilereader.gettile("plain",zoomlevel,x1+i,y1+j)
+                io=StringIO.StringIO(rawtile)
+                io.seek(0)
+                sub=Image.open(io)
                 im.paste(sub,(i,j,i+256,j+256))
                 
         buf=im.tostring()
@@ -245,8 +254,7 @@ def do_work_item(planner,coord,descr):
 
 
 # finds object automatically if you're running the Name Server.
-def run():
-    planner = Pyro.core.getProxyForURI("PYRONAME://planner")
+def run(planner):    
     while True:
         wi=planner.get_work()
         if wi==None:
@@ -260,5 +268,10 @@ def run():
             raise
             
 if __name__=="__main__":
-    run()
+    planner=Pyro.core.getProxyForURI("PYRONAME://planner")
+    run(planner)
+    
+    
+    
+    
     

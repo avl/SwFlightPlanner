@@ -13,6 +13,8 @@ from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sig
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
 from fplan.lib.get_terrain_elev import get_terrain_elev
+from pyshapemerge2d import Vector,Line2,Vertex
+from itertools import izip
 
 def format_freqs(freqitems):
     out=[]
@@ -81,19 +83,28 @@ class MaptileController(BaseController):
             track=session.get('showtrack')
             print "%d points"%(len(track.points))
             mindiff=1e30
-            height=None
-            for p,pheight in track.points: 
-                print "Track lat/lon: ",p,"click lat/lon:",(lat,lon)
-                merc=mapper.latlon2merc(p,zoomlevel)
-                diff=math.sqrt((clickmerc[0]-merc[0])**2+(clickmerc[1]-merc[1])**2)
-                print diff
-                if diff<mindiff:
-                    mindiff=diff
-                    height=pheight
-            print "Mindiff:",mindiff
-            if mindiff<15:
-                tracks.append(u"<b>GPS track altitude:</b><ul><li>%d ft</li></ul>"%(height/0.3048,))
-                                              
+            found=dict()
+            hdg=0
+            speed=0
+            clickvec=Vertex(int(clickmerc[0]),int(clickmerc[1]))
+            if len(track.points)>0 and len(track.points[0])==2:                
+                pass #Old style track, not supported anymore
+            else:
+                mercc=[(mapper.latlon2merc(p,zoomlevel),height_,hdg_,speed_) for p,height_,hdg_,speed_ in track.points]
+                for (merc,height,hdg,speed),(nextmerc,nextheight,nexthdg,nextspeed) in izip(mercc,mercc[1:]): 
+                    print "Track lat/lon: ",p,"click lat/lon:",(lat,lon)
+                    l=Line2(Vertex(int(merc[0]),int(merc[1])),Vertex(int(nextmerc[0]),int(nextmerc[1])))
+                    diff=l.approx_dist(clickvec)                
+                    print diff
+                    if diff<mindiff:
+                        mindiff=diff
+                        found['height']=height
+                        found['hdg']=hdg
+                        found['speed']=speed
+                print "Mindiff:",mindiff
+                if mindiff<10:
+                    tracks.append(u"<b>GPS track:</b><ul><li>%d ft hdg:%03d spd: %d kt</li></ul>"%(found['height']/0.3048,int(found['hdg']),int(found['speed'])))
+                                                  
 
         airports=[]
         fields=list(get_airfields(lat,lon,zoomlevel))
@@ -122,7 +133,7 @@ class MaptileController(BaseController):
         my=int(request.params.get('mercy'))
         mx=int(request.params.get('mercx'))
         zoomlevel=int(request.params.get('zoom'))
-        
+        print "dynid: ",request.params.get('dynamic_id','None')
         airspaces=True
         if 'showairspaces' in request.params:
             airspaces=int(request.params['showairspaces'])
@@ -139,7 +150,6 @@ class MaptileController(BaseController):
         else:
             variant="plain"
             
-        cacheable=True
         generate_on_the_fly=False
         
         if generate_on_the_fly:
@@ -147,7 +157,6 @@ class MaptileController(BaseController):
         else:
             rawtile=maptilereader.gettile(variant,zoomlevel,mx,my)
             if not neededit:
-                cacheable=True
                 response.headers['Pragma'] = ''
                 response.headers['Content-Type'] = 'image/png'
                 response.headers['Cache-Control'] = 'max-age=3600'
@@ -160,7 +169,6 @@ class MaptileController(BaseController):
         
         
         if session.get('showarea','')!='':
-            cacheable=False                
             print "Showarea rendering active"
             wp=[]
             print session.get('showarea','')
@@ -199,7 +207,6 @@ class MaptileController(BaseController):
                     ctx.stroke()
                     
         if session.get('showtrack',None)!=None:                
-            cacheable=False
             print "Showtrack rendering active"
             track=session.get('showtrack')
             ctx.new_path()
@@ -207,7 +214,7 @@ class MaptileController(BaseController):
             ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
             #lastmecc
             print "%d points"%(len(track.points))
-            for p,height in track.points:
+            for p,height,hdg,speed in track.points:
                 merc=mapper.latlon2merc(p,zoomlevel)
                 p=((merc[0]-mx,merc[1]-my))
                 ctx.line_to(*p)
@@ -246,9 +253,8 @@ class MaptileController(BaseController):
         """              
         
         #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
-        if cacheable:
-            response.headers['Pragma'] = ''
-            response.headers['Cache-Control'] = 'max-age=3600'
-            response.headers['Content-Type'] = 'image/png'
+        response.headers['Pragma'] = ''
+        response.headers['Cache-Control'] = 'max-age=3600'
+        response.headers['Content-Type'] = 'image/png'
         return png
         

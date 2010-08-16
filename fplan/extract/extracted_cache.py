@@ -9,6 +9,7 @@ import pickle
 import os
 import shutil
 import time
+import sys
 version=2
 
 from threading import Lock
@@ -93,14 +94,17 @@ def get_aip_download_time():
     return aipdata.get('downloaded',None)
     
 
-
+single_force=False
 last_update=None
 def run_update_iteration():
+    from fplan.lib.tilegen_unithread import update_unithread
     global last_update
     global aipdata
+    global single_force
     try:
         d=datetime.utcnow()
-        if (d.hour>=22 or d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6)): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
+        if single_force or ((d.hour>=22 or d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6))): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
+            single_force=False
             last_update=datetime.utcnow()
             fetchdata.caching_enabled=False
             aipdata=[]
@@ -108,6 +112,9 @@ def run_update_iteration():
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
             time.sleep(2) #Just for debug, so that we have a chance to see that the aipdata is rewritten 
+            print "Now re-rendering maps"
+            update_unithread()
+            print "Finished re-rendering maps"
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
     except Exception,cause:
@@ -116,6 +123,8 @@ def run_update_iteration():
 
     
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]:
+        single_force=True
     while True:
         run_update_iteration()
         time.sleep(3600)

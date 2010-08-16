@@ -24,6 +24,7 @@ saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
 mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
+dynamic_id='${c.dynamic_id}'; /*Id to keep different tiles uniquely named - needed since we allow the browser to cache the tiles*/
 uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
 fastmap=${"1" if c.fastmap else "0"};
 showairspaces=${"1" if c.show_airspaces else "0"};
@@ -35,7 +36,7 @@ overlay_top=0;
 
 function calctileurl(zoomlevel,mercx,mercy)
 {
-	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces;
+	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces+'&dynamic_id='+dynamic_id;
 }
 function clip_mappos(mercx,mercy)
 {

@@ -12,18 +12,18 @@ from blobfile import BlobFile
 from maptilereader import latlon_limits,merc_limits
         
 
-def generate_work_packages(tma,blobs,cachedir):
+def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
     lat1,lon1,lat2,lon2=latlon_limits()
     lat1=float(lat1)
     lat2=float(lat2)
     lon1=float(lon1)
     lon2=float(lon2)
     
-    meta=50 #Change back to if using mapnik
+    meta=0 #Change back to if using mapnik
     #if meta==0:
     #    print "\n\n\n\n\n=====================================================================\nWARNING! meta==0!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n"
     packcnt=0
-    for zoomlevel in xrange(14):
+    for zoomlevel in xrange(maxzoomlevel+1):
         maxy=mapper.max_merc_y(zoomlevel)
         maxx=mapper.max_merc_x(zoomlevel)
         limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel)
@@ -89,10 +89,10 @@ def generate_work_packages(tma,blobs,cachedir):
                            ))
     print "Finished initializing work. Created %d work items."%(packcnt,)
 class TilePlanner(Pyro.core.ObjBase):
-    def init(self,cachedir,tma):
+    def init(self,cachedir,tma,maxzoomlevel=13):
         self.tma=int(tma)
         self.blobs=dict()
-        self.work=dict(generate_work_packages(self.tma,self.blobs,cachedir))
+        self.work=dict(generate_work_packages(self.tma,self.blobs,cachedir,maxzoomlevel))
         self.inprog=dict()
         self.cachedir=cachedir
         
@@ -139,12 +139,13 @@ class TilePlanner(Pyro.core.ObjBase):
         cprog=len(self.inprog)
         ctot=len(self.work)
         print "Work left: %d (in progress: %d)"%(cprog+ctot,cprog)
-        
-daemon=Pyro.core.Daemon()
-ns=Pyro.naming.NameServerLocator().getNS()
-daemon.useNameServer(ns)
-p=TilePlanner()
-p.init(sys.argv[1],sys.argv[2])
-uri=daemon.connect(p,"planner")
-daemon.requestLoop()
+
+if __name__=='__main__':        
+    daemon=Pyro.core.Daemon()
+    ns=Pyro.naming.NameServerLocator().getNS()
+    daemon.useNameServer(ns)
+    p=TilePlanner()
+    p.init(sys.argv[1],sys.argv[2])
+    uri=daemon.connect(p,"planner")
+    daemon.requestLoop()
 

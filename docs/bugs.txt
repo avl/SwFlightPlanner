@@ -1,8 +1,10 @@
  
-1: Oskarshamn TIA har blivit fel! Är bara en linje, borde vara en area.
+1: FIXAD: Oskarshamn TIA har blivit fel! Är bara en linje, borde vara en area.
 2: Kolla höjden på hindret vid västervik. Visas för låg på din karta?
 3: Borde gå att se riktning på en GPS-track.
 4: Borde gå att få waypoints där man byter luftrum.
 5: Borde gå att få frekvensinfo för luftrum, även visas i färdplan.
 6: Validering av höjder i flightplannen...
-7: Om area-rendering: Se till att inte orendrade gamla tiles cachade visas!
+7: FIXAD: Om area-rendering: Se till att inte orendrade gamla tiles cachade visas!
+8: Fetch Wind Info ger resultat även om kontakt ej nås med LFV-servern! Åtminstone i debug-läge...
+9: Servern återöppnar aldrig sina filhandtag, vilket gör att kartuppdateringar aldrig tar skruv.
