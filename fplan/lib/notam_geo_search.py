@@ -45,6 +45,8 @@ def get_notam_objs(kind=None):
                         notam=text))
             else:
                 if len(coords)>2:
+                    if text.startswith("AREA: "):
+                        continue #These aren't real notams, they're area-specifications for all other notams... make this better some day.
                     areas.append(dict(
                         points=coords,
                         kind="notamarea",
