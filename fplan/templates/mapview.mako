@@ -243,7 +243,7 @@ function loadmap()
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
 	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,'${h.jsescape(wp.waypoint)|n}');
+	tab_add_waypoint(idx,me,'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
 	idx++;
 	%endfor
 	draw_jg();

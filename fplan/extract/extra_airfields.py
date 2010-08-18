@@ -16,7 +16,7 @@ extra_airfields=[
          elev=338),#TODO: Add real elev
     dict(icao="ZZZZ",
          name=u"Stegeborg",
-         pos=mapper.to_str(mapper.from_aviation_format("5826N1636.1E")),
+         pos=mapper.to_str(mapper.from_aviation_format("5826N01636.1E")),
          elev=7)
               
 ]

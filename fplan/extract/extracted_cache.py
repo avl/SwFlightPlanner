@@ -3,6 +3,7 @@ from fplan.extract.parse_obstacles import parse_obstacles
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
+import fplan.lib.remove_unused_users
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 import pickle
@@ -10,9 +11,9 @@ import os
 import shutil
 import time
 import sys
+from threading import Lock
 version=2
 
-from threading import Lock
 aipdata=[]
 loaded_aipdata_cachefiledate=None
 last_timestamp_check=datetime.utcnow()
@@ -115,6 +116,9 @@ def run_update_iteration():
             print "Now re-rendering maps"
             update_unithread()
             print "Finished re-rendering maps"
+            time.sleep(2)
+            print "Now deleteting old unregistered users"
+            fplan.lib.remove_unused_users.run()
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
     except Exception,cause:
@@ -123,6 +127,11 @@ def run_update_iteration():
 
     
 if __name__=='__main__':
+    from sqlalchemy import engine_from_config
+    from paste.deploy import appconfig
+    from fplan.config.environment import load_environment
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
+    load_environment(conf.global_conf, conf.local_conf)
     if len(sys.argv)>1 and sys.argv[1]:
         single_force=True
     while True:

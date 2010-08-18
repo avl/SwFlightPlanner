@@ -140,7 +140,7 @@ class MapviewController(BaseController):
             resultant_by_ordinal=dict()
             for add in added:                
                 wp=wps[add]
-                waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'])
+                waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'],wp['altitude'])
                 resultant_by_ordinal[wp['ordinal']]=waypoint
                 #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
@@ -162,6 +162,7 @@ class MapviewController(BaseController):
                         
                     u.waypoint=wp['name']
                     u.ordinal=wp['ordinal']
+                    u.altitude=wp['altitude']
                     resultant_by_ordinal[wp['ordinal']]=u
                     #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
             

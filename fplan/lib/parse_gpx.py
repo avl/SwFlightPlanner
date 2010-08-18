@@ -43,18 +43,6 @@ def parse_gpx(gpxcontents,startstr,endstr):
         dtim=datetime(int(Y),int(M),int(D),int(h),int(m),int(s),int(micros))
         #print "Parsed %s as %s"%(tim,dtim)
         
-        if lastpos:
-            elapsed=dtim-lasttime
-            bearing,distance=mapper.bearing_and_distance(lastpos,pos)             #this is too slow!
-            distance/=1.852 #convert to nautical miles
-            elapsed_sec=elapsed.days*86400.0+elapsed.seconds+elapsed.microseconds*1e-6
-            if elapsed_sec>0:
-                speed=distance/(elapsed_sec/3600.0) #kt
-            else:
-                speed=0
-        else:
-            bearing=0
-            speed=0            
         if start and end and (dtim<start or dtim>end): continue
 
         if lastlat!=None and lastlon!=None:            
@@ -62,7 +50,7 @@ def parse_gpx(gpxcontents,startstr,endstr):
         else:
             d=2*(threshold**2)
         if d>threshold**2:            
-            out.points.append(((lat,lon),ele,bearing,speed))
+            out.points.append(((lat,lon),ele,dtim))
             lastlon=lon
             lastlat=lat
             if lat<minlat: minlat=lat
@@ -77,4 +65,17 @@ def parse_gpx(gpxcontents,startstr,endstr):
     out.dynamic_id=dynamic_id
     print "Bbs:",out.bb1,out.bb2
     return out
-
+def get_stats(a,b):
+    latlon1,ele1,dtim1=a
+    latlon2,ele2,dtim2=b    
+    
+    elapsed=dtim2-dtim1
+    bearing,distance=mapper.bearing_and_distance(latlon1,latlon2)
+    distance/=1.852
+    elapsed_sec=elapsed.days*86400.0+elapsed.seconds+elapsed.microseconds*1e-6
+    if elapsed_sec>0:
+        speed=distance/(elapsed_sec/3600.0) #kt
+    else:
+        speed=0
+    return dict(when=dtim1.strftime("%Y-%m-%d %H:%M:%S"),altitude=0.5*(ele1+ele2)/0.3048,speed=speed,heading=bearing)
+    

@@ -11,7 +11,7 @@ from fplan.lib.tilegen_worker import generate_big_tile
 from fplan.lib import maptilereader
 from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints,get_notam_areas,get_notampoints
 log = logging.getLogger(__name__)
-from fplan.lib.parse_gpx import parse_gpx
+from fplan.lib.parse_gpx import parse_gpx,get_stats
 from fplan.lib.get_terrain_elev import get_terrain_elev
 from pyshapemerge2d import Vector,Line2,Vertex
 from itertools import izip
@@ -103,20 +103,18 @@ class MaptileController(BaseController):
             if len(track.points)>0 and len(track.points[0])==2:                
                 pass #Old style track, not supported anymore
             else:
-                mercc=[(mapper.latlon2merc(p,zoomlevel),height_,hdg_,speed_) for p,height_,hdg_,speed_ in track.points]
-                for (merc,height,hdg,speed),(nextmerc,nextheight,nexthdg,nextspeed) in izip(mercc,mercc[1:]): 
-                    print "Track lat/lon: ",p,"click lat/lon:",(lat,lon)
+                for a,b in izip(track.points,track.points[1:]): 
+                    merc=mapper.latlon2merc(a[0],zoomlevel)
+                    nextmerc=mapper.latlon2merc(b[0],zoomlevel)
                     l=Line2(Vertex(int(merc[0]),int(merc[1])),Vertex(int(nextmerc[0]),int(nextmerc[1])))
                     diff=l.approx_dist(clickvec)                
                     print diff
                     if diff<mindiff:
                         mindiff=diff
-                        found['height']=height
-                        found['hdg']=hdg
-                        found['speed']=speed
+                        found=(a,b)
                 print "Mindiff:",mindiff
                 if mindiff<10:
-                    tracks.append(u"<b>GPS track:</b><ul><li>%d ft hdg:%03d spd: %d kt</li></ul>"%(found['height']/0.3048,int(found['hdg']),int(found['speed'])))
+                    tracks.append(u"<b>GPS track:</b><ul><li>%(when)s - %(altitude)d ft hdg:%(heading)03d spd: %(speed)d kt</li></ul>"%(get_stats(*found)))
                                                   
 
         airports=[]
@@ -229,7 +227,7 @@ class MaptileController(BaseController):
             ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
             #lastmecc
             print "%d points"%(len(track.points))
-            for p,height,hdg,speed in track.points:
+            for p,height,dtim in track.points:
                 merc=mapper.latlon2merc(p,zoomlevel)
                 p=((merc[0]-mx,merc[1]-my))
                 ctx.line_to(*p)
