@@ -12,3 +12,4 @@
 10: FIXAD: Ta bort användare som aldrig används mer än en gång... till slut.
 11: Uppladdning av track är alldeles för långsam nu när hastighetsberäkningar görs vid upload-time. Gör vid klick-time istället?
 12: Fixa kompass-deviering?
+13: Return borde uppdatera tider och sånt på "Overview"-skärmen för färdplanering.
