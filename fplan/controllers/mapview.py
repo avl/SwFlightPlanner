@@ -2,7 +2,7 @@ import logging
 import math
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route
+from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft
 import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
@@ -116,6 +116,11 @@ class MapviewController(BaseController):
             else:
                 tripname=self.get_free_tripname(tripname)
                 trip = Trip(user.user, tripname)
+                acs=meta.Session.query(Aircraft).filter(sa.and_(
+                    Aircraft.user==session['user'])).all()
+                if len(acs):
+                    trip.aircraft=acs[0].aircraft
+
                 meta.Session.add(trip)
                 session['current_trip']=tripname
             
@@ -182,9 +187,15 @@ class MapviewController(BaseController):
                 meta.Session.query(Route).filter(
                     sa.and_(Route.user==user.user,Route.trip==trip.trip,
                             Route.waypoint1==rem1,Route.waypoint2==rem2)).delete()
+            sel_acs=meta.Session.query(Aircraft).filter(sa.and_(
+                Aircraft.aircraft==trip.aircraft,Aircraft.user==session['user'])).all()
+            if len(sel_acs):
+                tas=sel_acs[0].cruise_speed
+            else:
+                tas=75
             for a1,a2 in added:
                 r=Route(user.user,trip.trip,
-                        a1,a2,0,0,75,None,1000)
+                        a1,a2,0,0,tas,None,1000)
                 meta.Session.add(r)
             
             session.save()
@@ -278,6 +289,11 @@ class MapviewController(BaseController):
         if request.params.get('addtripname',None):
             tripname=self.get_free_tripname(request.params['addtripname'])
             trip = Trip(session['user'], tripname)
+            acs=meta.Session.query(Aircraft).filter(sa.and_(
+                Aircraft.user==session['user'])).all()
+            if len(acs):
+                trip.aircraft=acs[0].aircraft
+            
             print "Adding trip:",trip
             meta.Session.add(trip)
             session['current_trip']=tripname

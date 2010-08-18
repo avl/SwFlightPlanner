@@ -1,10 +1,14 @@
  
 1: FIXAD: Oskarshamn TIA har blivit fel! Är bara en linje, borde vara en area.
-2: Kolla höjden på hindret vid västervik. Visas för låg på din karta?
-3: Borde gå att se riktning på en GPS-track.
-4: Borde gå att få waypoints där man byter luftrum.
-5: Borde gå att få frekvensinfo för luftrum, även visas i färdplan.
-6: Validering av höjder i flightplannen...
+2: FIXAD: Kolla höjden på hindret vid västervik. Visas för låg på din karta?
+3: FIXAD: Borde gå att se riktning på en GPS-track.
+4: TRIAGED: Borde gå att få waypoints där man byter luftrum.
+5: FIXAD: Borde gå att få frekvensinfo för luftrum,
+5b:  -- även visas i färdplan.
+6: FIXAD: Validering av höjder i flightplannen... med avseende på prestanda.
 7: FIXAD: Om area-rendering: Se till att inte orendrade gamla tiles cachade visas!
-8: Fetch Wind Info ger resultat även om kontakt ej nås med LFV-servern! Åtminstone i debug-läge...
-9: Servern återöppnar aldrig sina filhandtag, vilket gör att kartuppdateringar aldrig tar skruv.
+8: FIXAD: Fetch Wind Info ger resultat även om kontakt ej nås med LFV-servern! Åtminstone i debug-läge... (bara på min macbook, baserat på hostname)
+9: FIXAD: Servern återöppnar aldrig sina filhandtag, vilket gör att kartuppdateringar aldrig tar skruv. (scanna MTIME varje minut, ladda om ifall ändrat)
+10: Ta bort användare som aldrig används mer än en gång... till slut.
+11: Uppladdning av track är alldeles för långsam nu när hastighetsberäkningar görs vid upload-time. Gör vid klick-time istället?
+12: Fixa kompass-deviering?

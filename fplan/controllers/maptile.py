@@ -9,12 +9,15 @@ import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
 from fplan.lib import maptilereader
-from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints
+from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints,get_notam_areas,get_notampoints
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx
 from fplan.lib.get_terrain_elev import get_terrain_elev
 from pyshapemerge2d import Vector,Line2,Vertex
 from itertools import izip
+import routes.util as h
+
+
 
 def format_freqs(freqitems):
     out=[]
@@ -64,7 +67,17 @@ class MaptileController(BaseController):
                 get_airspaces(lat,lon),key=sort_airspace_key))
         if spaces=="":
             spaces="Uncontrolled below FL095"
-        
+            
+            
+        notamareas="".join("<li><b><u><a href=\"%s#notam\">Area</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",notam=area['notam_ordinal'],line=area['notam_line']),area['notam']) for area in get_notam_areas(lat,lon))
+
+
+        notamareas+="".join("<li><b><u><a href=\"%s#notam\">Point</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",notam=point['notam_ordinal'],line=point['notam_line']),point['notam']) for point in get_notampoints(lat,lon,zoomlevel))
+       
+        if notamareas!="":
+            notamareas="<b>Notams</b><ul>"+notamareas+"</ul>"
+
+            
         obstbytype=dict()
         for obst in get_obstacles(lat,lon,zoomlevel):
             obstbytype.setdefault(obst['kind'],[]).append(obst)
@@ -122,9 +135,11 @@ class MaptileController(BaseController):
                 sigpoints.append(u"<li><b>%s</b></li>"%(sigp['name'],))
             sigpoints.append("</ul>")
        
+        
+       
 
         terrelev=get_terrain_elev((lat,lon))
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),terrelev)
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,notamareas,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),terrelev)
 
     def get(self):
         # Return a rendered template
@@ -133,7 +148,7 @@ class MaptileController(BaseController):
         my=int(request.params.get('mercy'))
         mx=int(request.params.get('mercx'))
         zoomlevel=int(request.params.get('zoom'))
-        print "dynid: ",request.params.get('dynamic_id','None')
+        #print "dynid: ",request.params.get('dynamic_id','None')
         airspaces=True
         if 'showairspaces' in request.params:
             airspaces=int(request.params['showairspaces'])

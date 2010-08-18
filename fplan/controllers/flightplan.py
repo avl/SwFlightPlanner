@@ -268,7 +268,7 @@ class FlightplanController(BaseController):
                 dict(width=3,short='W',desc="Wind Direction (deg)",extra=""),
                 dict(width=2,short='V',desc="Wind Velocity (kt)",extra=""),
                 #dict(width=3,short='Temp',desc="Outside Air Temperature (C)",extra=""),
-                dict(width=5,short='Alt',desc="Altitude/Flight Level",extra="(Altitude above mean sea level/flight level, e.g 4500ft or FL045)"),
+                dict(width=5,short='Alt',desc="Altitude/Flight Level for leg",extra="(Altitude above mean sea level/flight level, e.g 4500ft or FL045, to be held on the leg between two waypoints.)"),
                 dict(width=3,short='TAS',desc="True Air Speed (kt)",extra="(the speed of the aircraft in relation to the air around it)"),
                 dict(width=3,short='TT',desc="True Track (deg)",extra="(the true direction the aircraft is flying, relative to ground)"),
                 dict(width=3,short='WCA',desc="Wind correction angle (deg)",extra=" (the compensation due to wind needed to stay on the True Track. Negative means you have to aim left, positive to aim right)"),
@@ -283,15 +283,32 @@ class FlightplanController(BaseController):
         c.acname=trip.trip
         c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
                  Aircraft.user==session['user'])).all()
+
+        if trip.acobj==None:
+            c.ac=None
+        else:        
+            c.ac=trip.acobj
         
         return render('/flightplan.mako')
-    def select_aircraft(self):
+    def select_aircraft(self):  
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        
         tripobj.aircraft=request.params['change_aircraft']
+        if tripobj.aircraft.strip()=="--------":
+            tripobj.aircraft=None
+        else:
+            for route in meta.Session.query(Route).filter(sa.and_(
+                            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all():
+                acobj,=meta.Session.query(Aircraft).filter(sa.and_(
+                    Aircraft.aircraft==tripobj.aircraft,Aircraft.user==session['user'])).all()
+                route.tas=acobj.cruise_speed
+            
         meta.Session.flush()
         meta.Session.commit()
-        redirect_to(h.url_for(controller='flightplan',action="fuel"))
+        
+        
+        redirect_to(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
     def obstacles(self):    
         routes=get_route(session['user'],session['current_trip'])
@@ -300,7 +317,7 @@ class FlightplanController(BaseController):
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
         vertdist=1000.0
-        items=chain(notam_geo_search.get_notam_objs(kind="obstacle"),
+        items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
                         geo.get_terrain_near_route(routes,vertdist)):
@@ -361,6 +378,7 @@ class FlightplanController(BaseController):
         c.trip=tripobj.trip
         c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
+        
         if tripobj.acobj==None:
             c.routes=[]
             c.acwarn=True
@@ -369,5 +387,9 @@ class FlightplanController(BaseController):
             c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
+        c.performance="ok"
+        for rt in c.routes:
+            if rt.performance!="ok":
+                c.performance="notok"
         return render('/fuel.mako')
         

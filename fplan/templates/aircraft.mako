@@ -39,6 +39,7 @@ ${c.flash}
 %endif
 
 <form id="acform" action="${h.url_for(controller="aircraft",action="save")}" method="POST">
+%if not c.newly_added:
 %if len(c.all_aircraft):
 <select onchange="onchange_aircraft()" name="change_aircraft">
 %for ac in c.all_aircraft:
@@ -49,11 +50,16 @@ ${ac.aircraft}
 </select>
 %endif
 <input type="submit" name="add_button" value="Add aircraft"/>
+%endif
+
 %if c.ac:
+%if not c.newly_added:
 <input type="submit" name="del_button" value="Delete aircraft"/>
+%endif
+
 <table>
 <tr>
-<td>Registration/name:</td><td><input type="hidden" name="orig_aircraft" value="${c.ac.aircraft}" />
+<td>Registration/name:</td><td><input type="hidden" name="orig_aircraft" value="${c.orig_aircraft}" />
 <input type="text" name="aircraft" value="${c.ac.aircraft}" /></td>
 </tr>
 <tr>

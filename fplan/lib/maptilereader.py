@@ -1,17 +1,9 @@
 from fplan.lib.blobfile import BlobFile
 import fplan.lib.mapper as mapper
 import os
+from datetime import datetime,timedelta
+import stat
 
-variants=["airspace","plain"]
-blobcache=dict()
-for variant in variants:
-    for zoomlevel in xrange(14):
-        path="/home/anders/saker/avl_fplan_world/tiles/%s/level%d"%(
-                variant,
-                zoomlevel)
-        #print "Reading: ",path
-        if os.path.exists(path):
-            blobcache[(variant,zoomlevel)]=BlobFile(path)
         
 def latlon_limits():
     limits="55,10,69,24"
@@ -37,8 +29,37 @@ def merc_limits(zoomlevel,conservative=False):
         return limitx1,limity1,limitx2,limity2
 
 
+blobcache=None
+last_reopencheck=datetime.utcnow()
+last_mtime=0
 def gettile(variant,zoomlevel,mx,my):
-
+    global blobcache
+    global last_reopencheck
+    global last_mtime
+    
+    reopen_blobs=False
+    if datetime.utcnow()-last_reopencheck>timedelta(0,60):
+        path="/home/anders/saker/avl_fplan_world/tiles/airspace/level5" #used to detect if map has been updated
+        mtime=os.stat(path)[stat.ST_MTIME]
+        #print "mtime, level 5: ",mtime
+        if mtime!=last_mtime:
+            reopen_blobs=True
+            last_mtime=mtime
+        last_reopencheck=datetime.utcnow()    
+    if blobcache==None or reopen_blobs:
+        #print "Reopen blobs:",reopen_blobs
+        blobcache=dict()
+        variants=["airspace","plain"]
+        for variant in variants:
+            for zoomlevel in xrange(14):
+                path="/home/anders/saker/avl_fplan_world/tiles/%s/level%d"%(
+                        variant,
+                        zoomlevel)
+                #print "Reading: ",path
+                if os.path.exists(path):
+                    #print "Reopening "+path
+                    blobcache[(variant,zoomlevel)]=BlobFile(path)
+        
     blob=blobcache.get((variant,zoomlevel),None)
     if blob==None:
         print "Zoomlevel %d not loaded"%(zoomlevel,)

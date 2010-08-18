@@ -108,7 +108,7 @@ def get_route(user,trip):
         climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
         descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
 
-        print "idx: %d, prev_alt=%s"%(idx,prev_alt)
+        #print "idx: %d, prev_alt=%s"%(idx,prev_alt)
         def alt_change_dist(delta):
             if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
             if delta>0:
@@ -141,26 +141,26 @@ def get_route(user,trip):
                 alt2=get_pos_elev(mapper.from_str(rt.b.pos))
         
         
-        rt.climbperformance="ok"
+        rt.performance="ok"
         begindelta=mid_alt-prev_alt
         begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
         if begindist>rt.d:
-            print "Begin delta ",begindelta," not fulfilled"
+            #print "Begin delta ",begindelta," not fulfilled"
             ratio=rt.d/float(begindist)
             begindist=rt.d
-            rt.climbperformance="notok"
+            rt.performance="notok"
             begindelta*=ratio
             mid_alt=prev_alt+begindelta                    
 
-        print "mid_alt",mid_alt
+        #print "mid_alt",mid_alt
         enddelta=alt2-mid_alt
                 
         enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
-        print "begindist: %f, enddist: %f, rt.d: %f"%(begindist,enddist,rt.d)
+        #print "begindist: %f, enddist: %f, rt.d: %f"%(begindist,enddist,rt.d)
         if enddist+begindist>rt.d:
-            print "End delta ",enddelta," not fulfilled"
+            #print "End delta ",enddelta," not fulfilled"
             enddist=rt.d-begindist            
-            rt.climbperformance="notok"
+            rt.performance="notok"
         
         del begindelta
         del enddelta
@@ -178,7 +178,7 @@ def get_route(user,trip):
         else:
             endtime=enddist/endspeed
         middist=rt.d-(begindist+enddist)
-        print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
+        #print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
         if cruise_gs<1e-3:
             midtime=9999.0
         else:
@@ -206,6 +206,7 @@ def get_route(user,trip):
         sub=[]
         if abs(begintime)>1e-5:
             out=TechRoute()
+            out.performance=rt.performance
             out.tt=rt.tt
             out.d=begindist
             out.relstartd=0
@@ -224,6 +225,7 @@ def get_route(user,trip):
             sub.append(out)
         if abs(midtime)>1e-5:
             out=TechRoute()
+            out.performance=rt.performance
             out.tt=rt.tt
             out.d=middist
             out.relstartd=begindist
@@ -241,6 +243,7 @@ def get_route(user,trip):
             sub.append(out)
         if abs(endtime)>1e-5:
             out=TechRoute()
+            out.performance=rt.performance
             out.tt=rt.tt
             out.d=enddist
             out.relstartd=begindist+middist
@@ -277,7 +280,7 @@ def get_route(user,trip):
                 mercs=[((1.0-rel)*merca[0]+rel*mercb[0],(1.0-rel)*merca[1]+rel*mercb[1]) for rel in [drel1,drel2]]
                 out.startpos=mapper.merc2latlon(mercs[0],13)
                 out.endpos=mapper.merc2latlon(mercs[1],13)
-                print "Name:",rt.a.waypoint,"Startpos:",out.startpos,"endpos:",out.endpos,"segment:",out.what
+                #print "Name:",rt.a.waypoint,"Startpos:",out.startpos,"endpos:",out.endpos,"segment:",out.what
                 
             if out.what=="climb":
                 out.tas=ac.climb_speed
@@ -318,7 +321,6 @@ def get_route(user,trip):
             rt.time_hours=rt.d/rt.gs;
         else:
             rt.time_hours=None                          
-    
     return res
 
 def test_route_info():

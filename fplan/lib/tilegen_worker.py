@@ -10,6 +10,7 @@ import numpy
 from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
+from fplan.lib.notam_geo_search import get_notam_objs_cached
 
 #have_mapnik=True
 have_mapnik=False
@@ -124,7 +125,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
 
     ctx=cairo.Context(im)
     if tma:
-        for space in get_airspaces():        
+        for space in get_airspaces()+get_notam_objs_cached()['areas']:        
             
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
@@ -132,7 +133,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             areacol,solidcol=dict(
                         TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
                         R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
-                        CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75))
+                        CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
+                        notamarea=((0.5,1,0.5,0.15),(0.5,1,0.5,0.75))
                         )[space['type']]
                         
             ctx.close_path()   
@@ -153,7 +155,25 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.75))
             ctx.new_path()
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-            ctx.stroke()                                        
+            ctx.stroke()                 
+            
+    for notamtype,items in get_notam_objs_cached().items():
+        if notamtype=="areas": continue
+        for item in items:
+            if zoomlevel>=8:
+                ctx.set_source(cairo.SolidPattern(0.25,1,0.25,0.25))
+                merc=mapper.latlon2merc(mapper.from_str(item['pos']),zoomlevel)
+                pos=(merc[0]-x1,merc[1]-y1)            
+                radius=5
+                
+                ctx.new_path()
+                ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+                ctx.fill_preserve()
+                ctx.set_source(cairo.SolidPattern(0,1.0,0,0.75))
+                ctx.new_path()
+                ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+                ctx.stroke()                 
+                           
     for airfield in get_airfields():
         if zoomlevel<6:
             continue

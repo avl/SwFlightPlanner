@@ -217,7 +217,7 @@ def to_aviation_format(latlon):
     
 
 def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
-    """bearing in degrees, distnace in km"""
+    """bearing in degrees, distance in km"""
     pos1=start
     pos2=end
     if pos1==pos2: return 0,0

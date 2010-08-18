@@ -27,22 +27,28 @@ function navigate_to(where)
 ${close} <br/>
 %endfor
 
+
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>You need to add an aircraft!</b></a>
 %endif
 %if len(c.all_aircraft)>0:
+%if c.acwarn:
+You must select an aircraft in order to calculate trip details!
+%endif
 <form action="${h.url_for(controller="flightplan",action="select_aircraft")}" method="POST">
-<select onchange="onchange_aircraft()" name="change_aircraft">
+<select name="change_aircraft">
+<option>--------
+</option>
 %for ac in c.all_aircraft:
 <option ${'selected="1"' if c.ac and ac.aircraft==c.ac.aircraft else ''|n}>
 ${ac.aircraft}
 </option>
 %endfor
 </select>
-<input type="submit" name="save" value="Choose aircraft"/>
+<input type="hidden" name="prevaction" value="fuel"/>
+<input type="submit" name="save" value="Choose aircraft" title="Select an aircraft using the dropdown-box just to the left of this button!"/>
 </form>
 %endif
-
 %if not c.acwarn:
 <br/>
 <h2>Legs</h2>
@@ -55,7 +61,14 @@ ${ac.aircraft}
 <td>Start Alt</td><td>End Alt</td>
 </tr>
 %for route in c.routes:
+
+%if route.performance=="ok":
 <tr>
+%endif
+%if route.performance!="ok":
+<tr style="background:#ffe0e0">
+%endif
+
 <td>
 ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${route.what}</td>
@@ -73,12 +86,23 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 </tr>
 %endfor
 </table>
+
+<br/>
+
+%if c.performance=="notok":
+<span style="background:#ffe0e0">
+The aircraft climb/descent performance appears to NOT be enough to reach the desired altitudes in the distance available for one of the legs.
+</span>
+%endif
+
 %endif
 <div>
 <br/>
-<br/>
+
+%if not c.acwarn:
 WARNING! This information may only be used for quickly checking possible flights for plausibility.<br/>
 <b>BEFORE FLYING, YOU MUST DO YOUR OWN CALCULATIONS!</b>
+%endif
 </div>
 </div>
 

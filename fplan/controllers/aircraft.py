@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 class AircraftController(BaseController):
 
-    def index(self,bad_values=dict()):
+    def index(self,bad_values=dict(),orig=None):
         cur_acname=session.get('cur_aircraft',None)
         print "Cur aircraft:",cur_acname
         c.ac=None
@@ -26,11 +26,24 @@ class AircraftController(BaseController):
                 
         c.msgerror=lambda x:bad_values.get(x,'')
         c.fmterror=lambda x:'style="background:#ff8080;' if bad_values.get(x,None) else ''
-        c.flash=request.params.get('flash','')
+        
+        c.newly_added=False
+        if request.params.get('flash','')=='new':
+            c.flash='A new aircraft was added! Enter its registration/name and other info below.'
+            c.newly_added=True
+        else:
+            c.flash=''
+        
         c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
                  Aircraft.user==session['user'])).all()
         if len(c.all_aircraft) and c.ac==None:
             c.ac=c.all_aircraft[0]
+        if c.ac:
+            c.orig_aircraft=c.ac.aircraft
+        else:
+            c.orig_aircraft=''
+        if orig!=None:
+            c.orig_aircraft=orig
         return render('/aircraft.mako')
     
     def do_save(self):
@@ -70,7 +83,7 @@ class AircraftController(BaseController):
         if 'orig_aircraft' in request.params:
             bad=self.do_save()
             if bad:
-                return self.index(bad)
+                return self.index(bad,orig=request.params['orig_aircraft'])
             
         if request.params.get('del_button',False):
             print "del button"
@@ -101,7 +114,7 @@ class AircraftController(BaseController):
                 else: i+=1                
             a=Aircraft(session['user'],cur_acname)
             meta.Session.add(a)
-            flash='A new aircraft was added! Enter its registration/name and other info below.'
+            flash='new'
             session['cur_aircraft']=cur_acname
             print "cur_aircraft=",session['cur_aircraft']
             session.save()

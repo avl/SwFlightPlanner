@@ -251,9 +251,9 @@ function fpaddwaypoint(pos,name,rowdata,altitude)
 	else
 		idx=(tab.rows.length-1)/2;
 	var elem=tab.insertRow(-1);
-	
-	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input readonly="1" type="text" name="name'+idx+'" value="'+name+'"/>'+
-	    'Altitude:<input title="Optional altitude for waypoint. Can be left blank." type="text" id="wpalt'+idx+'" name="alt'+idx+'" value="'+altitude+'"/></td>';
+	waypointalthelp='Optional altitude for waypoint. Can be left blank. Set this to terrain height for any landings en-route.';
+	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+idx+': <input title="Name of waypoint. Go to map-screen to change." readonly="1" type="text" name="name'+idx+'" value="'+name+'"/>'+
+	    '<span title="'+waypointalthelp+'">Waypoint Alt:</span><input title="'+waypointalthelp+'" type="text" id="wpalt'+idx+'" name="alt'+idx+'" value="'+altitude+'"/></td>';
 
 	if (rowdata!=null && rowdata.length>0)
 	{

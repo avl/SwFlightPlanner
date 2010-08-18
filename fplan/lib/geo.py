@@ -84,29 +84,29 @@ def get_stuff_near_route(rts,items,dist,vertdist):
         itemv=Vertex(int(itemmerc[0]),int(itemmerc[1]))
         onenm=mapper.approx_scale(itemmerc,13,1.0)
         for rt in rts:
-            print "========================================="
+            #print "========================================="
             av=Vertex(int(rt.subposa[0]),int(rt.subposa[1]))
             bv=Vertex(int(rt.subposb[0]),int(rt.subposb[1]))
             l=Line2(av,bv)
             linelen=(bv-av).approxlength()
             actualclosest=l.approx_closest(itemv)
-            print item['name'],"A: ",av,"B: ",bv,"clo:",actualclosest
+            #print item['name'],"A: ",av,"B: ",bv,"clo:",actualclosest
             actualdist=(actualclosest-itemv).approxlength()/onenm
             
             ls=(actualclosest-av).approxlength()
-            print "Length from start:",ls
-            print "Linelen:",linelen
+            #print "Length from start:",ls
+            #print "Linelen:",linelen
             if linelen>1e-3:
                 along=ls/linelen
             else:
                 along=0
-            print "Along:",along
-            print "Startalt:",rt.startalt," endalt: ",rt.endalt
+            #print "Along:",along
+            #print "Startalt:",rt.startalt," endalt: ",rt.endalt
             alongnm=rt.d*along
             alongnm_a=rt.relstartd+alongnm
-            print "NM from ",rt.a.waypoint," is ",alongnm_a
+            #print "NM from ",rt.a.waypoint," is ",alongnm_a
             closealt=rt.startalt+(rt.endalt-rt.startalt)*along
-            print "Altitude at point: ",closealt, " before: ",rt.a.waypoint,rt.b.waypoint
+            #print "Altitude at point: ",closealt, " before: ",rt.a.waypoint,rt.b.waypoint
             altmargin=0
             if 'elev' in item:
                 itemalt=mapper.parse_elev(item['elev'])

@@ -75,6 +75,29 @@ ${c.tripname}
 <b>${c.flash}</b><br/>
 </div>
 %endif
+
+%if len(c.all_aircraft)==0:
+<a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>Click here to add an aircraft!</b></a>
+%endif
+%if len(c.all_aircraft)>0:
+<form action="${h.url_for(controller="flightplan",action="select_aircraft")}" method="POST">
+<select name="change_aircraft">
+<option>--------
+</option>
+%for ac in c.all_aircraft:
+<option ${'selected="1"' if c.ac and ac.aircraft==c.ac.aircraft else ''|n}>
+${ac.aircraft}
+</option>
+%endfor
+</select>
+<input type="hidden" name="prevaction" value="index"/>
+<input type="submit" name="save" value="Choose aircraft" title="Select an aircraft using the dropdown-box just to the left of this button!"/>
+
+</form>
+<br/>
+%endif
+
+
 %if len(c.waypoints)==0:
 <div class="bordered">
 You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",action="index")}"><u>map</u></a> and click the 'Add' button in the upper right part of the screen. Then click in the map to add waypoints.
@@ -102,7 +125,7 @@ ${ac.aircraft}
 </td>
 </tr>
 </table>
-<button onclick="fetch_winds();return false;">Fetch Wind Information</button>
+<button title="Fetch wind-information from the low-level forecast provided by LFV" onclick="fetch_winds();return false;">Fetch Wind Information</button>
 
 %if False and len(c.all_aircraft):
 <button onclick="fetch_acparams();return false;">Fetch Values from Aircraft</button>

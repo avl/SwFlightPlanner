@@ -114,8 +114,7 @@ def run_update():
     
     
 if __name__=='__main__':       
-    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))
-    
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
     load_environment(conf.global_conf, conf.local_conf)
     run_update()
     sys.exit(0)

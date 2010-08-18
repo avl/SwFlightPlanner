@@ -2,6 +2,8 @@ from tilegen_planner import TilePlanner
 import tilegen_worker
 import sys
 import os
+from fplan.config.environment import load_environment
+from paste.deploy import appconfig
 
 def run_unithread(target_path,tma):
     p=TilePlanner()
@@ -21,6 +23,9 @@ def update_unithread():
         raise Exception("Couldn't move updated airspace blobs to active dir")
 
 if __name__=='__main__':
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
+    load_environment(conf.global_conf, conf.local_conf)
+
     if len(sys.argv)==2 and sys.argv[1]=='stdupdate':
         update_unithread()
     else:
