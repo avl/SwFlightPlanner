@@ -299,6 +299,8 @@ def get_route(user,trip):
             out.ch=out.tt+out.wca-val(rt.variation)-val(rt.deviation)
             out.a=rt.a
             out.b=rt.b
+            out.ordinal1=rt.waypoint1
+            out.ordinal2=rt.waypoint2
             out.winddir=rt.winddir
             out.windvel=rt.windvel
             res.append(out)

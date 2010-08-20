@@ -10,19 +10,19 @@
 
 
 <body>
-<a style="color:#ff0000;font-size:12px" href="javascript: history.go(-1)">&lt;- Back</a>
+<a style="color:#ff0000;font-size:12px" href="${c.backlink}">&lt;- Back</a>
 <pre>
 %for line in c.startlines:
 ${line}
 %endfor
 </pre>
-<a id="notam" style="color:#ff0000;font-size:12px" href="javascript: history.go(-1)">&lt;- Back</a>
+<a id="notam" style="color:#ff0000;font-size:12px" href="${c.backlink}">&lt;- Back</a>
 <pre style="background:#00ff00">
 %for line in c.midlines:
 ${line}
 %endfor
 </pre>
-<a style="color:#ff0000;font-size:12px" href="javascript: history.go(-1)">&lt;- Back</a>
+<a style="color:#ff0000;font-size:12px" href="${c.backlink}">&lt;- Back</a>
 <pre>
 %for line in c.endlines:
 ${line}

@@ -30,6 +30,9 @@ class NotamController(BaseController):
         notam=meta.Session.query(Notam).filter(
              Notam.ordinal==int(request.params['notam'])).one()
         
+        c.backlink=request.params.get('backlink',
+            h.url_for(controller="notam",action="index"))
+        
         all_lines=list(notam.notamtext.splitlines())
         startline=int(request.params['line'])
         endline=startline

@@ -119,6 +119,7 @@ function save_data(cont)
         params['wpalt'+i]=alt;            
     }
 	params['tripname']=tripname;
+	params['startfuel']=document.getElementById('startfuel').value;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);

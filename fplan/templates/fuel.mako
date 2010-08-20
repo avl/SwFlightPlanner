@@ -51,6 +51,7 @@ ${ac.aircraft}
 %endif
 %if not c.acwarn:
 <br/>
+
 <h2>Legs</h2>
 <table>
 <tr>
@@ -98,6 +99,16 @@ The aircraft climb/descent performance appears to NOT be enough to reach the des
 %endif
 <div>
 <br/>
+
+<b>Fuel analysis</b><br/>
+<table>
+<tr><td>Start:</td><td>${"%.1f"%(c.startfuel,)}L</td></tr>
+<tr 
+%if c.endfuel<0:
+style="background-color:#ff8080"
+%endif
+><td>End:</td><td>${"%.1f"%(c.endfuel,)}L</td></tr>
+</table>
 
 %if not c.acwarn:
 WARNING! This information may only be used for quickly checking possible flights for plausibility.<br/>

@@ -10,6 +10,9 @@
 8: FIXAD: Fetch Wind Info ger resultat även om kontakt ej nås med LFV-servern! Åtminstone i debug-läge... (bara på min macbook, baserat på hostname)
 9: FIXAD: Servern återöppnar aldrig sina filhandtag, vilket gör att kartuppdateringar aldrig tar skruv. (scanna MTIME varje minut, ladda om ifall ändrat)
 10: FIXAD: Ta bort användare som aldrig används mer än en gång... till slut.
-11: Uppladdning av track är alldeles för långsam nu när hastighetsberäkningar görs vid upload-time. Gör vid klick-time istället?
+11: FIXAD: Uppladdning av track är alldeles för långsam nu när hastighetsberäkningar görs vid upload-time. Gör vid klick-time istället?
 12: Fixa kompass-deviering?
-13: Return borde uppdatera tider och sånt på "Overview"-skärmen för färdplanering.
+13: FIXAD: Return borde uppdatera tider och sånt på "Overview"-skärmen för färdplanering.
+14: FIXAD: Färdigställ startfuel-supporten.
+15: Borde ha en printable driftfärdplan.
+
