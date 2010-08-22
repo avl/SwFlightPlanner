@@ -58,6 +58,14 @@ class FlightplanController(BaseController):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
+            
+        print "Save:",request.params
+        if 'startfuel' in request.params:
+            try: 
+                trip.startfuel=float(request.params['startfuel'])
+            except:
+                pass
+                            
         print request.params
         for idx,way in enumerate(waypoints):
             altname='wpalt%d'%idx
@@ -288,6 +296,8 @@ class FlightplanController(BaseController):
             c.ac=None
         else:        
             c.ac=trip.acobj
+            
+        c.startfuel=trip.startfuel
         
         return render('/flightplan.mako')
     def select_aircraft(self):  
@@ -310,12 +320,8 @@ class FlightplanController(BaseController):
         
         redirect_to(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
-    def obstacles(self):    
-        routes=get_route(session['user'],session['current_trip'])
+    def get_obstacles(self,routes):        
         byord=dict()
-        tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
-        c.trip=tripobj.trip
         vertdist=1000.0
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
@@ -323,8 +329,18 @@ class FlightplanController(BaseController):
                         geo.get_terrain_near_route(routes,vertdist)):
             byord.setdefault(closeitem['ordinal'],[]).append(closeitem)
 
+        for v in byord.values():
+            v.sort(key=lambda x:x['dist_from_a'])                        
+        return sorted(byord.items())
+    
+    def obstacles(self):    
+        routes=get_route(session['user'],session['current_trip'])
+        
+        tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        c.trip=tripobj.trip
+        byordsorted=self.get_obstacles(routes)
         out=[]
-        byordsorted=sorted(byord.items())
         def classify(item):
             print item
             vertlimit=1000
@@ -363,13 +379,24 @@ class FlightplanController(BaseController):
                     elev=item.get('elev',None)))
                 cur[-1]['color']=classify(cur[-1])
             out.append((items[0]['a'].waypoint,sorted(cur,key=lambda x:x['along_nm'])))
+        
         c.items=out
-        if len(byordsorted)>0:
-            c.endwaypoint=byordsorted[-1][1][-1]['b'].waypoint
-        else:
-            c.endwaypoint=None
         return render('/obstacles.mako')
         
+        
+    def printable(self):
+        c.techroute=get_route(session['user'],session['current_trip'])
+        c.route=list(meta.Session.query(Route).filter(sa.and_(
+            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
+        c.tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        if len(c.route)==0 or len(c.techroute)==0:
+            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
+            return
+        obst=self.get_obstacles(c.techroute)
+        c.departure=c.route[0].a.waypoint
+        c.arrival=c.route[-1].a.waypoint
+        return render('/printable.mako')
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
             Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
@@ -378,15 +405,21 @@ class FlightplanController(BaseController):
         c.trip=tripobj.trip
         c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
+        c.startfuel=tripobj.startfuel
         
         if tripobj.acobj==None:
             c.routes=[]
             c.acwarn=True
             c.ac=None
+            c.endfuel=tripobj.startfuel
         else:        
             c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
+            if len(c.routes)>0:
+                c.endfuel=c.startfuel-c.routes[-1].accum_fuel_burn
+            else:
+                c.endfuel=c.startfuel
         c.performance="ok"
         for rt in c.routes:
             if rt.performance!="ok":

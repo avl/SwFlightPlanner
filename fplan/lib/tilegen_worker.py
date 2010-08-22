@@ -102,7 +102,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
                 #else:
                 #    print "Warning, missing data: ",fname
                 #    sub=Image.open("fplan/public/nodata.png")
-                rawtile=maptilereader.gettile("plain",zoomlevel,x1+i,y1+j)
+                rawtile,tilemeta=maptilereader.gettile("plain",zoomlevel,x1+i,y1+j)
                 io=StringIO.StringIO(rawtile)
                 io.seek(0)
                 sub=Image.open(io)

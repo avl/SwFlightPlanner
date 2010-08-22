@@ -119,6 +119,7 @@ function save_data(cont)
         params['wpalt'+i]=alt;            
     }
 	params['tripname']=tripname;
+	params['startfuel']=document.getElementById('startfuel').value;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -272,7 +273,7 @@ function fpaddwaypoint(pos,name,rowdata,altitude)
 				ro='onkeypress="return not_enter(event)"';
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onkeydown="on_updaterow('+idx+',\''+fpcolshort[i]+'\');"  onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onkeyup="on_updaterow('+idx+',\''+fpcolshort[i]+'\');"  onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 	}

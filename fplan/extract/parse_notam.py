@@ -25,6 +25,26 @@ class Notam(object):
         return self.items==o.items
     def __hash__(self):
         return hash(self.items)
+def normalize_item(text):
+    return "\n".join([x.strip() for x in text.splitlines() if x.strip()])
+
+
+strange_skavsta_notam=normalize_item(
+"""584957N0164459E 585018N0164624E 585016N0164836E 584909N0164927E
+584744N0164824E 584740N0164633E 584808N0164529E 584957N0164459E
+JONAKER-NYKOPING-OXELOSUND
+584611N0164031E 584406N0164013E 583747N0165647E 583829N0171100E
+584738N0170649E 584611N0164031E
+TYSTBERGA
+585149N0171322E 585149N0171518E 585110N0171603E 585027N0171535E
+585021N0171402E 585106N0171233E 585149N0171322E.
+26JUL10 0931 - PERM (ES/1/B2322/10)""")
+
+def fixup(x):
+    if x==strange_skavsta_notam:
+        print "found strange skavsta notam"
+        x="VISUAL APCH NOT PERMITTED WI FOLLOWING AREAS\nSTIGTOMTA\n"+x
+    return x
 
 def parse_notam(html):
     print "html lines:",html.count("\n")
@@ -60,7 +80,7 @@ def parse_notam(html):
         #print "iss match <%s>: %s"%(l,iss!=None)
         if iss: 
             date,time=iss.groups()
-            print "Issued:",date,time
+            #print "Issued:",date,time
             continue
         if re.match(r"\s*Last\s+updated\s+.* UTC \d{4}\s*",l):continue
         if re.match(r"\s*ALL ACTIVE AND INACTIVE NOTAM INCLUDED\s*",l):continue
@@ -79,12 +99,12 @@ def parse_notam(html):
                 out[-1].text+=" "
             out[-1].text+=l
 
-    def normalize_item(text):
-        return "\n".join([x.strip() for x in text.splitlines() if x.strip()])
+    for b in out:
+        b.text=fixup(normalize_item(b.text))        
+
     items=[]
     seen=set()
     for b in out:
-        b.text=normalize_item(b.text)
         if b.text and not (b.text in seen):
             seen.add(b.text)
             items.append(b)
@@ -94,11 +114,12 @@ def parse_notam(html):
     
 
 def how_similar(at,bt):
-    #print "Hos similar:\n%s\n/\n%s"%(at,bt)
     aobj=at
     bobj=bt
     a=aobj.text
     b=bobj.text
+    if aobj.text.count("TYSTBERGA") or bobj.text.count("TYSTBERGA"):
+        print "Hos similar:\n%s\n/\n%s"%(at,bt)
     if aobj.category!=bobj.category: 
         #print "similar: 0 c"
         return 0

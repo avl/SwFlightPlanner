@@ -168,8 +168,12 @@ class BlobFile(object):
                 return None
             assert s>0
             #print "Threads reading simultaneously: %d"%(self.threads_reading,)
-             
-            return f.read(s)
+            png=f.read(s)
+            #print "Successfully read %d byte png"%(len(png),)
+            return png
+        except Exception,cause:
+            print "Error reading from blob: %d,%d,%d"%(x,y,self.zoomlevel)
+            raise
         finally:
             self.threads_reading-=1  
             if self.mode!="r":

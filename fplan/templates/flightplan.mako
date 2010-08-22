@@ -105,6 +105,8 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 %endif
 %if len(c.waypoints)!=0:
 <form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
+Fuel at takeoff: <input size="4" type="text" id="startfuel" name="startfuel" value="${c.startfuel}"/>L<br/><br/>
+
 %if False:
 %if len(c.all_aircraft):
 Aircraft: <select id="curaircraft" name="aircraft">
@@ -139,6 +141,8 @@ Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not
 </form>
 %endif
 <br/>
+<h2>Printabe version</h2>
+<a href="${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}"><u>Printable</u></a><br/>
 <h2>Download to GPS:</h2>
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',trip=c.tripname)}"><u>GPX Format</u></a>.<br/>
 <!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',trip=c.tripname)}">ITN Format</a>.<br/>-->
