@@ -15,4 +15,6 @@
 13: FIXAD: Return borde uppdatera tider och sånt på "Overview"-skärmen för färdplanering.
 14: FIXAD: Färdigställ startfuel-supporten.
 15: Borde ha en printable driftfärdplan.
+16: Det går att sabba så att TAS blir ett read-only fält, genom att klicka lite fel och typ copy-paste:a!
+17: Det borde gå att dela trippar med andra användare.
 
