@@ -318,7 +318,10 @@ def get_route(user,trip):
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
                     
         rt.ch=rt.tt+rt.wca-val(rt.variation)-val(rt.deviation)
-
+        rt.accum_time=sub[-1].accum_time
+        rt.accum_time_hours=accum_time
+        rt.accum_dist=sub[-1].total_d
+        rt.accum_fuel_burn=accum_fuel
         if rt.gs>1e-3:
             rt.time_hours=rt.d/rt.gs;
         else:

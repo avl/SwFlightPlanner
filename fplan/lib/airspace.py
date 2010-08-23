@@ -64,12 +64,43 @@ def get_polygons_around(lat,lon,polys):
             print "Is NOT inside"
     return insides
 
+def get_polygons_on_line(latlon1,latlon2,polys):
+    zoomlevel=14
+    px1,py1=mapper.latlon2merc(latlon1,zoomlevel)
+    px2,py2=mapper.latlon2merc(latlon2,zoomlevel)
+    line=Line2(Vertex(int(px1),int(py1)),Vertex(int(px2),int(py2)))
+    crosses=[]
+    for space in polys:                
+        poly_coords=[]
+        for coord in space['points']:
+            x,y=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
+            poly_coords.append(Vertex(int(x),int(y)))
+        if len(poly_coords)<3:
+            print "Space %s has few points: %s "%(space['name'],space['points'])
+            continue
+        poly=Polygon(vvector(poly_coords))
+        print "Checking if intersect poly:",space
+        if len(poly.intersect_line(line))>0:
+            crosses.append(space)
+            print "Is crossing"
+        else:
+            print "Is NOT crossing"
+    return crosses
+
+
 def get_airspaces(lat,lon):
     spaces=get_polygons_around(lat,lon,cache.get_airspaces())
     return spaces
 
+def get_airspaces_on_line(latlon1,latlon2):
+    spaces=get_polygons_on_line(latlon1,latlon2,cache.get_airspaces())
+    return spaces
+
+
 def get_notam_areas(lat,lon):
     return get_polygons_around(lat,lon,get_notam_objs_cached()['areas'])
+def get_notam_areas_on_line(latlon1,latlon2):
+    return get_polygons_on_line(latlon1,latlon2,get_notam_objs_cached()['areas'])
     
     
     

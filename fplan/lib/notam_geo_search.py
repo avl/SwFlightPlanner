@@ -41,6 +41,7 @@ def get_notam_objs(kind=None):
                         obstacles.append(dict(
                             pos=coord,
                             elev=elev,
+                            elevf=mapper.parse_elev(elev),
                             kind='Notam',
                             notam_ordinal=u.appearnotam,
                             notam_line=u.appearline,

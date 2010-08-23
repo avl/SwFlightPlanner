@@ -142,7 +142,7 @@ Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not
 %endif
 <br/>
 <h2>Printabe version</h2>
-<a href="${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}"><u>Printable</u></a><br/>
+<a href="javascript:navigate_to('${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}')"><u>Printable</u></a><br/>
 <h2>Download to GPS:</h2>
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',trip=c.tripname)}"><u>GPX Format</u></a>.<br/>
 <!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',trip=c.tripname)}">ITN Format</a>.<br/>-->

@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
 from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
+from fplan.lib.airspace import get_airspaces_on_line,get_notam_areas_on_line
 import json
 import re
 import fplan.lib.weather as weather
@@ -16,7 +17,7 @@ from fplan.lib.calc_route_info import get_route
 import fplan.lib.geo as geo
 import fplan.lib.notam_geo_search as notam_geo_search
 from itertools import chain
-
+from fplan.lib import get_terrain_elev
 
 class FlightplanController(BaseController):
     def search(self):
@@ -320,18 +321,17 @@ class FlightplanController(BaseController):
         
         redirect_to(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
-    def get_obstacles(self,routes):        
+    def get_obstacles(self,routes,vertdist=1000.0,interval=10):        
         byord=dict()
-        vertdist=1000.0
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
-                        geo.get_terrain_near_route(routes,vertdist)):
+                        geo.get_terrain_near_route(routes,vertdist,interval)):
             byord.setdefault(closeitem['ordinal'],[]).append(closeitem)
 
         for v in byord.values():
             v.sort(key=lambda x:x['dist_from_a'])                        
-        return sorted(byord.items())
+        return byord
     
     def obstacles(self):    
         routes=get_route(session['user'],session['current_trip'])
@@ -339,7 +339,7 @@ class FlightplanController(BaseController):
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
-        byordsorted=self.get_obstacles(routes)
+        byordsorted=sorted(self.get_obstacles(routes).items())
         out=[]
         def classify(item):
             print item
@@ -393,7 +393,21 @@ class FlightplanController(BaseController):
         if len(c.route)==0 or len(c.techroute)==0:
             redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
             return
-        obst=self.get_obstacles(c.techroute)
+        c.startfuel=c.tripobj.startfuel
+            
+        c.obsts=self.get_obstacles(c.techroute,1e6,0.1)
+        for rt in c.route:
+            rt.airspaces=[]
+            if rt.waypoint1 in c.obsts:
+                rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
+            else:
+                rt.maxobstelev="unknown"
+            #for obst in c.obsts:
+            #    print "obst:",obst
+            for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
+                rt.airspaces.append(space)
+                            
+            
         c.departure=c.route[0].a.waypoint
         c.arrival=c.route[-1].a.waypoint
         return render('/printable.mako')
