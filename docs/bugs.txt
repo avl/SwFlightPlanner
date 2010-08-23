@@ -17,4 +17,5 @@
 15: Borde ha en printable driftfärdplan.
 16: Det går att sabba så att TAS blir ett read-only fält, genom att klicka lite fel och typ copy-paste:a!
 17: Det borde gå att dela trippar med andra användare.
-
+18: Fixa "printable"-länken, så att det sparas innan man navigeras bort, men typ högerklick funkar...?
+19: Att använda back-knappen (eller länken som inte använder javascript för den delen) tillbaka till Notam är väldigt ineffektivt. Den borde inte ladda om allt, bara statusen?

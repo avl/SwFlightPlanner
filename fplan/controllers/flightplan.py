@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
 from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
-from fplan.lib.airspace import get_airspaces_on_line,get_notam_areas_on_line
+from fplan.lib.airspace import get_airspaces_on_line,get_notam_areas_on_line,get_notampoints_on_line
 import json
 import re
 import fplan.lib.weather as weather
@@ -394,7 +394,20 @@ class FlightplanController(BaseController):
             redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
             return
         c.startfuel=c.tripobj.startfuel
-            
+        c.acobjs=meta.Session.query(Aircraft).filter(sa.and_(
+                 Aircraft.user==session['user'],Aircraft.aircraft==c.tripobj.aircraft)).all()
+        c.ac=None
+
+        for rt in c.route:
+            rt.notampoints=[]
+            for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5):
+                notam=info['item']
+                alongd=rt.d*info['alongperc']
+                rt.notampoints.append(dict(
+                    notam=notam,
+                    along=alongd                    
+                    ))
+        
         c.obsts=self.get_obstacles(c.techroute,1e6,0.1)
         for rt in c.route:
             rt.airspaces=[]
@@ -406,11 +419,18 @@ class FlightplanController(BaseController):
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
                 rt.airspaces.append(space)
-                            
+        if c.ac and c.ac.cruise_burn>1e-9:
+            c.reserve_endurance_hours=(c.startfuel-c.route[-1].accum_fuel_burn)/c.ac.cruise_burn
+            mins=int(60.0*c.reserve_endurance_hours)
+            if mins>=0:
+                c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
+            else: 
+                c.reserve_endurance="None"
             
         c.departure=c.route[0].a.waypoint
-        c.arrival=c.route[-1].a.waypoint
+        c.arrival=c.route[-1].a.waypoint        
         return render('/printable.mako')
+        
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
             Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())

@@ -8,6 +8,7 @@ function on_keypress(event)
 	return false;
 }
 
+
 global_onload=0;
 /*Helper to support multiple onload functions easily*/ 
 function addLoadEvent(func) { 
@@ -40,3 +41,20 @@ function fixcontentsize()
 	}
 }
 	 
+function force_refresh_on_back_button(selfurl)
+{
+    var detect=document.getElementById('refreshid');
+    if (detect) //either yes or no - otherwise we're on a browser where our reload-on-back trick doesn't work.
+    {
+        if (detect.value=='yes')
+        {
+		    window.location.href=selfurl;
+        }
+        else
+        {
+            detect.value='yes';
+        }
+    }
+}
+
+

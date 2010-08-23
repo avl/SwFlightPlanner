@@ -41,6 +41,27 @@ def get_notampoints(lat,lon,zoomlevel):
                 d=(clickx-x)**2+(clicky-y)**2
                 if d<=(radius)**2:
                    yield item
+
+def get_notampoints_on_line(latlon1,latlon2,dist_nm):
+    zoomlevel=14
+    distmax=mapper.approx_scale(mapper.latlon2merc(latlon1,zoomlevel),zoomlevel,dist_nm)
+    px1,py1=mapper.latlon2merc(latlon1,zoomlevel)
+    px2,py2=mapper.latlon2merc(latlon2,zoomlevel)
+    a=Vertex(int(px1),int(py1))
+    b=Vertex(int(px2),int(py2))
+    line=Line2(a,b)
+    crosses=[]
+    for kind,items in get_notam_objs_cached().items():
+        if kind!="areas":
+            for item in items:
+                x,y=mapper.latlon2merc(mapper.from_str(item['pos']),zoomlevel)
+                d=line.approx_dist(Vertex(int(x),int(y)))
+                clo=line.approx_closest(Vertex(int(x),int(y)))
+                alongd=(clo-a).approxlength()
+                totd=(a-b).approxlength()
+                perc=alongd/totd
+                if d<distmax:
+                    yield dict(item=item,alongperc=perc)
         
 
 def get_polygons_around(lat,lon,polys):

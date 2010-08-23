@@ -1,0 +1,20 @@
+Information needed during the trip:
+
+W 	V 	Alt 	TAS 	TT 	WCA 	Var 	Dev 	CH 	D 	GS 	Time Fuel
+
+wind, tt, wca, var, dev, ch, dist, alt, time, fuel, frequencies, obstacles, notams, reserve (cruise endurance)
+
+Per flight:
+Start
+Destination
+Total time
+Fuel on board
+Total fuel needed
+
+Per leg:
+destination name, ch, time, frequencies, obstacles, tt, dist, wind, alt, closest alternative airport
+
+After legs:
+endurance
+
+

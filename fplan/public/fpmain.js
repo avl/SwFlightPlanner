@@ -1,4 +1,26 @@
 modifiable_cols=[];
+dirty=0;
+in_prog=0;
+function do_save()
+{
+    if (dirty)
+    {
+        function finish_save()
+        {					    
+        }
+        save_data(finish_save);	    
+    }
+}
+
+function makedirty()
+{
+    if (!dirty)
+    {
+        var e=document.getElementById('printablelink');
+        e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Printable</span>';
+    }
+    dirty=1;    
+}
 
 function get(idx,wcol)
 {
@@ -87,21 +109,36 @@ function fetch_winds()
 	def.addCallback(weather_cb);
 }
 
+
+
 function save_data(cont)
 {
+    if (in_prog)
+        return;
+    in_prog=1;
 	function save_data_cb(req)
 	{	
+	    in_prog=0;
 		if (req.responseText=='ok')
 		{
-			if (cont!=null)
-				cont();		
+		    if (!dirty)
+		    {
+                var e=document.getElementById('printablelink');
+                e.innerHTML='<a href="'+printableurl+'"><u>Printable</u></a>';		    
+			    if (cont!=null)
+				    cont();		
+		    }
+		    else
+		    {
+		        save_data(cont);
+		    }		
 		}
 		else
 		{
 			alert('Error:'+req.responseText);
 		}
 	}
-	
+	dirty=0;
 	var params={};
 	for(var i=0;i<num_rows-1;i++)
 	{
@@ -119,7 +156,10 @@ function save_data(cont)
         params['wpalt'+i]=alt;            
     }
 	params['tripname']=tripname;
-	params['startfuel']=document.getElementById('startfuel').value;
+	if (document.getElementById('startfuel'))	
+    	params['startfuel']=document.getElementById('startfuel').value;
+    else
+        params['startfuel']=0.0;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -140,7 +180,6 @@ function format_time(time_hours)
 
 function on_updaterow(idx,col)
 {
-
 	var next=0;
 	if (col=='all' || col=='TAS' || col=='W' || col=='V')
 	{
@@ -273,7 +312,7 @@ function fpaddwaypoint(pos,name,rowdata,altitude)
 				ro='onkeypress="return not_enter(event)"';
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onkeyup="on_updaterow('+idx+',\''+fpcolshort[i]+'\');"  onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onkeyup="on_updaterow('+idx+',\''+fpcolshort[i]+'\');"  onchange="makedirty();on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 	}
