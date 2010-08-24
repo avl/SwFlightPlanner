@@ -52,7 +52,10 @@ def get_aipdata(cachefile="aipdata.cache"):
             airspaces=parse_all_tma()
             airspaces.extend(parse_r_areas())
             
-            airfields=extract_airfields()
+            airfields,points=extract_airfields()
+            sig_points=parse_sig_points()
+            for point in points:
+                sig_points.append(point)
             for ad in airfields:
                 if 'spaces' in ad:
                     for space in ad['spaces']:
@@ -70,7 +73,7 @@ def get_aipdata(cachefile="aipdata.cache"):
                 airspaces=airspaces,
                 obstacles=parse_obstacles(),
                 airfields=airfields,
-                sig_points=parse_sig_points(),
+                sig_points=sig_points,
                 version=version
                 )
             pickle.dump(aipdata,open(cachefile,"w"),-1)        

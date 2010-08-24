@@ -12,6 +12,7 @@ def extract_airfields():
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
     p=Parser("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
+    points=dict()
     startpage=None
     for pagenr in xrange(p.get_num_pages()):
         page=p.parse_page_to_items(pagenr)
@@ -49,10 +50,87 @@ def extract_airfields():
                         ad['elev']=int(elev[0])                        
                                      
                 ads.append(ad)
-                
+
+        
+    big_ad=set()        
     for ad in ads:
         if not ad.has_key('pos'):
-            icao=ad['icao']
+            big_ad.add(ad['icao'])
+
+    for ad in ads:        
+        icao=ad['icao']
+        #if icao!='ESOK': continue
+        if icao in big_ad:            
+            if icao in ['ESIB','ESNY','ESCM','ESPE']:
+                continue
+            p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao))
+            
+            for pagenr in xrange(p.get_num_pages()):
+                page=p.parse_page_to_items(pagenr)
+                icao=ad['icao']
+                print "Parsing ",icao
+                
+                """
+                for altline in exitlines:
+                    m=re.match(r"(\w+)\s+(\d+N)\s*(\d+E.*)",altline)
+                    if not m: continue
+                    name,lat,lon=m.groups()
+                    try:
+                        coord=parse_coords(lat,lon)
+                    except:
+                        continue
+                    points.append(dict(name=name,pos=coord))
+                """
+                
+                for kind in xrange(2):
+                    if kind==0:
+                        hits=page.get_by_regex(r"H[Oo][Ll][Dd][Ii][Nn][Gg]")
+                    if kind==1:
+                        hits=page.get_by_regex(r"[Ee]ntry.*[Ee]xit.*point")                    
+                    if len(hits)==0: continue
+                    for holdingheading in hits:
+
+                        items=sorted(page.get_partially_in_rect(holdingheading.x1+2.0,holdingheading.y2+0.1,holdingheading.x1+0.5,100),
+                            key=lambda x:x.y1)
+                        items=[x for x in items if not x.text.startswith(" ")]
+                        print "Holding items:",items
+                        for idx,item in enumerate(items):
+                            y1=item.y1
+                            if idx==len(items)-1:
+                                y2=100
+                            else:
+                                y2=items[idx+1].y1
+                            s=" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.4,100,y2-0.1)))
+
+                            if s.startswith("ft Left/3"): #Special case for ESOK
+                                s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
+                            if s.startswith("LjUNG"): #Really strange problem with ESCF
+                                s=s[0]+"J"+s[2:]
+                            if s.lower().startswith("holding"):
+                                sl=s.split(" ",1)
+                                if len(sl)>1:
+                                    s=sl[1]
+                            print "Holding item",item,"s:",s,"\n"
+                            m=re.match(r"([A-Z]+).*?(\d+N)\s*(\d+E).*",s)
+                            if not m: continue
+                            name,lat,lon=m.groups()
+                            print name,lat,lon
+                            try:
+                                coord=parse_coords(lat,lon)
+                            except:
+                                continue
+                            points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord)
+
+
+
+
+
+
+
+
+    for ad in ads:
+        icao=ad['icao']
+        if icao in big_ad:
             print "Parsing ",icao
             p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao))
             te=p.parse_page_to_items(0).get_all_text()
@@ -246,13 +324,19 @@ def extract_airfields():
             
     for extra in extra_airfields.extra_airfields:
         ads.append(extra)
+    print
+    print
+    for k,v in sorted(points.items()):
+        print k,v
+        
+    print "Num points:",len(points)
             
     print ads
     for ad in ads:
         print "%s: %s - %s (%s ft)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'])
         if 'spaces' in ad:
             print "   spaces: %s"%(ad['spaces'],)
-    return ads
+    return ads,points.values()
 
                 
                 
@@ -262,3 +346,5 @@ def extract_airfields():
             
 if __name__=='__main__':
     extract_airfields()
+    
+    

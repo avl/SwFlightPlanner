@@ -22,8 +22,8 @@
 20: Borde gå att sortera NOTAMS.
 21: FIXAD: Texten "no waypoints in trip" när man anropar printable, borde vara "too few (less than two) waypoints in trip".
 22: Borde göra något smart angående terrängvarningar nära flygplatser. Kanske skriva "inflygning 'si-och-så-flygplats' när man är lågt nära en airport?".
-23: Borde hitta koordinater för inpasseringspunkter och väntlägen!
-24: Varför finns Barkarby kvar?
+23: FIXAD: Borde hitta koordinater för inpasseringspunkter och väntlägen!
+24: FIXAD: Varför finns Barkarby kvar? (SVAR: Den är kvar i AIP. Jag struntar i att ta bort den från programmet till den försvinner från AIP)
 25: Skapa selenium(?)-tester. Testa t.ex 0-längds rutter, vanliga fall, bad performance, no aircraft, etc etc...
 26: FIXAD: Om man skrev in skräp i "Altitude"-fältet så pajade typ hela programmet. Nu valideras det i javascripten, sätts till 0 om inte validerande.
 27: WON'T FIX: Gör bättre validering av flightplan-sidan. Highlighta det fält som har fel i sig, med förklaring.

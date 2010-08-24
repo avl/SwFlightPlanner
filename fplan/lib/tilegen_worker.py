@@ -7,7 +7,7 @@ import Pyro.core
 import Image
 import cairo
 import numpy
-from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields
+from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields,get_sig_points
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
@@ -153,6 +153,20 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.fill_preserve()
             ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.75))
+            ctx.new_path()
+            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+            ctx.stroke()                 
+
+    for sigp in get_sig_points():
+        if zoomlevel>=9:
+            ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
+            merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
+            pos=(merc[0]-x1,merc[1]-y1)            
+            radius=3            
+            ctx.new_path()
+            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+            ctx.fill_preserve()
+            ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.75))
             ctx.new_path()
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.stroke()                 
