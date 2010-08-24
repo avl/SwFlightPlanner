@@ -115,8 +115,8 @@ function loadmap()
 	'<div class="popopt" onclick="hidepopup()">Close menu</div>'+
 	'</div>'+
 	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
-	'<input type="hidden" name="zoom" value="">'+
-	'<input type="hidden" name="center" value="">'+
+	'<input type="hidden" name="zoom" value="" />'+
+	'<input type="hidden" name="center" value="" />'+
 	'</form>'+
 	'<div id="progmessage" class="progress-popup">'+
 	''+

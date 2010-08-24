@@ -1,20 +1,18 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html style="height:100%;margin:0;padding:0;border:none;">
+
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
 	<title>SwFlightPlanner</title>
 	<meta http-equiv="Content-Language" content="en-us" />
 	<link href="/style.css" rel="stylesheet" type="text/css" />
+    <title>
+    Welcome to SwFlightplanner
+    </title>
 </head>
 
-<title>
-Welcome to SwFlightplanner
-</title>
-
 <body style="height:100%;margin:0;padding:0;border:none;">
-<script type="text/javascript">
-</script>
 
 <table style="height:30%;vertical-align:middle;margin: 0 auto;">
 <tr>

@@ -1449,10 +1449,6 @@ function pan_map(dx,dy)
 			//tile.img.src='/boilerplate.jpg';
 			tile.img.src='/loading.png';
 			tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
-				/*'/maptile/get?x1='+
-				(tile.mercx)+'&y1='+
-				(tile.mercy)+'&zoomlevel='+map_zoomlevel+'&width='+
-				(tilesize)+'&height='+tilesize;*/
 	        	
 		}
 		tile.img.style.left=''+x+'px';
