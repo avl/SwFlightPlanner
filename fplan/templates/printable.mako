@@ -5,7 +5,6 @@
 DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 </span>
 %endif
-
 <table>
 %if c.ac and c.ac.aircraft:
 <tr><td style="font-size:12px">Aircraft:</td><td> ${c.ac.aircraft}</td></tr>
@@ -14,7 +13,7 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 <td style="font-size:12px">Total distance:</td><td>${"%.1f"%(c.route[-1].accum_dist,)}NM</td></tr>
 <tr><td style="font-size:12px">Fuel on board:</td><td>${c.startfuel}L</td>
 <td style="font-size:12px">Fuel needed:</td><td>${"%.1f"%(c.route[-1].accum_fuel_burn,)}L</td></tr>
-<tr><td style="font-size:12px">Reserve:</td><td> ${c.reserve_endurance}</td></tr>
+<tr><td style="font-size:12px">Reserve:</td><td>${c.reserve_endurance}</td></tr>
 </table>
 
 <table border="1" width="100%"> 
@@ -29,7 +28,7 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 <td><span style="font-size:10px">D:</span>${"%.0f"%(rt.d,)}<span style="font-size:10px">NM</span></td>
 <td><span style="font-size:10px">Min-alt:</span>${"%.0f"%(rt.maxobstelev+500,)}<span style="font-size:10px">ft</span></td>
 <td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}<span style="font-size:10px">dgr</span></td>
-<td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")}</td>
+<td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
 </tr>
 
 %for notam in sorted(rt.notampoints,key=lambda x:x['along']):
@@ -58,5 +57,6 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 %endfor
 
 </table>
+<a style="font-size:10px" href="${h.url_for(controller="flightplan",action="index")}"><u>Back</u></a>
 
 

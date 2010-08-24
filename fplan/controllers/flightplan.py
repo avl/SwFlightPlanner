@@ -186,7 +186,7 @@ class FlightplanController(BaseController):
         waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==tripname)).order_by(Waypoint.ordinal).all())
         if len(waypoints)==0:
-            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
+            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
         c.waypoints=[]
         c.trip=tripname
         for wp in waypoints:                    
@@ -391,13 +391,14 @@ class FlightplanController(BaseController):
         c.tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
         if len(c.route)==0 or len(c.techroute)==0:
-            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
+            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
             return
         c.startfuel=c.tripobj.startfuel
         c.acobjs=meta.Session.query(Aircraft).filter(sa.and_(
                  Aircraft.user==session['user'],Aircraft.aircraft==c.tripobj.aircraft)).all()
         c.ac=None
-
+        if len(c.acobjs)>0:
+            c.ac=c.acobjs[0]
         for rt in c.route:
             rt.notampoints=[]
             for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5):
@@ -414,7 +415,7 @@ class FlightplanController(BaseController):
             if rt.waypoint1 in c.obsts:
                 rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
             else:
-                rt.maxobstelev="unknown"
+                rt.maxobstelev=0#"unknown"
             #for obst in c.obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
@@ -425,8 +426,9 @@ class FlightplanController(BaseController):
             if mins>=0:
                 c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
             else: 
-                c.reserve_endurance="None"
-            
+                c.reserve_endurance="Unknown"+str(mins)
+        else:
+            c.reserve_endurance="Unknown"+repr(c.ac)
         c.departure=c.route[0].a.waypoint
         c.arrival=c.route[-1].a.waypoint        
         return render('/printable.mako')

@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import routes.util as h
 import json
 from md5 import md5
-
+from datetime import datetime
 log = logging.getLogger(__name__)
 
 class MapviewController(BaseController):      

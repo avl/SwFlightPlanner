@@ -59,7 +59,10 @@ def get_notampoints_on_line(latlon1,latlon2,dist_nm):
                 clo=line.approx_closest(Vertex(int(x),int(y)))
                 alongd=(clo-a).approxlength()
                 totd=(a-b).approxlength()
-                perc=alongd/totd
+                if totd<1e-6:
+                    perc=0
+                else:                    
+                    perc=alongd/totd
                 if d<distmax:
                     yield dict(item=item,alongperc=perc)
         

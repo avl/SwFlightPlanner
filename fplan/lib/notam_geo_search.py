@@ -48,37 +48,41 @@ def get_notam_objs(kind=None):
                             name=text.split("\n")[0],
                             notam=text))
                     continue
-            else:
-                if len(coords)<=2 and (kind==None):
-                    for coord in coords:
-                        others.append(dict(
-                            pos=coord,
-                            kind='notam',
-                            name=text,
-                            notam_ordinal=u.appearnotam,
-                            notam_line=u.appearline,
-                            notam=text))
-                else:
-                    if len(coords)>2:
-                        if text.startswith("AREA: "):
-                            continue #These aren't real notams, they're area-specifications for all other notams... make this better some day.
-                        areas.append(dict(
-                            points=coords,
-                            kind="notamarea",
-                            name=text,
-                            type="notamarea",
-                            notam_ordinal=u.appearnotam,
-                            notam_line=u.appearline,
-                            notam=text))
-                        print "Found a notam area:",text
-                    #polyc=[]
-                    #for coord in coords:
-                    #    polyc.append(Vertex(*mapper.latlon2merc(mapper.from_str(coord),13)))
-                    #poly=Polygon(vvector(polyc))
-                    #spaces.append(dict(
-                    #    poly=poly,
-                    #    name='Notam Area',
-                    #    notam=text))
+            couldbearea=True
+            if len(coords)<=2:
+                couldbearea=False
+            if text.count("PSN")>=len(coords)-2:
+                couldbearea=False
+            if couldbearea==False and (kind==None or kind=="notam"):
+                for coord in coords:
+                    others.append(dict(
+                        pos=coord,
+                        kind='notam',
+                        name=text,
+                        notam_ordinal=u.appearnotam,
+                        notam_line=u.appearline,
+                        notam=text))
+            if couldbearea==True and (kind==None or kind=="notamarea"):
+                if len(coords)>2:
+                    if text.startswith("AREA: "):
+                        continue #These aren't real notams, they're area-specifications for all other notams... make this better some day.                        
+                    areas.append(dict(
+                        points=coords,
+                        kind="notamarea",
+                        name=text,
+                        type="notamarea",
+                        notam_ordinal=u.appearnotam,
+                        notam_line=u.appearline,
+                        notam=text))
+                    print "Found a notam area:",text
+                #polyc=[]
+                #for coord in coords:
+                #    polyc.append(Vertex(*mapper.latlon2merc(mapper.from_str(coord),13)))
+                #poly=Polygon(vvector(polyc))
+                #spaces.append(dict(
+                #    poly=poly,
+                #    name='Notam Area',
+                #    notam=text))
     return dict(obstacles=obstacles,others=others,areas=areas)#+others#dict(obstacles=obstacles,others=others,spaces=spaces)
  
 notam_geo_cache=None

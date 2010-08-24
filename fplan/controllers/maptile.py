@@ -69,10 +69,10 @@ class MaptileController(BaseController):
             spaces="Uncontrolled below FL095"
             
         mapviewurl=h.url_for(controller="mapview",action="index")
-        notamareas="".join("<li><b><u><a href=\"%s#notam\">Area</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=area['notam_ordinal'],line=area['notam_line']),area['notam']) for area in get_notam_areas(lat,lon))
+        notamareas="".join("<li><b><u><a href=\"javascript:navigate_to('%s#notam')\">Area</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=area['notam_ordinal'],line=area['notam_line']),area['notam']) for area in get_notam_areas(lat,lon))
 
 
-        notamareas+="".join("<li><b><u><a href=\"%s#notam\">Point</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=point['notam_ordinal'],line=point['notam_line']),point['notam']) for point in get_notampoints(lat,lon,zoomlevel))
+        notamareas+="".join("<li><b><u><a href=\"javascript:navigate_to('%s#notam')\">Point</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=point['notam_ordinal'],line=point['notam_line']),point['notam']) for point in get_notampoints(lat,lon,zoomlevel))
        
         if notamareas!="":
             notamareas="<b>Notams</b><ul>"+notamareas+"</ul>"
@@ -150,7 +150,6 @@ class MaptileController(BaseController):
         airspaces=True
         if 'showairspaces' in request.params:
             airspaces=int(request.params['showairspaces'])
-
         neededit=False
         if session.get('showarea','')!='':
             neededit=True                
@@ -164,6 +163,7 @@ class MaptileController(BaseController):
             variant="plain"
             
         generate_on_the_fly=False
+        #print "get: %d,%d,%d (showair:%s, neededit: %s)"%(mx,my,zoomlevel,airspaces,neededit)
         
         if generate_on_the_fly:
             im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    

@@ -2,13 +2,13 @@ import logging
 import sqlalchemy as sa
 from md5 import md5
 from fplan.model import meta,User,Trip,Waypoint,Route
-
+from datetime import datetime
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 import routes.util as h
 from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
-
+from fplan.lib.maptilereader import get_tiles_timestamp
 log = logging.getLogger(__name__)
 
 class SplashController(BaseController):
@@ -22,9 +22,14 @@ class SplashController(BaseController):
         redirect_to(h.url_for(controller='splash',action="index"))
     def about(self):
         try:
-            c.aipupdate=get_aip_download_time()
+            c.aipupdate=get_aip_download_time()            
         except Exception,cause:
             c.aipupdate=None
+        try:
+            c.mapupdate=get_tiles_timestamp()
+        except:
+            c.mapupdate=datetime(1970,1,1)
+        
         return render('/about.mako')
     
     def login(self):

@@ -77,7 +77,8 @@ countries is ever added.
 <h2>Where does the data come from?</h2>
 The airspace data (which only covers Sweden) and NOTAMs are from LFV. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.<br/>
 
-The airspace data was last downloaded from LFV at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. 
+The airspace data was last downloaded from LFV at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
+The maps were last updated with this airspace data ${c.mapupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. 
 <br/>
 <br/>
 <h2>Contact information</h2>

@@ -264,6 +264,25 @@ def get_route(user,trip):
             sub.append(out)
         if len(sub):
             sub[-1].lastsub=1        
+        else:
+            out=TechRoute()
+            out.performance=rt.performance
+            out.tt=rt.tt
+            out.d=0
+            out.relstartd=0
+            out.subposa=merca
+            out.subposb=mercb
+            out.startalt=prev_alt
+            out.endalt=prev_alt
+            if prev_alt!=rt.altitude:
+                out.performance="notok"
+            out.accum_time=timefmt(accum_time)
+            out.time=timefmt(0)
+            out.what="cruise"
+            out.legpart="mid"
+            out.fuel_burn=0
+            out.lastsub=0
+            sub.append(out)
         
         
         
@@ -318,9 +337,9 @@ def get_route(user,trip):
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
                     
         rt.ch=rt.tt+rt.wca-val(rt.variation)-val(rt.deviation)
-        rt.accum_time=sub[-1].accum_time
+        rt.accum_time=timefmt(accum_time)
         rt.accum_time_hours=accum_time
-        rt.accum_dist=sub[-1].total_d
+        rt.accum_dist=tot_dist
         rt.accum_fuel_burn=accum_fuel
         if rt.gs>1e-3:
             rt.time_hours=rt.d/rt.gs;

@@ -8,7 +8,7 @@ from paste.deploy import appconfig
 def run_unithread(target_path,tma):
     p=TilePlanner()
     #cachedir tma
-    p.init(target_path,tma,8)
+    p.init(target_path,tma,9)
     tilegen_worker.run(p)
 
 def update_unithread():
