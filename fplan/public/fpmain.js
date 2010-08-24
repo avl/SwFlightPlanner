@@ -1,18 +1,41 @@
 modifiable_cols=[];
+dirty=0;
+in_prog=0;
+function do_save()
+{
+    if (dirty)
+    {
+        function finish_save()
+        {					    
+        }
+        save_data(finish_save);	    
+    }
+}
+
+function makedirty()
+{
+    if (!dirty)
+    {
+        var e=document.getElementById('printablelink');
+        e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Printable</span>';
+    }
+    dirty=1;    
+}
 
 function get(idx,wcol)
 {
 	var vid='fplanrow'+idx+wcol;
 	var e=document.getElementById(vid);
-	if (e==null)
-		alert('Null:'+vid);
 	if (e.value=='')
 		return 0.0;			
 	return e.value;
 }
 function getf(idx,wcol)
 {
-	return parseFloat(get(idx,wcol));
+	var pf=parseFloat(get(idx,wcol));
+	if (pf==NaN)
+	    pf=0.0;
+	return pf;
 }
 function gete(idx,wcol)
 {
@@ -87,28 +110,61 @@ function fetch_winds()
 	def.addCallback(weather_cb);
 }
 
+function parsealt(what)
+{
+    if (what.substring(what.length-2,100)=='ft')
+        what=what.substring(0,what.length-2);
+    if (!isNaN(parseFloat(what.substring(2,100))))
+    {
+        return what;
+    }
+    if (what.substring(0,2)=='FL')
+    {
+        if (!isNaN(parseFloat(what.substring(2,100))))
+        {
+            return what;
+        }
+    }    
+    return 0;
+}
+
 function save_data(cont)
 {
+    if (in_prog)
+        return;
+    in_prog=1;
 	function save_data_cb(req)
 	{	
+	    in_prog=0;
 		if (req.responseText=='ok')
 		{
-			if (cont!=null)
-				cont();		
+		    if (!dirty)
+		    {
+                var e=document.getElementById('printablelink');
+                e.innerHTML='<a href="'+printableurl+'"><u>Printable</u></a>';		    
+			    if (cont!=null)
+				    cont();		
+		    }
 		}
 		else
 		{
 			alert('Error:'+req.responseText);
 		}
 	}
-	
+	dirty=0;
 	var params={};
 	for(var i=0;i<num_rows-1;i++)
 	{
         for(var j=0;j<modifiable_cols.length;++j)
         {
             var wh=modifiable_cols[j];
-            var val=get(i,wh);
+            var val;
+            if (wh!='Alt')       
+                val=getf(i,wh);
+            else
+            {
+                val=parsealt(get(i,wh));
+            }
             params[wh+'_'+i]=val;
         }	    
 	}			
@@ -116,9 +172,13 @@ function save_data(cont)
 	for(var i=0;i<num_rows;i++)
 	{
         var alt=document.getElementById('wpalt'+i).value;
-        params['wpalt'+i]=alt;            
+        params['wpalt'+i]=parsealt(alt);            
     }
 	params['tripname']=tripname;
+	if (document.getElementById('startfuel'))	
+    	params['startfuel']=document.getElementById('startfuel').value;
+    else
+        params['startfuel']=0.0;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -139,7 +199,6 @@ function format_time(time_hours)
 
 function on_updaterow(idx,col)
 {
-
 	var next=0;
 	if (col=='all' || col=='TAS' || col=='W' || col=='V')
 	{
@@ -272,7 +331,7 @@ function fpaddwaypoint(pos,name,rowdata,altitude)
 				ro='onkeypress="return not_enter(event)"';
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onkeyup="on_updaterow('+idx+',\''+fpcolshort[i]+'\');"  onchange="on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			s=s+'<td><input '+ro+' id="fplanrow'+idx+fpcolshort[i]+'" onkeyup="makedirty();on_updaterow('+idx+',\''+fpcolshort[i]+'\');"  onchange="makedirty();on_updaterow('+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 	}

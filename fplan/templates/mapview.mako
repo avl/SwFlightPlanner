@@ -49,6 +49,9 @@ function clip_mappos(mercx,mercy)
 
 function loadmap()
 {
+    force_refresh_on_back_button('${h.url_for(controller="mapview",action="index")}','maprefresh');
+
+
 	var content=document.getElementById('content')
 	var h=content.offsetHeight;
 	var w=content.offsetWidth;
@@ -256,6 +259,7 @@ function loadmap()
 addLoadEvent(loadmap);
 
 </script>
+
 
 
 	

@@ -10,10 +10,15 @@ function navigate_to(where)
 {	
 	window.location.href=where;
 }
-
+function onloadnotam()
+{
+    force_refresh_on_back_button('${h.url_for(controller="notam",action="index")}');
+}
+addLoadEvent(onloadnotam);
 </script>
 
 <div id="notamcontent" style="height:100%;width:100%;overflow:auto;">
+
 <h1>Latest Notam Updates</h1>
 <table>
 <tr>

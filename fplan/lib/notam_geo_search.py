@@ -16,25 +16,44 @@ def get_notam_objs(kind=None):
     areas=[]
     for u in notamupdates:
         text=u.text.strip()
-        coords=list(mapper.parse_lfv_area(text,False))
-        if len(coords)==0: continue
-        if text.count("OBST") and (kind==None or kind=="obstacle"):
-            elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
-            elevs=[int(x) for x in elevs if x.isdigit()]
-            if len(elevs)!=0:                
-                elev=max(elevs)
-                for coord in coords:
-                    obstacles.append(dict(
-                        pos=coord,
-                        elev=elev,
-                        kind='Notam',
-                        notam_ordinal=u.appearnotam,
-                        notam_line=u.appearline,
-                        name=text.split("\n")[0],
-                        notam=text))
-                continue
-        else:
-            if len(coords)<=2 and (kind==None):
+        coordgroups=[]
+        for line in text.split("\n"):
+            dig=False
+            for char in line:
+                if char.isdigit():
+                    dig=True
+            if dig==False:
+                if len(coordgroups) and coordgroups[-1]!="":
+                    coordgroups.append("")
+            else:
+                if len(coordgroups)==0: coordgroups=[""]
+                coordgroups[-1]+=line+"\n"
+                    
+        for coordgroup in coordgroups:        
+            coords=list(mapper.parse_lfv_area(coordgroup,False))
+            if len(coords)==0: continue
+            if text.count("OBST") and (kind==None or kind=="obstacle"):
+                elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
+                elevs=[int(x) for x in elevs if x.isdigit()]
+                if len(elevs)!=0:                
+                    elev=max(elevs)
+                    for coord in coords:
+                        obstacles.append(dict(
+                            pos=coord,
+                            elev=elev,
+                            elevf=mapper.parse_elev(elev),
+                            kind='Notam',
+                            notam_ordinal=u.appearnotam,
+                            notam_line=u.appearline,
+                            name=text.split("\n")[0],
+                            notam=text))
+                    continue
+            couldbearea=True
+            if len(coords)<=2:
+                couldbearea=False
+            if text.count("PSN")>=len(coords)-2:
+                couldbearea=False
+            if couldbearea==False and (kind==None or kind=="notam"):
                 for coord in coords:
                     others.append(dict(
                         pos=coord,
@@ -43,10 +62,10 @@ def get_notam_objs(kind=None):
                         notam_ordinal=u.appearnotam,
                         notam_line=u.appearline,
                         notam=text))
-            else:
+            if couldbearea==True and (kind==None or kind=="notamarea"):
                 if len(coords)>2:
                     if text.startswith("AREA: "):
-                        continue #These aren't real notams, they're area-specifications for all other notams... make this better some day.
+                        continue #These aren't real notams, they're area-specifications for all other notams... make this better some day.                        
                     areas.append(dict(
                         points=coords,
                         kind="notamarea",
@@ -72,8 +91,9 @@ def get_notam_objs_cached():
     cur_notam_ordinal,=meta.Session.query(sa.func.max(Notam.ordinal)).one()
     if notam_geo_cache==None or notam_geo_cache['ord']<cur_notam_ordinal:
         print "Reparsing notams"
+        objs=get_notam_objs()
         notam_geo_cache=dict()
-        notam_geo_cache['data']=get_notam_objs()
+        notam_geo_cache['data']=objs
         notam_geo_cache['ord']=cur_notam_ordinal
     return notam_geo_cache['data']
     

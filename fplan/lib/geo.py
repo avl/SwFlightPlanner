@@ -30,33 +30,42 @@ def describe_dir(tt):
 
     
 
-def get_terrain_near_route(rts,vertdist):
+def get_terrain_near_route(rts,vertdist,interval=10):
     l=len(rts)
+    out=[]
     for idx,rt in enumerate(rts):
+        print "ord:",rt.a.ordinal
         merca=rt.subposa
         mercb=rt.subposb
-        d=int(rt.d)
-        if d<=0: d=1
-        along_nm=0
-        isfirstorlast=(idx==0 or idx==l-1)
-        while along_nm<d:
-            alongf=float(along_nm)/float(rt.d)
-            
+        minstep=min(1.0,interval)
+        df=rt.d
+        if df<1e-3:
+            df=1e-3
+        along_nm=0.0
+        #isfirstorlast=(idx==0 or idx==l-1)        
+        while True:
+            alongf=float(along_nm)/float(df)
+            end=False
+            if alongf>1.0:
+                alongf=1.0
+                end=True
             merc=((1.0-alongf)*merca[0]+(alongf)*mercb[0],
                   (1.0-alongf)*merca[1]+(alongf)*mercb[1])
             alt=(1.0-alongf)*rt.startalt+(alongf)*rt.endalt
             latlon=mapper.merc2latlon(merc,13)
             elev=get_terrain_elev(latlon)
             
-            if isfirstorlast and (along_nm<2.5 or along_nm>d-2.5):
-                along_nm+=1
-                continue
-            
+            #if isfirstorlast and (along_nm<2.5 or along_nm>d-2.5):
+            #    along_nm+=minstep
+            #    continue
+               
             if alt-elev<vertdist:
-                yield dict(
+                #print "idx",idx,"ord:",rt.a.ordinal
+                out.append(dict(
                     name="Terrain warning",
                     pos=mapper.to_str(latlon),
                     elev="%.0f"%(elev,),
+                    elevf=elev,
                     dist=0,
                     bearing=0,
                     closestalt=alt,
@@ -65,12 +74,15 @@ def get_terrain_near_route(rts,vertdist):
                     dir_from_a=describe_dir(rt.tt),
                     a=rt.a,
                     b=rt.b,
-                    ordinal=rt.a.ordinal)
-                along_nm+=10
+                    ordinal=rt.a.ordinal))
+                along_nm+=interval
             else:
-                along_nm+=1
-            
-            
+                print "Missed!"
+                along_nm+=minstep
+            if end: 
+                break
+    assert len(set(o['ordinal'] for o in out))==len(set(o.a.ordinal for o in rts))
+    return out
 
 def get_stuff_near_route(rts,items,dist,vertdist):
     for item in items:
@@ -122,6 +134,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 d['dir_from_a']=describe_dir(rt.tt)
                 d['dist']=actualdist
                 d['bearing']=bear
+                d['elevf']=itemalt
                 if itemalt!=None:
                     d['vertmargin']=altmargin
                 d['closestalt']=closealt

@@ -68,11 +68,11 @@ class MaptileController(BaseController):
         if spaces=="":
             spaces="Uncontrolled below FL095"
             
-            
-        notamareas="".join("<li><b><u><a href=\"%s#notam\">Area</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",notam=area['notam_ordinal'],line=area['notam_line']),area['notam']) for area in get_notam_areas(lat,lon))
+        mapviewurl=h.url_for(controller="mapview",action="index")
+        notamareas="".join("<li><b><u><a href=\"javascript:navigate_to('%s#notam')\">Area</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=area['notam_ordinal'],line=area['notam_line']),area['notam']) for area in get_notam_areas(lat,lon))
 
 
-        notamareas+="".join("<li><b><u><a href=\"%s#notam\">Point</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",notam=point['notam_ordinal'],line=point['notam_line']),point['notam']) for point in get_notampoints(lat,lon,zoomlevel))
+        notamareas+="".join("<li><b><u><a href=\"javascript:navigate_to('%s#notam')\">Point</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=point['notam_ordinal'],line=point['notam_line']),point['notam']) for point in get_notampoints(lat,lon,zoomlevel))
        
         if notamareas!="":
             notamareas="<b>Notams</b><ul>"+notamareas+"</ul>"
@@ -150,7 +150,6 @@ class MaptileController(BaseController):
         airspaces=True
         if 'showairspaces' in request.params:
             airspaces=int(request.params['showairspaces'])
-
         neededit=False
         if session.get('showarea','')!='':
             neededit=True                
@@ -164,15 +163,21 @@ class MaptileController(BaseController):
             variant="plain"
             
         generate_on_the_fly=False
+        #print "get: %d,%d,%d (showair:%s, neededit: %s)"%(mx,my,zoomlevel,airspaces,neededit)
         
         if generate_on_the_fly:
             im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    
+            tilemeta=dict(status="ok")
         else:
-            rawtile=maptilereader.gettile(variant,zoomlevel,mx,my)
+            #print "Getting %s,%s,%s,%d,%d"%(mx,my,zoomlevel,mx%256,my%256)
+            rawtile,tilemeta=maptilereader.gettile(variant,zoomlevel,mx,my)
             if not neededit:
                 response.headers['Pragma'] = ''
                 response.headers['Content-Type'] = 'image/png'
-                response.headers['Cache-Control'] = 'max-age=3600'
+                if tilemeta['status']!="ok":
+                    response.headers['Cache-Control'] = 'max-age=30'
+                else:
+                    response.headers['Cache-Control'] = 'max-age=3600'
                 return rawtile
             io=StringIO.StringIO(rawtile)
             io.seek(0)
@@ -267,7 +272,10 @@ class MaptileController(BaseController):
         
         #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
         response.headers['Pragma'] = ''
-        response.headers['Cache-Control'] = 'max-age=3600'
+        if tilemeta['status']!="ok":
+            response.headers['Cache-Control'] = 'max-age=30'
+        else:
+            response.headers['Cache-Control'] = 'max-age=3600'
         response.headers['Content-Type'] = 'image/png'
         return png
         

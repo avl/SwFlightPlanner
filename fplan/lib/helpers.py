@@ -19,7 +19,17 @@ def real_user():
     if session.get('isreg',False):
         return True
     return False
-    
+
+def fmt_freq(f):
+    s="%.3f"%(f,)
+    if s.endswith("00"):
+        s=s[:-2]
+    return s    
+def short(x,l):
+    """Shorten string x to l chars"""
+    if len(x)<l: return x
+    return x[:l]+"..." 
+        
 def jsescape(s):
     return s.replace("'","\\'")
     

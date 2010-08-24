@@ -10,6 +10,9 @@
 
 
 <body onload="global_onload()">
+<form>
+<input type="hidden" name="refreshid" id="refreshid" value="no"/>
+</form>
 
 <script type="text/javascript" src="/lib.js"></script>
 <script type="text/javascript">

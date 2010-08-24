@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
 from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
+from fplan.lib.airspace import get_airspaces_on_line,get_notam_areas_on_line,get_notampoints_on_line
 import json
 import re
 import fplan.lib.weather as weather
@@ -16,7 +17,7 @@ from fplan.lib.calc_route_info import get_route
 import fplan.lib.geo as geo
 import fplan.lib.notam_geo_search as notam_geo_search
 from itertools import chain
-
+from fplan.lib import get_terrain_elev
 
 class FlightplanController(BaseController):
     def search(self):
@@ -58,6 +59,14 @@ class FlightplanController(BaseController):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
+            
+        print "Save:",request.params
+        if 'startfuel' in request.params:
+            try: 
+                trip.startfuel=float(request.params['startfuel'])
+            except:
+                pass
+                            
         print request.params
         for idx,way in enumerate(waypoints):
             altname='wpalt%d'%idx
@@ -177,7 +186,7 @@ class FlightplanController(BaseController):
         waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==session['user'],Waypoint.trip==tripname)).order_by(Waypoint.ordinal).all())
         if len(waypoints)==0:
-            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"No waypoints in trip!"))
+            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
         c.waypoints=[]
         c.trip=tripname
         for wp in waypoints:                    
@@ -288,6 +297,8 @@ class FlightplanController(BaseController):
             c.ac=None
         else:        
             c.ac=trip.acobj
+            
+        c.startfuel=trip.startfuel
         
         return render('/flightplan.mako')
     def select_aircraft(self):  
@@ -310,21 +321,26 @@ class FlightplanController(BaseController):
         
         redirect_to(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
-    def obstacles(self):    
-        routes=get_route(session['user'],session['current_trip'])
+    def get_obstacles(self,routes,vertdist=1000.0,interval=10):        
         byord=dict()
-        tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
-        c.trip=tripobj.trip
-        vertdist=1000.0
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
-                        geo.get_terrain_near_route(routes,vertdist)):
+                        geo.get_terrain_near_route(routes,vertdist,interval)):
             byord.setdefault(closeitem['ordinal'],[]).append(closeitem)
 
+        for v in byord.values():
+            v.sort(key=lambda x:x['dist_from_a'])                        
+        return byord
+    
+    def obstacles(self):    
+        routes=get_route(session['user'],session['current_trip'])
+        
+        tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        c.trip=tripobj.trip
+        byordsorted=sorted(self.get_obstacles(routes).items())
         out=[]
-        byordsorted=sorted(byord.items())
         def classify(item):
             print item
             vertlimit=1000
@@ -363,12 +379,59 @@ class FlightplanController(BaseController):
                     elev=item.get('elev',None)))
                 cur[-1]['color']=classify(cur[-1])
             out.append((items[0]['a'].waypoint,sorted(cur,key=lambda x:x['along_nm'])))
+        
         c.items=out
-        if len(byordsorted)>0:
-            c.endwaypoint=byordsorted[-1][1][-1]['b'].waypoint
-        else:
-            c.endwaypoint=None
         return render('/obstacles.mako')
+        
+        
+    def printable(self):
+        c.techroute=get_route(session['user'],session['current_trip'])
+        c.route=list(meta.Session.query(Route).filter(sa.and_(
+            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
+        c.tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+        if len(c.route)==0 or len(c.techroute)==0:
+            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
+            return
+        c.startfuel=c.tripobj.startfuel
+        c.acobjs=meta.Session.query(Aircraft).filter(sa.and_(
+                 Aircraft.user==session['user'],Aircraft.aircraft==c.tripobj.aircraft)).all()
+        c.ac=None
+        if len(c.acobjs)>0:
+            c.ac=c.acobjs[0]
+        for rt in c.route:
+            rt.notampoints=[]
+            for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5):
+                notam=info['item']
+                alongd=rt.d*info['alongperc']
+                rt.notampoints.append(dict(
+                    notam=notam,
+                    along=alongd                    
+                    ))
+        
+        c.obsts=self.get_obstacles(c.techroute,1e6,0.1)
+        for rt in c.route:
+            rt.airspaces=[]
+            if rt.waypoint1 in c.obsts:
+                rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
+            else:
+                rt.maxobstelev=0#"unknown"
+            #for obst in c.obsts:
+            #    print "obst:",obst
+            for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
+                rt.airspaces.append(space)
+        if c.ac and c.ac.cruise_burn>1e-9:
+            c.reserve_endurance_hours=(c.startfuel-c.route[-1].accum_fuel_burn)/c.ac.cruise_burn
+            mins=int(60.0*c.reserve_endurance_hours)
+            if mins>=0:
+                c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
+            else: 
+                c.reserve_endurance="Unknown"+str(mins)
+        else:
+            c.reserve_endurance="Unknown"+repr(c.ac)
+        c.departure=c.route[0].a.waypoint
+        c.arrival=c.route[-1].a.waypoint        
+        return render('/printable.mako')
         
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
@@ -378,15 +441,21 @@ class FlightplanController(BaseController):
         c.trip=tripobj.trip
         c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
+        c.startfuel=tripobj.startfuel
         
         if tripobj.acobj==None:
             c.routes=[]
             c.acwarn=True
             c.ac=None
+            c.endfuel=tripobj.startfuel
         else:        
             c.routes=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
+            if len(c.routes)>0:
+                c.endfuel=c.startfuel-c.routes[-1].accum_fuel_burn
+            else:
+                c.endfuel=c.startfuel
         c.performance="ok"
         for rt in c.routes:
             if rt.performance!="ok":

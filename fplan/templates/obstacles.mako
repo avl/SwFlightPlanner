@@ -18,7 +18,7 @@ function navigate_to(where)
 </div>
 
 <h1>${c.trip}</h1>
-%if c.endwaypoint!=None:
+%if len(c.items)>0:
 
 <table>
 <tr>
@@ -68,7 +68,7 @@ ${"%.0f"%(item['closestalt'],)}
 
 </table>
 %endif
-%if c.endwaypoint==None:
+%if len(c.items)==0:
 There are no obstacles close to the flightpath (vertically and horizontally).
 %endif
 </div>

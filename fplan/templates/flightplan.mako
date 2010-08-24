@@ -12,6 +12,7 @@ searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 fetchweatherurl='${h.url_for(controller="flightplan",action="weather")}';
 saveurl='${h.url_for(controller="flightplan",action="save")}';
 fetchacurl='${h.url_for(controller="flightplan",action="fetchac")}';
+printableurl='${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}';
 fpcolnum=${len(c.cols)};
 fpcolshort=[];
 fpcoldesc=[];
@@ -20,6 +21,8 @@ fpcolwidth=[];
 num_rows=${len(c.waypoints)};
 function loadfplan()
 {
+    force_refresh_on_back_button('${h.url_for(controller="flightplan",action="index")}');
+
 %for col in c.cols:
 	fpcolshort.push('${col["short"]}');
 	fpcoldesc.push('${col["desc"]}');
@@ -41,6 +44,8 @@ function loadfplan()
 %endfor
 
 	fpmain_init();
+    setInterval("if (dirty!=0) do_save()", 5*1000);
+
 }
 
 function navigate_to(where)
@@ -58,6 +63,7 @@ addLoadEvent(loadfplan);
 
 <div style="height:100%;width:100%;overflow:auto;">
 
+
 <div id="sub-nav">
 	<dl>
 		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#"><b>Overview</b></a></dt>
@@ -66,6 +72,8 @@ addLoadEvent(loadfplan);
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}')" href="#">Obstacles</a></dt>
 	</dl>
 </div>
+
+
 
 <h1>
 ${c.tripname}
@@ -105,6 +113,8 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 %endif
 %if len(c.waypoints)!=0:
 <form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
+Fuel at takeoff: <input size="4" type="text" onchange="makedirty()" id="startfuel" name="startfuel" value="${c.startfuel}"/>L<br/><br/>
+
 %if False:
 %if len(c.all_aircraft):
 Aircraft: <select id="curaircraft" name="aircraft">
@@ -139,6 +149,10 @@ Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not
 </form>
 %endif
 <br/>
+<h2>Printable version</h2>
+<span id="printablelink">
+<a href="${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}"><u>Printable</u></a><br/>
+</span>
 <h2>Download to GPS:</h2>
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',trip=c.tripname)}"><u>GPX Format</u></a>.<br/>
 <!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',trip=c.tripname)}">ITN Format</a>.<br/>-->
