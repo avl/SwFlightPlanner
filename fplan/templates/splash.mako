@@ -61,7 +61,7 @@ ${c.expl}
 <table style="height:30%;margin: 0 auto">
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
-<b>Updated 2010-08-24: </b>Flight plan suitable for printer + bugfixes.
+<b>Updated 2010-08-24: </b>Flight plan suitable for printer, VFR entry/exit/holding points + bugfixes.
 <br/>
 <br/>
 This site uses <a href="http://en.wikipedia.org/wiki/HTTP_cookie">cookies</a> to store <a href="http://en.wikipedia.org/wiki/Unique_identifier">unique</a> session identifiers.<br/>
