@@ -1,5 +1,6 @@
+#encoding=utf8
 import logging
-
+import re
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from fplan.model import *
@@ -8,7 +9,7 @@ import sqlalchemy as sa
 log = logging.getLogger(__name__)
 import json
 import routes.util as h
-
+from fplan.extract.extracted_cache import get_airfields
 class NotamController(BaseController):
 
     def index(self):
@@ -22,8 +23,39 @@ class NotamController(BaseController):
                 (Notam,Notam.ordinal==NotamUpdate.appearnotam)
                  ).order_by(sa.desc(Notam.downloaded)).filter(
                         NotamUpdate.disappearnotam==sa.null()).all()
+        c.categories=set([notamupdate.category for notamupdate,acks,downloaded in c.items])
+        user=meta.Session.query(User).filter(User.user==session['user']).one()
+        c.showobst=user.showobst
         
+        def vandalize(x):
+            x=x.replace(u"Å",u"A")
+            x=x.replace(u"Ä",u"A")
+            x=x.replace(u"Ö",u"O")
+            return x
+        for air in get_airfields():
+            c.categories.add(vandalize(u"%s/%s"%(air['icao'].upper(),air['name'].upper())))
+        c.sel_cat=set(x.category for x in meta.Session.query(NotamCategoryFilter).filter(NotamCategoryFilter.user==session['user']))
+        c.shown=[]
+        c.show_cnt=0
+        c.hide_cnt=0
         
+        m1=re.compile(r".*\bOBST\s+ERECTED\b.*")
+        m2=re.compile(r".*LIGHTS?.*OUT\s+OF\s+SERVICE.*",re.DOTALL)
+        for notamupdate,acks,downloaded in c.items:
+            if not c.showobst:
+                if m1.match(notamupdate.text):
+                    c.hide_cnt+=1
+                    continue
+                if m2.match(notamupdate.text):
+                    c.hide_cnt+=1
+                    continue
+                    
+                
+            if len(c.sel_cat)==0 or notamupdate.category in c.sel_cat:
+                c.shown.append((notamupdate,acks,downloaded))
+                c.show_cnt+=1
+            else:
+                c.hide_cnt+=1
         print "Start rendering mako"
         return render('/notam.mako')
     def show_ctx(self):
@@ -46,8 +78,30 @@ class NotamController(BaseController):
         c.startlines=all_lines[:startline]
         c.midlines=all_lines[startline:endline]
         c.endlines=all_lines[endline:]
-            
         return render('/notam_ctx.mako')
+    def savefilter(self):
+        meta.Session.query(NotamCategoryFilter).filter(NotamCategoryFilter.user==session['user']).delete()
+        meta.Session.flush()
+        meta.Session.commit()
+        user=meta.Session.query(User).filter(User.user==session['user']).one()
+        print "Numbe rof items: ",meta.Session.query(NotamCategoryFilter).filter(NotamCategoryFilter.user==session['user']).count()
+        cats=set()
+        if 'showobst' in request.params:
+            user.showobst=True
+        else:
+            user.showobst=False
+        for key,value in request.params.items():
+            if key.startswith("category_"):
+                cat=key.split("_")[1]
+                if cat in cats: continue
+                cats.add(cat)
+                category=NotamCategoryFilter(session['user'],cat)
+                print "Inserted ",cat
+                meta.Session.add(category)
+        meta.Session.flush()
+        meta.Session.commit()
+        return redirect_to(h.url_for(controller='notam',action="index"))
+        
     def markall(self):
         #TODO: This could be done in a way smarter way! TODO: Checkout subqueries in sqlalchemy
         notamupdates=\

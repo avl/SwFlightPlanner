@@ -22,15 +22,40 @@ addLoadEvent(onloadnotam);
 <h1>Latest Notam Updates</h1>
 <table>
 <tr>
-<td colspan="2"> 
-<form action="${h.url_for(controller="notam",action="markall")}" method="POST">
-
+<td colspan="2" > 
+<form action="${h.url_for(controller="notam",action="markall")}" method="post">
 Click on items when you have read them.<br/>
-<input type="submit" style="font-size:10px" value="I have read them all!"/>
+<input style="font-size:10px" type="submit" value="I have read them all!"/>
+</form>
+<form action="${h.url_for(controller="notam",action="savefilter")}" method="post">
+<button style="font-size:10px"  onclick="showhide_filter();return false;">Filtering</button>
+<br/>
+<div id="popup_category" style="font-size:11px;position:absolute;z-index:15;background-color:#ffffff;display:none;border: 1px #808080 solid;">
+<input type="submit" style="font-size:13px" value="Apply Filter"/><br/>
+
+<b>Show Obstacles and Broken Lights:</b><input type="checkbox" name="showobst" ${'checked="checked"' if c.showobst else ''|n} /> <br/>
+<b>Filter Regions:</b><br/><input id="searchcat" onchange="filtercat()" onkeyup="filtercat()" type="text" name="searchcat"/>
+<div style="height:300px;width:500px;overflow:auto">
+<table border="0" id="filtercattable">
+%for cat in c.categories:
+<tr>
+<td><input type="checkbox" name="category_${cat}" ${'checked="checked"' if cat in c.sel_cat else ''|n}/>${cat}</td>
+</tr>
+%endfor
+</table>
+</div>
+
+</div>
 </form>
 </td>
 </tr>
-%for notamupdate,acks,downloaded in c.items:
+</table>
+<table>
+<tr style="font-size:12px"><td>Shown:</td><td>${c.show_cnt}</td>
+<td>Filtered:</td><td>${c.hide_cnt}</td></tr>
+</table>
+<table id="notamtable">
+%for notamupdate,acks,downloaded in c.shown:
 <tr id="notamcolor_${notamupdate.appearnotam}_${notamupdate.appearline}" style="background:${'#b0ffb0' if acks else '#ffd0b0'}">
 <td>
 <input onchange="click_item(${notamupdate.appearnotam},${notamupdate.appearline},1);return true" type="checkbox" id="notam_${notamupdate.appearnotam}_${notamupdate.appearline}" 

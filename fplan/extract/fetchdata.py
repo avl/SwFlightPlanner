@@ -51,7 +51,7 @@ def getxml(relpath):
         if age<timedelta(0,7200):
             print "Returning cached %s"%(relpath,)
             return open(cachenamexml).read()
-        print "Cache to old"
+        print "Cache too old"
     try:
         pdfdata=getrawdata(relpath)
     except Exception,cause:

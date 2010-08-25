@@ -28,3 +28,4 @@
 26: FIXAD: Om man skrev in skräp i "Altitude"-fältet så pajade typ hela programmet. Nu valideras det i javascripten, sätts till 0 om inte validerande.
 27: WON'T FIX: Gör bättre validering av flightplan-sidan. Highlighta det fält som har fel i sig, med förklaring.
 28: CSV-export av luftrum?
+29: FIXAD: Glider-NOTAM:en - fixa så att radius stöds?

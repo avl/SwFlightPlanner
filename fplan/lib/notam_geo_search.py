@@ -32,6 +32,21 @@ def get_notam_objs(kind=None):
         for coordgroup in coordgroups:        
             coords=list(mapper.parse_lfv_area(coordgroup,False))
             if len(coords)==0: continue
+            
+            if (kind==None or kind=="notamarea"):
+                for radius,lat,lon in re.findall(r"(\d+)\s+NM\s+RADIUS\s+(?:(?:FR?O?M)|(?:CENT[ERD]+))\s+(\d+[NS])\s*(\d+[EW])",text):
+                    centre=mapper.parse_coords(lat,lon)
+                    coords=mapper.create_circle(centre,float(radius))
+                    areas.append(dict(
+                        points=coords,
+                        kind="notamarea",
+                        name=text,
+                        type="notamarea",
+                        notam_ordinal=u.appearnotam,
+                        notam_line=u.appearline,
+                        notam=text))
+                    
+            
             if text.count("OBST") and (kind==None or kind=="obstacle"):
                 elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
                 elevs=[int(x) for x in elevs if x.isdigit()]

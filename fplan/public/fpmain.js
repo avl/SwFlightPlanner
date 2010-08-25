@@ -1,6 +1,17 @@
 modifiable_cols=[];
 dirty=0;
 in_prog=0;
+
+function choose_aircraft()
+{
+    function chooseac()
+    {
+        var f=document.getElementById('chooseaircraftform');
+        f.submit();        
+    }
+    save_data(chooseac);
+}
+
 function do_save()
 {
     if (dirty)

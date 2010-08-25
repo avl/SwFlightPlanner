@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx,get_stats
 from fplan.lib.get_terrain_elev import get_terrain_elev
 from pyshapemerge2d import Vector,Line2,Vertex
-from itertools import izip
+from itertools import izip,chain
 import routes.util as h
 
 
@@ -69,11 +69,12 @@ class MaptileController(BaseController):
             spaces="Uncontrolled below FL095"
             
         mapviewurl=h.url_for(controller="mapview",action="index")
-        notamareas="".join("<li><b><u><a href=\"javascript:navigate_to('%s#notam')\">Area</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=area['notam_ordinal'],line=area['notam_line']),area['notam']) for area in get_notam_areas(lat,lon))
-
-
-        notamareas+="".join("<li><b><u><a href=\"javascript:navigate_to('%s#notam')\">Point</a></u></b>: %s</li>"%(h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=point['notam_ordinal'],line=point['notam_line']),point['notam']) for point in get_notampoints(lat,lon,zoomlevel))
-       
+        
+        notamlist=chain(get_notam_areas(lat,lon),get_notampoints(lat,lon,zoomlevel))
+        notams=dict([(n['notam'].strip(),(n['notam_ordinal'],n['notam_line']) ) for n in notamlist])
+        
+        notamareas="".join("<li>%s <b><u><a href=\"javascript:navigate_to('%s#notam')\">Link</a></u></b></li>"%(
+            text,h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=notam,line=line)) for text,(notam,line) in notams.items())
         if notamareas!="":
             notamareas="<b>Notams</b><ul>"+notamareas+"</ul>"
 
@@ -122,7 +123,10 @@ class MaptileController(BaseController):
         if len(fields):
             airports.append("<b>Airfield:</b><ul>")
             for airp in fields:
-                airports.append(u"<li><b>%s</b> - %s</li>"%(airp.get('icao','ZZZZ'),airp['name']))
+                flygkartan=""
+                if 'flygkartan_id' in airp:
+                    flygkartan="<a href=\"javascript:navigate_to('http://www.flygkartan.se/0+%d');\">Show at flygkartan.se</a>"%(airp['flygkartan_id'],)
+                airports.append(u"<li><b>%s</b> - %s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],flygkartan))
             airports.append("</ul>")
         
         sigpoints=[]

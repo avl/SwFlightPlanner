@@ -31,13 +31,19 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column("password",Unicode(100),nullable=False),
                         sa.Column("isregistered",Boolean(),nullable=False),
                         sa.Column("lastlogin",DateTime(),nullable=False),
-                        sa.Column('fastmap',Boolean(),nullable=False,default=True)
+                        sa.Column('fastmap',Boolean(),nullable=False,default=True),
+                        sa.Column('showobst',Boolean(),nullable=False,default=True)
                         )
 
 notam_table = sa.Table("notam",meta.metadata,
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
                         sa.Column('downloaded',DateTime(),nullable=False),
                         sa.Column("notamtext",Unicode(),nullable=False)
+                        )
+
+notam_category_filter_table = sa.Table("notam_category_filter",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('category',Unicode(),nullable=False,primary_key=True)
                         )
                         
 notamupdate_table = sa.Table('notamupdate',meta.metadata,
@@ -186,6 +192,12 @@ class User(object):
         return "User(%s)"%(self.user,)
     def __repr__(self):
         return "User(%s)"%(self.user,)
+        
+class NotamCategoryFilter(object):
+    def __init__(self,user,category):
+        self.user=user
+        self.category=category
+    
 class Aircraft(object):
     def __init__(self,user,aircraft):
         self.user=user
@@ -197,6 +209,8 @@ orm.mapper(Trip, trip_table, properties=dict(
     acobj=orm.relation(Aircraft,lazy=True)))
 
 orm.mapper(Waypoint, waypoint_table)
+orm.mapper(NotamCategoryFilter, notam_category_filter_table)
+
 orm.mapper(Route, route_table,
  properties=dict(
     a=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint1),lazy=True),

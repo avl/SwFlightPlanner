@@ -88,8 +88,8 @@ ${c.tripname}
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>Click here to add an aircraft!</b></a>
 %endif
 %if len(c.all_aircraft)>0:
-<form action="${h.url_for(controller="flightplan",action="select_aircraft")}" method="POST">
-<select name="change_aircraft">
+<form action="${h.url_for(controller="flightplan",action="select_aircraft")}" method="POST" id="chooseaircraftform">
+<select name="change_aircraft" id="change_aircraft">
 <option>--------
 </option>
 %for ac in c.all_aircraft:
@@ -99,7 +99,7 @@ ${ac.aircraft}
 %endfor
 </select>
 <input type="hidden" name="prevaction" value="index"/>
-<input type="submit" name="save" value="Choose aircraft" title="Select an aircraft using the dropdown-box just to the left of this button!"/>
+<input type="submit" onclick="choose_aircraft();return false;" name="save" value="Choose aircraft" title="Select an aircraft using the dropdown-box just to the left of this button!"/>
 
 </form>
 <br/>

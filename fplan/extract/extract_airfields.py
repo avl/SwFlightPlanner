@@ -7,6 +7,9 @@ import extra_airfields
 import fplan.lib.mapper as mapper
 from pyshapemerge2d import Vertex,Polygon,vvector
 from fplan.lib.mapper import parse_coords,uprint
+import csv
+from fplan.lib.get_terrain_elev import get_terrain_elev
+import math
     
 def extract_airfields():
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
@@ -330,10 +333,36 @@ def extract_airfields():
         print k,v
         
     print "Num points:",len(points)
+    
+    origads=list(ads)
+    for flygkartan_id,name,lat,lon,dummy in csv.reader(open("fplan/extract/flygkartan.csv"),delimiter=";"):
+        found=None
+        lat=float(lat)
+        lon=float(lon)
+        mercf=mapper.latlon2merc((lat,lon),13)
+        for a in origads:
+            merca=mapper.latlon2merc(mapper.from_str(a['pos']),13)
+            dist=math.sqrt((merca[0]-mercf[0])**2+(merca[1]-mercf[1])**2)
+            if dist<120:
+                found=a
+                break
+        if found:
+            found['flygkartan_id']=flygkartan_id
+        else:
+            ads.append(
+                dict(
+                    icao='ZZZZ',
+                    name=name,
+                    pos=mapper.to_str((lat,lon)),
+                    elev=int(get_terrain_elev((lat,lon))),
+                    flygkartan_id=flygkartan_id
+                ))
+                
+            
             
     print ads
     for ad in ads:
-        print "%s: %s - %s (%s ft)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'])
+        print "%s: %s - %s (%s ft) (%s)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'],ad.get('flygkartan_id','inte i flygkartan'))
         if 'spaces' in ad:
             print "   spaces: %s"%(ad['spaces'],)
     return ads,points.values()

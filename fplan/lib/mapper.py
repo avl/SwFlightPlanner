@@ -17,7 +17,6 @@ def unmerc(y):
         
 def latlon2merc(pos,zoomlevel):
     lat,lon=pos
-    #print "lat,lon:",lat,lon
     assert lat>=-85 and lat<=85
     assert lon>=-180 and lon<=180
     factor=(2.0**(zoomlevel))

@@ -1,5 +1,35 @@
-
-
+function showhide_filter()
+{
+    var d=document.getElementById('popup_category').style;
+    if (d.display=='block') 
+        d.display='none';
+    else 
+        d.display='block';
+    return false;
+}
+function filtercat()
+{
+    var tab=document.getElementById('filtercattable');
+	var freetext=document.getElementById('searchcat').value;
+	freetext=freetext.replace('Å','A');
+	freetext=freetext.replace('å','a');
+	freetext=freetext.replace('Ä','A');
+	freetext=freetext.replace('ä','a');
+	freetext=freetext.replace('Ö','O');
+	freetext=freetext.replace('ö','o');
+	var freetextregexp=new RegExp(freetext,'i');
+	for(var i=0;i<tab.rows.length;i++)
+	{
+		var rowelem=tab.rows[i];
+		//var namefield=rowelem.cells[1].childNodes[0];
+		var cat=rowelem.cells[0].childNodes[0].name;
+		var check=rowelem.cells[0].childNodes[0].checked;
+		if (freetext=='' || cat.search(freetextregexp)!=-1)
+    		rowelem.style.display='table-row';		    
+        else
+    		rowelem.style.display='none';		            
+    }    
+}
 inprog=[];
 queued=[];
 function mark_notam(notam,line,marked)
