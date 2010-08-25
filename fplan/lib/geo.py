@@ -77,11 +77,9 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                     ordinal=rt.a.ordinal))
                 along_nm+=interval
             else:
-                print "Missed!"
                 along_nm+=minstep
             if end: 
                 break
-    assert len(set(o['ordinal'] for o in out))==len(set(o.a.ordinal for o in rts))
     return out
 
 def get_stuff_near_route(rts,items,dist,vertdist):
