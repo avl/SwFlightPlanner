@@ -112,6 +112,8 @@ function fetch_winds()
 
 function parsealt(what)
 {
+    if (what.replace(/\s/g,'')=='')
+	return what;
     if (what.substring(what.length-2,100)=='ft')
         what=what.substring(0,what.length-2);
     if (!isNaN(parseFloat(what.substring(2,100))))
