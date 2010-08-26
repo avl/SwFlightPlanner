@@ -106,7 +106,7 @@ def extract_airfields():
                                 y2=100
                             else:
                                 y2=items[idx+1].y1
-                            s=(" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+30,y2-0.1)))).strip()
+                            s=(" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+40,y2-0.1)))).strip()
 
                             if s.startswith("ft Left/3"): #Special case for ESOK
                                 s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
