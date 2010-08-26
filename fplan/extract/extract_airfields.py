@@ -58,6 +58,8 @@ def extract_airfields():
     big_ad=set()        
     for ad in ads:
         if not ad.has_key('pos'):
+            #if ad['icao']!='ESSB':
+            #    continue
             big_ad.add(ad['icao'])
 
     for ad in ads:        
@@ -104,7 +106,8 @@ def extract_airfields():
                                 y2=100
                             else:
                                 y2=items[idx+1].y1
-                            s=(" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+40,y2-0.1)))).strip()
+                            items2=[x for x in page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+40,y2-0.1) if x.y1>=item.y1-0.05]
+                            s=(" ".join(page.get_lines(items2))).strip()
 
                             if s.startswith("ft Left/3"): #Special case for ESOK
                                 s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
@@ -127,8 +130,8 @@ def extract_airfields():
                             points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord)
 
 
-    #for point in points.items():
-    #    print point
+    for point in points.items():
+        print point
 
 
     #sys.exit(1)
