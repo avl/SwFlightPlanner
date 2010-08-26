@@ -18,6 +18,9 @@ import fplan.lib.geo as geo
 import fplan.lib.notam_geo_search as notam_geo_search
 from itertools import chain
 from fplan.lib import get_terrain_elev
+import fplan.lib.tripsharing as tripsharing
+from fplan.lib.tripsharing import tripuser
+
 
 class FlightplanController(BaseController):
     def search(self):
@@ -54,10 +57,10 @@ class FlightplanController(BaseController):
         return ret
     def save(self):
         print "Saving tripname:",request.params['tripname']
-        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==request.params['tripname'])).one()
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],
+             Waypoint.user==tripuser(),
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
             
         print "Save:",request.params
@@ -78,7 +81,7 @@ class FlightplanController(BaseController):
         for idx,way in enumerate(waypoints[:-1]):
             print "Found waypoint #%d"%(idx,)    
             route=meta.Session.query(Route).filter(sa.and_(
-                Route.user==session['user'],
+                Route.user==tripuser(),
                 Route.trip==request.params['tripname'],
                 Route.waypoint1==way.ordinal,
                 )).one()
@@ -95,16 +98,19 @@ class FlightplanController(BaseController):
                 val=request.params[key]
                 print "Value of key %s: %s"%(key,val)
                 setattr(route,att,val)
-        acname=request.params.get('aircraft','').strip()
-        if acname!="":
-            trip.aircraft=acname
+        
+        if not tripsharing.sharing_active():
+            acname=request.params.get('aircraft','').strip()
+            if acname!="":
+                trip.aircraft=acname
+            
         meta.Session.flush()
         meta.Session.commit()
         return "ok"
         
     def weather(self):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],
+             Waypoint.user==tripuser(),
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
              
         ret=[]
@@ -122,12 +128,12 @@ class FlightplanController(BaseController):
                  continue #skip this alt
              #N+1 selects....
              route=meta.Session.query(Route).filter(sa.and_(
-                  Route.user==session['user'],
+                  Route.user==tripuser(),
                   Route.trip==request.params['tripname'],
                   Route.waypoint1==way.ordinal,
                   )).one()
              way2=meta.Session.query(Waypoint).filter(sa.and_(
-                  Waypoint.user==session['user'],
+                  Waypoint.user==tripuser(),
                   Waypoint.trip==request.params['tripname'],
                   Waypoint.ordinal==route.waypoint2,
                   )).one()
@@ -146,6 +152,16 @@ class FlightplanController(BaseController):
         jsonstr=json.dumps(ret)
         print "returning json:",jsonstr
         return jsonstr
+        
+        
+        
+    def hijack_trip(self):
+        #http://localhost:5000/flightplan/hijack_trip?akhsbckjasd&trip=anktrip&user=ank
+        if not 'akhsbckjasd' in request.params:
+            return ''
+        tripsharing.view_other(user=request.params['user'],trip=request.params['trip'])
+        return redirect_to(h.url_for(controller='mapview',action="index"))        
+
     def gpx(self):
         # Return a rendered template
         #return render('/flightplan.mako')
@@ -157,7 +173,7 @@ class FlightplanController(BaseController):
             return u"Internal error. Missing trip-name."
             
         waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==tripname)).order_by(Waypoint.ordinal).all())
+             Waypoint.user==tripuser(),Waypoint.trip==tripname)).order_by(Waypoint.ordinal).all())
         if len(waypoints)==0:
             return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
         c.waypoints=[]
@@ -179,7 +195,7 @@ class FlightplanController(BaseController):
         #return render('/flightplan.mako')
         # or, return a response
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all()
+             Waypoint.user==tripuser(),Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all()
         c.waypoints=[]
         c.trip=session['current_trip']
         for wp in waypoints:
@@ -198,14 +214,14 @@ class FlightplanController(BaseController):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
-        trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+        trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==session['current_trip'])).all()
         if len(trips)!=1:
             return redirect_to(h.url_for(controller='mapview',action="index"))            
         c.flash=request.params.get('flash',None)
         trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
+             Waypoint.user==tripuser(),Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         
         c.totdist=0.0
         for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
@@ -223,7 +239,7 @@ class FlightplanController(BaseController):
                     return "%.1f"%(dist/1.852,)
             if what in ['W','V','Var','Alt','TAS']:
                 routes=list(meta.Session.query(Route).filter(sa.and_(
-                    Route.user==session['user'],Route.trip==session['current_trip'],
+                    Route.user==tripuser(),Route.trip==session['current_trip'],
                     Route.waypoint1==a.ordinal,Route.waypoint2==b.ordinal)).all())
                 if len(routes)==1:
                     route=routes[0]
@@ -274,22 +290,23 @@ class FlightplanController(BaseController):
         c.startfuel=trip.startfuel
         
         return render('/flightplan.mako')
-    def select_aircraft(self):  
-        tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
-        
-        tripobj.aircraft=request.params['change_aircraft']
-        if tripobj.aircraft.strip()=="--------":
-            tripobj.aircraft=None
-        else:
-            for route in meta.Session.query(Route).filter(sa.and_(
-                            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all():
-                acobj,=meta.Session.query(Aircraft).filter(sa.and_(
-                    Aircraft.aircraft==tripobj.aircraft,Aircraft.user==session['user'])).all()
-                route.tas=acobj.cruise_speed
+    def select_aircraft(self):
+        if not tripsharing.sharing_active():  
+            tripobj=meta.Session.query(Trip).filter(sa.and_(
+                Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
             
-        meta.Session.flush()
-        meta.Session.commit()
+            tripobj.aircraft=request.params['change_aircraft']
+            if tripobj.aircraft.strip()=="--------":
+                tripobj.aircraft=None
+            else:
+                for route in meta.Session.query(Route).filter(sa.and_(
+                                Route.user==tripuser(),Route.trip==session['current_trip'])).order_by(Route.waypoint1).all():
+                    acobj,=meta.Session.query(Aircraft).filter(sa.and_(
+                        Aircraft.aircraft==tripobj.aircraft,Aircraft.user==session['user'])).all()
+                    route.tas=acobj.cruise_speed
+                
+            meta.Session.flush()
+            meta.Session.commit()
         
         
         redirect_to(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
@@ -307,10 +324,10 @@ class FlightplanController(BaseController):
         return byord
     
     def obstacles(self):    
-        routes,dummy=get_route(session['user'],session['current_trip'])
+        routes,dummy=get_route(tripuser(),session['current_trip'])
         
         tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+            Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
         byordsorted=sorted(self.get_obstacles(routes).items())
         out=[]
@@ -358,17 +375,17 @@ class FlightplanController(BaseController):
         
         
     def printable(self):
-        c.techroute,c.route=get_route(session['user'],session['current_trip'])
+        c.techroute,c.route=get_route(tripuser(),session['current_trip'])
         #c.route=list(meta.Session.query(Route).filter(sa.and_(
-        #    Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
+        #    Route.user==tripuser(),Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
         c.tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+            Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         if len(c.route)==0 or len(c.techroute)==0:
             redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
             return
         c.startfuel=c.tripobj.startfuel
         c.acobjs=meta.Session.query(Aircraft).filter(sa.and_(
-                 Aircraft.user==session['user'],Aircraft.aircraft==c.tripobj.aircraft)).all()
+                 Aircraft.user==tripuser(),Aircraft.aircraft==c.tripobj.aircraft)).all()
         c.ac=None
         if len(c.acobjs)>0:
             c.ac=c.acobjs[0]
@@ -382,13 +399,15 @@ class FlightplanController(BaseController):
                     along=alongd                    
                     ))
         
-        c.obsts=self.get_obstacles(c.techroute,1e6,0.1)
+        c.obsts=self.get_obstacles(c.techroute,1e6,0.5)
         for rt in c.route:
             rt.airspaces=[]
             if rt.waypoint1 in c.obsts:
                 rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
             else:
                 rt.maxobstelev=0#"unknown"
+            rt.startelev=get_terrain_elev.get_terrain_elev(mapper.from_str(rt.a.pos))
+            rt.endelev=get_terrain_elev.get_terrain_elev(mapper.from_str(rt.b.pos))
             #for obst in c.obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
@@ -408,9 +427,9 @@ class FlightplanController(BaseController):
         
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(
-            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
+            Route.user==tripuser(),Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
         tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
+            Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
         c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
@@ -422,7 +441,7 @@ class FlightplanController(BaseController):
             c.ac=None
             c.endfuel=tripobj.startfuel
         else:        
-            c.routes,dummy=get_route(session['user'],session['current_trip'])
+            c.routes,dummy=get_route(tripuser(),session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
             if len(c.routes)>0:

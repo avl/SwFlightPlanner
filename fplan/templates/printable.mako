@@ -17,10 +17,11 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 </table>
 
 <table border="1" width="100%"> 
-<tr><td colspan="5" style="font-size:16px">
+<tr><td colspan="6" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
-<span style="font-size:10px">Start</span>0h0m
-<span style="font-size:10px">Fuel</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
+<span style="font-size:10px">Start:</span>0h0m
+<span style="font-size:10px">Fuel:</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
+<span style="font-size:10px">Terrain:</span>${"%.0f"%(c.route[0].startelev,)}<span style="font-size:10px">ft</span>
 </td></tr>
 %for rt in c.route:
 <tr>
@@ -29,20 +30,21 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 <td><span style="font-size:10px">Min-alt:</span>${"%.0f"%(rt.maxobstelev+500,)}<span style="font-size:10px">ft</span></td>
 <td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}<span style="font-size:10px">dgr</span></td>
 <td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
+<td><span style="font-size:10px">Tas:</span>${rt.tas}<span style="font-size:10px">kt</span></td>
 </tr>
 
 %for notam in sorted(rt.notampoints,key=lambda x:x['along']):
 <tr style="font-size:11px">
-<td colspan="5"><span style="font-size:10px"><b>NOTAM @${"%.0f"%(notam['along'],)}NM: </b></span>${notam['notam']['notam']}</td>
+<td colspan="6"><span style="font-size:10px"><b>NOTAM @${"%.0f"%(notam['along'],)}NM: </b></span>${notam['notam']['notam']}</td>
 </tr>
 %endfor
 %for notam in set([h.short(space['name'],200) for space in rt.airspaces]):
 <tr style="font-size:11px">
-<td colspan="5"><span style="font-size:10px"><b>NOTAM: </b></span>${notam}</td>
+<td colspan="6"><span style="font-size:10px"><b>NOTAM: </b></span>${notam}</td>
 </tr>
 %endfor
 
-<tr><td colspan="5" style="font-size:16px">
+<tr><td colspan="6" style="font-size:16px">
 <b>${rt.b.waypoint}</b>
 <span style="font-size:10px">ETA</span>${rt.accum_time}
 %if rt.accum_fuel_burn>c.startfuel:
@@ -51,6 +53,7 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 %if rt.accum_fuel_burn<=c.startfuel:
 <span style="font-size:10px">Fuel</span>${"%.1f"%(c.startfuel-rt.accum_fuel_burn,)}<span style="font-size:10px">L</span>
 %endif
+<span style="font-size:10px">Terrain:</span>${"%.0f"%(rt.endelev,)}<span style="font-size:10px">ft</span>
 </td>
 </tr>
 

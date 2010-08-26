@@ -14,6 +14,8 @@ import json
 from md5 import md5
 from datetime import datetime
 log = logging.getLogger(__name__)
+import fplan.lib.tripsharing as tripsharing
+from fplan.lib.tripsharing import tripuser
 
 class MapviewController(BaseController):      
 
@@ -81,10 +83,17 @@ class MapviewController(BaseController):
 
             wps=self.get_waypoints(request.params)
             
-            user=meta.Session.query(User).filter(
-                User.user==session['user']).one()
             oldname=request.params.get('oldtripname','')
             tripname=request.params.get('tripname','')
+            if tripsharing.sharing_active():
+                #Can't rename trips while tripsharing is active!                
+                tripname=session['current_trip']
+                if oldname!=session['current_trip']:
+                    #In some strange way a non-tripsharing oldname appeared in the post. This
+                    #means that something has gone awry. Don't save!
+                    print "Bad trip oldname while tripsharing active!"
+                    return "notok"
+                    
             if 'showarea' in request.params and request.params['showarea']:
                 sha=request.params['showarea']
                 if (sha=='.'):
@@ -105,19 +114,33 @@ class MapviewController(BaseController):
             oldtrip=None
             if not oldname.strip():
                 oldname=tripname
-            oldtrips=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user,Trip.trip==oldname)).all()
+            oldtrips=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),Trip.trip==oldname)).all()
             if len(oldtrips)==1:
                 oldtrip=oldtrips[0]
             if oldtrip:
                 trip=oldtrip
                 if trip.trip!=tripname:
-                    trip.trip=self.get_free_tripname(tripname)
+                    if tripsharing.sharing_active():
+                        #attempt to rename someone elses trip! Can't be allowed! set tripname to old name
+                        print "Attempt to rename trip while viewing shared trip (tripsharing)"
+                        return "notok"
+                    else:
+                        trip.trip=self.get_free_tripname(tripname)
+                if session['current_trip']!=trip.trip and tripsharing.sharing_active():
+                    #internal error if we get here - the earlier test for current_trip not changing failed.
+                    print "Unexpected tripsharing error #2"
+                    return "notok"
+                    
                 session['current_trip']=trip.trip
             else:
+                if tripsharing.sharing_active():
+                    #we use sharing, but the shared trip can't be found!
+                    print "Tripsharing active, but named trip didn't exist (deleted, probably)"
+                    return "notok"
                 tripname=self.get_free_tripname(tripname)
-                trip = Trip(user.user, tripname)
+                trip = Trip(tripuser(), tripname)
                 acs=meta.Session.query(Aircraft).filter(sa.and_(
-                    Aircraft.user==session['user'])).all()
+                    Aircraft.user==tripuser())).all()
                 if len(acs):
                     trip.aircraft=acs[0].aircraft
 
@@ -125,7 +148,7 @@ class MapviewController(BaseController):
                 session['current_trip']=tripname
             
             oldwps=set([(wp.ordinal) for wp in meta.Session.query(Waypoint).filter(sa.and_(
-                    Waypoint.user==user.user,Waypoint.trip==trip.trip)).all()])
+                    Waypoint.user==tripuser(),Waypoint.trip==trip.trip)).all()])
             
             newwps=set(wps.keys())
             #print "NEW WPS",wps
@@ -134,20 +157,20 @@ class MapviewController(BaseController):
             updated=newwps.intersection(oldwps)
             for remord in removed:
                 meta.Session.query(Waypoint).filter(
-                    sa.and_(Waypoint.user==user.user,Waypoint.trip==trip.trip,
+                    sa.and_(Waypoint.user==tripuser(),Waypoint.trip==trip.trip,
                             Waypoint.ordinal==remord)).delete()
                 #print "\n\n====DELETING!=====\n%s\n\n"%(rem,)
             resultant_by_ordinal=dict()
             for add in added:                
                 wp=wps[add]
-                waypoint=Waypoint(user.user,trip.trip,wp['pos'],wp['ordinal'],wp['name'],wp['altitude'])
+                waypoint=Waypoint(tripuser(),trip.trip,wp['pos'],wp['ordinal'],wp['name'],wp['altitude'])
                 resultant_by_ordinal[wp['ordinal']]=waypoint
                 #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
             for upd in updated:
                 wp=wps[upd]
                 us=meta.Session.query(Waypoint).filter(
-                    sa.and_(Waypoint.user==user.user,Waypoint.trip==trip.trip,
+                    sa.and_(Waypoint.user==tripuser(),Waypoint.trip==trip.trip,
                             Waypoint.ordinal==upd)).all()
                 if len(us)>0:
                     u=us[0]
@@ -175,7 +198,7 @@ class MapviewController(BaseController):
                 assert int(ord1)+1==int(ord2)
                 newroutes.add((waypoint1.ordinal,waypoint2.ordinal))
             oldroutes=set([(route.waypoint1,route.waypoint2) for route in meta.Session.query(Route).filter(sa.and_(
-                    Route.user==user.user,Route.trip==trip.trip)).all()])
+                    Route.user==tripuser(),Route.trip==trip.trip)).all()])
             
             #Routes:
             removed=oldroutes.difference(newroutes)
@@ -186,16 +209,16 @@ class MapviewController(BaseController):
             print "Kept routes: ",updated
             for rem1,rem2 in removed:
                 meta.Session.query(Route).filter(
-                    sa.and_(Route.user==user.user,Route.trip==trip.trip,
+                    sa.and_(Route.user==tripuser(),Route.trip==trip.trip,
                             Route.waypoint1==rem1,Route.waypoint2==rem2)).delete()
             sel_acs=meta.Session.query(Aircraft).filter(sa.and_(
-                Aircraft.aircraft==trip.aircraft,Aircraft.user==session['user'])).all()
+                Aircraft.aircraft==trip.aircraft,Aircraft.user==tripuser())).all()
             if len(sel_acs):
                 tas=sel_acs[0].cruise_speed
             else:
                 tas=75
             for a1,a2 in added:
-                r=Route(user.user,trip.trip,
+                r=Route(tripuser(),trip.trip,
                         a1,a2,0,0,tas,None,1000)
                 meta.Session.add(r)
             
@@ -214,8 +237,8 @@ class MapviewController(BaseController):
     
     def zoom(self):
         print "zoom called"
-        user=meta.Session.query(User).filter(
-                User.user==session['user']).one()
+        #user=meta.Session.query(User).filter(
+        #        User.user==tripuser()).one()
                 
         if request.params['zoom']=='auto':
             if session.get('showarea','')!='':                
@@ -286,12 +309,14 @@ class MapviewController(BaseController):
         redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
             
     def trip_actions(self):
-        print "trip actions:",request.params
+        #print "trip actions:",request.params
+            
         if request.params.get('addtripname',None):
+            tripsharing.cancel()
             tripname=self.get_free_tripname(request.params['addtripname'])
-            trip = Trip(session['user'], tripname)
+            trip = Trip(tripuser(), tripname)
             acs=meta.Session.query(Aircraft).filter(sa.and_(
-                Aircraft.user==session['user'])).all()
+                Aircraft.user==tripuser())).all()
             if len(acs):
                 trip.aircraft=acs[0].aircraft
             
@@ -300,16 +325,18 @@ class MapviewController(BaseController):
             session['current_trip']=tripname
             session.save()       
         if request.params.get('opentripname',None):
+            tripsharing.cancel()
             tripname=request.params['opentripname']
-            if meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+            if meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
                 Trip.trip==tripname)).count():
                 session['current_trip']=tripname
                 session.save()
             
-        if request.params.get('deletetripname',None):
-            meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
+        if request.params.get('deletetripname',None) and not tripsharing.sharing_active():
+            meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
                 Trip.trip==request.params['deletetripname'])).delete()
             del session['current_trip']
+            session.save()
             
         meta.Session.flush()
         meta.Session.commit();
@@ -318,21 +345,21 @@ class MapviewController(BaseController):
         
     def index(self):
         #print "index called",request.params
-        user=meta.Session.query(User).filter(
-                User.user==session['user']).one()
+        #user=meta.Session.query(User).filter(
+        #        User.user==tripuser()).one()
         
         c.all_trips=list(meta.Session.query(Trip).filter(Trip.user==session['user']).all())
         if 'current_trip' in session and meta.Session.query(Trip).filter(sa.and_(
-                Trip.user==session['user'],
+                Trip.user==tripuser(),
                 Trip.trip==session['current_trip']
                     )).count()==0:
             session['current_trip']=None
                         
         if not 'current_trip' in session or session['current_trip']==None:
             trips=meta.Session.query(Trip).filter(
-                Trip.user==session['user']).all()
+                Trip.user==tripuser()).all()
             if len(trips)==0:
-                trip = Trip(user.user, "Default Trip")
+                trip = Trip(tripuser(), "Default Trip")
                 meta.Session.add(trip)
                 meta.Session.flush()
                 meta.Session.commit()
@@ -352,15 +379,18 @@ class MapviewController(BaseController):
         
                                         
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==session['user'],Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
+             Waypoint.user==tripuser(),Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
         c.tripname=session['current_trip']
         c.showarea=session.get('showarea','')
         c.showtrack=session.get('showtrack',None)!=None
         c.show_airspaces=session.get('showairspaces',True)
+        user=meta.Session.query(User).filter(
+                User.user==session['user']).one()
         c.fastmap=user.fastmap;
         #print "Zoomlevel active: ",zoomlevel
         c.zoomlevel=zoomlevel
         c.dynamic_id=''
+        c.sharing=tripsharing.sharing_active()
         if session.get('showarea',''):
             c.dynamic_id=session.get('showarea_id','')
         if session.get('showtrack',''):

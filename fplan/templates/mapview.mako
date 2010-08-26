@@ -134,11 +134,13 @@ function loadmap()
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
-	'Trip Name:<br/><input style="background:#c0ffc0" onkeypress="return not_enter(event)" id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
+	'Trip Name:<br/><input style="background:#c0ffc0" onkeypress="return not_enter(event)" ${"readonly=\"readonly\"" if c.sharing else ""|n} id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
 	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
 	'<div id="moretripfunctions" style="display:none">'+
 	'<button style="font-size:10px" onclick="add_new_trip();return false;">New</button>'+
+%if not c.sharing:
 	'<button style="font-size:10px" onclick="on_delete_trip();return false;">Delete</button>'+
+%endif
 	'<button style="font-size:10px" onclick="open_trip();return false;">Previous Trips</button>'+
 	'</div>'+
 	'<div id="addtripfunctions" style="display:none">'+
