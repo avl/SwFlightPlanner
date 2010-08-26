@@ -58,8 +58,6 @@ def extract_airfields():
     big_ad=set()        
     for ad in ads:
         if not ad.has_key('pos'):
-            if ad['icao']!='ESSB':
-                continue
             big_ad.add(ad['icao'])
 
     for ad in ads:        
