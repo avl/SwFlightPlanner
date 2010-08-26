@@ -89,7 +89,7 @@ def get_notam_objs(kind=None):
                         notam_ordinal=u.appearnotam,
                         notam_line=u.appearline,
                         notam=text))
-                    print "Found a notam area:",text
+                    #print "Found a notam area:",text
                 #polyc=[]
                 #for coord in coords:
                 #    polyc.append(Vertex(*mapper.latlon2merc(mapper.from_str(coord),13)))

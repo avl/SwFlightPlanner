@@ -77,15 +77,15 @@ def get_polygons_around(lat,lon,polys):
             x,y=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
             poly_coords.append(Vertex(int(x),int(y)))
         if len(poly_coords)<3:
-            print "Space %s has few points: %s "%(space['name'],space['points'])
+            #print "Space %s has few points: %s "%(space['name'],space['points'])
             continue
         poly=Polygon(vvector(poly_coords))
-        print "Checking if inside poly:",space
+        #print "Checking if inside poly:",space
         if poly.is_inside(Vertex(int(px),int(py))):
             insides.append(space)
-            print "Is inside"
+            #print "Is inside"
         else:
-            print "Is NOT inside"
+            pass#print "Is NOT inside"
     return insides
 
 def get_polygons_on_line(latlon1,latlon2,polys):
@@ -100,15 +100,15 @@ def get_polygons_on_line(latlon1,latlon2,polys):
             x,y=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
             poly_coords.append(Vertex(int(x),int(y)))
         if len(poly_coords)<3:
-            print "Space %s has few points: %s "%(space['name'],space['points'])
+            #print "Space %s has few points: %s "%(space['name'],space['points'])
             continue
         poly=Polygon(vvector(poly_coords))
-        print "Checking if intersect poly:",space
+        #print "Checking if intersect poly:",space
         if len(poly.intersect_line(line))>0:
             crosses.append(space)
-            print "Is crossing"
+            #print "Is crossing"
         else:
-            print "Is NOT crossing"
+            pass#print "Is NOT crossing"
     return crosses
 
 

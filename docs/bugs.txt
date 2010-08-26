@@ -30,5 +30,5 @@
 28: FIXAD: CSV-export av luftrum? (/api/get_airspaces?csv=1)
 29: FIXAD: Glider-NOTAM:en - fixa så att radius stöds?
 30: FIXAD: Kanske läsa in radionavigeringshjälpmedel från AIP/ENR/ENR\ 4/ES_ENR_4_1_en.pdf?
-31: Ta bort debug-utskrifter från shapemerge2d och även från programmet.
+31: FIXAD: Ta bort debug-utskrifter från shapemerge2d och även från programmet.
 
