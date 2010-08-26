@@ -339,6 +339,8 @@ def extract_airfields():
         found=None
         lat=float(lat)
         lon=float(lon)
+        if type(name)==str:
+            name=unicode(name,'utf8')
         mercf=mapper.latlon2merc((lat,lon),13)
         for a in origads:
             merca=mapper.latlon2merc(mapper.from_str(a['pos']),13)
