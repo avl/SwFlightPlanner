@@ -58,6 +58,8 @@ def extract_airfields():
     big_ad=set()        
     for ad in ads:
         if not ad.has_key('pos'):
+            if ad['icao']!='ESSB':
+                continue
             big_ad.add(ad['icao'])
 
     for ad in ads:        
@@ -96,14 +98,15 @@ def extract_airfields():
                         items=sorted(page.get_partially_in_rect(holdingheading.x1+2.0,holdingheading.y2+0.1,holdingheading.x1+0.5,100),
                             key=lambda x:x.y1)
                         items=[x for x in items if not x.text.startswith(" ")]
-                        print "Holding items:",items
+                        #print "Holding items:",items
                         for idx,item in enumerate(items):
+                            print
                             y1=item.y1
                             if idx==len(items)-1:
                                 y2=100
                             else:
                                 y2=items[idx+1].y1
-                            s=" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.4,100,y2-0.1)))
+                            s=(" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+30,y2-0.1)))).strip()
 
                             if s.startswith("ft Left/3"): #Special case for ESOK
                                 s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
@@ -113,7 +116,7 @@ def extract_airfields():
                                 sl=s.split(" ",1)
                                 if len(sl)>1:
                                     s=sl[1]
-                            print "Holding item",item,"s:",s,"\n"
+                            print "Holding item",item,"s:",s
                             m=re.match(r"([A-Z]+).*?(\d+N)\s*(\d+E).*",s)
                             if not m: continue
                             name,lat,lon=m.groups()
@@ -121,14 +124,16 @@ def extract_airfields():
                             try:
                                 coord=parse_coords(lat,lon)
                             except:
+                                print "Couldn't parse:",lat,lon
                                 continue
                             points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord)
 
 
+    for point in points.items():
+        print point
 
 
-
-
+    sys.exit(1)
 
 
     for ad in ads:
@@ -324,6 +329,8 @@ def extract_airfields():
                             
                             
             #Now find any ATS-airspace
+
+    sys.exit(1)
             
     for extra in extra_airfields.extra_airfields:
         ads.append(extra)
