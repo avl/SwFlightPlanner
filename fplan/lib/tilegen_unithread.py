@@ -11,7 +11,7 @@ def run_unithread(target_path,tma,zoomlevel=13):
     p.init(target_path,tma,zoomlevel)
     tilegen_worker.run(p)
 
-def update_unithread(zoomlevel):
+def update_unithread(zoomlevel=13):
     if os.path.exists("/home/anders/saker/avl_fplan_world/intermediate/"):
         if os.system("rm -rfv /home/anders/saker/avl_fplan_world/intermediate/level*"):
             raise Exception("Couldn't clear dir")
