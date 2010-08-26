@@ -61,6 +61,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                
             if alt-elev<vertdist:
                 #print "idx",idx,"ord:",rt.a.ordinal
+                print "Terrain warning: ",dict(a=rt.a.waypoint,b=rt.b.waypoint,kind=rt.legpart,startalt=rt.startalt,endalt=rt.endalt,along=alongf,end=end)
                 out.append(dict(
                     name="Terrain warning",
                     pos=mapper.to_str(latlon),
@@ -70,7 +71,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                     bearing=0,
                     closestalt=alt,
                     kind='terrain',
-                    dist_from_a=float(along_nm),
+                    dist_from_a=mapper.bearing_and_distance(mapper.from_str(rt.a.pos),latlon)[1],
                     dir_from_a=describe_dir(rt.tt),
                     a=rt.a,
                     b=rt.b,
