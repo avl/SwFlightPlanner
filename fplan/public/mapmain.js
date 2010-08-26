@@ -1108,7 +1108,7 @@ function on_mousemovemap(event)
 
 	var ol=document.getElementById('mapcontainer').offsetLeft;
 
-	document.getElementById("footer").innerHTML=aviation_format_pos(latlon,2)+' (dbg: xm: '+mercx+' ym:'+mercy+' zoom: '+map_zoomlevel+')';
+	document.getElementById("footer").innerHTML=aviation_format_pos(latlon,2)+' ('+latlon[0].toFixed(6)+','+latlon[1].toFixed(6)+') (dbg: xm: '+mercx+' ym:'+mercy+' zoom: '+map_zoomlevel+')';
 		
 	draw_dynamic_lines(client2merc_x(event.clientX),client2merc_y(event.clientY));
 }
