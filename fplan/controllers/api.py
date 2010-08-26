@@ -119,7 +119,7 @@ class ApiController(BaseController):
             tripobj=dict()
             tripobj['trip']=trip.trip
             waypoints=[]
-            rts=calc_route_info.get_route(user.user,trip.trip)
+            rts,dummy=calc_route_info.get_route(user.user,trip.trip)
             if len(rts):
                 def add_wp(name,pos,startalt,endalt,winddir,windvel,gs,what,legpart,lastsub,d,tas):
                     d=dict(lat=pos[0],lon=pos[1],

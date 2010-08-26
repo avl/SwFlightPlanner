@@ -345,7 +345,7 @@ def get_route(user,trip):
             rt.time_hours=rt.d/rt.gs;
         else:
             rt.time_hours=None                          
-    return res
+    return res,routes
 
 def test_route_info():
     from fplan.config.environment import load_environment
@@ -382,7 +382,7 @@ def test_route_info():
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==u'anders',Trip.trip==u'mytrip')).one()
     class Temp(object): pass
-    route=get_route(u'anders',u'mytrip')['routes']
+    route,dummy=get_route(u'anders',u'mytrip')['routes']
     D=60.153204103671705
     assert abs(route[0].d-D)<1e-5
     #print route[0].__dict__

@@ -101,33 +101,6 @@ class FlightplanController(BaseController):
         meta.Session.flush()
         meta.Session.commit()
         return "ok"
-    def fetchac(self):
-        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==session['user'],
-            Trip.trip==session['current_trip'])).one()
-        trip.aircraft=request.params['aircraft']
-        
-        alts=request.params.get('alts','')
-        if alts==None:
-            altvec=[]
-        else:
-            altvec=alts.split(",")
-        for idx,alt in enumerate(altvec):
-             route=meta.Session.query(Route).filter(sa.and_(
-                  Route.user==session['user'],
-                  Route.trip==request.params['tripname'],
-                  Route.waypoint1==idx,
-                  Route.waypoint2==idx+1,
-                  )).one()
-             route.altitude=alt
-
-        rts=get_route(session['user'],request.params['tripname'])['routes']
-        ret=[]
-        for rt in rts:
-            print "Processing rt:",rt 
-            ret.append(rt.tas)
-        jsonstr=json.dumps(ret)
-        print "returning json:",jsonstr
-        return jsonstr
         
     def weather(self):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
@@ -334,7 +307,7 @@ class FlightplanController(BaseController):
         return byord
     
     def obstacles(self):    
-        routes=get_route(session['user'],session['current_trip'])
+        routes,dummy=get_route(session['user'],session['current_trip'])
         
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
@@ -385,9 +358,9 @@ class FlightplanController(BaseController):
         
         
     def printable(self):
-        c.techroute=get_route(session['user'],session['current_trip'])
-        c.route=list(meta.Session.query(Route).filter(sa.and_(
-            Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
+        c.techroute,c.route=get_route(session['user'],session['current_trip'])
+        #c.route=list(meta.Session.query(Route).filter(sa.and_(
+        #    Route.user==session['user'],Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
         c.tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==session['user'],Trip.trip==session['current_trip'])).one()
         if len(c.route)==0 or len(c.techroute)==0:
@@ -421,7 +394,7 @@ class FlightplanController(BaseController):
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
                 rt.airspaces.append(space)
         if c.ac and c.ac.cruise_burn>1e-9:
-            c.reserve_endurance_hours=(c.startfuel-c.route[-1].accum_fuel_burn)/c.ac.cruise_burn
+            c.reserve_endurance_hours=(c.startfuel-c.techroute[-1].accum_fuel_burn)/c.ac.cruise_burn
             mins=int(60.0*c.reserve_endurance_hours)
             if mins>=0:
                 c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
@@ -449,7 +422,7 @@ class FlightplanController(BaseController):
             c.ac=None
             c.endfuel=tripobj.startfuel
         else:        
-            c.routes=get_route(session['user'],session['current_trip'])
+            c.routes,dummy=get_route(session['user'],session['current_trip'])
             c.acwarn=False
             c.ac=tripobj.acobj
             if len(c.routes)>0:

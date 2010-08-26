@@ -4,7 +4,7 @@
 3: FIXAD: Borde gå att se riktning på en GPS-track.
 4: TRIAGED: Borde gå att få waypoints där man byter luftrum.
 5: FIXAD: Borde gå att få frekvensinfo för luftrum,
-5b:  -- även visas i färdplan.
+5b:WON'T FIX:  -- även visas i färdplan.
 6: FIXAD: Validering av höjder i flightplannen... med avseende på prestanda.
 7: FIXAD: Om area-rendering: Se till att inte orendrade gamla tiles cachade visas!
 8: FIXAD: Fetch Wind Info ger resultat även om kontakt ej nås med LFV-servern! Åtminstone i debug-läge... (bara på min macbook, baserat på hostname)
@@ -19,7 +19,7 @@
 17: Det borde gå att dela trippar med andra användare.
 18: FIXAD: Fixa "printable"-länken, så att det sparas innan man navigeras bort, men typ högerklick funkar...?
 19: WON'T FIX: Att använda back-knappen (eller länken som inte använder javascript för den delen) tillbaka till Notam är väldigt ineffektivt. Den borde inte ladda om allt, bara statusen?
-20: Borde gå att sortera NOTAMS.
+20: FIXAD: Borde gå att sortera NOTAMS.
 21: FIXAD: Texten "no waypoints in trip" när man anropar printable, borde vara "too few (less than two) waypoints in trip".
 22: Borde göra något smart angående terrängvarningar nära flygplatser. Kanske skriva "inflygning 'si-och-så-flygplats' när man är lågt nära en airport?".
 23: FIXAD: Borde hitta koordinater för inpasseringspunkter och väntlägen!
@@ -29,3 +29,5 @@
 27: WON'T FIX: Gör bättre validering av flightplan-sidan. Highlighta det fält som har fel i sig, med förklaring.
 28: CSV-export av luftrum?
 29: FIXAD: Glider-NOTAM:en - fixa så att radius stöds?
+30: Kanske läsa in radionavigeringshjälpmedel från AIP/ENR/ENR\ 4/ES_ENR_4_1_en.pdf?
+
