@@ -129,11 +129,11 @@ def extract_airfields():
                             points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord)
 
 
-    for point in points.items():
-        print point
+    #for point in points.items():
+    #    print point
 
 
-    sys.exit(1)
+    #sys.exit(1)
 
 
     for ad in ads:
@@ -330,7 +330,7 @@ def extract_airfields():
                             
             #Now find any ATS-airspace
 
-    sys.exit(1)
+    #sys.exit(1)
             
     for extra in extra_airfields.extra_airfields:
         ads.append(extra)
