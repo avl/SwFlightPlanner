@@ -17,7 +17,7 @@ def parse_sig_points():
                 #print cols
                 if len(mapper.parsecoords(coordstr))>0:
                     crd=mapper.parsecoord(coordstr)
-                    print "Found %s: %s"%(cols[0],crd)
+                    #print "Found %s: %s"%(cols[0],crd)
                     points.append(dict(
                         name=cols[0],
                         pos=crd))
@@ -45,12 +45,17 @@ def parse_sig_points():
             assert diffy<0.5
             #print "Frq cnt: <%s>"%(page.get_partially_in_rect(freqheading.x1,name.y1+0.05,freqheading.x2,kind.y2-0.05),)
             freqraw=" ".join(page.get_lines(page.get_partially_in_rect(freqheading.x1,name.y1+0.05,freqheading.x2,kind.y2-0.05)))
-            freq=re.match(r"\s*(?:[A-Z]{2,3})?\s*(\d+(?:\.?\d+)\s+(?:MHz|kHz))\s*(?:H24)?\s*",freqraw)
+            short,freq=re.match(r"\s*([A-Z]{2,3})?\s*(\d+(?:\.?\d+)\s+(?:MHz|kHz))\s*(?:H24)?\s*",freqraw).groups()
             
             posraw=" ".join(page.get_lines(page.get_partially_in_rect(coordheading.x1,name.y1+0.05,coordheading.x2,kind.y2-0.05)))
-            print "<%s>"%(posraw,)
-            pos=re.match(r"\s*(\d+\.\d+[NS]\s*\d+\.\d+[EW])\s*",posraw).groups()
-            print "Name: %s, Freq: %s,pos: %s"%(name.text,freq.groups(),pos)
+            #print "Rawpos<%s>"%(posraw,)
+            pos=mapper.parse_coords(*re.match(r".*?(\d+\.\d+[NS]).*?(\d+\.\d+[EW]).*",posraw).groups())
+            #print "Name: %s, Shortname: %s, Freq: %s,pos: %s"%(name.text,short,freq,pos)
+            points.append(dict(
+                name=name.text.strip(),
+                short=short,
+                pos=pos,
+                freq=freq))
             idx+=2        
     
     
@@ -59,7 +64,7 @@ def parse_sig_points():
 
 if __name__=='__main__':
     for point in parse_sig_points():
-        print "Point '%s': pos: %s, freq: %s"%(point['name'],point['pos'],point.get('freq','None'))
+        print "Point '%s' (%s): pos: %s, freq: %s"%(point['name'],point.get('short',''),point['pos'],point.get('freq','None'))
     
     
 

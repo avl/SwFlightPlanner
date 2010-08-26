@@ -1,5 +1,5 @@
 import logging
-
+import StringIO
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from fplan.model import meta,User,Trip,Waypoint,Route
@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 import sqlalchemy as sa
 import fplan.extract.extracted_cache as extracted_cache
 from pyshapemerge2d import Polygon,Vertex,vvector
+import csv
 
 def cleanup_poly(latlonpoints):
     mercpoints=[]
@@ -37,6 +38,7 @@ class ApiController(BaseController):
 
     no_login_required=True #But we don't show personal data without user/pass
 
+        
     def get_airspaces(self):
         print "Get airspaces called"
         out=[]
@@ -74,13 +76,36 @@ class ApiController(BaseController):
                     lon=lon,
                     kind="obstacle",
                     alt=obst['height']))
-        rawtext=json.dumps(dict(airspaces=out,points=points))
-        if 'zip' in request.params:
-            response.headers['Content-Type'] = 'application/x-gzip-compressed'            
-            return zlib.compress(rawtext)
+                    
+        if request.params.get('csv','').strip()!="":
+            #use CSV format
+            buf=StringIO.StringIO()
+            w=csv.writer(buf)            
+            for space in out:
+                freq=''
+                if len(space['freqs'])>0:
+                    freq=" ".join(u"%s"%(x[1],) for x in space['freqs'])
+                    freq=freq
+                line=[space['name'],'*',freq,'*',space['floor'],space['ceiling']]
+                for point in space['points']:
+                    lat,lon=point['lat'],point['lon']
+                    line.append(lat)
+                    line.append(lon)
+                for i in xrange(len(line)):
+                    if type(line[i])==unicode:
+                        line[i]=line[i].encode('utf8')
+                w.writerow(line)            
+            response.headers['Content-Type'] = 'text/plain'           
+            return buf.getvalue()
+                
         else:
-            response.headers['Content-Type'] = 'text/plain'            
-            return rawtext
+            rawtext=json.dumps(dict(airspaces=out,points=points))
+            if 'zip' in request.params:
+                response.headers['Content-Type'] = 'application/x-gzip-compressed'            
+                return zlib.compress(rawtext)
+            else:
+                response.headers['Content-Type'] = 'text/plain'            
+                return rawtext
                     
 
     def get_trips(self):
