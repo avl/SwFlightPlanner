@@ -88,8 +88,10 @@ def extract_single_sup(full_url,sup,supname):
 
 def parse_all_sups():
     raw=get_raw_aip_sup_page()
+    print "Got raw sup page, %d bytes"%(len(raw),)
     areas=[]
-    for base,sup in re.findall(r"(http://.*?)(/AIP/AIP%20Sup/SUP_\d+_\d+.pdf)",raw):
+    for base,sup in re.findall(r"(http://.*?)(/AIP/AIP.*Sup/SUP_\d+_\d+.pdf)",raw):
+        print "Parsing",base,sup
         if not sup.count('33_10'):
             continue
         print "About to parse AIP SUP: <%s>"%(sup,)
