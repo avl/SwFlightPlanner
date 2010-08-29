@@ -3,6 +3,7 @@ from fplan.extract.parse_obstacles import parse_obstacles
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
+from fplan.extract.parse_aip_sup import parse_all_sups
 import fplan.lib.remove_unused_users
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
@@ -74,6 +75,7 @@ def get_aipdata(cachefile="aipdata.cache"):
                 obstacles=parse_obstacles(),
                 airfields=airfields,
                 sig_points=sig_points,
+                aip_sup_areas=parse_all_sups(),
                 version=version
                 )
             pickle.dump(aipdata,open(cachefile,"w"),-1)        
@@ -84,6 +86,9 @@ def get_aipdata(cachefile="aipdata.cache"):
 def get_airspaces():
     aipdata=get_aipdata()
     return aipdata['airspaces']
+def get_aip_sup_areas():
+    aipdata=get_aipdata()
+    return aipdata.get('aip_sup_areas',[])
 def get_obstacles():
     aipdata=get_aipdata()
     return aipdata['obstacles']

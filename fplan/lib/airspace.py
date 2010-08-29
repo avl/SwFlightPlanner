@@ -116,6 +116,10 @@ def get_airspaces(lat,lon):
     spaces=get_polygons_around(lat,lon,cache.get_airspaces())
     return spaces
 
+def get_aip_sup_areas(lat,lon):
+    spaces=get_polygons_around(lat,lon,cache.get_aip_sup_areas())
+    return spaces
+
 def get_airspaces_on_line(latlon1,latlon2):
     spaces=get_polygons_on_line(latlon1,latlon2,cache.get_airspaces())
     return spaces

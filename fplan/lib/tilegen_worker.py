@@ -7,7 +7,7 @@ import Pyro.core
 import Image
 import cairo
 import numpy
-from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields,get_sig_points
+from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields,get_sig_points,get_aip_sup_areas
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
@@ -125,7 +125,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
 
     ctx=cairo.Context(im)
     if tma:
-        for space in get_airspaces()+get_notam_objs_cached()['areas']:        
+        
+        for space in get_airspaces()+get_notam_objs_cached()['areas']+get_aip_sup_areas():        
             
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
@@ -134,7 +135,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
                         TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
                         R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
                         CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
-                        notamarea=((0.5,1,0.5,0.15),(0.5,1,0.5,0.75))
+                        notamarea=((0.5,1,0.5,0.15),(0.5,1,0.5,0.75)),
+                        aip_sup=  ((0.8,1,0.8,0.05),(0.8,1,0.8,0.75)),
                         )[space['type']]
                         
             ctx.close_path()   
