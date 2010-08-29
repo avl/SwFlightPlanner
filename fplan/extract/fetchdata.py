@@ -49,7 +49,10 @@ def getxml(relpath):
         print "cachedat:",cacheddate,"nowdate:",nowdate
         age=nowdate-cacheddate
         print "cache-age:",age
-        if age<timedelta(0,7200):
+        maxcacheage=7200
+        if host=='macbook':
+            maxcacheage=5*3600
+        if age<timedelta(0,maxcacheage):
             print "Returning cached %s"%(relpath,)
             return open(cachenamexml).read()
         print "Cache too old"
@@ -57,6 +60,7 @@ def getxml(relpath):
         pdfdata=getrawdata(relpath)
     except Exception,cause:
         if host=="macbook":
+            print "Failed to fetch  ",relpath,cause
             try:
                 return open(cachenamexml).read()
             except:

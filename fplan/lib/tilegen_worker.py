@@ -137,6 +137,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
                         CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
                         notamarea=((0.5,1,0.5,0.15),(0.5,1,0.5,0.75)),
                         aip_sup=  ((0.8,1,0.8,0.05),(0.8,1,0.8,0.75)),
+                        mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
                         )[space['type']]
                         
             ctx.close_path()   

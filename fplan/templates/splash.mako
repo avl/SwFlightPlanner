@@ -17,7 +17,7 @@
 <table style="height:30%;vertical-align:middle;margin: 0 auto;">
 <tr>
 <td style="width:100%;text-align:center">
-<h1>Welcome to SwFlightPlanner!</h1>
+<h1>Welcome to SwFlightPlanner (BETA)!</h1>
 </td>
 </tr>
 </table>
@@ -61,6 +61,7 @@ ${c.expl}
 <table style="height:30%;margin: 0 auto">
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
+<b>Updated 2010-08-29: </b>Numerous minor improvements. Software is still beta. Use at own risk!<br/>
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br/>
 <b>Updated 2010-08-24: </b>Flight plan suitable for printer, VFR entry/exit/holding points + bugfixes.<br/>

@@ -37,5 +37,6 @@
 35: Min Free alt borde kolla terrängen över ett större område runt rutten.
 36: Det borde gå att se vilka notams som berör flygningen!
 37: När man byter ordning på items händer konstiga saker, om man byter ordning på sista item. Typ om man flyttar det neråt.
+38: Borde lägga in fjällområdesgränsen!
 
 
