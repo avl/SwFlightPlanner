@@ -125,7 +125,7 @@ class MaptileController(BaseController):
             for airp in fields:
                 flygkartan=""
                 if 'flygkartan_id' in airp:
-                    flygkartan="<br/><a href=\"javascript:navigate_to('http://www.flygkartan.se/0+%s');\">Show in flygkartan.se</a>"%(airp['flygkartan_id'].strip(),)
+                    flygkartan="<br/><a href=\"javascript:navigate_to('http://www.flygkartan.se/0%s');\">Show in flygkartan.se</a>"%(airp['flygkartan_id'].strip(),)
                 airports.append(u"<li><b>%s</b> - %s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],flygkartan))
             airports.append("</ul>")
         
