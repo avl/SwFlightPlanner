@@ -20,6 +20,7 @@ def parse_sig_points():
                     #print "Found %s: %s"%(cols[0],crd)
                     points.append(dict(
                         name=cols[0],
+                        kind='sig. point',
                         pos=crd))
 
     p=Parser("/AIP/ENR/ENR 4/ES_ENR_4_1_en.pdf")
@@ -52,8 +53,9 @@ def parse_sig_points():
             pos=mapper.parse_coords(*re.match(r".*?(\d+\.\d+[NS]).*?(\d+\.\d+[EW]).*",posraw).groups())
             #print "Name: %s, Shortname: %s, Freq: %s,pos: %s"%(name.text,short,freq,pos)
             points.append(dict(
-                name=name.text.strip(),
+                name=short+" "+kind.text.strip()+" "+name.text.strip(),
                 short=short,
+                kind="nav-aid",
                 pos=pos,
                 freq=freq))
             idx+=2        

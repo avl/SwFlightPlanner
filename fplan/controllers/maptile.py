@@ -76,7 +76,7 @@ class MaptileController(BaseController):
         notamareas="".join("<li>%s <b><u><a href=\"javascript:navigate_to('%s#notam')\">Link</a></u></b></li>"%(
             text,h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=notam,line=line)) for text,(notam,line) in notams.items())
         if notamareas!="":
-            notamareas="<b>Notams&amp;Misc</b><ul>"+notamareas+"</ul>"
+            notamareas="<b>Notams:</b><ul>"+notamareas+"</ul>"
 
         aip_sup_strs="".join(["<li>%s <a href=\"%s\">link</a></li>"%(x['name'],x['url'].replace(" ","%20")) for x in get_aip_sup_areas(lat,lon)])
         if aip_sup_strs:
@@ -137,7 +137,7 @@ class MaptileController(BaseController):
         if len(sigps):
             sigpoints.append("<b>Sig. points</b><ul>")
             for sigp in sigps:
-                sigpoints.append(u"<li><b>%s</b></li>"%(sigp['name'],))
+                sigpoints.append(u"<li><b>%s</b>(%s)</li>"%(sigp['name'],sigp.get('kind','unknown point')))
             sigpoints.append("</ul>")
        
         

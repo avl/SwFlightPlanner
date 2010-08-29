@@ -1,3 +1,4 @@
+#encoding=utf8
 from fetchdata import getxml
 from parse import Parser
 import re
@@ -90,8 +91,10 @@ def extract_airfields():
                 for kind in xrange(2):
                     if kind==0:
                         hits=page.get_by_regex(r"H[Oo][Ll][Dd][Ii][Nn][Gg]")
+                        kind="holding point"
                     if kind==1:
                         hits=page.get_by_regex(r"[Ee]ntry.*[Ee]xit.*point")                    
+                        kind="entry/exit point"
                     if len(hits)==0: continue
                     for holdingheading in hits:
 
@@ -105,7 +108,7 @@ def extract_airfields():
                             if idx==len(items)-1:
                                 y2=100
                             else:
-                                y2=items[idx+1].y1
+                                y2=items[idx+1].y2
                             items2=[x for x in page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+40,y2-0.1) if x.y1>=item.y1-0.05]
                             s=(" ".join(page.get_lines(items2))).strip()
 
@@ -117,17 +120,44 @@ def extract_airfields():
                                 sl=s.split(" ",1)
                                 if len(sl)>1:
                                     s=sl[1]
-                            print "Holding item",item,"s:",s
-                            m=re.match(r"([A-Z]+).*?(\d+N)\s*(\d+E).*",s)
-                            if not m: continue
-                            name,lat,lon=m.groups()
+                            s=s.strip()
+                            if kind=="entry/exit point" and s.startswith("HOLDING"):
+                                continue #reached HOLDING-part of VAC
+                                
+                            #Check for other headings
+                            print "Holding item",item,"s:<%s>"%(s,)
+                            m=re.match(r"([A-Z]{2,}).*?(\d+N)\s*(\d+E).*",s)
+                            if not m:                                
+                                m=re.match(r".*?(\d+N)\s*(\d+E).*",s) 
+                                if not m:
+                                    continue
+                                assert m
+                                lat,lon=m.groups()
+                                #skavsta
+                                if icao=="ESKN":
+                                    if s.startswith(u"Hold north of T"):
+                                        name="NORTH"
+                                    elif s.startswith(u"Hold south of B"):
+                                        name="SOUTH"                     
+                                    else:
+                                        assert 0
+                                #add more specials here            
+                                else:
+                                    continue
+                            else:
+                                name,lat,lon=m.groups()
                             print name,lat,lon
                             try:
                                 coord=parse_coords(lat,lon)
                             except:
                                 print "Couldn't parse:",lat,lon
                                 continue
-                            points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord)
+                            
+                            if name.count("REMARK") or len(name)<=2:
+                                print "Suspicious name: ",name
+                                #sys.exit(1)
+                                continue
+                            points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord,kind=kind)
 
 
     for point in points.items():
