@@ -9,7 +9,7 @@ import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
 from fplan.lib import maptilereader
-from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints,get_notam_areas,get_notampoints
+from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints,get_notam_areas,get_notampoints,get_aip_sup_areas
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx,get_stats
 from fplan.lib.get_terrain_elev import get_terrain_elev
@@ -76,9 +76,12 @@ class MaptileController(BaseController):
         notamareas="".join("<li>%s <b><u><a href=\"javascript:navigate_to('%s#notam')\">Link</a></u></b></li>"%(
             text,h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=notam,line=line)) for text,(notam,line) in notams.items())
         if notamareas!="":
-            notamareas="<b>Notams</b><ul>"+notamareas+"</ul>"
+            notamareas="<b>Notams&amp;Misc</b><ul>"+notamareas+"</ul>"
 
-            
+        aip_sup_strs="".join(["<li>%s <a href=\"%s\">link</a></li>"%(x['name'],x['url'].replace(" ","%20")) for x in get_aip_sup_areas(lat,lon)])
+        if aip_sup_strs:
+            aip_sup_strs="<b>AIP SUP:</b><ul>"+aip_sup_strs+"</ul>"
+         
         obstbytype=dict()
         for obst in get_obstacles(lat,lon,zoomlevel):
             obstbytype.setdefault(obst['kind'],[]).append(obst)
@@ -141,7 +144,7 @@ class MaptileController(BaseController):
        
 
         terrelev=get_terrain_elev((lat,lon))
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,notamareas,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),terrelev)
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,notamareas,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),terrelev)
 
     def get(self):
         # Return a rendered template

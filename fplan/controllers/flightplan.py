@@ -389,19 +389,13 @@ class FlightplanController(BaseController):
         c.ac=None
         if len(c.acobjs)>0:
             c.ac=c.acobjs[0]
-        for rt in c.route:
-            rt.notampoints=[]
-            for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5):
-                notam=info['item']
-                alongd=rt.d*info['alongperc']
-                rt.notampoints.append(dict(
-                    notam=notam,
-                    along=alongd                    
-                    ))
         
+        for rt in c.route:
+            rt.notampoints=set()
+            rt.notampoints.update(set([info['item']['notam'] for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
+
         c.obsts=self.get_obstacles(c.techroute,1e6,0.5)
         for rt in c.route:
-            rt.airspaces=[]
             if rt.waypoint1 in c.obsts:
                 rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
             else:
@@ -411,16 +405,16 @@ class FlightplanController(BaseController):
             #for obst in c.obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
-                rt.airspaces.append(space)
+                rt.notampoints.add(space['name'])
         if c.ac and c.ac.cruise_burn>1e-9:
             c.reserve_endurance_hours=(c.startfuel-c.techroute[-1].accum_fuel_burn)/c.ac.cruise_burn
             mins=int(60.0*c.reserve_endurance_hours)
             if mins>=0:
                 c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
             else: 
-                c.reserve_endurance="Unknown"+str(mins)
+                c.reserve_endurance="Unknown"
         else:
-            c.reserve_endurance="Unknown"+repr(c.ac)
+            c.reserve_endurance="Unknown"
         c.departure=c.route[0].a.waypoint
         c.arrival=c.route[-1].b.waypoint        
         return render('/printable.mako')

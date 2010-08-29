@@ -10,12 +10,15 @@ import re
 
 
 class Item(object):
-    def __init__(self,text,x1,y1,x2,y2):
+    def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None):
         self.text=text
         self.x1=x1
         self.y1=y1
         self.x2=x2
         self.y2=y2
+        self.font=font
+        if fontsize!=None: fontsize=int(fontsize)
+        self.fontsize=fontsize
     def __repr__(self):
         return "Item(%.1f,%.1f - %.1f,%.1f : %s)"%(self.x1,self.y1,self.x2,self.y2,repr(self.text))
 def uprint(s):
@@ -114,6 +117,11 @@ class Parser(object):
     def parse_page_to_items(self,pagenr):
         page=self.xml.getchildren()[pagenr]
         out=[]
+        fonts=dict()
+        for fontspec in page.findall(".//fontspec"):
+            fontid=int(fontspec.attrib['id'])
+            fontsize=int(fontspec.attrib['size'])
+            fonts[fontid]=dict(size=fontsize)
         for item in page.findall(".//text"):
             t=[]
             if item.text:
@@ -123,11 +131,20 @@ class Parser(object):
                     t.append(it2.text)
                 if it2.tail!=None:
                     t.append(it2.tail)                        
+            fontid=int(item.attrib['font'])
+            fontobj=fonts.get(fontid,None)
+            if fontobj:
+                fontsize=fontobj.get('size',None)
+            else:
+                fontsize=None
+            #print "Parsed fontid: %d, known: %s (size:%s)"%(fontid,fonts.keys(),fontsize)
             it=Item(text=" ".join(t),
               x1=float(item.attrib['left']),
               x2=float(item.attrib['left'])+float(item.attrib['width']),
               y1=float(item.attrib['top']),
-              y2=float(item.attrib['top'])+float(item.attrib['height'])
+              y2=float(item.attrib['top'])+float(item.attrib['height']),
+              font=fontid,
+              fontsize=fontsize
               )
             out.append(it)
         
@@ -147,7 +164,9 @@ class Parser(object):
                 x1=100.0*(item.x1-minx)/xfactor,
                 y1=100.0*(item.y1-miny)/yfactor,
                 x2=100.0*(item.x2-minx)/xfactor,
-                y2=100.0*(item.y2-miny)/yfactor
+                y2=100.0*(item.y2-miny)/yfactor,
+                fontsize=item.fontsize,
+                font=item.font
                 )
     
     def __init__(self,path,loadhook=None):

@@ -31,4 +31,9 @@
 29: FIXAD: Glider-NOTAM:en - fixa så att radius stöds?
 30: FIXAD: Kanske läsa in radionavigeringshjälpmedel från AIP/ENR/ENR\ 4/ES_ENR_4_1_en.pdf?
 31: FIXAD: Ta bort debug-utskrifter från shapemerge2d och även från programmet.
+32: Stöd: AIP SUP: http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/ , http://www.lfv.se/AIP/AIP%20Sup/SUP_33_10.pdf
+33: Långtora ligger på fel plats.
+34: Printable visar näst sista waypointen som dest.
+35: Min Free alt borde kolla terrängen över ett större område runt rutten.
+36: Det borde gå att se vilka notams som berör flygningen!
 

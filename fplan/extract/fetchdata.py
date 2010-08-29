@@ -27,6 +27,7 @@ def changeext(path,from_,to_):
 #    return get_filedate('/home/anders/lfv/www.lfv.se'+path)
 def getrawdata(relpath):
     fixed=relpath.replace(" ","%20")
+    print relpath
     assert(relpath.startswith("/"))
     #return open('/home/anders/lfv/www.lfv.se'+relpath).read()
     durl="http://www.lfv.se"+fixed
@@ -73,7 +74,13 @@ def getxml(relpath):
     
     return open(cachenamexml).read() 
 
-
+def get_raw_aip_sup_page():
+    if host=='macbook':
+        return open("/home/anders/saker/avl_traveltools/fplan/fplan/AIP SUP.html").read()
+    else:
+        #TODO: 
+        return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()
+        
 weathercache=dict()
 weatherlookup=dict(A="http://www.lfv.se/MetInfo.asp?TextFile=llf.esms-day.txt&TextFile=llf.esms-tot.txt&TextFile=llf.esms-n.txt&TextFile=llf.esms-se.txt&TextFile=llf.esms-sw.txt&Subtitle=Omr%e5de%A0A%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0A%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0A%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0A%A0-%A0S%F6dra%A0Sverige&Frequency=60",
        B="http://www.lfv.se/MetInfo.asp?TextFile=llf.essa-day.txt&TextFile=llf.essa-tot.txt&TextFile=llf.essa-n.txt&TextFile=llf.essa-nw.txt&TextFile=llf.essa-s.txt&TextFile=llf.essa-se.txt&Subtitle=Omr%e5de%A0B%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0B%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0B%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0Nordv%e4stra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0S%F6dra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0Syd%F6stra%A0delen&T=Omr%e5de%A0B%A0-%A0Mellersta%A0Sverige&Frequency=60",
