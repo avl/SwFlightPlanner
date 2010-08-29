@@ -14,7 +14,13 @@ import math
 def extract_single_sup(full_url,sup,supname):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
-    p=Parser(sup)
+    try:
+        p=Parser(sup)
+    except:
+        print "Could't parse",sup
+        #Some AIP SUP's contain invalid XML after conversion from PDF.
+        #skip these for now
+        return []
     areas=[]
     startpage=None
     for pagenr in xrange(p.get_num_pages()):            
