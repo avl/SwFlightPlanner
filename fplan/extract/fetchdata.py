@@ -76,7 +76,10 @@ def getxml(relpath):
 
 def get_raw_aip_sup_page():
     if host=='macbook':
-        return open("/home/anders/saker/avl_traveltools/fplan/fplan/AIP SUP.html").read()
+        try:
+            return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()    
+        except:
+            return open("/home/anders/saker/avl_traveltools/fplan/fplan/AIP SUP.html").read()
     else:
         #TODO: 
         return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()
