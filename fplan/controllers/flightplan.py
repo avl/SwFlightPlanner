@@ -422,7 +422,7 @@ class FlightplanController(BaseController):
         else:
             c.reserve_endurance="Unknown"+repr(c.ac)
         c.departure=c.route[0].a.waypoint
-        c.arrival=c.route[-1].a.waypoint        
+        c.arrival=c.route[-1].b.waypoint        
         return render('/printable.mako')
         
     def fuel(self):
