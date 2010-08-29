@@ -98,8 +98,8 @@ def parse_all_sups():
     areas=[]
     for base,sup in re.findall(r"(http://.*?)(/AIP/AIP.*Sup/SUP_\d+_\d+.pdf)",raw):
         print "Parsing",base,sup
-        if not sup.count('33_10'):
-            continue
+        #if not sup.count('33_10'):
+        #    continue
         print "About to parse AIP SUP: <%s>"%(sup,)
         supname,=re.match(".*/(SUP_\d+_\d+.pdf)",sup).groups()
         areas.extend(extract_single_sup(base+sup,sup,supname))
