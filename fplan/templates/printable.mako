@@ -33,16 +33,11 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 <td><span style="font-size:10px">Tas:</span>${rt.tas}<span style="font-size:10px">kt</span></td>
 </tr>
 
-%for notam in sorted(rt.notampoints,key=lambda x:x['along']):
+%if len(rt.notampoints)>0:
 <tr style="font-size:11px">
-<td colspan="6"><span style="font-size:10px"><b>NOTAM @${"%.0f"%(notam['along'],)}NM: </b></span>${notam['notam']['notam']}</td>
+<td colspan="6">There ${"are" if len(rt.notampoints)>1 else "is"} ${len(rt.notampoints)} NOTAM${"s" if len(rt.notampoints)>1 else ""} for this leg.</td>
 </tr>
-%endfor
-%for notam in set([h.short(space['name'],200) for space in rt.airspaces]):
-<tr style="font-size:11px">
-<td colspan="6"><span style="font-size:10px"><b>NOTAM: </b></span>${notam}</td>
-</tr>
-%endfor
+%endif
 
 <tr><td colspan="6" style="font-size:16px">
 <b>${rt.b.waypoint}</b>
