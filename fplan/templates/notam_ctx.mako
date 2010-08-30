@@ -22,7 +22,6 @@ ${line}
 ${line}
 %endfor
 </pre>
-<a style="color:#ff0000;font-size:12px" href="${c.backlink}">&lt;- Back</a>
 <pre>
 %for line in c.endlines:
 ${line}

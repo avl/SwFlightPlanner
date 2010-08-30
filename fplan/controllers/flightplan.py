@@ -155,12 +155,6 @@ class FlightplanController(BaseController):
         
         
         
-    def hijack_trip(self):
-        #http://localhost:5000/flightplan/hijack_trip?akhsbckjasd&trip=anktrip&user=ank
-        if not 'akhsbckjasd' in request.params:
-            return ''
-        tripsharing.view_other(user=request.params['user'],trip=request.params['trip'])
-        return redirect_to(h.url_for(controller='mapview',action="index"))        
 
     def gpx(self):
         # Return a rendered template
@@ -418,6 +412,25 @@ class FlightplanController(BaseController):
         c.departure=c.route[0].a.waypoint
         c.arrival=c.route[-1].b.waypoint        
         return render('/printable.mako')
+
+    def enroutenotams(self):
+        c.techroute,c.route=get_route(tripuser(),session['current_trip'])
+        c.tripobj=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
+        if len(c.route)==0 or len(c.techroute)==0:
+            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
+            return
+        
+        for rt in c.route:
+            rt.notampoints=dict()
+            rt.notampoints.update(dict([(info['item']['notam'],info['item']) for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
+
+        for rt in c.route:
+            for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
+                rt.notampoints[space['name']]=space
+        c.thislink=h.url_for(controller='flightplan',action="enroutenotams")
+        return render('/enroutenotams.mako')
+
         
     def fuel(self):
         routes=list(meta.Session.query(Route).filter(sa.and_(

@@ -20,6 +20,7 @@ tilesize=256;
 xsegcnt=0;
 ysegcnt=0;
 selfurl='${h.url_for(controller="mapview",action="index")}';
+shareurl='${h.url_for(controller="mapview",action="share")}';
 saveurl='${h.url_for(controller="mapview",action="save")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
@@ -142,6 +143,7 @@ function loadmap()
 	'<button style="font-size:10px" onclick="on_delete_trip();return false;">Delete</button>'+
 %endif
 	'<button style="font-size:10px" onclick="open_trip();return false;">Previous Trips</button>'+
+	'<button style="font-size:10px" onclick="navigate_to(shareurl);return false;">Share Trip</button>'+
 	'</div>'+
 	'<div id="addtripfunctions" style="display:none">'+
 	'Enter name of new trip:<br/><input style="background:#c0ffc0" id="addtripname" name="addtripname" type="text" value="" />'+

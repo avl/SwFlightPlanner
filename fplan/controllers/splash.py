@@ -8,6 +8,7 @@ from pylons.controllers.util import abort, redirect_to
 import routes.util as h
 from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
+import fplan.lib.tripsharing as tripsharing
 from fplan.lib.maptilereader import get_tiles_timestamp
 log = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class SplashController(BaseController):
     def logout(self):
         del session['user']
         session.save()
+        tripsharing.cancel()
         redirect_to(h.url_for(controller='splash',action="index"))
     def about(self):
         try:
