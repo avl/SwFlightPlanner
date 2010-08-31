@@ -27,8 +27,10 @@ function navigate_to(where)
 %for close in c.closetoroute:
 ${close} <br/>
 %endfor
-
-
+%if c.sharing:
+The owner of the trip must select an aircraft before fuel calcuations can be made.
+%endif
+%if not c.sharing:
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>You need to add an aircraft!</b></a>
 %endif
@@ -50,6 +52,9 @@ ${ac.aircraft}
 <input type="submit" name="save" value="Choose aircraft" title="Select an aircraft using the dropdown-box just to the left of this button!"/>
 </form>
 %endif
+%endif
+
+
 %if not c.acwarn:
 <br/>
 

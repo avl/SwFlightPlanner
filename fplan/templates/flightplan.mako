@@ -85,6 +85,8 @@ ${c.tripname}
 </div>
 %endif
 
+
+%if not c.sharing:
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>Click here to add an aircraft!</b></a>
 %endif
@@ -104,6 +106,7 @@ ${ac.aircraft}
 
 </form>
 <br/>
+%endif
 %endif
 
 

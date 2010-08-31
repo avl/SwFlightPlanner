@@ -1,41 +1,67 @@
 from struct import unpack
+from math import floor
 
 terrain_files=[]
 
 def init_terrain():
     terrain_files.append(dict(
-        fhandle=open("/home/anders/saker/avl_fplan_world/srtp/E020N90.DEM"),
+        fname="/home/anders/saker/avl_fplan_world/srtp/E020N90.DEM",
         west=20.0,#-1e-5,
         east=60.0,
         north=90.0,
         south=40.0))
     terrain_files.append(dict(
-        fhandle=open("/home/anders/saker/avl_fplan_world/srtp/W020N90.DEM"),
+        fname="/home/anders/saker/avl_fplan_world/srtp/W020N90.DEM",
         west=-20.0,
         east=20.0,#+1e-5,
         north=90.0,
         south=40.0))
 
-    
 
-def get_terrain_elev(latlon):
+base_xres=4800
+base_yres=6000
+res_for_level=dict()
+def initreslevel():
+    xres=base_xres
+    yres=base_yres
+    for level in xrange(15):
+        res_for_level[level]=(xres,yres)
+        xres/=2
+        yres/=2    
+    
+initreslevel()    
+        
+
+def get_terrain_elev(latlon,resolutionlevel=0):
+    if resolutionlevel>12:
+        raise Exception("Invalid (too high) resolution level")
     global terrain_files
     lat,lon=latlon
     if terrain_files==[]:
-        init_terrain()    
+        init_terrain()
     for terr in terrain_files:        
         if lat>=terr['south'] and lat<=terr['north'] and lon>=terr['west'] and lon<=terr['east']:
-            y=int(6000.0*(terr['north']-lat)/float(terr['north']-terr['south']))
-            x=int(4800.0*(lon-terr['west'])/float(terr['east']-terr['west']))
-            f=terr['fhandle']
-            #print "reading from ",x,y
-            if x>=4800: x=4800-1
+            logicalxres,logicalyres=4800,6000#res_for_level[resolutionlevel]            
+            xres,yres=res_for_level[resolutionlevel]            
+            print "reading lat/lon:",lat,lon,"size:",xres,yres
+            y=int(floor(float(logicalyres)*(terr['north']-lat)/float(terr['north']-terr['south'])))
+            x=int(floor(float(logicalxres)*(lon-terr['west'])/float(terr['east']-terr['west'])))
+            for i in xrange(resolutionlevel):
+                x/=2
+                y/=2
+            if resolutionlevel==0:
+                filename=terr['fname']
+            else:
+                filename="%s-%d"%(terr['fname'],resolutionlevel)
+            f=open(filename)
+            print "reading from ",filename,x,y
+            if x>=xres: x=xres-1
             if x<0: x=0
-            if y>=6000: y=6000-1
+            if y>=yres: y=yres-1
             if y<0: y=0
-            idx=int(y*4800+x)
+            idx=int(y*xres+x)
             if idx<0: idx=0
-            if idx>=4800*6000: idx=4800*6000-1
+            if idx>=xres*yres: idx=xres*yres-1
             f.seek(2*idx)
             bytes=f.read(2)
             elev,=unpack(">h",bytes)

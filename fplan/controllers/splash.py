@@ -62,6 +62,7 @@ class SplashController(BaseController):
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5(request.params['password']).hexdigest(),user.password)
             if user.password==md5(request.params['password']).hexdigest():
                 session['user']=users[0].user
+                tripsharing.cancel()
                 session.save()
                 redirect_to(h.url_for(controller='mapview',action="index"))
             else:

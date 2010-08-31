@@ -282,7 +282,7 @@ class FlightplanController(BaseController):
             c.ac=trip.acobj
             
         c.startfuel=trip.startfuel
-        
+        c.sharing=tripsharing.sharing_active()
         return render('/flightplan.mako')
     def select_aircraft(self):
         if not tripsharing.sharing_active():  
@@ -456,6 +456,7 @@ class FlightplanController(BaseController):
             else:
                 c.endfuel=c.startfuel
         c.performance="ok"
+        c.sharing=tripsharing.sharing_active()
         for rt in c.routes:
             if rt.performance!="ok":
                 c.performance="notok"

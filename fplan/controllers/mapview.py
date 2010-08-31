@@ -238,7 +238,7 @@ class MapviewController(BaseController):
         
     def share(self):
         if tripsharing.sharing_active():
-            c.error=u"The current trip has been shared with you by its creator. You cannot create new URLs for sharing it further. You can, however, send the same link you got on to anyone."            
+            c.error=u"The current trip has been shared with you by its creator. You cannot create new URLs for sharing it further. You can, however, send the same link you got, to anyone."            
         else:
             if not 'current_trip' in session:
                 c.error=u"There is no current trip that can be shared"
@@ -435,6 +435,8 @@ class MapviewController(BaseController):
         c.zoomlevel=zoomlevel
         c.dynamic_id=''
         c.sharing=tripsharing.sharing_active()
+        if c.sharing:
+            c.shared_by=tripuser()
         if session.get('showarea',''):
             c.dynamic_id=session.get('showarea_id','')
         if session.get('showtrack',''):
