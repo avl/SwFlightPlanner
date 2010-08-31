@@ -18,6 +18,11 @@
 <tr>
 <td style="width:100%;text-align:center">
 <h1>Welcome to SwFlightPlanner (BETA)!</h1>
+%if c.browserwarningheader:
+<div style="font-size:30px;background-color:#ffb0b0;border-width:1px    ">${c.browserwarningheader|n}</div>
+<div style="font-size:15px;background-color:#ffb0b0">${c.browserwarning|n}</div>
+
+%endif
 </td>
 </tr>
 </table>

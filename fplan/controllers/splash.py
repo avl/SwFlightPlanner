@@ -10,12 +10,31 @@ from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.maptilereader import get_tiles_timestamp
+import re
+
 log = logging.getLogger(__name__)
 
 class SplashController(BaseController):
 
     def index(self):
         c.expl=request.params.get("explanation","")
+        ua=request.headers.get('User-Agent','').lower()
+        c.browserwarningheader=None
+        if ua.count("msie") and not (ua.count("firefox") or ua.count("chrome")):
+            #MSIE detect
+            m=re.search(r"msie\s+(\d+)\.(\d+)",ua)
+            if m:
+                major,minor=m.groups()
+                if int(major)>=8:
+                    c.browserwarningheader=u"You are running Internet Explorer 8+"
+                    c.browserwarning=u"This is not recommended, although it might work."+\
+                        u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
+                        u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";
+            if c.browserwarningheader==None:
+                c.browserwarningheader=u"You are running an old version of Internet Explorer"
+                c.browserwarning=u"This site does not support Internet Explorer, due to our limited resources."+\
+                    u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
+                    u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";
         return render('/splash.mako')
     def logout(self):
         del session['user']
