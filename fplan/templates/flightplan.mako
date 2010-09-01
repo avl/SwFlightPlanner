@@ -66,10 +66,11 @@ addLoadEvent(loadfplan);
 
 <div id="sub-nav">
 	<dl>
-		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#"><b>Overview</b></a></dt>
-		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#">ATS-flightplan</a></dt>
-		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#">Fuel-plan</a></dt>
-		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}')" href="#">Obstacles</a></dt>
+		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}');return false;" href="#"><b>Overview</b></a></dt>
+		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}');return false;" href="#">ATS-flightplan</a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}');return false;" href="#">Fuel-plan</a></dt>
+		<dt id="nav-obstacles"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}');return false;" href="#">Obstacles</a></dt>		
+		<dt id="nav-enroutenotams"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="enroutenotams")}');return false;" href="#">Notams on Route</a></dt>		
 	</dl>
 </div>
 
@@ -84,6 +85,8 @@ ${c.tripname}
 </div>
 %endif
 
+
+%if not c.sharing:
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>Click here to add an aircraft!</b></a>
 %endif
@@ -103,6 +106,7 @@ ${ac.aircraft}
 
 </form>
 <br/>
+%endif
 %endif
 
 

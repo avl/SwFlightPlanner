@@ -15,10 +15,11 @@ function navigate_to(where)
 
 <div id="sub-nav">
 	<dl>
-		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#">Overview</a></dt>
-		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}')" href="#">ATS-flightplan</a></dt>
-		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}')" href="#"><b>Fuel-plan</b></a></dt>
-		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}')" href="#">Obstacles</a></dt>
+		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}');return false;" href="#">Overview</a></dt>
+		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="ats")}');return false;" href="#">ATS-flightplan</a></dt>
+		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}');return false;" href="#"><b>Fuel-plan</b></a></dt>
+		<dt id="nav-obstacles"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}');return false;" href="#">Obstacles</a></dt>		
+		<dt id="nav-enroutenotams"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="enroutenotams")}');return false;" href="#">Notams on Route</a></dt>		
 	</dl>
 </div>
 
@@ -26,8 +27,10 @@ function navigate_to(where)
 %for close in c.closetoroute:
 ${close} <br/>
 %endfor
-
-
+%if c.sharing:
+The owner of the trip must select an aircraft before fuel calcuations can be made.
+%endif
+%if not c.sharing:
 %if len(c.all_aircraft)==0:
 <a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#"><b>You need to add an aircraft!</b></a>
 %endif
@@ -49,6 +52,9 @@ ${ac.aircraft}
 <input type="submit" name="save" value="Choose aircraft" title="Select an aircraft using the dropdown-box just to the left of this button!"/>
 </form>
 %endif
+%endif
+
+
 %if not c.acwarn:
 <br/>
 

@@ -398,7 +398,9 @@ def extract_airfields():
                     flygkartan_id=flygkartan_id
                 ))
                 
-            
+    for ad in ads:     
+        if ad['name'].count(u"Långtora"):            
+            ad['pos']=mapper.to_str(mapper.from_aviation_format("5945.63N01707.99E"))
             
     print ads
     for ad in ads:

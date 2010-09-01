@@ -168,6 +168,7 @@ function tab_select_waypoints(idxs,col)
 	}
 	
 }
+
 function to_latlon_str(pos)
 {
 	latlon=merc2latlon(pos);
@@ -177,6 +178,30 @@ function reorder_wp(idx,delta)
 {
     if (dragmode!=0)
         return;
+    var odx=idx+delta;
+    if (odx<0)
+    {
+        for(var i=0;i<wps.length-1;++i)
+        {
+            reorder_wp_impl(i,1);
+        }
+    	select_waypoint(wps.length-1);
+        return;
+    }
+    if (odx>=wps.length)
+    {
+        for(var i=wps.length-1;i>0;--i)
+        {
+            reorder_wp_impl(i,-1);
+        }
+    	select_waypoint(0); 
+        return;
+    }
+    reorder_wp_impl(idx,delta);
+	select_waypoint(odx); 
+}
+function reorder_wp_impl(idx,delta)
+{
     var odx=idx+delta;
     if (odx<0) odx=wps.length-1;
     if (odx>=wps.length) odx=0;
@@ -209,7 +234,6 @@ function reorder_wp(idx,delta)
     name2e.value=name1; 
     alt1e.value=alt2;
     alt2e.value=alt1; 
-	select_waypoint(odx); //calls draw_jg, so we don't have to	
 }
 function tab_add_waypoint(idx,pos,name,altitude)
 {	

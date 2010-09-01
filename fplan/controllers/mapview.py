@@ -2,7 +2,7 @@ import logging
 import math
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft
+from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,SharedTrip
 import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
@@ -10,6 +10,7 @@ from fplan.lib.parse_gpx import parse_gpx
 from fplan.lib.maptilereader import merc_limits
 import sqlalchemy as sa
 import routes.util as h
+import socket
 import json
 from md5 import md5
 from datetime import datetime
@@ -231,10 +232,53 @@ class MapviewController(BaseController):
             print "mapview returning json:",ret
             return ret
         except Exception,cause:                    
-            raise
+            #print line number and stuff as well
+            print cause
             return "notok"        
         
-    
+    def share(self):
+        if tripsharing.sharing_active():
+            c.error=u"The current trip has been shared with you by its creator. You cannot create new URLs for sharing it further. You can, however, send the same link you got, to anyone."            
+        else:
+            if not 'current_trip' in session:
+                c.error=u"There is no current trip that can be shared"
+            else:
+                c.trip=session['current_trip']
+                shares=meta.Session.query(SharedTrip).filter(sa.and_(SharedTrip.user==session['user'],SharedTrip.trip==session.get('current_trip',None))).all()
+                if len(shares)==0:
+                    c.sharing=False
+                else:
+                    share,=shares
+                    c.sharing=True
+                    c.sharelink="http://"+socket.gethostname()+"/mapview/shared?secret="+share.secret
+        return render("/share.mako")
+        
+    def shared(self):
+        shares=meta.Session.query(SharedTrip).filter(SharedTrip.secret==request.params['secret']).all()
+        if len(shares):
+            myshare,=shares
+            tripsharing.view_other(user=myshare.user,trip=myshare.trip)
+            return redirect_to(h.url_for(controller='mapview',action="index"))
+        tripsharing.cancel()
+        return redirect_to(h.url_for(controller='mapview',action="index"))
+    def updsharing(self):
+        if 'stop' in request.params:
+            meta.Session.query(SharedTrip).filter(sa.and_(SharedTrip.user==session['user'],SharedTrip.trip==session.get('current_trip',None))).delete()
+            meta.Session.flush()
+            meta.Session.commit()
+            redirect_to(h.url_for(controller='mapview',action="share"))
+
+        if 'share' in request.params:
+            secret=""
+            for c in open("/dev/urandom").read(16):
+                secret+=chr(65+(ord(c)%25))
+            share=SharedTrip(session['user'],session['current_trip'],secret)
+            meta.Session.add(share)
+            meta.Session.commit()
+            redirect_to(h.url_for(controller='mapview',action="share"))
+        redirect_to(h.url_for(controller='mapview',action="index"))
+
+
     def zoom(self):
         print "zoom called"
         #user=meta.Session.query(User).filter(
@@ -391,6 +435,8 @@ class MapviewController(BaseController):
         c.zoomlevel=zoomlevel
         c.dynamic_id=''
         c.sharing=tripsharing.sharing_active()
+        if c.sharing:
+            c.shared_by=tripuser()
         if session.get('showarea',''):
             c.dynamic_id=session.get('showarea_id','')
         if session.get('showtrack',''):

@@ -4,7 +4,13 @@ from pylons import session
 
 def view_other(user,trip):
     session['current_trip']=trip
-    session['tripuser']=user
+    if session['user']==user:
+        #Trying to view a trip that we in fact own!
+        #Don't start sharing, and cancel any existing sharing.
+        if 'tripuser' in session:
+            del session['tripuser']
+    else:
+        session['tripuser']=user
     session.save()
 def view_own(trip):
     session['current_trip']=trip

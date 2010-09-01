@@ -51,7 +51,7 @@ def getxml(relpath):
         print "cache-age:",age
         maxcacheage=7200
         if host=='macbook':
-            maxcacheage=5*3600
+            maxcacheage=7*24*3600
         if age<timedelta(0,maxcacheage):
             print "Returning cached %s"%(relpath,)
             return open(cachenamexml).read()

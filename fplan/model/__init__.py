@@ -41,6 +41,9 @@ notam_table = sa.Table("notam",meta.metadata,
                         sa.Column("notamtext",Unicode(),nullable=False)
                         )
 
+
+
+
 notam_category_filter_table = sa.Table("notam_category_filter",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('category',Unicode(),nullable=False,primary_key=True)
@@ -101,6 +104,12 @@ trip_table = sa.Table("trip",meta.metadata,
                         sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
 
+shared_trip_table = sa.Table("shared_trip",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
+                        sa.Column("secret",Unicode(),nullable=False),
+                        sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                        )
 
 waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
@@ -202,9 +211,15 @@ class Aircraft(object):
     def __init__(self,user,aircraft):
         self.user=user
         self.aircraft=aircraft
-    
+class SharedTrip(object):
+    def __init__(self,user,trip,secret):
+        self.user=user
+        self.trip=trip
+        self.secret=secret
+            
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(User, user_table)
+orm.mapper(SharedTrip, shared_trip_table)
 orm.mapper(Trip, trip_table, properties=dict(
     acobj=orm.relation(Aircraft,lazy=True)))
 
