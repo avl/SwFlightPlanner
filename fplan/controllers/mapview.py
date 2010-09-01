@@ -102,7 +102,7 @@ class MapviewController(BaseController):
                     session['showtrack']=None
                 else:
                     session['showarea']=sha
-                    session['showarea_id']=md5(sha).hexdigest()
+                    session['showarea_id']=md5(sha.encode('utf8')).hexdigest()
                     session['showtrack']=None
             
             if int(request.params.get('showairspaces',0)):
