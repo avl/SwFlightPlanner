@@ -48,7 +48,7 @@ ${"%.0f"%(item['along_nm'],)}nm ${item['dir_from_a']} ${waypoint}
 </td>
 <td>
 %if item['dist']<0.01:
-Under flight path
+Near flight path
 %endif
 %if item['dist']>=0.01:
 ${"%.1f"%(item['dist'],)}nm ${"%03.0f"%(item['bearing'],)} deg

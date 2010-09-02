@@ -1,4 +1,3 @@
- 
 1: FIXAD: Oskarshamn TIA har blivit fel! Är bara en linje, borde vara en area.
 2: FIXAD: Kolla höjden på hindret vid västervik. Visas för låg på din karta?
 3: FIXAD: Borde gå att se riktning på en GPS-track.
@@ -11,12 +10,12 @@
 9: FIXAD: Servern återöppnar aldrig sina filhandtag, vilket gör att kartuppdateringar aldrig tar skruv. (scanna MTIME varje minut, ladda om ifall ändrat)
 10: FIXAD: Ta bort användare som aldrig används mer än en gång... till slut.
 11: FIXAD: Uppladdning av track är alldeles för långsam nu när hastighetsberäkningar görs vid upload-time. Gör vid klick-time istället?
-12: Fixa kompass-deviering?
+12: WON'T FIX: Fixa kompass-deviering?
 13: FIXAD: Return borde uppdatera tider och sånt på "Overview"-skärmen för färdplanering.
 14: FIXAD: Färdigställ startfuel-supporten.
 15: FIXAD: Borde ha en printable driftfärdplan.
 16: EJ REPRODUCERAD: Det går att sabba så att TAS blir ett read-only fält, genom att klicka lite fel och typ copy-paste:a!
-17: Typ FIXAD: (Testa mer?) Det borde gå att dela trippar med andra användare.
+17: FIXAD: (Testa mer?) Det borde gå att dela trippar med andra användare.
 18: FIXAD: Fixa "printable"-länken, så att det sparas innan man navigeras bort, men typ högerklick funkar...?
 19: WON'T FIX: Att använda back-knappen (eller länken som inte använder javascript för den delen) tillbaka till Notam är väldigt ineffektivt. Den borde inte ladda om allt, bara statusen?
 20: FIXAD: Borde gå att sortera NOTAMS.
@@ -34,9 +33,15 @@
 32: FIXAD: Stöd: AIP SUP: http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/ , http://www.lfv.se/AIP/AIP%20Sup/SUP_33_10.pdf
 33: På gång - verifiera fixen: Långtora ligger på fel plats.
 34: FIXAD: Printable visar näst sista waypointen som dest.
-35: Min Free alt borde kolla terrängen över ett större område runt rutten.
+35: FIXAD: Min Free alt borde kolla terrängen över ett större område runt rutten.
 36: FIXAD: Det borde gå att se vilka notams som berör flygningen!
 37: FIXAD: När man byter ordning på items händer konstiga saker, om man byter ordning på sista item. Typ om man flyttar det neråt.
 38: FIXAD: Borde lägga in fjällområdesgränsen!
 39: FIXAD: Detektera IE och varna.
+40: Page-breaks i NOTAMs funkar inte bra.
+41: FIXAD: Nån sorts skala skulle vara bra.
+42: Skalan borde typ använda "jämna tal", istället för att alltid vara 70 pixels eller vad den är...
+42: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
+
+ 
 

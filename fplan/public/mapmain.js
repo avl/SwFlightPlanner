@@ -638,12 +638,19 @@ function as_if_rightclick(relx,rely,event)
 
 function merc2screen_x(merc_x)
 { //screen = map
-	
 	return parseInt(merc_x)-map_topleft_merc[0];
 }
 function merc2screen_y(merc_y)
 { //screen = map
 	return parseInt(merc_y)-map_topleft_merc[1];
+}
+function screen2merc_x(x)
+{ //screen = map
+	return x+map_topleft_merc[0];
+}
+function screen2merc_y(y)
+{ //screen = map
+	return y+map_topleft_merc[1];
 }
 function client2merc_x(clientX)
 {
@@ -817,6 +824,21 @@ function draw_jg()
 	        }
 	    }    
 	}
+	
+	jg.setColor("#404040");
+    jg.setFont("arial","12px",Font.BOLD);
+    var x1=screen_size_x-80;
+    var x2=x1+70;
+    var y=screen_size_y-18;
+	jg.fillRect(x1,y,x2-x1,1);
+	var mercx1=screen2merc_x(x1);
+	var mercx2=screen2merc_x(x2);
+	var mercy=screen2merc_y(y);
+	var l1=merc2latlon([mercx1,mercy]);
+	var l2=merc2latlon([mercx2,mercy])
+	var dist=dist_between(l1,l2)/1852.0;
+    jg.drawString(dist.toFixed(1)+' NM',screen_size_x-60,screen_size_y-15);			    		
+	
     jg.paint();
     
 }

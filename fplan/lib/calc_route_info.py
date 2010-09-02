@@ -73,7 +73,7 @@ def get_route(user,trip):
         #print "D-calc: %s -> %s"%(rt.a.waypoint,rt.b.waypoint)
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
         #print "Got D:",D
-        rt.d=D/1.852
+        rt.d=D
 
     #print "Looking for ac:",tripobj.aircraft
     acs=meta.Session.query(Aircraft).filter(sa.and_(

@@ -246,7 +246,7 @@ def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
     bearing=splat[0].strip()
     assert bearing!="nan"
     bearing=float(bearing)
-    return bearing,dist
+    return bearing,dist/1.852
     
         
 

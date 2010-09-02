@@ -71,7 +71,6 @@ def get_stats(a,b):
     
     elapsed=dtim2-dtim1
     bearing,distance=mapper.bearing_and_distance(latlon1,latlon2)
-    distance/=1.852
     elapsed_sec=elapsed.days*86400.0+elapsed.seconds+elapsed.microseconds*1e-6
     if elapsed_sec>0:
         speed=distance/(elapsed_sec/3600.0) #kt
