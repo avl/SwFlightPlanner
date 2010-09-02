@@ -145,72 +145,72 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.fill_preserve()
             ctx.set_source(cairo.SolidPattern(*solidcol))
             ctx.stroke()
-    for obst in get_obstacles():
-        if zoomlevel>=9:
-            ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
-            merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
-            pos=(merc[0]-x1,merc[1]-y1)            
-            radius=parse_obstacles.get_pixel_radius(obst,zoomlevel)
-            
-            ctx.new_path()
-            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-            ctx.fill_preserve()
-            ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.75))
-            ctx.new_path()
-            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-            ctx.stroke()                 
-
-    for sigp in get_sig_points():
-        if zoomlevel>=9:
-            ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
-            merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
-            pos=(merc[0]-x1,merc[1]-y1)            
-            radius=3            
-            ctx.new_path()
-            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-            ctx.fill_preserve()
-            ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.75))
-            ctx.new_path()
-            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-            ctx.stroke()                 
-            
-    for notamtype,items in get_notam_objs_cached().items():
-        if notamtype=="areas": continue
-        for item in items:
-            if zoomlevel>=8:
-                ctx.set_source(cairo.SolidPattern(0.25,1,0.25,0.25))
-                merc=mapper.latlon2merc(mapper.from_str(item['pos']),zoomlevel)
+        for obst in get_obstacles():
+            if zoomlevel>=9:
+                ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
+                merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
                 pos=(merc[0]-x1,merc[1]-y1)            
-                radius=5
+                radius=parse_obstacles.get_pixel_radius(obst,zoomlevel)
                 
                 ctx.new_path()
                 ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
                 ctx.fill_preserve()
-                ctx.set_source(cairo.SolidPattern(0,1.0,0,0.75))
+                ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.75))
                 ctx.new_path()
                 ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
                 ctx.stroke()                 
-                           
-    for airfield in get_airfields():
-        if zoomlevel<6:
-            continue
-        ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))
-        merc=mapper.latlon2merc(mapper.from_str(airfield['pos']),zoomlevel)
-        pos=(merc[0]-x1,merc[1]-y1)
-        if zoomlevel<=11:            
-            radius=5
-        else:
-            radius=5<<(zoomlevel-11)
+
+        for sigp in get_sig_points():
+            if zoomlevel>=9:
+                ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
+                merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
+                pos=(merc[0]-x1,merc[1]-y1)            
+                radius=3            
+                ctx.new_path()
+                ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+                ctx.fill_preserve()
+                ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.75))
+                ctx.new_path()
+                ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+                ctx.stroke()                 
+                
+        for notamtype,items in get_notam_objs_cached().items():
+            if notamtype=="areas": continue
+            for item in items:
+                if zoomlevel>=8:
+                    ctx.set_source(cairo.SolidPattern(0.25,1,0.25,0.25))
+                    merc=mapper.latlon2merc(mapper.from_str(item['pos']),zoomlevel)
+                    pos=(merc[0]-x1,merc[1]-y1)            
+                    radius=5
+                    
+                    ctx.new_path()
+                    ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+                    ctx.fill_preserve()
+                    ctx.set_source(cairo.SolidPattern(0,1.0,0,0.75))
+                    ctx.new_path()
+                    ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+                    ctx.stroke()                 
+                               
+        for airfield in get_airfields():
+            if zoomlevel<6:
+                continue
+            ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))
+            merc=mapper.latlon2merc(mapper.from_str(airfield['pos']),zoomlevel)
+            pos=(merc[0]-x1,merc[1]-y1)
+            if zoomlevel<=11:            
+                radius=5
+            else:
+                radius=5<<(zoomlevel-11)
+            
+            ctx.new_path()
+            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+            ctx.fill_preserve()
+            ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.75))
+            ctx.new_path()
+            ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
+            ctx.stroke()
         
-        ctx.new_path()
-        ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-        ctx.fill_preserve()
-        ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.75))
-        ctx.new_path()
-        ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-        ctx.stroke()
-    
-        
+            
     
     
     if return_format=="PIL":   
