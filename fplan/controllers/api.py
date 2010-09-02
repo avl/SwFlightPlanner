@@ -12,7 +12,9 @@ log = logging.getLogger(__name__)
 import sqlalchemy as sa
 import fplan.extract.extracted_cache as extracted_cache
 from pyshapemerge2d import Polygon,Vertex,vvector
+import fplan.lib.notam_geo_search as notam_geo_search
 import csv
+from itertools import chain
 
 def cleanup_poly(latlonpoints):
     mercpoints=[]
@@ -64,18 +66,30 @@ class ApiController(BaseController):
                 lat=lat,
                 lon=lon,
                 kind="airport",
-                alt=airp['elev']))
+                alt=float(airp['elev'])))
+        for sigp in extracted_cache.get_sig_points():
+            lat,lon=mapper.from_str(sigp['pos'])
+            points.append(dict(
+                name=sigp['name'],
+                lat=lat,
+                lon=lon,
+                kind='sigpoint',
+                alt=-9999.0
+                ))
+            print "Just added:",points[-1]
+        #add sig. points!
         if 1:
-            for obst in extracted_cache.get_obstacles():
+            for obst in chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
+                    extracted_cache.get_obstacles()):
                 lat,lon=mapper.from_str(obst['pos'])
                 #if lat<58.5 or lat>59.5:
                 #    continue
                 points.append(dict(
-                    name=obst['name'],
+                    name="Notam Obst.",
                     lat=lat,
                     lon=lon,
                     kind="obstacle",
-                    alt=obst['height']))
+                    alt=float(obst['elev'])))
                     
         if request.params.get('csv','').strip()!="":
             #use CSV format

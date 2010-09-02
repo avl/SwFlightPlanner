@@ -40,7 +40,7 @@
 39: FIXAD: Detektera IE och varna.
 40: Page-breaks i NOTAMs funkar inte bra.
 41: FIXAD: Nån sorts skala skulle vara bra.
-42: Skalan borde typ använda "jämna tal", istället för att alltid vara 70 pixels eller vad den är...
+42: FIXAD: Skalan borde typ använda "jämna tal", istället för att alltid vara 70 pixels eller vad den är...
 42: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
 
  
