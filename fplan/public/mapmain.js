@@ -638,12 +638,19 @@ function as_if_rightclick(relx,rely,event)
 
 function merc2screen_x(merc_x)
 { //screen = map
-	
 	return parseInt(merc_x)-map_topleft_merc[0];
 }
 function merc2screen_y(merc_y)
 { //screen = map
 	return parseInt(merc_y)-map_topleft_merc[1];
+}
+function screen2merc_x(x)
+{ //screen = map
+	return x+map_topleft_merc[0];
+}
+function screen2merc_y(y)
+{ //screen = map
+	return y+map_topleft_merc[1];
 }
 function client2merc_x(clientX)
 {
@@ -817,6 +824,47 @@ function draw_jg()
 	        }
 	    }    
 	}
+	
+	jg.setColor("#404040");
+    jg.setFont("arial","12px",Font.BOLD);
+    var nomw=70;
+    var x2=screen_size_x-20;
+    var x1=x2-nomw;
+    var y=screen_size_y-18;
+	var mercx1=screen2merc_x(x1);
+	var mercx2=screen2merc_x(x2);
+	var mercy=screen2merc_y(y);
+	var l1=merc2latlon([mercx1,mercy]);
+	var l2=merc2latlon([mercx2,mercy])
+	var dist=dist_between(l1,l2)/1852.0;
+	var odist=dist;
+	var factor=1.0;
+	while(dist>=10.0)
+	{
+	    dist/=10.0;
+	    factor*=10.0;
+	}
+	if (dist<=0.5) dist=0.5;	
+	else if (dist<=1) dist=1;	
+	else if (dist<=1.5) dist=1.5;	
+	else if (dist<=2) dist=2;
+	else if (dist<=2.5) dist=2.5;
+	else if (dist<=5) dist=5;
+	else if (dist<=7.5) dist=7.5;
+	else dist=10.0;
+	dist*=factor;
+	var disti=dist.toFixed(1);
+	var ratio=parseFloat(disti)/odist;
+	var w=nomw*ratio;
+
+	jg.fillRect(x2-w,y,w,1);
+	jg.fillRect(x2-w,y-3,1,7);
+	jg.fillRect(x2,y-3,1,7);
+	var s=''+disti;
+	if (s[s.length-1]=='0')
+	    s=s.substring(0,s.length-2);
+    jg.drawString(s+' NM ',x2-w*0.5-20,screen_size_y-15);			    		
+	
     jg.paint();
     
 }

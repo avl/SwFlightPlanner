@@ -1,7 +1,6 @@
 import fplan.lib.mapper as mapper
 from pyshapemerge2d import Vector,Line2,Vertex
-from fplan.lib.get_terrain_elev import get_terrain_elev
-##import asjdlfkajsdflkasjdf Fix --- add get_terrain_elev_in_box_approx to get_terrain_elev!
+from fplan.lib.get_terrain_elev import get_terrain_elev_in_box_approx
 
 dirs=["N",
       "NNE",
@@ -37,8 +36,19 @@ def get_terrain_near_route(rts,vertdist,interval=10):
         print "ord:",rt.a.ordinal
         merca=rt.subposa
         mercb=rt.subposb
-        minstep=min(1.0,interval)
+        
+        minstep=2
+                
+        stepcount=rt.d/float(minstep)
+        if stepcount>100:
+            newstep=rt.d/100.0
+            if newstep>minstep:
+                minstep=newstep
+        if interval<minstep:
+            interval=minstep        
         df=rt.d
+        
+        
         if df<1e-3:
             df=1e-3
         along_nm=0.0
@@ -53,7 +63,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                   (1.0-alongf)*merca[1]+(alongf)*mercb[1])
             alt=(1.0-alongf)*rt.startalt+(alongf)*rt.endalt
             latlon=mapper.merc2latlon(merc,13)
-            elev=get_terrain_elev(latlon)
+            elev=get_terrain_elev_in_box_approx(latlon,2*minstep)
             
             #if isfirstorlast and (along_nm<2.5 or along_nm>d-2.5):
             #    along_nm+=minstep

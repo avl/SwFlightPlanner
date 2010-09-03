@@ -220,7 +220,7 @@ class FlightplanController(BaseController):
         c.totdist=0.0
         for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
             bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-            c.totdist+=dist/1.852
+            c.totdist+=dist
             
         def get(what,a,b):
             #print "A:<%s>"%(what,),a.pos,b.pos
@@ -230,7 +230,7 @@ class FlightplanController(BaseController):
                 if what=='TT':
                     return "%03.0f"%(bear,)
                 elif what=='D':
-                    return "%.1f"%(dist/1.852,)
+                    return "%.1f"%(dist,)
             if what in ['W','V','Var','Alt','TAS']:
                 routes=list(meta.Session.query(Route).filter(sa.and_(
                     Route.user==tripuser(),Route.trip==session['current_trip'],
@@ -310,7 +310,7 @@ class FlightplanController(BaseController):
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
-                        geo.get_terrain_near_route(routes,vertdist,interval)):
+                        geo.get_terrain_near_route(routes,vertdist,interval=interval)):
             byord.setdefault(closeitem['ordinal'],[]).append(closeitem)
 
         for v in byord.values():
@@ -388,7 +388,8 @@ class FlightplanController(BaseController):
             rt.notampoints=set()
             rt.notampoints.update(set([info['item']['notam'] for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
 
-        c.obsts=self.get_obstacles(c.techroute,1e6,0.5)
+
+        c.obsts=self.get_obstacles(c.techroute,1e6,2)
         for rt in c.route:
             if rt.waypoint1 in c.obsts:
                 rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])

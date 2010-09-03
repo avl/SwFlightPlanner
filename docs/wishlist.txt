@@ -1,7 +1,4 @@
 * Skala på kartan skulle vara bra. Typ en linjal som visar "så här långt är 10km".
-
-* Gör kart-laddning snabbare. Frågan är varför det är så långsamt? Kan knappast vara disk-io. 
-
+* FIXAD: Gör kart-laddning snabbare. Frågan är varför det är så långsamt? Kan knappast vara disk-io. 
 * Gör funktion som visar åldern på allt nerladdat data: AIP ENR, AIP AD, R-områden, TMA, TIZ, Notams
-
 * 

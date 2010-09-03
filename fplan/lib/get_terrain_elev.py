@@ -1,5 +1,6 @@
 from struct import unpack
 from math import floor
+import math
 
 terrain_files=[]
 
@@ -32,8 +33,18 @@ def initreslevel():
 initreslevel()    
         
 def get_terrain_elev_in_box_approx(latlon,nautmiles):
-    pass
-    return 999999    
+    pixels=nautmiles/0.5
+    lat,lon=latlon
+    ypixels=pixels
+    f=math.cos(lat*math.pi/180.0)
+    if f<0.1: f=0.1
+    xpixels=pixels/f
+    resolutionlevel=0
+    while ypixels>5:
+        ypixels/=2
+        xpixels/=2
+        resolutionlevel+=1
+    return get_terrain_elev(latlon,resolutionlevel,(xpixels,ypixels))
     
 def get_terrain_elev(latlon,resolutionlevel=0,samplebox=(1,1)):
     if resolutionlevel>12:
