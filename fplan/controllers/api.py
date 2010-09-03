@@ -13,6 +13,7 @@ import sqlalchemy as sa
 import fplan.extract.extracted_cache as extracted_cache
 from pyshapemerge2d import Polygon,Vertex,vvector
 import fplan.lib.notam_geo_search as notam_geo_search
+from fplan.lib.androidstuff import android_fplan_map_format
 import csv
 from itertools import chain
 
@@ -33,7 +34,7 @@ def cleanup_poly(latlonpoints):
     if poly.is_ccw():
         return backtomerc
     else:    
-        print "Reversed "+latlonpoints
+        #print "Reversed "+latlonpoints
         return reversed(backtomerc)
 
 class ApiController(BaseController):
@@ -76,7 +77,7 @@ class ApiController(BaseController):
                 kind='sigpoint',
                 alt=-9999.0
                 ))
-            print "Just added:",points[-1]
+            #print "Just added:",points[-1]
         #add sig. points!
         if 1:
             for obst in chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
@@ -111,7 +112,9 @@ class ApiController(BaseController):
                 w.writerow(line)            
             response.headers['Content-Type'] = 'text/plain'           
             return buf.getvalue()
-                
+        elif request.params.get('binary','').strip()!='':
+            response.headers['Content-Type'] = 'application/binary'                    
+            return android_fplan_map_format(airspaces=out,points=points)
         else:
             rawtext=json.dumps(dict(airspaces=out,points=points))
             if 'zip' in request.params:
