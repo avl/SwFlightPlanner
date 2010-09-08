@@ -85,8 +85,11 @@ class ApiController(BaseController):
                 lat,lon=mapper.from_str(obst['pos'])
                 #if lat<58.5 or lat>59.5:
                 #    continue
+                tname=obst.get('name','Unknown')
+                if obst.get('kind','').startswith("notam"):
+                    tname="Notam Obst."
                 points.append(dict(
-                    name="Notam Obst.",
+                    name=tname,
                     lat=lat,
                     lon=lon,
                     kind="obstacle",
