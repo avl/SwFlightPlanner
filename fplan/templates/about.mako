@@ -48,7 +48,7 @@ running as long as bandwidth-costs do not become excessive.
 <br/>
 <br/>
 <h2>Is this site reliable?</h2>
-Show answer: No.<br/>
+Short answer: No.<br/>
 Long answer: <a href="#" onclick="document.getElementById('reliable').style.display='block'"><u>Press here!</u></a> 
 <div id="reliable" style="display:none">
 <p style="font-size:14px">
