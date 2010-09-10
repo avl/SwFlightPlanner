@@ -39,17 +39,22 @@ class NotamController(BaseController):
         c.show_cnt=0
         c.hide_cnt=0
         
-        m1=re.compile(r".*\bOBST\s+ERECTED\b.*")
-        m2=re.compile(r".*LIGHTS?.*OUT\s+OF\s+SERVICE.*",re.DOTALL)
+        ms=[]
+        ms.append(re.compile(r".*\bOBST\s+ERECTED\b.*"))
+        ms.append(re.compile(r".*TURBINE?S?\s+ERECTED\b.*"))
+        ms.append(re.compile(r".*\bMASTS?\s+ERECTED\b.*"))
+        ms.append(re.compile(r".*\bCRANES?\s+ERECTED\b.*"))
+        ms.append(re.compile(r".*LIGHTS?.*OUT\s+OF\s+SERVICE.*",re.DOTALL))
         for notamupdate,acks,downloaded in c.items:
             if not c.showobst:
-                if m1.match(notamupdate.text):
+                match=False
+                for m in ms:
+                    if m.match(notamupdate.text):
+                        match=True
+                        break
+                if match:
                     c.hide_cnt+=1
                     continue
-                if m2.match(notamupdate.text):
-                    c.hide_cnt+=1
-                    continue
-                    
                 
             if len(c.sel_cat)==0 or notamupdate.category in c.sel_cat:
                 c.shown.append((notamupdate,acks,downloaded))
