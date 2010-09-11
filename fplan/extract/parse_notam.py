@@ -150,6 +150,7 @@ def diff_notam(a,b):
     cancelledlist=list(cancelled)
     if len(new):
         for c in cancelledlist:
+            if len(new)==0: break
             cand=max(new,key=lambda n:how_similar(c,n))
             if how_similar(c,cand)>70:
                 cancelled.remove(c)

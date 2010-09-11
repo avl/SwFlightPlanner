@@ -19,6 +19,7 @@ def update_unithread(zoomlevel=13):
         if os.system("mkdir -pv /home/anders/saker/avl_fplan_world/intermediate"):
             raise Exception("Couldn't create dir")
     run_unithread("/home/anders/saker/avl_fplan_world/intermediate","1",zoomlevel)
+    
     if os.system("mv -v /home/anders/saker/avl_fplan_world/intermediate/level* /home/anders/saker/avl_fplan_world/tiles/airspace"):
         raise Exception("Couldn't move updated airspace blobs to active dir")
 
