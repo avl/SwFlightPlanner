@@ -234,10 +234,7 @@ def test_stockholm_tile():
     else:
         #print "Cairo image"
         im.write_to_png(p)
-    #
-    
-    
-    
+
         
 
 tilepixelsize=256

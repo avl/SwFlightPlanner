@@ -95,7 +95,10 @@ class TilePlanner(Pyro.core.ObjBase):
         self.work=dict(generate_work_packages(self.tma,self.blobs,cachedir,maxzoomlevel))
         self.inprog=dict()
         self.cachedir=cachedir
-        
+    def close(self):
+        for z,blob in self.blobs.items():
+            blob.close()
+        self.blobs=dict()
     def get_work(self):
         if len(self.work)==0:
             return None #Finished
