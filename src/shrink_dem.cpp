@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <arpa/inet.h>
-void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int ty);
+void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int ty,bool outer);
 
 
 int main(int argc,char** argv)
@@ -21,15 +21,17 @@ int main(int argc,char** argv)
     int xsize=strtol(argv[2],NULL,10);
     int ysize=strtol(argv[3],NULL,10);
     int order=1;
+    bool outer=true;
     while(xsize>1)
     {
         std::string outpath;
         char buf[100];
-        snprintf(buf,100,"%s-%d",basepath.c_str(),order);
+        snprintf(buf,100,"%s-M%d",basepath.c_str(),order); //M for Min-Max
         outpath=buf;        
         int destxsize=xsize/2;
         int destysize=ysize/2;
-        reduce(inpath.c_str(),outpath.c_str(),xsize,ysize,destxsize,destysize);
+        reduce(inpath.c_str(),outpath.c_str(),xsize,ysize,destxsize,destysize,outer);
+        outer=false;
         inpath=outpath;
         xsize=destxsize;
         ysize=destysize;
@@ -38,14 +40,16 @@ int main(int argc,char** argv)
     return 0;
 }
 
-void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int ty)
+void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int ty,bool outer)
 {
     printf("Reducing %s (%dx%d) -> (%d,%d) %s\n",path,xsize,ysize,tx,ty,outpath);
     FILE* f=fopen(path,"rb");
     FILE* out=fopen(outpath,"wb");
     assert(f && out);
-    std::vector<int> boxes;
-    boxes.resize(xsize/2);    
+    std::vector<int> minboxes;
+    minboxes.resize(xsize/2);    
+    std::vector<int> maxboxes;
+    maxboxes.resize(xsize/2);    
     int readpixels=0;
     int y=0;
     int desty=0;
@@ -54,7 +58,10 @@ void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int 
         //double perc=100.0*double(y)/double(ysize);
         //printf("Done: %f\n",perc);
         for(int i=0;i<xsize/2;++i)
-            boxes[i]=-9999;
+        {
+            minboxes[i]=32000;
+            maxboxes[i]=-32000;
+        }
         int numsuby=2;
         if (y==ysize-3)
             numsuby=3;
@@ -73,21 +80,35 @@ void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int 
                     int xh=x/2;
                     if (xh>=xsize/2)
                         xh=xsize/2-1;
-                    short height=0;
-                    int ret=fread(&height,2,1,f);
+                    short minheight=0;
+                    int ret=fread(&minheight,2,1,f);
+                    assert(ret);
+                    short maxheight=0;
+                    if (outer)
+                    {
+                        maxheight=minheight;
+                    }
+                    else
+                    {
+                        int ret=fread(&maxheight,2,1,f);
+                        assert(ret);
+                    }
                     readpixels++;
                     assert(ret);                
-                    height=(short)ntohs(height);
+                    minheight=(short)ntohs(minheight);
+                    maxheight=(short)ntohs(maxheight);
                     //printf("Read: %d (compare (x=%d,subx=%d) to [%d]: %d)\n",height,x,subx,x/2,boxes[x/2]);
-                    if (height>boxes[xh])
-                        boxes[xh]=height;
+                    if (maxheight>maxboxes[xh])
+                        maxboxes[xh]=maxheight;
+                    if (minheight<minboxes[xh])
+                        minboxes[xh]=minheight;
                     //printf("Updated: %d\n",boxes[xh]);
-                    if (height<-500)
-                        printf("Height: %d\n",height);
-                    if (height>6000)
-                        printf("Height: %d\n",height);
-                    assert(height>-500);
-                    assert(height<6000);
+                    if (minheight<-500)
+                        printf("Height: %d\n",minheight);
+                    if (maxheight>6000)
+                        printf("Height: %d\n",maxheight);
+                    assert(minheight>-500);
+                    assert(maxheight<6000);
                     ++x;
                 }
             }
@@ -96,12 +117,16 @@ void reduce(const char* path,const char* outpath,int xsize,int ysize,int tx,int 
         int destx=0;
         for(int i=0;i<xsize/2;++i)
         {
-            short height=boxes[i];
-            if (xsize<60) printf("Box height[%d,%d]:%d\n",destx,desty,height);
-            height=(short)htons(height);
-            int ret=fwrite(&height,2,1,out);
-            ++destx;
+            short minheight=minboxes[i];
+            short maxheight=maxboxes[i];
+            if (xsize<60) printf("Box height[%d,%d]:min=%d,max=%d\n",destx,desty,minheight,maxheight);
+            minheight=(short)htons(minheight);
+            maxheight=(short)htons(maxheight);
+            int ret=fwrite(&minheight,2,1,out);
             assert(ret);
+            ret=fwrite(&maxheight,2,1,out);
+            assert(ret);
+            ++destx;
             //int height2=(short)ntohs(height);
             //if (xsize<20)
             //    printf("Wrote height %d\n",height2);
