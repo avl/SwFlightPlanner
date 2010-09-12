@@ -48,6 +48,9 @@ def update_unithread(zoomlevel=13):
 if __name__=='__main__':
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
     load_environment(conf.global_conf, conf.local_conf)
-
-    update_unithread(int(sys.argv[1]))
+    repeatcount=1
+    if len(sys.argv)>2:
+        repeatcount=int(sys.argv[2])
+    for x in xrange(repeatcount):
+        update_unithread(int(sys.argv[1]))
 

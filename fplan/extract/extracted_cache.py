@@ -20,7 +20,7 @@ aipdata=[]
 loaded_aipdata_cachefiledate=None
 last_timestamp_check=datetime.utcnow()
 lock=Lock()
-def get_aipdata(cachefile="aipdata.cache"):
+def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
     global aipdata
     global loaded_aipdata_cachefiledate
     global last_timestamp_check
@@ -51,6 +51,8 @@ def get_aipdata(cachefile="aipdata.cache"):
             loaded_aipdata_cachefiledate=get_filedate(cachefile);
             return aipdata
         except:
+            if not generate_if_missing:
+                raise Exception("You must supply generate_if_missing-parameter for aip-data parsing and generation to happen")
             airspaces=parse_all_tma()
             airspaces.extend(parse_r_areas())
             airspaces.extend(parse_mountain_area())
@@ -118,7 +120,7 @@ def run_update_iteration():
             last_update=datetime.utcnow()
             fetchdata.caching_enabled=False
             aipdata=[]
-            get_aipdata("aipdata.cache.new")
+            get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
             time.sleep(2) #Just for debug, so that we have a chance to see that the aipdata is rewritten 

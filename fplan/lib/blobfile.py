@@ -5,6 +5,7 @@ import sys
 from threading import Lock
 import threading
 import time
+import stat
     
 class BlobFile(object):
     
@@ -14,11 +15,12 @@ class BlobFile(object):
         tx,ty=(x-self.x1)/self.tilesize,(y-self.y1)/self.tilesize
         return tx,ty
     def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r'):
+        self.tilesize=256
         self.lock=Lock()
         self.threads_reading=0
         assert mode in ["r","w"]
-        #print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
-        #    name,zoomlevel,x1,y1,x2,y2,mode)
+        print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
+            name,zoomlevel,x1,y1,x2,y2,mode)
         self.mode=mode
         if mode=="w":
             if os.path.dirname(name).strip() and not os.path.exists(os.path.dirname(name)):
@@ -33,6 +35,7 @@ class BlobFile(object):
                 assert os.path.getsize(name)==0 
                 self.size=0
             print "Opened %s for writing"%(name,)
+            self.name=name
             self.x1=x1
             self.y1=y1
             self.x2=x2
@@ -60,7 +63,6 @@ class BlobFile(object):
         #print x2,x1
         assert x2>x1
         assert y2>y1
-        self.tilesize=256
         self.tx1,self.ty1=self.get_tile_number(x1,y1)
         self.tx2,self.ty2=self.get_tile_number(x2,y2)
         self.sx=self.tx2-self.tx1+1
@@ -118,8 +120,15 @@ class BlobFile(object):
             #self.f.write(pack(">I",len(data)))
         finally:
             self.lock.release()
-        print "Written file to %d,%d,%d, now checking"%(x,y,self.zoomlevel)
-        assert self.get_tile(x,y)==data
+        if 1:
+            #extra checks
+            print "Written file to %d,%d,%d, now checking"%(x,y,self.zoomlevel)
+            assert self.get_tile(x,y)==data
+            openinode=os.fstat(self.f.fileno())[stat.ST_INO]            
+            ondiskinode=os.stat(self.name)[stat.ST_INO]
+            print "Inode on disk: %s, inode open for output: %s"%(ondiskinode,openinode)
+            assert openinode==ondiskinode
+            
         print "Ok  %d,%d,%d"%(x,y,self.zoomlevel)
             
     def get_tile(self,x,y):
