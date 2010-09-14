@@ -134,7 +134,7 @@ def run_update_iteration():
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
     except Exception,cause:
         print "aipdata-update, Exception:",cause
-
+        raise
 
     
 if __name__=='__main__':
