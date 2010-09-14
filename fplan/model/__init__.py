@@ -228,8 +228,16 @@ orm.mapper(NotamCategoryFilter, notam_category_filter_table)
 
 orm.mapper(Route, route_table,
  properties=dict(
-    a=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint1),lazy=True),
-    b=orm.relation(Waypoint,primaryjoin=(waypoint_table.columns.ordinal==route_table.columns.waypoint2),lazy=True)
+    a=orm.relation(Waypoint,primaryjoin=(sa.and_(
+        waypoint_table.columns.ordinal==route_table.columns.waypoint1,
+        waypoint_table.columns.user==route_table.columns.user,
+        waypoint_table.columns.trip==route_table.columns.trip,
+        )),lazy=True),
+    b=orm.relation(Waypoint,primaryjoin=(sa.and_(
+        waypoint_table.columns.ordinal==route_table.columns.waypoint2,
+        waypoint_table.columns.user==route_table.columns.user,
+        waypoint_table.columns.trip==route_table.columns.trip,
+        )),lazy=True)
 ))
 
 
