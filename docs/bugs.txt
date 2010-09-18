@@ -44,5 +44,10 @@
 42: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
 43: calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
 44: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
-
+45: METAR+TAF
+46: Links to LHP och SWC.
+47: En-route frekvenser på något bra sätt
+48: Visa TWR och ATIS-frekv i driftfärdplan
+49: WONTFIX: Flygfältsdata
+50: Färga tracken efter ground warnings + olika färg beroende på luftrum.
 

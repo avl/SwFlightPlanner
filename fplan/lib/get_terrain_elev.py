@@ -58,7 +58,7 @@ def get_terrain_elev(latlon,resolutionlevel=0,samplebox=(1,1)):
         if lat>=terr['south'] and lat<=terr['north'] and lon>=terr['west'] and lon<=terr['east']:
             logicalxres,logicalyres=4800,6000#res_for_level[resolutionlevel]            
             xres,yres=res_for_level[resolutionlevel]            
-            print "reading lat/lon:",lat,lon,"size:",xres,yres
+            #print "reading lat/lon:",lat,lon,"size:",xres,yres
             y=int(floor(float(logicalyres)*(terr['north']-lat)/float(terr['north']-terr['south'])))
             x=int(floor(float(logicalxres)*(lon-terr['west'])/float(terr['east']-terr['west'])))
             for i in xrange(resolutionlevel):
@@ -75,7 +75,7 @@ def get_terrain_elev(latlon,resolutionlevel=0,samplebox=(1,1)):
             f=open(filename)
             for y in xrange(y1,y2):
                 for x in xrange(x1,x2):
-                    print "reading from ",filename,x,y
+                    #print "reading from ",filename,x,y
                     if x>=xres: x=xres-1
                     if x<0: x=0
                     if y>=yres: y=yres-1
@@ -88,7 +88,7 @@ def get_terrain_elev(latlon,resolutionlevel=0,samplebox=(1,1)):
                     elev,=unpack(">h",bytes)
                     elevs.append(elev/0.3048)
     if len(elevs)==1:
-        print "Nothing found",lat,lon
+        print "Missing elev:",lat,lon
     return max(elevs)
 
 if __name__=='__main__':

@@ -1,5 +1,36 @@
 from struct import pack
 from StringIO import StringIO
+import zlib
+
+def android_fplan_hmap_format(hmap):
+    out=StringIO()
+    print "Binary hmap download in progress"
+
+    def writeFloat(f):
+        out.write(pack(">f",f))
+    def writeInt(i):
+        assert i>=-(1<<31) and i<(1<<31)
+        out.write(pack(">I",i))
+    def writeBuf(encoded):
+        assert type(encoded)==str
+        l=len(encoded)
+        assert l<65000
+        out.write(pack(">I",l)) #short
+        out.write(encoded)
+    
+    writeInt(len(hmap)) #zoomlevels    
+    for zoomlevel,tiles in hmap.items():
+        writeInt(zoomlevel)
+        writeInt(len(tiles)) #tiles in this zoomlevel
+        for merc,tile in tiles.items():
+            #print "Zoom: %d Merc: %s"%(zoomlevel,merc)
+            writeInt(merc[0])
+            writeInt(merc[1])
+            writeBuf(tile if tile else "")
+    writeInt(0x1beef) #Magic to verify writing
+    print "Binary hmap download complete"
+    return out.getvalue()
+    
 def android_fplan_map_format(airspaces,points):
     out=StringIO()
     print "Binary download in progress"

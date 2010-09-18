@@ -12,10 +12,13 @@ class BlobFile(object):
     def get_tile_number(self,x,y):
         assert x>=0
         assert y>=0
+        if x%self.tilesize!=0 or y%self.tilesize!=0:
+            print "Warning, bad tile number in BlobFile!",x,y,self.zoomlevel
+            raise Exception("Oops!")
         tx,ty=(x-self.x1)/self.tilesize,(y-self.y1)/self.tilesize
         return tx,ty
-    def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r'):
-        self.tilesize=256
+    def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r',tilesize=256):
+        self.tilesize=tilesize
         self.lock=Lock()
         self.threads_reading=0
         assert mode in ["r","w"]
@@ -212,11 +215,20 @@ def test_blobfile():
     assert b.get_tile(512,1024)=="svejs"
     
 if __name__=="__main__":
-     b=BlobFile(sys.argv[1])
+     if len(sys.argv)>5:
+        tilesize=int(sys.argv[5])
+        print "Tilesize: ",tilesize
+     else:
+        tilesize=256
+     b=BlobFile(sys.argv[1],mode="r",tilesize=tilesize)
      t=b.get_tile(int(sys.argv[2]),int(sys.argv[3]))
-     w=open(sys.argv[4],"w")
-     w.write(t)
-     w.close()
+     if t==None:
+         print "No such tile"
+     else:
+         w=open(sys.argv[4],"w")
+         w.write(t)
+         print "Wrote %d bytes to \"%s\""%(len(t),sys.argv[4])
+         w.close()
      
      
      
