@@ -57,14 +57,14 @@ def parse_notam(html):
     #print "Raw lines: %d"%(almostraw.count("\n"),)
     
     def fixer(x):
-        print "Match: <%s>"%(x.group(),)
+        #print "Match: <%s>"%(x.group(),)
         return u""
     if 1:
         almostraw=re.sub(
         ur" *\n. *CONTINUES ON NEXT PAGE *\n. *\n *AIS *[^\n]* *INFORMATION *ISSUED *[\d ]*[^\n]*\d+ *PAGE *\d+\(\d+\) *\n *\n",
         lambda x: fixer(x),
         almostraw)        
-    print almostraw
+    #print almostraw
     
     ls=almostraw.splitlines(1)
     out=[]
@@ -132,7 +132,7 @@ def how_similar(at,bt):
     a=aobj.text
     b=bobj.text
     if aobj.text.count("TYSTBERGA") or bobj.text.count("TYSTBERGA"):
-        print "Hos similar:\n%s\n/\n%s"%(at,bt)
+        print "How similar:\n%s\n/\n%s"%(at,bt)
     if aobj.category!=bobj.category: 
         #print "similar: 0 c"
         return 0
