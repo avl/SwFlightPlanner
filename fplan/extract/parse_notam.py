@@ -3,6 +3,9 @@ from difflib import Differ,SequenceMatcher
 from fplan.model import *    
 from datetime import datetime
 
+def fragment(text):
+    if len(text)<=100: return text.replace("\n","\\n")
+    return (text[:50]+"..."+text[-50:]).replace("\n","\\n")
 class NotamItem(object):
     def __init__(self,appearline,category):
         self.text=""
@@ -15,7 +18,7 @@ class NotamItem(object):
     def __hash__(self):
         return hash((self.category,self.text))
     def __repr__(self):
-        return "NotamItem(line=%d,category=%s,text_fragment=%s)"%(self.appearline,self.category,self.text.split("\n")[0][:50])
+        return "NotamItem(line=%d,category=%s,text_fragment=<%s>)"%(self.appearline,self.category,fragment(self.text))
 class Notam(object):
     def __init__(self,downloaded,items,notamtext):
         self.downloaded=downloaded
@@ -49,7 +52,20 @@ def fixup(x):
 def parse_notam(html):
     print "html lines:",html.count("\n")
     almostraw="\n".join(pre for pre in re.findall(u"<pre>(.*?)</pre>",html,re.DOTALL|re.IGNORECASE))
-    print "Raw lines: %d"%(len(almostraw),)
+    almostraw.replace("\r\n","\n")
+    almostraw=almostraw.replace("\t","    ")
+    #print "Raw lines: %d"%(almostraw.count("\n"),)
+    
+    def fixer(x):
+        print "Match: <%s>"%(x.group(),)
+        return u""
+    if 1:
+        almostraw=re.sub(
+        ur" *\n. *CONTINUES ON NEXT PAGE *\n. *\n *AIS *[^\n]* *INFORMATION *ISSUED *[\d ]*[^\n]*\d+ *PAGE *\d+\(\d+\) *\n *\n",
+        lambda x: fixer(x),
+        almostraw)        
+    print almostraw
+    
     ls=almostraw.splitlines(1)
     out=[]
     category=None
@@ -65,15 +81,12 @@ def parse_notam(html):
         if len(l) and l[0]=='+':
             l=' '+l[1:]
         l=l.lstrip()
-        if l.strip()=="CONTINUES ON NEXT PAGE": continue
         if l.strip()=="END OF AIS FIR INFORMATION": continue
         if l.strip()=="ALL ACTIVE AND INACTIVE NOTAM INCLUDED": continue
         if l.strip()=="FIR: ESAA": continue
         if l.strip()=="AERODROMES INCLUDED: ALL": continue            
         if l.strip()=="INSIGNIFICANT NOTAM INCLUDED, EXCEPT OLD PERM NOTAM": continue
         if re.match(r"VALID\s*\d+-\d+\s*ALL\s*FL\s*CS.{3,19}",l.strip()): continue
-        if re.match(r"\s*AIS\s*AREA\s*INFORMATION\s*ISSUED\s*[\d ]*.*\d+\s*PAGE\s*\d+\(\d+\)\s*",l.strip()):
-            continue
         iss=re.match(r"\s*AIS FIR INFORMATION\s+ISSUED\s+(\d{6})\s+(\d{4})\s+SFI\d+\s+PAGE\s+\d+\(\d+\)\s*",l)
         if not iss:
             iss=re.match(r"ISSUED BY ODIN ESSA AIS\s+(\d{6})\s+(\d{4})\s+HAVE A NICE FLIGHT",l)
@@ -85,7 +98,7 @@ def parse_notam(html):
         if re.match(r"\s*Last\s+updated\s+.* UTC \d{4}\s*",l):continue
         if re.match(r"\s*ALL ACTIVE AND INACTIVE NOTAM INCLUDED\s*",l):continue
         if re.match(r"\s*VALID\s+\d+-\d+\s*ALL\s*FL\s*CS:WWWESAA",l):continue
-
+        #print "Parsing <%s>"%(l,)
         if l=="":
             if len(out) and out[-1].text!="":
                 stale=True
@@ -173,8 +186,12 @@ def diff_notam(a,b):
 
 
 if __name__=='__main__':
-    d1=parse_notam(unicode(open("./fplan/extract/notam_sample.html").read(),'latin1'))
-    d2=parse_notam(unicode(open("./fplan/extract/notam_sample2.html").read(),'latin1'))
-    diff_notam(d1,d2)
+    d1=parse_notam(unicode(open("./fplan/extract/notam_sample6.html").read(),'latin1'))
+    #d2=parse_notam(unicode(open("./fplan/extract/notam_sample2.html").read(),'latin1'))
+    #diff_notam(d1,d2)
+    #for item in d2.items:
+    #    print item
+    #print d2
+    
 
 
