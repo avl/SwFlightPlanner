@@ -11,10 +11,14 @@ from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfie
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
-
+import socket
 #have_mapnik=True
+
 have_mapnik=False
 #If changing this - also change 'meta=x' in tilegen_planner .
+if socket.gethostname()=="ragnar":
+    have_mapnik=True
+    print "Using real mapnik"
 
 def use_existing_tiles():
     if have_mapnik: return None
