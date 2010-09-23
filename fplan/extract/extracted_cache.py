@@ -1,4 +1,5 @@
 from fplan.extract.parse_tma import parse_all_tma,parse_r_areas
+from fplan.extract.fi_parse_tma import fi_parse_all_tma
 from fplan.extract.parse_obstacles import parse_obstacles
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
@@ -56,6 +57,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             airspaces=parse_all_tma()
             airspaces.extend(parse_r_areas())
             airspaces.extend(parse_mountain_area())
+            airspaces.extend(fi_parse_tma())
             airfields,points=extract_airfields()
             sig_points=parse_sig_points()
             for point in points:
@@ -86,6 +88,8 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             return aipdata
     finally:
         lock.release()
+        
+        
 def get_airspaces():
     aipdata=get_aipdata()
     return aipdata['airspaces']

@@ -275,20 +275,34 @@ def parsecoords(seg):
     return coords
 
 
-def seg_angles(a1,a2,step):
-    assert a2>a1
-    dist=a2-a1
+def seg_angles(pa1,pa2,step,direction):    
+    a1=pa1
+    a2=pa2
+    if direction=="cw":
+        if a2<a1:
+            a2+=2*math.pi
+        dist=a2-a1
+    else:
+        if a1<a2:
+            a2-=2*math.pi
+        dist=a1-a2
+    print "Dist:",dist
     nominal_cnt=math.ceil(dist/step)
     if nominal_cnt<=1:
-        yield a1
-        yield a2
+        yield pa1
+        yield pa2
         return
     delta=dist/float(nominal_cnt)
     a=a1
     for x in xrange(int(nominal_cnt)):
         yield a
-        a+=delta
-    yield a2
+        if direction=="cw":
+            a+=delta
+        else:
+            a-=delta
+        if a>math.pi: a-=2.0*math.pi
+        if a<-math.pi: a+=2.0*math.pi
+    yield pa2
      
     
 def create_circle(center,dist_nm):
@@ -299,7 +313,7 @@ def create_circle(center,dist_nm):
     if steps<16:
         steps=16
     out=[]
-    angles=list(seg_angles(0,2.0*math.pi,math.pi*2.0/steps))
+    angles=list(seg_angles(0,2.0*math.pi,math.pi*2.0/steps,"cw"))
     for cnt,a in enumerate(angles):
         if cnt!=len(angles)-1:
             x=math.cos(a)*radius_pixels
@@ -310,7 +324,7 @@ def create_circle(center,dist_nm):
         out2.append(to_str(merc2latlon(o,zoom)))
     return out2
     
-def create_seg_sequence(prevpos,center,nextpos,dist_nm):
+def create_seg_sequence(prevpos,center,nextpos,dist_nm,direction):
     zoom=14
     prevmerc=latlon2merc(from_str(prevpos),zoom)
     centermerc=latlon2merc(from_str(center),zoom)
@@ -323,15 +337,15 @@ def create_seg_sequence(prevpos,center,nextpos,dist_nm):
     
     radius_pixels=approx_scale(centermerc,zoom,dist_nm)
     
-    if a2<a1:
-        a2+=math.pi*2
+    #if a2<a1:
+    #    a2+=math.pi*2
     if abs(a2-a1)<1e-6:
         return []
     steps=abs(a2-a1)/(math.pi*2.0)*dist_nm*math.pi*2/5.0
     if steps<16:
         steps=16
     out=[]
-    angles=list(seg_angles(a1,a2,abs(a2-a1)/steps))
+    angles=list(seg_angles(a1,a2,abs(a2-a1)/steps,direction=direction))
     for cnt,a in enumerate(angles):
         if cnt!=0 and cnt!=len(angles)-1:
             x=math.cos(a)*radius_pixels
@@ -357,6 +371,7 @@ def parse_dist(s):
 
 
 def parse_area_segment(seg,prev,next):
+    print "Parsing <%s>"%(seg,)
     for borderspec in [
         "Swedish/Danish border northward to (.*)",
         "Swedish/Norwegian border northward to (.*)"
@@ -375,16 +390,26 @@ def parse_area_segment(seg,prev,next):
     arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
     if arc:
         centerstr,radius=arc.groups()
+        direction="cw"
+    if not arc:
+        arc=re.match(ur".*? counterclockwise along an? (?:circle|arc).?\s*(?:with)? radius (\d+\.?\d*? NM) cent[red]{1,5} on (.*) \(VOR/DME PIR\)",seg)
+        if arc:
+            #print "match: <%s>"%(arc.group(),)
+            radius,centerstr=arc.groups()
+            #print "rad,cent", radius,centerstr
+            direction="ccw"
+    if arc:
         #uprint("Parsing coord: %s"%centerstr)
         center=parsecoord(centerstr)
         dist_nm=parse_dist(radius)
+        #print "prev: %s, next: %s"%(prev,next)
         prevpos=parsecoord(prev)
         nextpos=parsecoord(next)
         #uprint("Arc center: %s"%(center,))
         #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
-        return create_seg_sequence(prevpos,center,nextpos,dist_nm)
+        return create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
     #uprint("Matching against: %s"%(seg,))
-    circ=re.match(r"\s*A circle with radius ([\d\.]+ (?:NM|m))\s+(?:\(.* k?m\))?\s*cent[red]{1,5}\s*on\s*(\d+N) (\d+E)\b.*",seg)
+    circ=re.match( r".*A circle,?(?:with)? radius ([\d\.]+\s*(?:NM|m))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on\s*(\d+N)\s*(\d+E)\b.*",seg)
     if circ:
         radius,lat,lon=circ.groups()
         assert prev==None and next==None        
@@ -399,17 +424,25 @@ def parse_area_segment(seg,prev,next):
         #print "Parsed as regualr coord: ",c
         return c
     except MapperBadFormat:
+        print "Couldn't parse <%s> as a plain coord"%(seg,)
+        raise
         pass #continue processing
 
-    #uprint("Unparsed area segment: %s"%(seg,))
+    uprint("Unparsed area segment: %s"%(seg,))
     return []
 
 def parse_coord_str(s):
     #borderspecs=[
     #    ]
     #uprint("Parsing area: %s"%(s,))
-    
-    items=s.replace(u"–","-").strip().split("-")
+    s=s.replace(u"–","-")
+    s=s.replace(u"counter-clock","counterclock")
+    s=s.replace(u"clock-wise","clockwise")
+    itemstemp=s.strip().split("-")
+    items=[]
+    for item in itemstemp:
+        if item.strip()=="pisteeseen /  to the point": continue
+        items.append(item)
     out=[]
     for idx,pstr2 in enumerate(items):
         prev=None
