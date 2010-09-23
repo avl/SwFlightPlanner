@@ -20,7 +20,11 @@ def fi_parse_restrictions():
                 y2=next.y1-1.75
             space['name']=cur.text.strip()
         
-            areaspec=page.get_lines(page.get_partially_in_rect(cur.x1+0.01,cur.y2+0.05,cur.x1+50,y2))
+            areaspecprim=page.get_lines(page.get_partially_in_rect(cur.x1+0.01,cur.y2+0.05,cur.x1+50,y2))
+            areaspec=[]
+            for area in areaspecprim:
+                if len(areaspec) and area.strip()=="": break
+                areaspec.append(area)
             print "Y-interval:",cur.y1,y2,"next:",next
             print "Name:",space['name']
             print "areaspec:",areaspec
@@ -49,4 +53,5 @@ if __name__=='__main__':
         print "Name:",sp['name']
         print "  Points:",sp['points']
         print "  Floor:",sp['floor']
+        print "  Ceil:",sp['ceiling']
         
