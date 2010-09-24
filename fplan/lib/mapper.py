@@ -390,26 +390,52 @@ def parse_area_segment(seg,prev,next):
     arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
     if arc:
         centerstr,radius=arc.groups()
+        nextposraw=None
         direction="cw"
     if not arc:
-        arc=re.match(ur".*? counterclockwise along an? (?:circle|arc).?\s*(?:with)? radius (\d+\.?\d*? NM) cent[red]{1,5} on (.*) \(VOR/DME PIR\)",seg)
+        arc=re.match(ur".*? (counterclockwise|clockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*? NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
+        #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)
+        if arc:
+            print "midArc:",arc,arc.groups()
+        else:
+            print "Noarc"
         if arc:
             #print "match: <%s>"%(arc.group(),)
-            radius,centerstr=arc.groups()
+            #directionraw,circarc,
+            directionraw,radius,centerstr,nextposraw=arc.groups()
+            #if nextposraw:
+            #    nextposraw=re.match(ur"to the point\s*(\d+N\s*\d+E).*",nextposraw)
+                
             #print "rad,cent", radius,centerstr
-            direction="ccw"
+            if directionraw=="clockwise":
+                direction="cw"
+            elif directionraw=="counterclockwise":
+                direction="ccw"
+            else:
+                raise Exception("Unknown direction")
+            
+    print "arc:",arc
     if arc:
         #uprint("Parsing coord: %s"%centerstr)
         center=parsecoord(centerstr)
         dist_nm=parse_dist(radius)
-        #print "prev: %s, next: %s"%(prev,next)
-        prevpos=parsecoord(prev)
-        nextpos=parsecoord(next)
-        #uprint("Arc center: %s"%(center,))
-        #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
-        return create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
-    #uprint("Matching against: %s"%(seg,))
-    circ=re.match( r".*A circle,?(?:with)? radius ([\d\.]+\s*(?:NM|m))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on\s*(\d+N)\s*(\d+E)\b.*",seg)
+        print "prev: <%s>, next: <%s>"%(prev,next)
+        prevpos=parse_coords(*re.match(ur".*?(\d+N)\s*(\d+E)\s*",prev).groups())
+
+        if nextposraw==None:
+            print "Parsing next: ",next
+            nextpos=parse_coords(*re.match(ur"\s*(\d+N)\s*(\d+E).*",next).groups())
+        else:
+            print "Using nextposraw:",nextposraw
+            nextpos=parsecoord(nextposraw)
+        uprint("Arc center: %s"%(center,))
+        uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
+        segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
+        print "Nextpos:",nextpos
+        print "Returned:",segseq
+        return segseq
+    uprint("Matching against: %s"%(seg,))
+    circ=re.match( ur".*A circle,?\s*(?:with)? radius ([\d\.]+\s*(?:NM|m))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on\s*(\d+N)\s*(\d+E).*",seg)
     if circ:
         radius,lat,lon=circ.groups()
         assert prev==None and next==None        
@@ -420,8 +446,16 @@ def parse_area_segment(seg,prev,next):
         return create_circle(center,dist_nm)
 
     try:
-        c=parsecoords(seg)
-        #print "Parsed as regualr coord: ",c
+        assert seg.count(" ")%2==1
+        segs=seg.split(" ")
+        assert len(segs)%2==0
+        c=[]
+        for i in xrange(len(segs)/2):
+            p=" ".join(segs[2*i:2*i+2])
+            print "P:",p
+            c.append(parsecoord(p))
+        #c=parsecoord(seg)
+        print "Parsed <%s> as regualr coord: <%s>"%(seg,c)
         return c
     except MapperBadFormat:
         print "Couldn't parse <%s> as a plain coord"%(seg,)
@@ -434,14 +468,15 @@ def parse_area_segment(seg,prev,next):
 def parse_coord_str(s):
     #borderspecs=[
     #    ]
-    #uprint("Parsing area: %s"%(s,))
+    uprint("Parsing area: %s"%(s,))
     s=s.replace(u"–","-")
     s=s.replace(u"counter-clock","counterclock")
     s=s.replace(u"clock-wise","clockwise")
     itemstemp=s.strip().split("-")
     items=[]
     for item in itemstemp:
-        if item.strip()=="pisteeseen /  to the point": continue
+        if re.match(ur"-?pisteeseen\s*/\s*to the point",item.strip()): continue
+        #item=item.replace(u"-pisteeseen /  to the point","-")
         items.append(item)
     out=[]
     for idx,pstr2 in enumerate(items):
@@ -476,8 +511,12 @@ def parse_elev(elev):
     elev=elev.strip()
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
+    if elev.lower().endswith("ft msl"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft gnd"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
     if elev.lower()=="unl": return 99999
-    #if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using a elevation map!!
+    if elev.lower()=="sfc": return 0 #TODO: Lookup using elevation map
+    if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using a elevation map!!
     if not elev.isdigit():
         raise NotAnAltitude(repr(elev))    
     return int(elev)

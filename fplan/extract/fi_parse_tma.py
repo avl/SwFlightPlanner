@@ -159,7 +159,7 @@ def parse_page(parser,pagenr,kind="TMA"):
                         fname=line.strip()
                         break
                 if not fname: raise Exception("Found no frequency name for freq: "+freq)
-                freqs.append((fname,freq))
+                freqs.append((fname,float(freq)))
             if len(freqs): break
         
         (ceiling,ceilingy),(floor,floory)=verts
@@ -173,6 +173,7 @@ def parse_page(parser,pagenr,kind="TMA"):
             floor=floor,
             ceiling=ceiling,
             freqs=freqs,
+            type="TMA",
             name=name,
             points=area))
     
@@ -184,7 +185,7 @@ def pretty(pa):
     uprint("Floor: %s, Ceiling: %s, freqs: %s"%(pa['floor'],pa['ceiling'],pa['freqs']))
     uprint("Points: %s"%(pa['points'],))
 
-def fi_parse_all_tma():
+def fi_parse_tma():
     def fixgote(raw):
         #Fix illogical compositions...
         if 0:
@@ -219,7 +220,7 @@ def fi_parse_r_areas():
 
     
 if __name__=='__main__':
-    fi_parse_all_tma()
+    fi_parse_tma()
     #parse_r_areas()
 
 

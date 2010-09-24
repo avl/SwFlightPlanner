@@ -127,8 +127,8 @@ class Page(object):
         return out
         
 class Parser(object):
-    def load_xml(self,path,loadhook=None):
-        raw=fetchdata.getxml(path)
+    def load_xml(self,path,loadhook=None,country="se"):
+        raw=fetchdata.getxml(path,country=country)
         
         if loadhook:
             raw=loadhook(raw)
@@ -193,7 +193,7 @@ class Parser(object):
                 font=item.font
                 )
     
-    def __init__(self,path,loadhook=None):
-        self.xml=self.load_xml(path,loadhook)
+    def __init__(self,path,loadhook=None,country="se"):
+        self.xml=self.load_xml(path,loadhook,country=country)
 
 

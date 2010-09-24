@@ -12,8 +12,8 @@ import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
 
-have_mapnik=True
-#have_mapnik=False
+#have_mapnik=True
+have_mapnik=False
 #If changing this - also change 'meta=x' in tilegen_planner .
 
 def use_existing_tiles():

@@ -22,6 +22,7 @@ import routes.util as h
 def format_freqs(freqitems):
     out=[]
     whodict=dict()
+    print "Formatting:",freqitems
     for idx,freqitem in enumerate(freqitems):
         who,freq=freqitem
         #who=who.replace("CONTROL","CTL")
@@ -63,8 +64,10 @@ class MaptileController(BaseController):
         lon=float(request.params.get('lon'))
         clickmerc=mapper.latlon2merc((lat,lon),zoomlevel)
         out=[]
+        spaces=get_airspaces(lat,lon)
+        print "Spaces:",spaces
         spaces="".join("<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
-                get_airspaces(lat,lon),key=sort_airspace_key))
+                spaces,key=sort_airspace_key))
         if spaces=="":
             spaces="Uncontrolled below FL095"
             

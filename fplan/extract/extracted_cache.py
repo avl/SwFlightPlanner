@@ -1,7 +1,10 @@
 from fplan.extract.parse_tma import parse_all_tma,parse_r_areas
-from fplan.extract.fi_parse_tma import fi_parse_all_tma
+from fplan.extract.fi_parse_tma import fi_parse_tma
 from fplan.extract.parse_obstacles import parse_obstacles
+from fplan.extract.fi_parse_obstacles import fi_parse_obstacles
+from fplan.extract.fi_parse_sigpoints import fi_parse_sigpoints
 from fplan.extract.extract_airfields import extract_airfields
+from fplan.extract.fi_extract_airfields import fi_parse_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
 from fplan.extract.parse_aip_sup import parse_all_sups
@@ -18,6 +21,7 @@ from threading import Lock
 version=2
 
 aipdata=[]
+debug=True
 loaded_aipdata_cachefiledate=None
 last_timestamp_check=datetime.utcnow()
 lock=Lock()
@@ -54,14 +58,29 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
         except:
             if not generate_if_missing:
                 raise Exception("You must supply generate_if_missing-parameter for aip-data parsing and generation to happen")
-            airspaces=parse_all_tma()
-            airspaces.extend(parse_r_areas())
-            airspaces.extend(parse_mountain_area())
-            airspaces.extend(fi_parse_tma())
-            airfields,points=extract_airfields()
-            sig_points=parse_sig_points()
-            for point in points:
-                sig_points.append(point)
+            airspaces=[]
+            airfields=[]
+            sig_points=[]
+            obstacles=[]
+            if 1: #finland
+                fi_airfields,fi_spaces=fi_parse_airfields()
+                airspaces.extend(fi_spaces)
+                airfields.extend(fi_airfields)
+                airspaces.extend(fi_parse_tma())
+                sig_points.extend(fi_parse_sigpoints())
+                obstacles.extend(fi_parse_obstacles())
+            if 0: #sweden
+                se_airfields,se_points=extract_airfields()
+                sig_points.extend(se_points)
+                airfields.extend(se_airfields)
+                sig_points.extend(parse_sig_points())
+                airspaces.extend(parse_all_tma())
+                airspaces.extend(parse_r_areas())
+                airspaces.extend(parse_mountain_area())
+                airspaces.extend(fi_parse_all_tma())
+                
+                obstacles.extend(parse_obstacles())
+                
             for ad in airfields:
                 if 'spaces' in ad:
                     for space in ad['spaces']:
@@ -77,7 +96,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             aipdata=dict(
                 downloaded=datetime.utcnow(),
                 airspaces=airspaces,
-                obstacles=parse_obstacles(),
+                obstacles=obstacles,
                 airfields=airfields,
                 sig_points=sig_points,
                 aip_sup_areas=parse_all_sups(),
@@ -122,12 +141,15 @@ def run_update_iteration():
         if single_force or ((d.hour>=0 and d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6))): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
             single_force=False
             last_update=datetime.utcnow()
-            fetchdata.caching_enabled=False
+            if not debug:
+                fetchdata.caching_enabled=False
             aipdata=[]
             get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
             time.sleep(2) #Just for debug, so that we have a chance to see that the aipdata is rewritten 
+            if debug:
+                sys.exit()
             print "Now re-rendering maps"
             update_unithread()
             print "Finished re-rendering maps"
@@ -147,6 +169,8 @@ if __name__=='__main__':
     from fplan.config.environment import load_environment
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
     load_environment(conf.global_conf, conf.local_conf)
+    if not ("debug" in sys.argv):
+        debug=False
     if len(sys.argv)>1 and sys.argv[1]:
         single_force=True
     while True:

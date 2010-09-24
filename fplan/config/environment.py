@@ -46,7 +46,7 @@ def load_environment(global_conf, app_conf):
     # any Pylons config options)
     
     #Default parsing
-    print "Default parse:"
-    ec.get_aipdata()
+    #print "Default parse:"
+    #ec.get_aipdata()
     
     
