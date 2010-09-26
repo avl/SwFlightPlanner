@@ -15,7 +15,7 @@ def fi_parse_airfield(icao=None):
     sigpoints=[]
     #https://ais.fi/ais/eaip/pdf/aerodromes/EF_AD_2_EFET_EN.pdf
     #https://ais.fi/ais/eaip/aipcharts/efet/EF_AD_2_EFET_VAC.pdf
-    vacp=parse.Parser("/ais/eaip/aipcharts/%s/EF_AD_2_%s_VAC.pdf"%(icao.lower(),icao),lambda x: x,country="fi")
+    #vacp=parse.Parser("/ais/eaip/aipcharts/%s/EF_AD_2_%s_VAC.pdf"%(icao.lower(),icao),lambda x: x,country="fi")
     p=parse.Parser("/ais/eaip/pdf/aerodromes/EF_AD_2_%s_EN.pdf"%(icao,),lambda x: x,country="fi")
 
 

@@ -64,13 +64,14 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             sig_points=[]
             obstacles=[]
             if 1: #finland
+                airspaces.extend(fi_parse_tma())
+                sig_points.extend(fi_parse_sigpoints())
+                obstacles.extend(fi_parse_obstacles())
+
                 fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
                 airspaces.extend(fi_spaces)
                 airspaces.extend(fi_parse_restrictions())
                 airfields.extend(fi_airfields)
-                airspaces.extend(fi_parse_tma())
-                sig_points.extend(fi_parse_sigpoints())
-                obstacles.extend(fi_parse_obstacles())
             if 1: #sweden
                 se_airfields,se_points=extract_airfields()
                 sig_points.extend(se_points)
@@ -142,8 +143,8 @@ def run_update_iteration():
         if single_force or ((d.hour>=0 and d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6))): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
             single_force=False
             last_update=datetime.utcnow()
-            if not debug:
-                fetchdata.caching_enabled=False
+            #if not debug: #non-caching is just annoying
+            #    fetchdata.caching_enabled=False
             aipdata=[]
             get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")

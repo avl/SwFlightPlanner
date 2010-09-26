@@ -202,7 +202,7 @@ def fi_parse_tma():
                             """<text top="296" left="5" width="138" height="7" font="1">     Part of GÖTEBORG TMA</text>
                                <text top="296" left="168" width="58" height="7" font="1">584558N 0122951E """)
         return raw
-    p=parse.Parser(r"/fi/EF_ENR_2_1_EN.pdf",fixgote)
+    p=parse.Parser(r"/ais/eaip/pdf/enr/EF_ENR_2_1_EN.pdf",fixgote,country='fi')
 	
     res=[]    
     for pagenr in xrange(4,p.get_num_pages()): 
@@ -214,7 +214,7 @@ def fi_parse_tma():
     return res
 
 def fi_parse_r_areas():
-    p=parse.Parser("/fi/EF_ENR_5_1_en.pdf",lambda x: x)
+    p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_5_1_en.pdf",lambda x: x,country='fi')
 	
     res=[]    
     for pagenr in xrange(2,p.get_num_pages()): 

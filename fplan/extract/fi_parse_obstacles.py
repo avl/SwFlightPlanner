@@ -7,7 +7,7 @@ from itertools import izip
 
 def fi_parse_obstacles():
     obsts=[]
-    p=parse.Parser("/fi/EF_ENR_5_4_EN.pdf",lambda x: x)
+    p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_5_4_EN.pdf",lambda x: x,country='fi')
     for pagenr in xrange(p.get_num_pages()):        
         page=p.parse_page_to_items(pagenr)
         item=min(page.get_by_regex(ur"(?:AIP SUOMI.*)|(?:ENR 5.4.*)"),key=lambda x:x.x1)
