@@ -343,15 +343,26 @@ class FlightplanController(BaseController):
                 return "#ffb0b0"
             return None    
             
+        dupecheck=dict()
+        for idx,items in byordsorted:
+            for item in items:
+                ident=(item['name'],item['pos'],item.get('elev',None))
+                dupecheck.setdefault(ident,[]).append(item)
+        bestdupe=dict()
+        for ident,dupes in dupecheck.items():
+            best=min(dupes,key=lambda x:x['dist'])
+            bestdupe[ident]=best
+            
         for idx,items in byordsorted:
             cur=[]
-            seen=set()
             for item in items:
                 along_nm=item['dist_from_a']
                 fromwhat=item['a'].waypoint                
                 ident=(item['name'],item['pos'],item.get('elev',None))
+                best=bestdupe[ident]
+                if not (best is item): continue
                 #if ident in seen: continue
-                seen.add(ident)
+                #seen.add(ident)
                 cur.append(dict(
                     along_nm=along_nm,
                     dir_from_a=item['dir_from_a'],
