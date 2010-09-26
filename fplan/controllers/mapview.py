@@ -17,6 +17,7 @@ from datetime import datetime
 log = logging.getLogger(__name__)
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.tripsharing import tripuser
+import fplan.lib.maptilereader as maptilereader
 
 class MapviewController(BaseController):      
 
@@ -435,6 +436,7 @@ class MapviewController(BaseController):
         c.zoomlevel=zoomlevel
         c.dynamic_id=''
         c.sharing=tripsharing.sharing_active()
+        c.mtime=maptilereader.get_mtime()
         if c.sharing:
             c.shared_by=tripuser()
         if session.get('showarea',''):

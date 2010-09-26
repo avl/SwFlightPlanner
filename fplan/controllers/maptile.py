@@ -132,7 +132,14 @@ class MaptileController(BaseController):
                 flygkartan=""
                 if 'flygkartan_id' in airp:
                     flygkartan="<br/><a href=\"javascript:navigate_to('http://www.flygkartan.se/0%s');\">Show in flygkartan.se</a>"%(airp['flygkartan_id'].strip(),)
-                airports.append(u"<li><b>%s</b> - %s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],flygkartan))
+                rwys=[]
+                if 'runways' in airp:
+                    for rwy in airp['runways']:
+                        for end in rwy['ends']:
+                            rwys.append(end['thr'])
+                if len(rwys):
+                    rwys=["<br/><b> Runways</b>: "]+rwys
+                airports.append(u"<li><b>%s</b> - %s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],flygkartan," ".join(rwys)))
             airports.append("</ul>")
         
         sigpoints=[]
@@ -171,7 +178,7 @@ class MaptileController(BaseController):
             variant="airspace"
         else:
             variant="plain"
-            
+        mtime=request.params.get('mtime',None)
         generate_on_the_fly=False
         #print "get: %d,%d,%d (showair:%s, neededit: %s)"%(mx,my,zoomlevel,airspaces,neededit)
         
@@ -180,7 +187,7 @@ class MaptileController(BaseController):
             tilemeta=dict(status="ok")
         else:
             #print "Getting %s,%s,%s,%d,%d"%(mx,my,zoomlevel,mx%256,my%256)
-            rawtile,tilemeta=maptilereader.gettile(variant,zoomlevel,mx,my)
+            rawtile,tilemeta=maptilereader.gettile(variant,zoomlevel,mx,my,mtime)
             if not neededit:
                 response.headers['Pragma'] = ''
                 response.headers['Content-Type'] = 'image/png'

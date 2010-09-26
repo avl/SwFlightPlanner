@@ -17,6 +17,7 @@ def fi_parse_sigpoints():
             name,lat,lon=re.match(ur"\s*([A-Z]{5})\s*(?:\(\s*FLYOVER\s*\))?\s*X?\s*(\d{6}N)\s*(\d{7}E)\s*.*",lines[0]).groups()
             points.append(dict(
                 name=name,
+                kind='sig. point',
                 pos=mapper.parse_coords(lat,lon)))                
             
     return points

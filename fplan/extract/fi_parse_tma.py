@@ -49,7 +49,7 @@ def filter_head_foot(xs):
         out.append(x)
     return out
 
-def parse_page(parser,pagenr,kind="TMA"):   
+def parse_page(parser,pagenr):   
     page=parser.parse_page_to_items(pagenr)
     items=page.items
     minx=min([item.x1 for item in items])
@@ -67,7 +67,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         assert m.strip()!=""
         #print "Heading %d: %s"%(item.y1,m)
         headings.append(('minor',item.text.strip(),m,item))
-    print headings
+    #print headings
     headings.sort(key=lambda x:x[3].y1)
     def findheadingfor(y,meta=None):
         minor=None
@@ -90,9 +90,9 @@ def parse_page(parser,pagenr,kind="TMA"):
     out=[]
     while True:
         found=False
-        print "Looking for coords, y= %d"%(cury,)
+        #print "Looking for coords, y= %d"%(cury,)
         for titem in coordstrs:
-            print "Considering coordstr: ",titem.y1
+            #print "Considering coordstr: ",titem.y1
             if titem.y1<=cury: continue
             if titem.x1<40: 
                 item=titem
@@ -122,7 +122,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         verts=[]
         
         for idx in xrange(vertidx,len(lines)):
-            print "Looking for alt:",lines[idx],"y2:",lines[idx].y2
+            #print "Looking for alt:",lines[idx],"y2:",lines[idx].y2
             m=re.search(ur"(FL\s+\d+)",lines[idx].strip())
             if m:
                 verts.append((m.groups()[0],lines[idx].y1))
@@ -134,9 +134,9 @@ def parse_page(parser,pagenr,kind="TMA"):
         freqs=[]
         for attempt in xrange(2):
             for freqcand in page.get_by_regex(ur".*\d{3}\.\d{3}.*"):
-                print "headmeta:",headmeta
-                print "attempt:",attempt
-                print "freqy1:",freqcand.y1
+                #print "headmeta:",headmeta
+                #print "attempt:",attempt
+                #print "freqy1:",freqcand.y1
                 if freqcand.x1<30: continue
                 if attempt==0:
                     if freqcand.y1<y1: continue
@@ -155,7 +155,7 @@ def parse_page(parser,pagenr,kind="TMA"):
                 fname=None
                 for line in reversed(lines):
                     if re.match(ur"[A-ZÅÄÖ ]{3,}",line):                        
-                        print "freqname Matched:",line
+                        #print "freqname Matched:",line
                         fname=line.strip()
                         break
                 if not fname: raise Exception("Found no frequency name for freq: "+freq)
@@ -165,15 +165,21 @@ def parse_page(parser,pagenr,kind="TMA"):
         (ceiling,ceilingy),(floor,floory)=verts
         assert ceilingy<floory
         assert floory-ceilingy<5.0
-        #print "Areaspec: <%s>"%(areaspec,)
+        uprint("Analyzing area for %s"%(name,))
         assert "".join(areaspec).strip()!=""
         area=mapper.parse_coord_str("".join(areaspec))
+        uprint("Done analyzing %s"%(name,))
         #print area
+        if name.count("CTA") and name.count("TMA")==0:
+            type_="CTA"
+        else:
+            type_="TMA"
+        
         out.append(dict(
             floor=floor,
             ceiling=ceiling,
             freqs=freqs,
-            type="TMA",
+            type=type_,
             name=name,
             points=area))
     
@@ -200,7 +206,7 @@ def fi_parse_tma():
 	
     res=[]    
     for pagenr in xrange(4,p.get_num_pages()): 
-        parsed=parse_page(p,pagenr,"TMA")#pagenr)
+        parsed=parse_page(p,pagenr)#pagenr)
         res.extend(parsed)
         #break
     for pa in res:

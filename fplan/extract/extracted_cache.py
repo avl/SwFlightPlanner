@@ -2,6 +2,7 @@ from fplan.extract.parse_tma import parse_all_tma,parse_r_areas
 from fplan.extract.fi_parse_tma import fi_parse_tma
 from fplan.extract.parse_obstacles import parse_obstacles
 from fplan.extract.fi_parse_obstacles import fi_parse_obstacles
+from fplan.extract.fi_parse_restrict import fi_parse_restrictions
 from fplan.extract.fi_parse_sigpoints import fi_parse_sigpoints
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.fi_extract_airfields import fi_parse_airfields
@@ -63,13 +64,14 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             sig_points=[]
             obstacles=[]
             if 1: #finland
-                fi_airfields,fi_spaces=fi_parse_airfields()
+                fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
                 airspaces.extend(fi_spaces)
+                airspaces.extend(fi_parse_restrictions())
                 airfields.extend(fi_airfields)
                 airspaces.extend(fi_parse_tma())
                 sig_points.extend(fi_parse_sigpoints())
                 obstacles.extend(fi_parse_obstacles())
-            if 0: #sweden
+            if 1: #sweden
                 se_airfields,se_points=extract_airfields()
                 sig_points.extend(se_points)
                 airfields.extend(se_airfields)
@@ -77,7 +79,6 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(parse_all_tma())
                 airspaces.extend(parse_r_areas())
                 airspaces.extend(parse_mountain_area())
-                airspaces.extend(fi_parse_all_tma())
                 
                 obstacles.extend(parse_obstacles())
                 

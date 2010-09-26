@@ -31,40 +31,50 @@ def merc_limits(zoomlevel,conservative=False):
         limity2+=tilesize
         return limitx1,limity1,limitx2,limity2
 
-def get_tiles_timestamp():
-    if blobcachestamp==None:
-        gettile("plain",0,0,0) #Just to force initialization of blobcaches
-        if blobcachestamp==None:
-            return datetime(1970,1,1)
-    return blobcachestamp
     
 blobcache=None
 blobcachelock=Lock()
-blobcachestamp=None
-last_reopencheck=datetime.utcnow()
+
+last_mtime_check=datetime(1970,1,1)
 last_mtime=0
-def gettile(variant,zoomlevel,mx,my):
+loaded_mtime=0
+
+def get_mtime():
+    global last_mtime_check
+    global last_mtime
+    if datetime.utcnow()-last_mtime_check>timedelta(0,60):
+        path="/home/anders/saker/avl_fplan_world/tiles/airspace/level5" #used to detect if map has been updated
+        mtime=os.stat(path)[stat.ST_MTIME]
+        last_mtime=mtime
+        last_mtime_check=datetime.utcnow()
+    return last_mtime
+        
+def gettile(variant,zoomlevel,mx,my,mtime=None):
+    """
+    Some explanation is in order for the mtime parameter:
+    If it is supplied, the blobfiles are reloaded if mtime
+    given does not match the mtime of the blobs loaded.
+    (mtime = MTIME attribute of level5-file in airspace set).
+    If mtime is not set, the blobs are never reloaded.
+    """
     #print "Accessing blobs %s for zoomlevel %s"%(variant,zoomlevel)
     global blobcache
     global last_reopencheck
-    global last_mtime
-    global blobcachestamp
+    global loaded_mtime
+    
     reopen_blobs=False
-    if datetime.utcnow()-last_reopencheck>timedelta(0,60):
-        path="/home/anders/saker/avl_fplan_world/tiles/airspace/level5" #used to detect if map has been updated
-        mtime=os.stat(path)[stat.ST_MTIME]
-        #print "mtime, level 5: ",mtime
-        if mtime!=last_mtime:
-            reopen_blobs=True
-            last_mtime=mtime
-        last_reopencheck=datetime.utcnow()    
+    mtime=get_mtime()
 
+    
+    #print "mtime, level 5: ",mtime
     blobcachelock.acquire()
+    #print "Gettile: mtime: %d, last_mtime: %d, loaded mtime: %d"%(mtime,last_mtime,loaded_mtime)
     try:
+        if mtime!=None and mtime!=loaded_mtime:
+            reopen_blobs=True    
         if blobcache==None or reopen_blobs:
             #print "Reopen blobs:",reopen_blobs
             blobcache=dict()
-            stamps=[0]
             loadvariants=["airspace","plain"]
             for loadvariant in loadvariants:
                 for loadzoomlevel in xrange(14):
@@ -73,10 +83,9 @@ def gettile(variant,zoomlevel,mx,my):
                             loadzoomlevel)
                     #print "Reading: ",path
                     if os.path.exists(path):
-                        stamps.append(os.stat(path)[stat.ST_MTIME])
                         #print "Reopening "+path
                         blobcache[(loadvariant,loadzoomlevel)]=BlobFile(path)
-            blobcachestamp=datetime.utcfromtimestamp(max(stamps))
+        loaded_mtime=mtime
     finally:
         blobcachelock.release()        
     

@@ -98,46 +98,42 @@ def approx_dist_vec(vec_a,vec_b,zoomlevel):
     
     
 class MapperBadFormat(Exception):pass    
+
+compre=re.compile(ur"(\d{2,7})(\.\d+)?([NSEWnsew])")
+def parse_coord_component(comp):
+    m=compre.match(comp)
+    if not m:
+        raise MapperBadFormat(u"Bad format: %s"%(comp,))
+    w,dec,what=m.groups()
+    decf=0.0
+    what=what.upper()
+    if len(w) in [2,3]:
+        #Degree only
+        wf=float(w)
+        if dec:
+            decf+=float("0"+dec)
+    elif len(w) in [4,5]:
+        #Degrees and minutes
+        deg,minutes=w[:-2:],w[-2:]
+        if dec:
+            decf+=float("0"+dec)/60.0
+        wf=float(deg)+float(minutes)/60.0        
+    elif len(w) in [6,7]:
+        #Degrees and minutes and seconds
+        deg,minutes,seconds=w[:-4],w[-4:-2],w[-2:]
+        if dec:
+            decf+=float("0"+dec)/3600.0
+        wf=float(deg)+float(minutes)/60.0+float(seconds)/3600.0
+    else:
+        raise MapperBadFormat(u"Bad format(2): %s"%(comp,))       
+    return wf+decf,what
+
+
 def parse_lfv_format(lat,lon):    
-    """Throws MapperBadFormat if format can not be parsed"""
-    if not lat[0:4].isdigit():
-        raise MapperBadFormat("%s,%s"%(lat,lon))    
-    latdeg=float(lat[0:2])
-    latmin=float(lat[2:4])
-    if len(lat)>5:
-        if lat[4]=='.':
-            latmin+=float(lat[4:-1])
-            latsec=0
-        else:
-            if not lat[4:6].isdigit():
-                raise MapperBadFormat("%s,%s"%(lat,lon))    
-            latsec=float(lat[4:-1])
-    else:
-        latsec=0
-    if not lon[0:5].isdigit():
-        raise MapperBadFormat("%s,%s"%(lat,lon))    
-    londeg=float(lon[0:3])
-    lonmin=float(lon[3:5])
-    if len(lon)>6:
-        if lon[5]=='.':
-            lonmin+=float(lon[5:-1])
-            lonsec=0
-        else:
-            if not lon[5:7].isdigit():
-                raise MapperBadFormat("%s,%s"%(lat,lon))    
-            lonsec=float(lon[5:-1])
-    else:
-        lonsec=0
-    latdec=latdeg+latmin/60.0+latsec/(60.0*60.0)
-    londec=londeg+lonmin/60.0+lonsec/(60.0*60.0)
-    if lat[-1]=='S':
-        latdec=-latdec
-    elif lat[-1]!='N':
-        raise MapperBadFormat("%s,%s"%(lat,lon))    
-    if lon[-1]=='W':
-        londec=-londec
-    elif lon[-1]!='E':
-        raise MapperBadFormat("%s,%s"%(lat,lon))    
+    latdec,what=parse_coord_component(lat)
+    if not what in 'NS': raise MapperBadFormat("Bad format(3): %s,%s"%(lat,lon))
+    londec,what=parse_coord_component(lon)
+    if not what in 'EW': raise MapperBadFormat("Bad format(4): %s,%s"%(lat,lon))
     return '%.10f,%.10f'%(latdec,londec)
 
 parse_coords=parse_lfv_format
@@ -286,7 +282,7 @@ def seg_angles(pa1,pa2,step,direction):
         if a1<a2:
             a2-=2*math.pi
         dist=a1-a2
-    print "Dist:",dist
+    #uprint("Dist:",dist)
     nominal_cnt=math.ceil(dist/step)
     if nominal_cnt<=1:
         yield pa1
@@ -355,11 +351,16 @@ def create_seg_sequence(prevpos,center,nextpos,dist_nm,direction):
     for o in out:
         out2.append(to_str(merc2latlon(o,zoom)))
     return out2
-def uprint(s):
-    if type(s)==unicode:
-        print s.encode('utf8')
-    else:
-        print s
+def uprint(*ss):
+    out=[]
+    for s in ss:
+        if type(s)==unicode:
+            out.append(s.encode('utf8'))
+        elif type(s)==str:
+            out.append(s)
+        else:
+            out.append(repr(s))
+    print " ".join(out)
 def parse_dist(s):
     #uprint("In:%s"%s)
     val,nautical,meters=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m))\b\s*",s).groups()
@@ -371,7 +372,7 @@ def parse_dist(s):
 
 
 def parse_area_segment(seg,prev,next):
-    print "Parsing <%s>"%(seg,)
+    #uprint("Parsing <%s>"%(seg,))
     for borderspec in [
         "Swedish/Danish border northward to (.*)",
         "Swedish/Norwegian border northward to (.*)"
@@ -383,26 +384,27 @@ def parse_area_segment(seg,prev,next):
                 return [parsecoord(x) for x in "671627N 0161903E - 673139N 0161704E - 673201N 0162439E - 673900N 0163343E".split(" - ")]            
             okprev=set(["560158N 0123925E","682121N 0195516E"])
             if not prev.strip() in okprev:
-                print prev
+                uprint(prev)
                 raise Exception("Border spec not supported fully yet: %s"%(borderspec,))            
             lat,lon=border.groups()[0].strip().split(" ")
             return [parsecoord(border.groups()[0])]
     arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
     if arc:
         centerstr,radius=arc.groups()
+        prevposraw=None
         nextposraw=None
         direction="cw"
     if not arc:
-        arc=re.match(ur".*? (counterclockwise|clockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*? NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
+        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*? NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
         #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)
-        if arc:
-            print "midArc:",arc,arc.groups()
-        else:
-            print "Noarc"
+        #if arc:
+        #    print "midArc:",arc,arc.groups()
+        #else:
+        #    print "Noarc"
         if arc:
             #print "match: <%s>"%(arc.group(),)
             #directionraw,circarc,
-            directionraw,radius,centerstr,nextposraw=arc.groups()
+            prevposraw,directionraw,radius,centerstr,nextposraw=arc.groups()
             #if nextposraw:
             #    nextposraw=re.match(ur"to the point\s*(\d+N\s*\d+E).*",nextposraw)
                 
@@ -414,27 +416,32 @@ def parse_area_segment(seg,prev,next):
             else:
                 raise Exception("Unknown direction")
             
-    print "arc:",arc
     if arc:
         #uprint("Parsing coord: %s"%centerstr)
+        #uprint("Direction: %s"%(direction,))
         center=parsecoord(centerstr)
         dist_nm=parse_dist(radius)
-        print "prev: <%s>, next: <%s>"%(prev,next)
-        prevpos=parse_coords(*re.match(ur".*?(\d+N)\s*(\d+E)\s*",prev).groups())
-
-        if nextposraw==None:
-            print "Parsing next: ",next
-            nextpos=parse_coords(*re.match(ur"\s*(\d+N)\s*(\d+E).*",next).groups())
+        #uprint("prev: <%s>, next: <%s>"%(prev,next))
+        if prevposraw==None:
+            prevposlatlon=re.match(ur".*?(\d+N)\s*(\d+E)\s*",prev).groups()        
+            prevpos=parse_coords(*prevposlatlon)
+            prevposraw=prev
         else:
-            print "Using nextposraw:",nextposraw
+            prevposlatlon=prevposraw.split(" ")
+            prevpos=parsecoord(prevposraw)
+        if nextposraw==None:
+            nextposlatlon=re.match(ur"\s*(\d+N)\s*(\d+E).*",next).groups()
+            nextpos=parse_coords(*nextposlatlon)
+            nextposraw=next
+        else:
+            nextposlatlon=nextposraw.split(" ")
             nextpos=parsecoord(nextposraw)
-        uprint("Arc center: %s"%(center,))
-        uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
+        #uprint(u"Emitting arc from <%s> to <%s> with center <%s> and radius <%s> direction <%s>"%(
+        #    prevposlatlon,nextposlatlon,centerstr,radius,direction))
+        #uprint("Arc center: %s"%(center,))
+        #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
         segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
-        print "Nextpos:",nextpos
-        print "Returned:",segseq
         return segseq
-    uprint("Matching against: %s"%(seg,))
     circ=re.match( ur".*A circle,?\s*(?:with)? radius ([\d\.]+\s*(?:NM|m))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on\s*(\d+N)\s*(\d+E).*",seg)
     if circ:
         radius,lat,lon=circ.groups()
@@ -452,14 +459,13 @@ def parse_area_segment(seg,prev,next):
         c=[]
         for i in xrange(len(segs)/2):
             p=" ".join(segs[2*i:2*i+2])
-            print "P:",p
+            #print "P:",p
             c.append(parsecoord(p))
         #c=parsecoord(seg)
-        print "Parsed <%s> as regualr coord: <%s>"%(seg,c)
         return c
     except MapperBadFormat:
-        print "Couldn't parse <%s> as a plain coord"%(seg,)
-        raise
+        uprint("Couldn't parse <%s> as a plain coord"%(seg,))
+        #raise
         pass #continue processing
 
     uprint("Unparsed area segment: %s"%(seg,))
@@ -468,7 +474,9 @@ def parse_area_segment(seg,prev,next):
 def parse_coord_str(s):
     #borderspecs=[
     #    ]
-    uprint("Parsing area: %s"%(s,))
+    #uprint("Pre?")
+    #uprint("Parsing area: %s"%(s,))
+    #uprint("Twice?")
     s=s.replace(u"–","-")
     s=s.replace(u"counter-clock","counterclock")
     s=s.replace(u"clock-wise","clockwise")
@@ -517,6 +525,7 @@ def parse_elev(elev):
     if elev.lower()=="unl": return 99999
     if elev.lower()=="sfc": return 0 #TODO: Lookup using elevation map
     if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using a elevation map!!
+    elev=elev.replace(" ","")
     if not elev.isdigit():
         raise NotAnAltitude(repr(elev))    
     return int(elev)

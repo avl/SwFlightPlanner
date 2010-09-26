@@ -18,7 +18,10 @@ def fi_parse_restrictions():
                 y2=100
             else:
                 y2=next.y1-1.75
-            space['name']=cur.text.strip()
+            name=cur.text.strip()
+            space['name']=name
+            if name.startswith("EF R28"):
+                continue #This airspace is special, and not supported now (it's the no-mans-land-zone on border to russia!)
         
             areaspecprim=page.get_lines(page.get_partially_in_rect(cur.x1+0.01,cur.y2+0.05,cur.x1+50,y2))
             areaspec=[]
@@ -36,6 +39,8 @@ def fi_parse_restrictions():
             ceiling,floor=vertspec
             space['ceiling']=ceiling
             space['floor']=floor
+            space['type']='R'
+            space['freqs']=[]
             spaces.append(space)
             
 
