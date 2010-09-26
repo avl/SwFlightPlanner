@@ -1,0 +1,14 @@
+Goals:
+ * Playfield at least 2000kmx2000km (Preferably all of earth from 80S to 80N).
+ * At least 150km visibility forward (approx how far you can see from FL095)
+ * Coverage of all of sweden
+ * Support at least a 1000NM trip, with 10NM terrain either side of track.
+ 
+Playfield datastructure:
+ - 2D array, per zoomlevel, with overseer.
+ - Overseer maintains neighborstatus
+ 
+New step:
+ - sweep across playfield, find place with zoomlevel N. From elevation store, fetch ElevTile zoomlevel N encompasing place.
+   Apply elevations from tile, to all other places which can use it. 
+   

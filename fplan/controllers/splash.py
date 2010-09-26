@@ -9,7 +9,7 @@ import routes.util as h
 from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
 import fplan.lib.tripsharing as tripsharing
-from fplan.lib.maptilereader import get_tiles_timestamp
+from fplan.lib.maptilereader import get_mtime
 import re
 
 log = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class SplashController(BaseController):
         except Exception,cause:
             c.aipupdate=None
         try:
-            c.mapupdate=get_tiles_timestamp()
+            c.mapupdate=datetime.fromtimestamp(get_mtime())
         except:
             c.mapupdate=datetime(1970,1,1)
         

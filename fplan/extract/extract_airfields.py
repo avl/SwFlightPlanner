@@ -11,8 +11,10 @@ from fplan.lib.mapper import parse_coords,uprint
 import csv
 from fplan.lib.get_terrain_elev import get_terrain_elev
 import math
+from itertools import izip
+import fplan.extract.rwy_constructor as rwy_constructor
     
-def extract_airfields():
+def extract_airfields(filtericao=None):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
     p=Parser("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
@@ -43,6 +45,7 @@ def extract_airfields():
                 ad=dict(name=unicode(items[0].text).strip(),
                         icao=unicode(items[1].text).strip()                    
                         )
+                if filtericao and ad['icao']!=filtericao: continue
                 if len(items)>=3:
                     #print "Coord?:",items[2].text
                     m=re.match(r".*(\d{6}N)\s*(\d{7}E).*",items[2].text)
@@ -59,13 +62,10 @@ def extract_airfields():
     big_ad=set()        
     for ad in ads:
         if not ad.has_key('pos'):
-            #if ad['icao']!='ESSB':
-            #    continue
             big_ad.add(ad['icao'])
 
     for ad in ads:        
         icao=ad['icao']
-        #if icao!='ESOK': continue
         if icao in big_ad:            
             if icao in ['ESIB','ESNY','ESCM','ESPE']:
                 continue
@@ -73,7 +73,6 @@ def extract_airfields():
             
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
-                icao=ad['icao']
                 print "Parsing ",icao
                 
                 """
@@ -189,8 +188,27 @@ def extract_airfields():
             ad['elev']=int(elev[0])
             freqs=[]
             found=False
-            for pagenr in xrange(0,p.get_num_pages()):
+            thrs=[]
+            for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
+                for item in page.get_by_regex("\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*"):
+                    lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
+                    for line,nextline in izip(lines,lines[1:]+[None]):
+                        if re.match(ur"AD\s+2.13",line): break
+                        m=re.match(ur".*(\d{6}\.\d+N).*",line)
+                        if not m:continue
+                        m2=re.match(ur".*(\d{6,7}\.\d+E).*",nextline)                            
+                        if not m2:continue
+                        lat,=m.groups()
+                        lon,=m2.groups()
+                        rwytxts=page.get_lines(page.get_partially_in_rect(0,line.y1+0.05,12,nextline.y2-0.05))
+                        rwytxt,=rwytxts
+                        uprint("rwytext:",rwytxt)
+                        rwy,=re.match(ur"\s*(\d{2}[LRCM]?)\s*",rwytxt).groups()
+                        thrs.append(dict(pos=mapper.parse_coords(lat,lon),thr=rwy))
+            
+            for pagenr in xrange(0,p.get_num_pages()):
+                page=p.parse_page_to_items(pagenr)                                              
                 
                 matches=page.get_by_regex(r".*ATS\s+COMMUNICATION\s+FACILITIES.*")
                 print "Matches of ATS COMMUNICATION FACILITIES on page %d: %s"%(pagenr,matches)
@@ -217,6 +235,8 @@ def extract_airfields():
                         else:
                             curname=who
                             freqs.append((who,freq))
+
+
                                 
                 matches=page.get_by_regex(r".*ATS\s*AIRSPACE.*")
                 print "Matches of ATS_AIRSPACE on page %d: %s"%(pagenr,matches)
@@ -348,23 +368,21 @@ def extract_airfields():
                         
                         spaces.append(space)
                         print space
-                        #if ad['icao']=="ESKN":
-                        #    sys.exit(1)
-                        #sys.exit(1)
                     ad['spaces']=spaces
                     found=True
                 if found:
                     break
-            assert found 
-                            
+            assert found                            
+            ad['runways']=rwy_constructor.get_rwys(thrs)
                             
                             
             #Now find any ATS-airspace
 
     #sys.exit(1)
-            
-    for extra in extra_airfields.extra_airfields:
-        ads.append(extra)
+
+    if filtericao==None:            
+        for extra in extra_airfields.extra_airfields:
+            ads.append(extra)
     print
     print
     for k,v in sorted(points.items()):
@@ -372,32 +390,33 @@ def extract_airfields():
         
     print "Num points:",len(points)
     
-    origads=list(ads)
-    for flygkartan_id,name,lat,lon,dummy in csv.reader(open("fplan/extract/flygkartan.csv"),delimiter=";"):
-        found=None
-        lat=float(lat)
-        lon=float(lon)
-        if type(name)==str:
-            name=unicode(name,'utf8')
-        mercf=mapper.latlon2merc((lat,lon),13)
-        for a in origads:
-            merca=mapper.latlon2merc(mapper.from_str(a['pos']),13)
-            dist=math.sqrt((merca[0]-mercf[0])**2+(merca[1]-mercf[1])**2)
-            if dist<120:
-                found=a
-                break
-        if found:
-            found['flygkartan_id']=flygkartan_id
-        else:
-            ads.append(
-                dict(
-                    icao='ZZZZ',
-                    name=name,
-                    pos=mapper.to_str((lat,lon)),
-                    elev=int(get_terrain_elev((lat,lon))),
-                    flygkartan_id=flygkartan_id
-                ))
-                
+    if filtericao==None:
+        origads=list(ads)    
+        for flygkartan_id,name,lat,lon,dummy in csv.reader(open("fplan/extract/flygkartan.csv"),delimiter=";"):
+            found=None
+            lat=float(lat)
+            lon=float(lon)
+            if type(name)==str:
+                name=unicode(name,'utf8')
+            mercf=mapper.latlon2merc((lat,lon),13)
+            for a in origads:
+                merca=mapper.latlon2merc(mapper.from_str(a['pos']),13)
+                dist=math.sqrt((merca[0]-mercf[0])**2+(merca[1]-mercf[1])**2)
+                if dist<120:
+                    found=a
+                    break
+            if found:
+                found['flygkartan_id']=flygkartan_id
+            else:
+                ads.append(
+                    dict(
+                        icao='ZZZZ',
+                        name=name,
+                        pos=mapper.to_str((lat,lon)),
+                        elev=int(get_terrain_elev((lat,lon))),
+                        flygkartan_id=flygkartan_id
+                    ))
+                    
     for ad in ads:     
         if ad['name'].count(u"Långtora"):            
             ad['pos']=mapper.to_str(mapper.from_aviation_format("5944.83N01708.20E"))
@@ -416,6 +435,9 @@ def extract_airfields():
     
             
 if __name__=='__main__':
-    extract_airfields()
+    icao=None
+    if len(sys.argv)==2:
+        icao=sys.argv[1]
+    extract_airfields(icao)
     
     

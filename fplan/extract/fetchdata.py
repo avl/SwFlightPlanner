@@ -5,6 +5,8 @@ import socket
 host=socket.gethostname()
 from urllib2 import urlopen
 
+tmppath="/home/anders/saker/avl_fplan_world/aip"
+
 caching_enabled=True #True for debug, set to false by background updater
 
 def get_filedate(path):
@@ -25,24 +27,30 @@ def changeext(path,from_,to_):
 
 #def get_date(path):
 #    return get_filedate('/home/anders/lfv/www.lfv.se'+path)
-def getrawdata(relpath):
+def getrawdata(relpath,country="se"):
     fixed=relpath.replace(" ","%20")
     print relpath
     assert(relpath.startswith("/"))
     #return open('/home/anders/lfv/www.lfv.se'+relpath).read()
-    durl="http://www.lfv.se"+fixed
+    if country=="se":
+        durl="http://www.lfv.se"+fixed
+    elif country=="fi":
+        durl="http://ais.fi"+fixed
+    else:
+        raise Exception("Unknown country:"+country)
     print "Downloading url: "+durl
     data=urlopen(durl).read()
     print "Got %d bytes"%(len(data),)
     return data
     
-def getxml(relpath):
+def getxml(relpath,country="se"):
     print "getxml:"+relpath
     assert relpath.startswith("/")
-    
+    if not os.path.exists(tmppath):
+        os.makedirs(tmppath)
     nowdate=datetime.now()
-    cachenamepdf="/tmp/lfv/"+stripname(relpath)
-    cachenamexml=changeext("/tmp/lfv/"+stripname(relpath),'.pdf',".xml")
+    cachenamepdf=tmppath+"/"+stripname(relpath)
+    cachenamexml=changeext(tmppath+"/"+stripname(relpath),'.pdf',".xml")
     print "cachepath:"+cachenamexml
     if caching_enabled and os.path.exists(cachenamexml):
         cacheddate=get_filedate(cachenamexml)
@@ -51,13 +59,13 @@ def getxml(relpath):
         print "cache-age:",age
         maxcacheage=7200
         if host=='macbook':
-            maxcacheage=7*24*3600
+            maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
             print "Returning cached %s"%(relpath,)
             return open(cachenamexml).read()
         print "Cache too old"
     try:
-        pdfdata=getrawdata(relpath)
+        pdfdata=getrawdata(relpath,country=country)
     except Exception,cause:
         if host=="macbook":
             print "Failed to fetch  ",relpath,cause
@@ -67,8 +75,8 @@ def getxml(relpath):
                 pdfdata=open("/home/anders/lfv/www.lfv.se"+relpath).read()
         else:
             raise
-    if not os.path.exists("/tmp/lfv"):
-        os.makedirs("/tmp/lfv")
+    if not os.path.exists(tmppath):
+        os.makedirs(tmppath)
     open(cachenamepdf,"w").write(pdfdata)
     if os.system("pdftohtml -xml -nodrm "+cachenamepdf)!=0:
         raise Exception("pdftohtml failed!")

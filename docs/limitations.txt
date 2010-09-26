@@ -1,0 +1,6 @@
+* Airspaces which "follow along a border" are not correct. For example:
+ * Over the no-mans land between Russia and Finland there is an R-area called R28. This is missing entirely.
+ * Some swedish R-areas on the border to Finland or Norway are supposed to follow the nation border. The boundary of these R-areas is inexact in the program.
+ * Some TMAs in southern sweden are supposed to follow the swedish-danish border. The boundary of these areas is inexact.
+ * Some Danish TMAs are supposed to extend to swedish territory. These are missing entirely.
+

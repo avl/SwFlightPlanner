@@ -50,4 +50,6 @@
 48: Visa TWR och ATIS-frekv i driftfärdplan
 49: WONTFIX: Flygfältsdata
 50: Färga tracken efter ground warnings + olika färg beroende på luftrum.
+51: Vissa flygplatser har samma runway upprepad flera gånger.
+
 

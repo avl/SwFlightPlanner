@@ -27,6 +27,19 @@ def uprint(s):
     else:
         print s
 
+class ItemStr(unicode):
+    def expandbb(self,item):
+        if not hasattr(self,'x1'):
+            self.x1=item.x1
+            self.y1=item.y1
+            self.x2=item.x2
+            self.y2=item.y2
+        else:
+            self.x1=min(item.x1,self.x1)
+            self.y1=min(item.y1,self.y1)
+            self.x2=max(item.x2,self.x2)
+            self.y2=max(item.y2,self.y2)
+
 class Page(object):
     def __init__(self,items):
         self.items=items
@@ -78,7 +91,7 @@ class Page(object):
         if ysort:
             out.sort(key=lambda x:x.y1)        
         return out
-    def get_lines(self,items,fudge=0.25):
+    def get_lines(self,items,fudge=0.25,meta=None):
         si=sorted(items,key=lambda x:x.x1)
         si=sorted(si,key=lambda x:x.y1)
         last=None
@@ -86,25 +99,36 @@ class Page(object):
         linesize=None
         for item in si:
             if last==None:
-                out.append(item.text.strip())
+                out.append(ItemStr(item.text.strip()))
+                out[-1].expandbb(item)
                 last=item
                 continue
             new_linesize=abs(last.y1-item.y1)
             if new_linesize<fudge:
-                out[-1]=(out[-1]+" "+item.text.strip()).strip()
+                old=out[-1]
+                out[-1]=ItemStr(out[-1]+" "+item.text.strip())
+                out[-1].expandbb(old)
+                out[-1].expandbb(item)
             else:
                 if linesize==None:
                     linesize=new_linesize
                 else:
                     if new_linesize>1.75*linesize:
-                        out.append("")              
-                out.append(item.text.strip())
+                        assert len(out)>0
+                        out.append(ItemStr(""))
+                        out[-1].x1=min(out[-2].x1,item.x1)
+                        out[-1].x2=max(out[-2].x2,item.x2)
+                        out[-1].y1=out[-2].y2
+                        out[-1].y2=item.y1
+                        
+                out.append(ItemStr(item.text.strip()))
+                out[-1].expandbb(item)
             last=item
         return out
         
 class Parser(object):
-    def load_xml(self,path,loadhook=None):
-        raw=fetchdata.getxml(path)
+    def load_xml(self,path,loadhook=None,country="se"):
+        raw=fetchdata.getxml(path,country=country)
         
         if loadhook:
             raw=loadhook(raw)
@@ -169,7 +193,7 @@ class Parser(object):
                 font=item.font
                 )
     
-    def __init__(self,path,loadhook=None):
-        self.xml=self.load_xml(path,loadhook)
+    def __init__(self,path,loadhook=None,country="se"):
+        self.xml=self.load_xml(path,loadhook,country=country)
 
 

@@ -53,24 +53,24 @@ class FlightplanController(BaseController):
             return ""
         points.sort(key=lambda x:x['name'])
         ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in points[:15]])
-        print "returning json:",ret
+        #print "returning json:",ret
         return ret
     def save(self):
-        print "Saving tripname:",request.params['tripname']
+        #print "Saving tripname:",request.params['tripname']
         trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==request.params['tripname'])).one()
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordinal).all()
             
-        print "Save:",request.params
+        #print "Save:",request.params
         if 'startfuel' in request.params:
             try: 
                 trip.startfuel=float(request.params['startfuel'])
             except:
                 pass
                             
-        print request.params
+        #print request.params
         for idx,way in enumerate(waypoints):
             altname='wpalt%d'%idx
             way.altitude=request.params.get(altname,'')
@@ -79,7 +79,7 @@ class FlightplanController(BaseController):
             except:
                 way.altitude=''
         for idx,way in enumerate(waypoints[:-1]):
-            print "Found waypoint #%d"%(idx,)    
+            #print "Found waypoint #%d"%(idx,)    
             route=meta.Session.query(Route).filter(sa.and_(
                 Route.user==tripuser(),
                 Route.trip==request.params['tripname'],
@@ -315,6 +315,7 @@ class FlightplanController(BaseController):
 
         for v in byord.values():
             v.sort(key=lambda x:x['dist_from_a'])                        
+        #print byord
         return byord
     
     def obstacles(self):    
@@ -339,18 +340,29 @@ class FlightplanController(BaseController):
             if margin<0:
                 return "#ff3030"
             if margin<vertlimit:
-                return "#ffd0d0"
+                return "#ffb0b0"
             return None    
+            
+        dupecheck=dict()
+        for idx,items in byordsorted:
+            for item in items:
+                ident=(item['name'],item['pos'],item.get('elev',None))
+                dupecheck.setdefault(ident,[]).append(item)
+        bestdupe=dict()
+        for ident,dupes in dupecheck.items():
+            best=min(dupes,key=lambda x:x['dist'])
+            bestdupe[ident]=best
             
         for idx,items in byordsorted:
             cur=[]
-            seen=set()
             for item in items:
                 along_nm=item['dist_from_a']
                 fromwhat=item['a'].waypoint                
                 ident=(item['name'],item['pos'],item.get('elev',None))
-                if ident in seen: continue
-                seen.add(ident)
+                best=bestdupe[ident]
+                if not (best is item): continue
+                #if ident in seen: continue
+                #seen.add(ident)
                 cur.append(dict(
                     along_nm=along_nm,
                     dir_from_a=item['dir_from_a'],

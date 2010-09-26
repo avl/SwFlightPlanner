@@ -43,13 +43,13 @@ def get_notampoints(lat,lon,zoomlevel):
                    yield item
 
 def get_notampoints_on_line(latlon1,latlon2,dist_nm):
-    zoomlevel=14
+    zoomlevel=13
     distmax=mapper.approx_scale(mapper.latlon2merc(latlon1,zoomlevel),zoomlevel,dist_nm)
     px1,py1=mapper.latlon2merc(latlon1,zoomlevel)
     px2,py2=mapper.latlon2merc(latlon2,zoomlevel)
     a=Vertex(int(px1),int(py1))
     b=Vertex(int(px2),int(py2))
-    line=Line2(a,b)
+    line=Line2(a,b)    
     crosses=[]
     for kind,items in get_notam_objs_cached().items():
         if kind!="areas":
@@ -59,16 +59,20 @@ def get_notampoints_on_line(latlon1,latlon2,dist_nm):
                 clo=line.approx_closest(Vertex(int(x),int(y)))
                 alongd=(clo-a).approxlength()
                 totd=(a-b).approxlength()
+                #print "AlongD: %s, totd: %s"%(alongd,totd)
+                #print "Line: %s, notam coord: %s, closest: %s"%((a,b),(x,y),clo)
+                #print "Item %s, d: %s, distmax: %s"%(item,d,distmax)
                 if totd<1e-6:
                     perc=0
                 else:                    
                     perc=alongd/totd
                 if d<distmax:
+                    #print "Yielding item."
                     yield dict(item=item,alongperc=perc)
         
 
 def get_polygons_around(lat,lon,polys):
-    zoomlevel=14
+    zoomlevel=13
     px,py=mapper.latlon2merc((lat,lon),zoomlevel)
     insides=[]
     for space in polys:                
@@ -89,7 +93,7 @@ def get_polygons_around(lat,lon,polys):
     return insides
 
 def get_polygons_on_line(latlon1,latlon2,polys):
-    zoomlevel=14
+    zoomlevel=13
     px1,py1=mapper.latlon2merc(latlon1,zoomlevel)
     px2,py2=mapper.latlon2merc(latlon2,zoomlevel)
     line=Line2(Vertex(int(px1),int(py1)),Vertex(int(px2),int(py2)))

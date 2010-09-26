@@ -37,7 +37,7 @@ overlay_top=0;
 
 function calctileurl(zoomlevel,mercx,mercy)
 {
-	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces+'&dynamic_id='+dynamic_id;
+	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces+'&dynamic_id='+dynamic_id+'&mtime=${c.mtime}';
 }
 function clip_mappos(mercx,mercy)
 {
