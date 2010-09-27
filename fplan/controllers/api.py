@@ -18,21 +18,22 @@ import csv
 from itertools import chain
 from fplan.lib.extract_heights_near_path import heightmap_tiles_near
 import zlib
-
+import math
 
 def cleanup_poly(latlonpoints):
     
-    for minstep in [10,100,1000,10000,100000]:
+    for minstep in [0,10,100,1000,10000,100000]:
         mercpoints=[]
         lastmerc=None
-        last_latlon=None
         for latlon in latlonpoints:
             merc=mapper.latlon2merc(latlon,13)
-            if last_latlon!=None and sum([(last_latlon[i]-latlon[i])**2 for i in xrange(2)])<minstep:
-                continue
+            if lastmerc!=None:
+                dist=math.sqrt(sum([(lastmerc[i]-merc[i])**2 for i in xrange(2)]))
+                print "Dist:",dist
+                if dist<minstep:
+                    continue
             if merc==lastmerc:
                 continue
-            last_latlon=latlon
             lastmerc=merc
             mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
         if len(mercpoints)<50:
