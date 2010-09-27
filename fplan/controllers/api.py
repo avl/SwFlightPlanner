@@ -70,7 +70,7 @@ class ApiController(BaseController):
                 lat=lat,
                 lon=lon,
                 kind="airport",
-                alt=float(airp['elev'])))
+                alt=float(airp.get('elev',0))))
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
             points.append(dict(
