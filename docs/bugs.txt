@@ -54,4 +54,6 @@
 52: Dubblerrade sigpoints (Samma point från se och fi)
 53: "Add-data"-function?
 54: Some airfield is missing elev-field. check.
+55: Mousewheel when mouse cursor to right of map.
+56: NOTAM, lat out of range.
 

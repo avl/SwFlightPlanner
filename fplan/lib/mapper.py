@@ -134,6 +134,9 @@ def parse_lfv_format(lat,lon):
     if not what in 'NS': raise MapperBadFormat("Bad format(3): %s,%s"%(lat,lon))
     londec,what=parse_coord_component(lon)
     if not what in 'EW': raise MapperBadFormat("Bad format(4): %s,%s"%(lat,lon))
+    londec=(londec+180)%360-180
+    if latdec<-85 or latdec>85:
+        raise MapperBadFormat(u"Latitude out of range: %s %s : lat = %s"%(lat,lon,latdec))
     return '%.10f,%.10f'%(latdec,londec)
 
 parse_coords=parse_lfv_format
