@@ -17,7 +17,11 @@ extra_airfields=[
     dict(icao="ZZZZ",
          name=u"Stegeborg",
          pos=mapper.to_str(mapper.from_aviation_format("5826.0N01636.1E")),
-         elev=7)
+         elev=7),
+    dict(icao="EFKG",
+         name=u"Kumlinge",
+         pos="60.244071,20.803986",
+         elev=3)
               
 ]
 

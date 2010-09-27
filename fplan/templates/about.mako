@@ -55,6 +55,9 @@ Long answer: <a href="#" onclick="document.getElementById('reliable').style.disp
 The airspace data presented by this site is automatically parsed from the PDF-documents published by LFV. This parsing process may very well go wrong, in which case the airspace definitions
 on the site will be wrong. I feel it is mostly correct, but comparison with an up-to-date map is advised. Also, note that I live in Stockholm, which means I am more likely to find problems with 
 airspace definitions near Stockholm. Testers from other parts of the country are most welcome.</p>
+<p>
+Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspaces, even those very close to or overlapping Swedish territory, are missing entirely.
+</p>
 <p style="font-size:14px">
 The software that runs this site has not been tested rigorously (this is an enthusiast project after all). I feel that it usually works as intended. However, as a professional software
 engineer with experience in writing and testing high quality software, I fully appreciate that it is has not been tested nearly enough to have caught even the most severe bugs. Use with caution,
