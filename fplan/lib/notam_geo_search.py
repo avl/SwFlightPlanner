@@ -16,6 +16,8 @@ def get_notam_objs(kind=None):
     areas=[]
     for u in notamupdates:
         text=u.text.strip()
+        if text.count("W52355N0234942E"):
+            text=text.replace("W52355N0234942E","652355N0234942E")
         coordgroups=[]
         for line in text.split("\n"):
             dig=False
@@ -30,21 +32,28 @@ def get_notam_objs(kind=None):
                 coordgroups[-1]+=line+"\n"
                     
         for coordgroup in coordgroups:        
-            coords=list(mapper.parse_lfv_area(coordgroup,False))
+            try:
+                coords=list(mapper.parse_lfv_area(coordgroup,False))
+            except Exception,cause:
+                print "Parsing,",coordgroup
+                print "Exception parsing lfv area from notam:%s"%(cause,)
+                coords=[]
             if len(coords)==0: continue
-            
             if (kind==None or kind=="notamarea"):
                 for radius,lat,lon in re.findall(r"(\d+)\s+NM\s+RADIUS\s+(?:(?:FR?O?M)|(?:CENT[ERD]+))\s+(\d+[NS])\s*(\d+[EW])",text):
-                    centre=mapper.parse_coords(lat,lon)
-                    coords=mapper.create_circle(centre,float(radius))
-                    areas.append(dict(
-                        points=coords,
-                        kind="notamarea",
-                        name=text,
-                        type="notamarea",
-                        notam_ordinal=u.appearnotam,
-                        notam_line=u.appearline,
-                        notam=text))
+                    try:
+                        centre=mapper.parse_coords(lat,lon)
+                        coords=mapper.create_circle(centre,float(radius))
+                        areas.append(dict(
+                            points=coords,
+                            kind="notamarea",
+                            name=text,
+                            type="notamarea",
+                            notam_ordinal=u.appearnotam,
+                            notam_line=u.appearline,
+                            notam=text))
+                    except:
+                        print "Invalid notam coords: %s,%s"%(lat,lon)
                     
             
             if text.count("OBST") and (kind==None or kind=="obstacle"):
