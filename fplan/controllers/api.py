@@ -21,14 +21,22 @@ import zlib
 
 
 def cleanup_poly(latlonpoints):
-    mercpoints=[]
-    lastmerc=None
-    for latlon in latlonpoints:
-        merc=mapper.latlon2merc(latlon,13)
-        if merc==lastmerc:
-            continue
-        lastmerc=merc
-        mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
+    
+    for minstep in [10,100,1000,10000,100000]:
+        mercpoints=[]
+        lastmerc=None
+        last_latlon=None
+        for latlon in latlonpoints:
+            merc=mapper.latlon2merc(latlon,13)
+            if last_latlon!=None and sum([(last_latlon[i]-latlon[i])**2 for i in xrange(2)])<minstep:
+                continue
+            if merc==lastmerc:
+                continue
+            last_latlon=latlon
+            lastmerc=merc
+            mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
+        if len(mercpoints)<50:
+            break
     assert len(mercpoints)>2
     if mercpoints[0]==mercpoints[-1]:
         del mercpoints[-1]
