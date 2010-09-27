@@ -130,10 +130,7 @@ def get_airspaces_on_line(latlon1,latlon2):
 
 
 def get_notam_areas(lat,lon):
-    try:
-        return get_polygons_around(lat,lon,get_notam_objs_cached()['areas'])
-    except:
-        return []
+    return get_polygons_around(lat,lon,get_notam_objs_cached()['areas'])
 def get_notam_areas_on_line(latlon1,latlon2):
     return get_polygons_on_line(latlon1,latlon2,get_notam_objs_cached()['areas'])
     
