@@ -33,18 +33,19 @@ My name is Anders Musikka, and I am an enthusiast pilot and programmer.
 <br/>
 
 <h2>What is this?</h2>
-swflightplanner.se is a website to help plan VFR-flights in Sweden.
+swflightplanner.se is a website to help plan VFR-flights in Sweden (with some support for Finland).
 <br/>
 <br/>
 
-<h2>What browsers does it support?</h2>
-Firefox 3 and Google Chrome both work. Other web browsers should also work, but I haven't tried. 
+<h2>Which browsers does it support?</h2>
+Firefox 3 and Google Chrome both work. Internet Explorer does, unfortunately, not work for the moment. 
+
+Chrome is free and is easy to download and install: <a href="http://www.google.com/chrome/">Download it now!</a>.
 <br/>
 <br/>
 
 <h2>What does it cost?</h2>
-swflightplanner.se is free for any use. The software source code that runs the site is available upon request (I will put it up for public download soon). I will keep this server
-running as long as bandwidth-costs do not become excessive.   
+swflightplanner.se is free for any use. The software source code that runs the site is available upon request (I will put it up for public download soon). I will keep this server running as long as bandwidth-costs do not become excessive.   
 <br/>
 <br/>
 <h2>Is this site reliable?</h2>
@@ -52,9 +53,12 @@ Short answer: No.<br/>
 Long answer: <a href="#" onclick="document.getElementById('reliable').style.display='block'"><u>Press here!</u></a> 
 <div id="reliable" style="display:none">
 <p style="font-size:14px">
-The airspace data presented by this site is automatically parsed from the PDF-documents published by LFV. This parsing process may very well go wrong, in which case the airspace definitions
+The airspace data presented by this site is automatically parsed from the PDF-format AIP-documents published by LFV. This parsing process may very well go wrong, in which case the airspace definitions
 on the site will be wrong. I feel it is mostly correct, but comparison with an up-to-date map is advised. Also, note that I live in Stockholm, which means I am more likely to find problems with 
 airspace definitions near Stockholm. Testers from other parts of the country are most welcome.</p>
+<p>
+Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspaces, even those very close to or overlapping Swedish territory, are missing entirely.
+</p>
 <p style="font-size:14px">
 The software that runs this site has not been tested rigorously (this is an enthusiast project after all). I feel that it usually works as intended. However, as a professional software
 engineer with experience in writing and testing high quality software, I fully appreciate that it is has not been tested nearly enough to have caught even the most severe bugs. Use with caution,
@@ -70,14 +74,13 @@ I am also very interested in sharing airspace data.
 <br/>
 <h2>What's with the name?</h2>
 I felt that a modern software project should have a name that does not give any hits on google, except hits related to the project. At time of starting the project, the 
-word swflightplanner did not give any hits on google. Sw stands for Sweden. I am aware that this name might not stand the test of time, especially if support for other 
-countries is ever added.   
+word swflightplanner did not give any hits on google. Sw stands for Sweden. I am aware that this name might not stand the test of time, especially since support for Finland has already been added...   
 <br/>
 <br/>
 <h2>Where does the data come from?</h2>
-The airspace data (which only covers Sweden) and NOTAMs are from LFV. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.<br/>
+The airspace data (which only covers Sweden and Finland) and NOTAMs (which only cover Sweden) are from LFV and Finavia. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.<br/>
 
-The airspace data was last downloaded from LFV at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
+The airspace data was last downloaded from LFV/Finavia at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
 The maps were last updated with this airspace data ${c.mapupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. 
 <br/>
 <br/>

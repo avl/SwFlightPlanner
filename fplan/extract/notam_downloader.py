@@ -2,7 +2,6 @@ from time import sleep
 import os
 import urllib2
 import random
-import fplan.extract.extracted_cache as extracted_cache
 from datetime import datetime
 
 def download_notam():
@@ -48,7 +47,6 @@ def download_notams():
     if not os.path.exists("notams"):
         os.makedirs("notams")
     while True:
-        extracted_cache.run_update_iteration()        
         try:
             download_notam()
         except Exception,cause:
