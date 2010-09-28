@@ -189,24 +189,44 @@ def extract_airfields(filtericao=None):
             freqs=[]
             found=False
             thrs=[]
+            uprint("-------------------------------------")
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
-                for item in page.get_by_regex("\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*"):
+                uprint("Looking on page %d"%(pagenr,))
+                for item in page.get_by_regex(".*\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*.*"):
+                    uprint("Physical char on page")
                     lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
                     for line,nextline in izip(lines,lines[1:]+[None]):
+                        uprint("MAtching: <%s>"%(line,))
                         if re.match(ur"AD\s+2.13",line): break
-                        m=re.match(ur".*(\d{6}\.\d+N).*",line)
+                        if line.count("Slope of"): break
+                        m=re.match(ur".*(\d{6}\.\d+)[\s\(\)\*]*(N).*",line)
                         if not m:continue
-                        m2=re.match(ur".*(\d{6,7}\.\d+E).*",nextline)                            
+                        m2=re.match(ur".*(\d{6,7}\.\d+)\s*[\s\(\)\*]*(E).*",nextline)                            
                         if not m2:continue
-                        lat,=m.groups()
-                        lon,=m2.groups()
+                        latd,n=m.groups()
+                        lond,e=m2.groups()
+                        assert n=="N"
+                        assert e=="E"
+                        lat=latd+n
+                        lon=lond+e
                         rwytxts=page.get_lines(page.get_partially_in_rect(0,line.y1+0.05,12,nextline.y2-0.05))
-                        rwytxt,=rwytxts
-                        uprint("rwytext:",rwytxt)
-                        rwy,=re.match(ur"\s*(\d{2}[LRCM]?)\s*",rwytxt).groups()
+                        uprint("Rwytxts:",rwytxts)
+                        rwy=None
+                        for rwytxt in rwytxts:
+                            #uprint("lat,lon:%s,%s"%(lat,lon))
+                            #uprint("rwytext:",rwytxt)
+                            m=re.match(ur"\s*(\d{2}[LRCM]?)\b.*",rwytxt)
+                            if m:
+                                assert rwy==None
+                                rwy=m.groups()[0]
+                        already=False
+                        assert rwy!=None
+                        for thr in thrs:
+                            if thr['thr']==rwy:
+                                raise Exception("Same runway twice on airfield:"+icao)
                         thrs.append(dict(pos=mapper.parse_coords(lat,lon),thr=rwy))
-            
+            assert len(thrs)>=2
             for pagenr in xrange(0,p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)                                              
                 

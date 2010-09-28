@@ -215,17 +215,17 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             for rwy in airfield.get('runways',[]):
                 ends=rwy['ends']
                 mercs=[]
-                print "Ends:",ends
+                #print "Ends:",ends
                 for end in ends:
-                    print "pos:",end['pos']
+                    #print "pos:",end['pos']
                     latlon=mapper.from_str(end['pos'])
-                    print "latlon:",latlon
+                    #print "latlon:",latlon
                     merc=mapper.latlon2merc(latlon,zoomlevel)
-                    print "Merc:",merc
+                    #print "Merc:",merc
                     mercs.append(merc)
                 if len(mercs)==2:
                     a,b=mercs
-                    print "Drawing:",airfield['icao'],a,b
+                    #print "Drawing:",airfield['icao'],a,b
                     ctx.set_source(cairo.SolidPattern(0.0,0.0,0.0,1))
                     lwidth=mapper.approx_scale(a,zoomlevel,40.0/1852.0)
                     if lwidth<=2:
