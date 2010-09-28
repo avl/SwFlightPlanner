@@ -2,7 +2,6 @@ from time import sleep
 import os
 import urllib2
 import random
-import fplan.extract.extracted_cache as extracted_cache
 from datetime import datetime
 
 def download_notam():
