@@ -163,7 +163,7 @@ class BlobFile(object):
             p=unpack(">I",t)[0]
             #print "Tile number coords: %d,%d = %d"%(tx,ty,p)
             if p==0:
-                print "No tile at position %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
+                #print "No tile at position %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
                 return None
             f.seek(p)
             sbuf=f.read(4)

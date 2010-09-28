@@ -21,8 +21,7 @@
            * Basically, delta is now positive if wheel was scrolled up,
            * and negative, if wheel was scrolled down.
            */
-          if (delta)
-                  handle_mouse_wheel(delta,event);
+          return handle_mouse_wheel(delta,event);
   }
   
   /** Initialization code. 

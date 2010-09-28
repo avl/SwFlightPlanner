@@ -63,9 +63,21 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             airfields=[]
             sig_points=[]
             obstacles=[]
+            seenpoints=dict()
+            def sig_points_extend(points):
+                for point in points:
+                    name,pos=point['name'],point['pos']
+                    samename=seenpoints.setdefault(name,[])
+                    already=False
+                    for s in samename:
+                        if s['pos']==pos:
+                            already=True
+                    samename.append(point)
+                    if not already:
+                        sig_points.append(point)
             if 1: #finland
                 airspaces.extend(fi_parse_tma())
-                sig_points.extend(fi_parse_sigpoints())
+                sig_points_extend(fi_parse_sigpoints())
                 obstacles.extend(fi_parse_obstacles())
 
                 fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
@@ -74,9 +86,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(fi_airfields)
             if 1: #sweden
                 se_airfields,se_points=extract_airfields()
-                sig_points.extend(se_points)
+                sig_points_extend(se_points)
                 airfields.extend(se_airfields)
-                sig_points.extend(parse_sig_points())
+                sig_points_extend(parse_sig_points())
                 airspaces.extend(parse_all_tma())
                 airspaces.extend(parse_r_areas())
                 airspaces.extend(parse_mountain_area())
@@ -149,8 +161,8 @@ def run_update_iteration():
             get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
-            time.sleep(2) #Just for debug, so that we have a chance to see that the aipdata is rewritten 
             if debug:
+                print "Yes exit"
                 sys.exit()
             print "Now re-rendering maps"
             update_unithread()
@@ -171,8 +183,11 @@ if __name__=='__main__':
     from fplan.config.environment import load_environment
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
     load_environment(conf.global_conf, conf.local_conf)
+    print sys.argv
     if not ("debug" in sys.argv):
         debug=False
+    print "Debug:",debug
+    time.sleep(2)
     if len(sys.argv)>1 and sys.argv[1]:
         single_force=True
     while True:

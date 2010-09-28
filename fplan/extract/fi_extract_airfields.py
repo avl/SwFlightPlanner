@@ -36,12 +36,22 @@ def fi_parse_airfield(icao=None):
 
 
     page=p.parse_page_to_items(0)
-    nameregex=ur"%s\s+-\s+([A-ZÅÄÖ ]{3,})"%(icao,)
+    nameregex=ur"%s\s+-\s+([A-ZÅÄÖ\- ]{3,})"%(icao,)
     for item in page.get_by_regex(nameregex):
         #print "fontsize:",item.fontsize
         assert item.fontsize>=14
         ad['name']=re.match(nameregex,item.text).groups()[0].strip()
         break
+    for item in page.get_by_regex(ur".*ELEV\s*/\s*REF.*"):
+        lines=page.get_lines(page.get_partially_in_rect(0,item.y1+0.1,100,item.y2-0.1))
+        for line in lines:
+            m,ft=re.match(".*([(\d\.)]+)\s*M\s*\(([\d\.]+)\s*FT\).*",line).groups()
+            assert (float(m)-float(ft)*0.3048)<5
+            assert not 'elev' in ad
+            ad['elev']=float(ft)
+        
+
+        
     for item in page.get_by_regex(ur"Mittapisteen.*sijainti"):
         lines=page.get_lines(page.get_partially_in_rect(item.x1,item.y1,100,item.y2))        
         for line in lines:
@@ -56,14 +66,20 @@ def fi_parse_airfield(icao=None):
             lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
             for line in lines:
                 if re.match(ur"AD\s+2.13",line): break
-                m=re.match(ur".*(\d{6}\.\d+N)\s*(\d{6,7}\.\d+E).*",line)
+                m=re.match(ur".*?(RWY END)?\s*\*?(\d{6}\.\d+N)\s*(\d{6,7}\.\d+E).*",line)
                 if not m:continue
-                lat,lon=m.groups()
+                rwyend,lat,lon=m.groups()
                 rwytxts=page.get_lines(page.get_partially_in_rect(0,line.y1,12,line.y2))
                 print "Rwytxts:",rwytxts
                 rwytxt,=rwytxts
                 uprint("rwytext:",rwytxt)
                 rwy,=re.match(ur"\s*(\d{2}[LRCM]?)\s*[\d.]*\s*",rwytxt).groups()
+                have_thr=False
+                for thr in thrs:
+                    if thr['thr']==rwy:
+                        have_thr=True
+                if rwyend!=None and have_thr:
+                    continue
                 thrs.append(dict(pos=mapper.parse_coords(lat,lon),thr=rwy))
         
         for item in page.get_by_regex("ATS AIRSPACE"):

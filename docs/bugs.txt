@@ -31,29 +31,29 @@
 30: FIXAD: Kanske läsa in radionavigeringshjälpmedel från AIP/ENR/ENR\ 4/ES_ENR_4_1_en.pdf?
 31: FIXAD: Ta bort debug-utskrifter från shapemerge2d och även från programmet.
 32: FIXAD: Stöd: AIP SUP: http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/ , http://www.lfv.se/AIP/AIP%20Sup/SUP_33_10.pdf
-33: På gång - verifiera fixen: Långtora ligger på fel plats.
+33: FIXAD: På gång - verifiera fixen: Långtora ligger på fel plats.
 34: FIXAD: Printable visar näst sista waypointen som dest.
 35: FIXAD: Min Free alt borde kolla terrängen över ett större område runt rutten.
 36: FIXAD: Det borde gå att se vilka notams som berör flygningen!
 37: FIXAD: När man byter ordning på items händer konstiga saker, om man byter ordning på sista item. Typ om man flyttar det neråt.
 38: FIXAD: Borde lägga in fjällområdesgränsen!
 39: FIXAD: Detektera IE och varna.
-40: Page-breaks i NOTAMs funkar inte bra.
+40: FIXAD: Page-breaks i NOTAMs funkar inte bra.
 41: FIXAD: Nån sorts skala skulle vara bra.
 42: FIXAD: Skalan borde typ använda "jämna tal", istället för att alltid vara 70 pixels eller vad den är...
-42: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
-43: calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
-44: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
+42: FIXAD: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
+43: Calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
+44: FIXAD: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
 45: METAR+TAF
 46: Links to LHP och SWC.
 47: En-route frekvenser på något bra sätt
 48: Visa TWR och ATIS-frekv i driftfärdplan
 49: WONTFIX: Flygfältsdata
-50: Färga tracken efter ground warnings + olika färg beroende på luftrum.
-51: Vissa flygplatser har samma runway upprepad flera gånger.
-52: Dubblerrade sigpoints (Samma point från se och fi)
-53: "Add-data"-function?
-54: Some airfield is missing elev-field. check.
-55: Mousewheel when mouse cursor to right of map.
-56: NOTAM, lat out of range.
+50: WONTFIX NOW: Färga tracken efter ground warnings + olika färg beroende på luftrum. (too complex)
+51: FIXAD: Vissa flygplatser har samma runway upprepad flera gånger.
+52: FIXAD: Dubbblerrade sigpoints (Samma point från se och fi)
+53: WONTFIX: "Add-data"-function?
+54: FIXAD: Some airfield is missing elev-field. (det var alla finska som saknade elev)
+55: FIXAD: Mousewheel when mouse cursor to right of map.
+56: FIXAD: NOTAM, lat out of range.
 

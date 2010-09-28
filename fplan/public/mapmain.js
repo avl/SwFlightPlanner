@@ -358,6 +358,8 @@ function handle_mouse_wheel(delta,event)
 {
 	var screen_x=event.clientX-document.getElementById('mapcontainer').offsetLeft;
 	var screen_y=event.clientY-document.getElementById('mapcontainer').offsetTop;
+	if (screen_x<0 || screen_y<0 || screen_x>=screen_size_x || screen_y>=screen_size_y)
+	    return false;	   
 	var dx=screen_x-(screen_size_x/2);
 	var dy=screen_y-(screen_size_y/2);
 	var centerx=map_topleft_merc[0]+screen_size_x/2;
@@ -375,6 +377,7 @@ function handle_mouse_wheel(delta,event)
 	    var y=centery-dy;
 		zoom_out([parseInt(x),parseInt(y)]); 		
 	}
+	return true;
 }
 
 
