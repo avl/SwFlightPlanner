@@ -40,7 +40,6 @@ def download_notams():
     if not os.path.exists("notams"):
         os.makedirs("notams")
     while True:
-        extracted_cache.run_update_iteration()        
         try:
             download_notam()
         except Exception,cause:
