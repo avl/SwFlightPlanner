@@ -56,4 +56,6 @@
 54: FIXAD: Some airfield is missing elev-field. (det var alla finska som saknade elev)
 55: FIXAD: Mousewheel when mouse cursor to right of map.
 56: FIXAD: NOTAM, lat out of range.
+57: Finska notam?
+
 
