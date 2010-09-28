@@ -3,8 +3,8 @@ from fplan.model import *
 from pyshapemerge2d import Polygon,vvector,Vertex
 import fplan.lib.mapper as mapper
 import re
-
-
+from itertools import chain
+import os
 
 
 def get_notam_objs(kind=None):    
@@ -40,10 +40,20 @@ def get_notam_objs(kind=None):
                 coords=[]
             if len(coords)==0: continue
             if (kind==None or kind=="notamarea"):
-                for radius,lat,lon in re.findall(r"(\d+)\s+NM\s+RADIUS\s+(?:(?:FR?O?M)|(?:CENT[ERD]+))\s+(\d+[NS])\s*(\d+[EW])",text):
+                for radius,unit,lat,lon in chain(
+                            re.findall(r"RADIUS\s*(?:OF)?\s*(\d+)\s*(NM|M)\s*(?:CENT[ERD]+|FR?O?M)?\s*(?:ON)?\s*(?:AT)?\s*(\d+[NS])\s*(\d+[EW])",text),
+                            re.findall(r"(\d+)\s*(NM|M)\s*RADIUS\s*(?:CENT[ERD]+|FR?O?M)?\s*(?:ON)?\s*(\d+[NS])\s*(\d+[EW])",text)
+                            ):
                     try:
+                        radius=float(radius)
+                        if unit=="M":
+                            radius=radius/1852.0
+                        else:
+                            assert unit=="NM"
                         centre=mapper.parse_coords(lat,lon)
-                        coords=mapper.create_circle(centre,float(radius))
+                        coords=mapper.create_circle(centre,radius)
+                        print "Circle:",text
+                        print dict(radius=radius,lat=lat,lon=lon)
                         areas.append(dict(
                             points=coords,
                             kind="notamarea",
@@ -52,9 +62,9 @@ def get_notam_objs(kind=None):
                             notam_ordinal=u.appearnotam,
                             notam_line=u.appearline,
                             notam=text))
-                    except:
+                    except Exception,cause:
                         print "Invalid notam coords: %s,%s"%(lat,lon)
-                    
+                        raise
             
             if text.count("OBST") and (kind==None or kind=="obstacle"):
                 elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
@@ -122,4 +132,11 @@ def get_notam_objs_cached():
     return notam_geo_cache['data']
     
     
-    
+if __name__=='__main__':
+    from sqlalchemy import engine_from_config
+    from paste.deploy import appconfig
+    from fplan.config.environment import load_environment
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
+    load_environment(conf.global_conf, conf.local_conf)
+    get_notam_objs_cached()
+        

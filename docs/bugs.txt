@@ -41,19 +41,19 @@
 40: FIXAD: Page-breaks i NOTAMs funkar inte bra.
 41: FIXAD: Nån sorts skala skulle vara bra.
 42: FIXAD: Skalan borde typ använda "jämna tal", istället för att alltid vara 70 pixels eller vad den är...
-42: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
-43: calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
-44: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
+42: FIXAD: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
+43: Calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
+44: FIXAD: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
 45: METAR+TAF
 46: Links to LHP och SWC.
 47: En-route frekvenser på något bra sätt
 48: Visa TWR och ATIS-frekv i driftfärdplan
 49: WONTFIX: Flygfältsdata
 50: WONTFIX NOW: Färga tracken efter ground warnings + olika färg beroende på luftrum. (too complex)
-51: Vissa flygplatser har samma runway upprepad flera gånger.
-52: Dubbblerrade sigpoints (Samma point från se och fi)
-53: "Add-data"-function?
+51: FIXAD: Vissa flygplatser har samma runway upprepad flera gånger.
+52: FIXAD: Dubbblerrade sigpoints (Samma point från se och fi)
+53: WONTFIX: "Add-data"-function?
 54: FIXAD: Some airfield is missing elev-field. (det var alla finska som saknade elev)
 55: FIXAD: Mousewheel when mouse cursor to right of map.
-56: NOTAM, lat out of range.
+56: FIXAD: NOTAM, lat out of range.
 
