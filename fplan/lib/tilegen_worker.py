@@ -134,6 +134,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
                 ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)
             areacol,solidcol=dict(
                         TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+                        RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
                         CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
                         R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
                         CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),

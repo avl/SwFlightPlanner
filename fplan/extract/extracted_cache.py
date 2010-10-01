@@ -10,6 +10,7 @@ from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
 from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
+from fplan.extract.fi_extract_ats_rte import fi_parse_ats_rte
 import fplan.lib.remove_unused_users
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
@@ -79,7 +80,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(fi_parse_tma())
                 sig_points_extend(fi_parse_sigpoints())
                 obstacles.extend(fi_parse_obstacles())
-
+                airspaces.extend(fi_parse_ats_rte())
                 fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
                 airspaces.extend(fi_spaces)
                 airspaces.extend(fi_parse_restrictions())

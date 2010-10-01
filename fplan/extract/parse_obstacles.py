@@ -59,7 +59,13 @@ def parse_obstacles():
                 continue
             if line.startswith("ft ft Character"):
                 continue
-            uprint("Matching line: %s"%(line,))
+            if line.strip()=="The LFV Group":
+                continue
+            if line.startswith("The"): continue
+            if line.startswith("LFV"): continue
+            if line.startswith("Group"): continue
+            if line.strip()=="": continue
+            uprint("Matching line: <%s>"%(line,))
             if line.strip()=="Reverse side intentionally blank":
                 continue
             m=re.match(r"\s*(?:\d{2}N \d{2}E)?\s*\d+\s*(.*?)(\d{6}\.?\d*N)\s*(\d{7}\.?\d*E)\s*(?:\(\*\))?\s*(\d+)\s*(\d+)\s*(.*)$",

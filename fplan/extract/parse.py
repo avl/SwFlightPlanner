@@ -97,6 +97,13 @@ class Page(object):
         last=None
         out=[]
         linesize=None
+        
+        def is_right_order(old,item):
+            if old.x2>item.x1+5.0:
+                print "Wrong order: %s - %s"%((old.x1,old.y1,old.x2,old.y2,old),item)
+                return False
+            return True
+            #assert old.x2<item.x1
         for item in si:
             if last==None:
                 out.append(ItemStr(item.text.strip()))
@@ -104,8 +111,8 @@ class Page(object):
                 last=item
                 continue
             new_linesize=abs(last.y1-item.y1)
-            if new_linesize<fudge:
-                old=out[-1]
+            old=out[-1]
+            if new_linesize<fudge and is_right_order(old,item):                
                 out[-1]=ItemStr(out[-1]+" "+item.text.strip())
                 out[-1].expandbb(old)
                 out[-1].expandbb(item)

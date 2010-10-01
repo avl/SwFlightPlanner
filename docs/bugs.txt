@@ -56,6 +56,8 @@
 54: FIXAD: Some airfield is missing elev-field. (det var alla finska som saknade elev)
 55: FIXAD: Mousewheel when mouse cursor to right of map.
 56: FIXAD: NOTAM, lat out of range.
-57: Finska notam?
+57: Finska notam? Fortsätt påbörjat jobb - mest att det ska gå att filtrera som återstår!
+58: ATS-läget borde nog använda sig-punkter om det finns (tillräckligt nära angiven koordinat)
+59: Finska ATS-routes.
 
 
