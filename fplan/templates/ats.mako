@@ -38,7 +38,7 @@ function navigate_to(where)
 <h2>ATS-format</h2>
 <p>
 (Same coordinates as above, but in format suitable for copy-pasting into the
-www.aro.lfv.se web-application.)
+www.aro.lfv.se web-application. NOTE! These are only coordinates, not an entire flight-plan. DO NOT use the import-function at www.aro.lfv.se!)
 </p>
 <br/>
 <div>
