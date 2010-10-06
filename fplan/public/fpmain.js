@@ -73,9 +73,12 @@ function fetch_winds()
 			{
 				var w=gete(fpid[i],'W');
 				var v=gete(fpid[i],'V');
-			    w.value=parseInt(parseFloat(weather[i][0]));
-			    v.value=parseInt(parseFloat(weather[i][1]));
-    			on_updaterow(fpid[i],i,'all');
+				if (''+weather[i][0]!='NaN')
+				{
+			        w.value=parseInt(parseFloat(weather[i][0]));
+			        v.value=parseInt(parseFloat(weather[i][1]));
+        			on_updaterow(fpid[i],i,'all');
+        		}
 			}
         	dirty=1;
         	do_save();
