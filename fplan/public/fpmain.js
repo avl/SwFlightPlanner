@@ -73,7 +73,7 @@ function fetch_winds()
 			{
 				var w=gete(fpid[i],'W');
 				var v=gete(fpid[i],'V');
-				if (''+weather[i][0]!='NaN')
+				if (''+weather[i][0]!='NaN' && weather[i][0]!='')
 				{
 			        w.value=parseInt(parseFloat(weather[i][0]));
 			        v.value=parseInt(parseFloat(weather[i][1]));
