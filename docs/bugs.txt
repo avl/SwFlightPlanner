@@ -57,7 +57,15 @@
 55: FIXAD: Mousewheel when mouse cursor to right of map.
 56: FIXAD: NOTAM, lat out of range.
 57: Finska notam? Fortsätt påbörjat jobb - mest att det ska gå att filtrera som återstår!
-58: ATS-läget borde nog använda sig-punkter om det finns (tillräckligt nära angiven koordinat)
-59: Finska ATS-routes.
+58: FIXAD: ATS-läget borde nog använda sig-punkter om det finns (tillräckligt nära angiven koordinat)
+59: FIXAD: Finska ATS-routes.
+60: FIXAD: Sänd upp shapemerge-fixen till servern.
+61: Hastigheterna blir ibland fel i Android-appen.
+62: FIXAD: Testa att weather-funktionen hämtar rätt väder efter ordinal/id/ordering-refactoringen.
+63: FIXAD: Handle the case where a certain waypoint has been deleted when saving the flightplan->overview page.
+64: FIXAD: A *LOT* of verification to do. Is it so that we should even deploy in parallel? (NO!?)
+65: FIXAD: Använd id, inte idx, även i flightplan-overview-sidan!
+66: Behöver validering i t.ex "estimated takeoff"-fältet, samt andra fält i overview-sidan.
+
 
 

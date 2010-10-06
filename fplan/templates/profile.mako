@@ -47,6 +47,11 @@ Enter password again: <input type="password" name="password2" id="password2" val
 </div>
 %if not c.initial:
 Track as line instead of dots (only for fast computers): <input type="checkbox" name="notfastmap" ${'checked="1"' if c.notfastmap else ''|n}"/><br/>
+
+Optional Information, needed to create ATS-flightplans:<br/>
+Real Name: <input type="text" name="realname" value="${c.realname}" />(example: Kalle Svensson)<br/> 
+Phone Number (including country-code): <input type="text" name="phonenr" value="${c.phonenr}" />(example: +46701234567)<br/> 
+
 %endif
 <input type="submit" name="save" value="Save"/>
 </form>

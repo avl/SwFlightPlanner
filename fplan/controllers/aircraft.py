@@ -59,8 +59,8 @@ class AircraftController(BaseController):
             for name,value in request.params.items():            
                 if name=='orig_aircraft': continue
                 if hasattr(ac,name):
-                    if name=='aircraft':
-                        ac.aircraft=value
+                    if name in ['aircraft','atstype','markings']:
+                        setattr(ac,name,value)
                     else:
                         try:
                             fvalue=float(value)

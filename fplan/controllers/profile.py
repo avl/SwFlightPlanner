@@ -19,6 +19,9 @@ class ProfileController(BaseController):
         c.splash=request.params.get('splash','')
         c.user=user.user
         c.password=''
+        print "User realname:",user.realname
+        c.phonenr=user.phonenr
+        c.realname=user.realname
         c.initial=not user.isregistered
         c.notfastmap=not user.fastmap
         try:
@@ -32,7 +35,9 @@ class ProfileController(BaseController):
                 User.user==session['user']).one()
         print "As user:",user.user
         user.user=request.params.get('username',user.user)
-        if request.params.get("password1",'')!='':
+        user.phonenr=request.params.get('phonenr',user.phonenr)
+        user.realname=request.params.get('realname',user.realname)
+        if request.params.get("password1",'')!='' and request.params.get('password2','')!='':
             if request.params["password1"]==request.params["password2"]:
                 user.password=md5(request.params['password1']).hexdigest()
             else:

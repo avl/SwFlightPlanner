@@ -82,8 +82,8 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${"%.1f"%(route.d,)}</td>
 <td>${"%.1f"%(route.total_d,)}</td>
 <td>${"%.0f"%(route.gs,)}</td>
-<td>${route.time}</td>
-<td>${route.accum_time}</td>
+<td>${h.timefmt(route.time)}</td>
+<td>${h.timefmt(route.accum_time)}</td>
 <td>${"%.1f"%(route.fuel_burn,)}</td>
 <td>${"%.1f"%(route.accum_fuel_burn,)}</td>
 <td>${"%.0f"%(route.startalt+0.01,)}</td>

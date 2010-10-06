@@ -15,21 +15,25 @@ def get_obstacles(lat,lon,zoomlevel):
 
 def get_airfields(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
+    out=[]
     for airp in cache.get_airfields():
         x,y=mapper.latlon2merc(mapper.from_str(airp['pos']),zoomlevel)
         radius=20
         d=(clickx-x)**2+(clicky-y)**2
         if d<=(radius)**2:
-           yield airp
-
+           out.append((d,airp))
+    return [airp for d,airp in sorted(out)]
+    
 def get_sigpoints(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
+    out=[]
     for sigp in cache.get_sig_points():
         x,y=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
         radius=10
         d=(clickx-x)**2+(clicky-y)**2
         if d<=(radius)**2:
-           yield sigp
+           out.append((d,sigp))
+    return [sigp for d,sigp in sorted(out)]
 
 def get_notampoints(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)

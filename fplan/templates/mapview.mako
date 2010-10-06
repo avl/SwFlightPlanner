@@ -19,6 +19,7 @@ screen_size_y=0;
 tilesize=256;
 xsegcnt=0;
 ysegcnt=0;
+next_waypoint_id=${c.next_waypoint_id};
 selfurl='${h.url_for(controller="mapview",action="index")}';
 shareurl='${h.url_for(controller="mapview",action="share")}';
 saveurl='${h.url_for(controller="mapview",action="save")}';
@@ -250,10 +251,10 @@ function loadmap()
 	jg.setColor("#00d000"); 
 	
 	var idx=0;	
-	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
+	%for wp in sorted(c.waypoints,key=lambda x:x.ordering):	
 	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
+	tab_add_waypoint(idx,me,${wp.id},'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
 	idx++;
 	%endfor
 	draw_jg();

@@ -25,61 +25,45 @@ function navigate_to(where)
 
 <h1>${c.trip}</h1>
 
+%for at in c.atstrips:
+%if len(c.atstrips)>1:
+<br/>
+<h2>${at['wps'][0]['name']} - ${at['wps'][-1]['name']}</h2>
+%endif
 <br/>
 <h2>Waypoints</h2>
-%for w in c.waypoints:
+%for w in at['wps']:
 
 <p>
-<b>${w['name']}</b>:${w['pos']} (exact: ${w['exactpos']}) 
+<b>${w['name']}</b>:${w['symbolicpos']} (exact: ${w['exactpos']}) 
 </p>
 
 %endfor
 <br/>
 <h2>ATS-format</h2>
 <p>
-(Same coordinates as above, but in format suitable for copy-pasting into the
-www.aro.lfv.se web-application.)
+(An entire ATS-flightplan. Select 'import' at www.aro.lfv.se, then paste this flightplan into the text-area.)
 </p>
-<br/>
 <div>
-
-%if len(c.waypoints):
-<table>
-<tr>
-<td>
-Departure</td><td> <span style="background:#d0d0d0;border: 1px #808080 solid">	
-${c.waypoints[0]['pos']} ${c.waypoints[0]['name']}
-</span></td></tr><tr><td>
-Destination:</td><td> <span style="background:#d0d0d0;border: 1px #808080 solid">	
-${c.waypoints[-1]['pos']} ${c.waypoints[-1]['name']}
-</span></td>
-</tr>
-</table>
+%if at['atsfplan']:
+<hr/>
+<pre>
+${at['atsfplan']}
+</pre>
+<hr/>
 %endif
-<br/>
-<table>
-<tr>
-<td>Route</td> <td><span style="background:#d0d0d0;border: 1px #808080 solid">	
-%for w in c.waypoints:
-DCT ${w['pos']} \
-%endfor
-</td>
-</tr>
-</table>
-<br/>
-</span>
 </div>
 
-<br/>
-<h2>More exact format</h2>
+<h2>Raw Coordinates</h2>
 <p>
 (Same coordinates as above, but in the format of LFV point sequences)
 </p>
 <div>
 <span>	
-${" - ".join([w['exactpos'] for w in c.waypoints])}
+${" - ".join([w['exactpos'] for w in at['wps']])}
 </span
 </div>
+%endfor
 
 
 </div>

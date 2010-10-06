@@ -1,7 +1,7 @@
 """The application's model objects"""
 import sqlalchemy as sa
 from sqlalchemy import orm
-from datetime import datetime
+from datetime import datetime,timedelta
 from fplan.model import meta
 
 def init_model(engine):
@@ -29,6 +29,8 @@ Float=sa.types.Float
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
                         sa.Column("password",Unicode(100),nullable=False),
+                        sa.Column("realname",Unicode(100),nullable=False),
+                        sa.Column("phonenr",Unicode(50),nullable=True),
                         sa.Column("isregistered",Boolean(),nullable=False),
                         sa.Column("lastlogin",DateTime(),nullable=False),
                         sa.Column('fastmap',Boolean(),nullable=False,default=True),
@@ -86,7 +88,9 @@ rating_table = sa.Table("rating",meta.metadata,
 aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),primary_key=True,nullable=False,default="SE-XYZ"),#Registration, like SE-VLI
-                        sa.Column('cruise_speed',Float(),primary_key=False,nullable=False,default=75),                        
+                        sa.Column('atstype',Unicode(32),primary_key=False,nullable=False,default="ULAC"),#Type of aircraft, like ULAC
+                        sa.Column('markings',Unicode(32),primary_key=False,nullable=False,default="W"),#Color, for use in ATS-flightplan
+                        sa.Column('cruise_speed',Float(),primary_key=False,nullable=False,default=75),
                         sa.Column('cruise_burn',Float(),primary_key=False,nullable=False,default=18),                        
                         sa.Column('climb_speed',Float(),primary_key=False,nullable=False,default=60),                        
                         sa.Column('climb_rate',Float(),primary_key=False,nullable=False,default=400),                        
@@ -100,9 +104,22 @@ trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
-                        sa.Column('startfuel',Float(),nullable=False,primary_key=False,default=0),
                         sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
+                        
+stay_table = sa.Table("stay",meta.metadata,
+                    sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                    sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
+                    sa.Column('waypoint_id',Integer(),primary_key=True,nullable=False),
+                    sa.Column('date_of_flight',Unicode(10),nullable=False,primary_key=False),
+                    sa.Column('fuel',Float(),nullable=True,primary_key=False,default=None),
+                    sa.Column('departure_time',Unicode(5),nullable=False,primary_key=False,default=""),
+                    sa.Column('nr_persons',Integer(),nullable=True,primary_key=False,default=None),
+                    sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                    sa.ForeignKeyConstraint(['user', 'trip','waypoint_id'], ['waypoint.user', 'waypoint.trip','waypoint.id'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                    )
+                        
+                        
 
 shared_trip_table = sa.Table("shared_trip",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
@@ -114,7 +131,8 @@ shared_trip_table = sa.Table("shared_trip",meta.metadata,
 waypoint_table = sa.Table("waypoint",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
+                        sa.Column('id',Integer(),primary_key=True,nullable=False),
+                        sa.Column('ordering',Integer(),primary_key=False,nullable=False),
                         sa.Column('pos',String(50),primary_key=False,nullable=False),
                         sa.Column('waypoint',Unicode(50),primary_key=False,nullable=False),
                         sa.Column('altitude',String(6),primary_key=False,nullable=False,default=''),
@@ -132,10 +150,10 @@ route_table = sa.Table("route",meta.metadata,
                         sa.Column('deviation',Float(),primary_key=False,nullable=True),
                         sa.Column('altitude',String(6),primary_key=False,nullable=False,default='1000'),
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
-                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
+                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint1'], ['waypoint.user', 'waypoint.trip', 'waypoint.id'],
                                                 onupdate="CASCADE",ondelete="CASCADE"),                                                                                
-                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.ordinal'],
-                                                onupdate="CASCADE",ondelete="CASCADE")                                                                                
+                        sa.ForeignKeyConstraint(['user', 'trip', 'waypoint2'], ['waypoint.user', 'waypoint.trip', 'waypoint.id'],
+                                                onupdate="CASCADE",ondelete="CASCADE")
                         )
                         
                         
@@ -155,24 +173,28 @@ obstacle_table = sa.Table("obstacle",meta.metadata,
                         )
 """
 class Route(object):
-    def __init__(self,user,trip,waypoint1,waypoint2,winddir=None,windvel=None,tas=None,variation=None,altitude=None):
+    def __init__(self,user,trip,waypoint1,waypoint2,winddir=None,windvel=None,tas=None,variation=None,altitude=None,deviation=None):
         self.user=user
         self.trip=trip
         self.waypoint1=waypoint1
         self.waypoint2=waypoint2
         self.winddir=winddir
-        print "Creating Route with windvel",windvel
         self.windvel=windvel
         self.tas=tas        
         self.variation=variation
         self.altitude=altitude
+        self.deviation=deviation
                  
 class Waypoint(object):
-    def __init__(self, user, trip, pos, ordinal, waypoint,altitude=''):
+    def __init__(self, user, trip, pos, id_,ordering, waypoint,altitude=''):
         self.user=user
         self.trip=trip
         self.pos=pos
-        self.ordinal=ordinal
+        assert type(id_) in [int,long]
+        assert type(ordering) in [int,long]
+        self.id=id_
+        self.ordering=ordering
+        assert type(waypoint) in [str,unicode]
         self.waypoint=waypoint
         self.altitude=altitude
     def get_lat(self):
@@ -191,6 +213,15 @@ class Trip(object):
         self.user=user
         self.trip=trip
         self.aircraft=aircraft
+class Stay(object):
+    def __init__(self,user,trip,waypoint_id):
+        self.user=user
+        self.trip=trip
+        self.waypoint_id=waypoint_id
+        self.fuel=None        
+        self.date_of_flight=datetime.utcnow().strftime("%Y-%m-%d")
+        self.departure_time=(datetime.utcnow()+timedelta(0,3600)).strftime("%H:%M")
+        
 class User(object):
     def __init__(self, user, password):        
         self.user = user
@@ -219,22 +250,34 @@ class SharedTrip(object):
             
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(User, user_table)
+orm.mapper(Stay, stay_table)
 orm.mapper(SharedTrip, shared_trip_table)
 orm.mapper(Trip, trip_table, properties=dict(
     acobj=orm.relation(Aircraft,lazy=True)))
 
-orm.mapper(Waypoint, waypoint_table)
+orm.mapper(Waypoint, waypoint_table,
+    properties=dict(
+    stay=orm.relation(Stay,primaryjoin=(sa.and_(
+        waypoint_table.columns.user==stay_table.columns.user,
+        waypoint_table.columns.trip==stay_table.columns.trip,
+        waypoint_table.columns.id==stay_table.columns.waypoint_id
+        )),lazy=True,foreign_keys=[
+            waypoint_table.columns.user,
+            waypoint_table.columns.trip,
+            waypoint_table.columns.id,
+        ])
+    ))
 orm.mapper(NotamCategoryFilter, notam_category_filter_table)
 
 orm.mapper(Route, route_table,
  properties=dict(
     a=orm.relation(Waypoint,primaryjoin=(sa.and_(
-        waypoint_table.columns.ordinal==route_table.columns.waypoint1,
+        waypoint_table.columns.id==route_table.columns.waypoint1,
         waypoint_table.columns.user==route_table.columns.user,
         waypoint_table.columns.trip==route_table.columns.trip,
         )),lazy=True),
     b=orm.relation(Waypoint,primaryjoin=(sa.and_(
-        waypoint_table.columns.ordinal==route_table.columns.waypoint2,
+        waypoint_table.columns.id==route_table.columns.waypoint2,
         waypoint_table.columns.user==route_table.columns.user,
         waypoint_table.columns.trip==route_table.columns.trip,
         )),lazy=True)

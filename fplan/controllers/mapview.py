@@ -56,13 +56,13 @@ class MapviewController(BaseController):
         print "Parms:",parms
         for key,val in parms.items():
             if not key.count('_')==2: continue
-            row,ordinal,key=key.split("_")
+            row,ordering,key=key.split("_")
             assert row=='row'            
-            wpst.setdefault(int(ordinal),dict())[key]=val
+            wpst.setdefault(int(ordering),dict())[key]=val
         wps=dict()
-        for ordinal,wp in wpst.items():
-            wp['ordinal']=ordinal
-            d=wps.setdefault(wp['ordinal'],dict())
+        for ordering,wp in wpst.items():
+            wp['ordering']=ordering
+            d=wps.setdefault(int(wp['id']),dict())
             d.update(wp)            
         return wps
 
@@ -149,7 +149,7 @@ class MapviewController(BaseController):
                 meta.Session.add(trip)
                 session['current_trip']=tripname
             
-            oldwps=set([(wp.ordinal) for wp in meta.Session.query(Waypoint).filter(sa.and_(
+            oldwps=set([(wp.id) for wp in meta.Session.query(Waypoint).filter(sa.and_(
                     Waypoint.user==tripuser(),Waypoint.trip==trip.trip)).all()])
             
             newwps=set(wps.keys())
@@ -157,23 +157,30 @@ class MapviewController(BaseController):
             removed=oldwps.difference(newwps)
             added=newwps.difference(oldwps)
             updated=newwps.intersection(oldwps)
+            addedwps=added
+            removedwps=removed
+            updatedwps=updated
+            ordering2wpid=dict()
             for remord in removed:
                 meta.Session.query(Waypoint).filter(
                     sa.and_(Waypoint.user==tripuser(),Waypoint.trip==trip.trip,
-                            Waypoint.ordinal==remord)).delete()
+                            Waypoint.id==remord)).delete()
                 #print "\n\n====DELETING!=====\n%s\n\n"%(rem,)
-            resultant_by_ordinal=dict()
+            resultant_by_order=dict()
+            resultant_id2order=dict()
+            waypointlink=dict()
             for add in added:                
                 wp=wps[add]
-                waypoint=Waypoint(tripuser(),trip.trip,wp['pos'],wp['ordinal'],wp['name'],wp['altitude'])
-                resultant_by_ordinal[wp['ordinal']]=waypoint
-                #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.ordinal,waypoint.pos,waypoint.waypoint)
+                waypoint=Waypoint(tripuser(),trip.trip,wp['pos'],int(wp['id']),int(wp['ordering']),wp['name'],wp['altitude'])
+                resultant_by_order[int(wp['ordering'])]=waypoint
+                resultant_id2order[int(wp['id'])]=wp['ordering']
+                #print "\n\n====ADDING!=====\n%s %s %s\n\n"%(waypoint.id,waypoint.pos,waypoint.waypoint)
                 meta.Session.add(waypoint)
             for upd in updated:
                 wp=wps[upd]
                 us=meta.Session.query(Waypoint).filter(
                     sa.and_(Waypoint.user==tripuser(),Waypoint.trip==trip.trip,
-                            Waypoint.ordinal==upd)).all()
+                            Waypoint.id==upd)).all()
                 if len(us)>0:
                     u=us[0]
                     prevpos=mapper.from_str(u.pos)
@@ -181,26 +188,34 @@ class MapviewController(BaseController):
                     approxdist=(prevpos[0]-newpos[0])**2+(prevpos[1]-newpos[1])**2
                     if approxdist>(1.0/36000.0)**2: #if moved more than 0.1 arc-second, otherwise leave be.                                        
                         u.pos=wp['pos']
-                        print "Waypoint %d moved! (%f deg)"%(u.ordinal,math.sqrt(approxdist))
+                        print "Waypoint %d moved! (%f deg)"%(u.id,math.sqrt(approxdist))
                     else:
-                        print "Waypoint %d has only moved a little (%f deg)"%(u.ordinal,math.sqrt(approxdist))
+                        print "Waypoint %d has only moved a little (%f deg)"%(u.id,math.sqrt(approxdist))
                         
                     u.waypoint=wp['name']
-                    u.ordinal=wp['ordinal']
+                    assert u.id==int(wp['id'])
+                    u.ordering=wp['ordering']
                     u.altitude=wp['altitude']
-                    resultant_by_ordinal[wp['ordinal']]=u
-                    #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.ordinal,u.pos,u.waypoint)
+                    resultant_by_order[int(wp['ordering'])]=u
+                    resultant_id2order[int(wp['id'])]=wp['ordering']
+                    #print "\n\n====UPDATING!=====\n%s %s %s\n\n"%(u.id,u.pos,u.waypoint)
             
-            print "Resultant by ordinal: %s"%(resultant_by_ordinal,)
-            seq=list(sorted(resultant_by_ordinal.items()))
+            #print "Resultant by ordering: %s"%(resultant_by_order,)
+            seq=list(sorted(resultant_by_order.items()))
             newroutes=set()
             for (ord1,waypoint1),(ord2,waypoint2) in zip(seq[:-1],seq[1:]):
                 if not int(ord1)+1==int(ord2):
                     print "Waypoints %s and %s not consecutive (#%d, #%d)"%(waypoint1,waypoint2,int(ord1),int(ord2))
                 assert int(ord1)+1==int(ord2)
-                newroutes.add((waypoint1.ordinal,waypoint2.ordinal))
-            oldroutes=set([(route.waypoint1,route.waypoint2) for route in meta.Session.query(Route).filter(sa.and_(
-                    Route.user==tripuser(),Route.trip==trip.trip)).all()])
+                newroutes.add((waypoint1.id,waypoint2.id))
+
+            oldrouteobjs=list(meta.Session.query(Route).filter(sa.and_(
+                    Route.user==tripuser(),Route.trip==trip.trip)).all())
+            oldroutes=set([(route.waypoint1,route.waypoint2) for route in oldrouteobjs])
+            prevalts=dict()
+            for rt in oldrouteobjs:
+                prevalts[(rt.a.id,+1)]=rt.altitude
+                prevalts[(rt.b.id,-1)]=rt.altitude
             
             #Routes:
             removed=oldroutes.difference(newroutes)
@@ -220,21 +235,63 @@ class MapviewController(BaseController):
             else:
                 tas=75
             for a1,a2 in added:
+                cruisealt=""
+                a=None
+                if a1 in addedwps:                    
+                    startord=resultant_id2order.get(int(a1),0)
+                elif a2 in addedwps:
+                    startord=resultant_id2order.get(int(a2),0)
+                else:
+                    startord=resultant_id2order.get(int(a1),0)
+                    
+                print "Ordering of new wp: %d is %d"%(a1,startord)
+                num_waypoints=len(resultant_by_order)
+                def searchpattern(begin,num):
+                    assert begin>=0 and begin<num
+                    down=begin-1
+                    up=begin+1
+                    while True:
+                        work=False
+                        if down>=0:
+                            yield down
+                            down-=1
+                            work=True
+                        if up<num:
+                            yield up
+                            up+=1
+                            work=True
+                        if not work: break
+                            
+                for wpord in searchpattern(startord,num_waypoints):
+                    wp=resultant_by_order.get(wpord,None)
+                    print "Searchpattern visiting order: %d"%(wpord,)
+                    if wp:
+                        if wpord<startord:
+                            cruisealt=prevalts.get((wp.id,+1),'')
+                            print "Looking for alt previously after wp %d, got: %s"%(wp.id,cruisealt)
+                        else:
+                            cruisealt=prevalts.get((wp.id,-1),'')
+                            print "Looking for alt previously before wp %d, got: %s"%(wp.id,cruisealt)
+                        if cruisealt!="": break
+                if cruisealt=="":
+                    cruisealt="1500"
                 r=Route(tripuser(),trip.trip,
-                        a1,a2,0,0,tas,None,1000)
+                        a1,a2,0,0,tas,None,cruisealt)
                 meta.Session.add(r)
             
             session.save()
 
             meta.Session.flush()
             meta.Session.commit();
-            
+                        
             ret=json.dumps([tripname])
             print "mapview returning json:",ret
             return ret
         except Exception,cause:                    
             #print line number and stuff as well
             print cause
+            #TODO: ONLY FOR TESTING!!!!
+            raise
             return "notok"        
         
     def share(self):
@@ -424,7 +481,7 @@ class MapviewController(BaseController):
         
                                         
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==tripuser(),Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordinal).all())
+             Waypoint.user==tripuser(),Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordering).all())
         c.tripname=session['current_trip']
         c.showarea=session.get('showarea','')
         c.showtrack=session.get('showtrack',None)!=None
@@ -437,6 +494,13 @@ class MapviewController(BaseController):
         c.dynamic_id=''
         c.sharing=tripsharing.sharing_active()
         c.mtime=maptilereader.get_mtime()
+        for way in c.waypoints:
+            print "Name:",way.waypoint
+        if len(c.waypoints):
+            c.next_waypoint_id=max([way.id for way in c.waypoints])+1
+        else:
+            c.next_waypoint_id=100
+        assert type(c.next_waypoint_id)==int
         if c.sharing:
             c.shared_by=tripuser()
         if session.get('showarea',''):
