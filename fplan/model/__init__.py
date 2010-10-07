@@ -29,7 +29,7 @@ Float=sa.types.Float
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
                         sa.Column("password",Unicode(100),nullable=False),
-                        sa.Column("realname",Unicode(100),nullable=False),
+                        sa.Column("realname",Unicode(100),nullable=False,default=''),
                         sa.Column("phonenr",Unicode(50),nullable=True),
                         sa.Column("isregistered",Boolean(),nullable=False),
                         sa.Column("lastlogin",DateTime(),nullable=False),
