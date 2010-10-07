@@ -62,6 +62,7 @@ class BlobFile(object):
             x2=self.x2
             y2=self.y2
             zoomlevel=self.zoomlevel
+            print "%d,%d-%d,%d zoom: %d"%(x1,y1,x2,y2,zoomlevel)
  
         #print x2,x1
         assert x2>x1

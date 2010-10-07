@@ -6,6 +6,10 @@ import stat
 import time
 import random
 from threading import Lock
+import StringIO
+import fplanquick.fplanquick as fplanquick
+from fplanquick.fplanquick import svector
+import Image
         
 def latlon_limits():
     #limits="55,10,69,24"
@@ -48,8 +52,38 @@ def get_mtime():
         last_mtime=mtime
         last_mtime_check=datetime.utcnow()
     return last_mtime
-        
-def gettile(variant,zoomlevel,mx,my,mtime=None):
+
+
+def gettile(variant,zoomlevel,mx,my,mtime=None): 
+    if variant in ['plain','airspace']:
+        return getmaptile(variant,zoomlevel,mx,my,mtime)
+    if variant=='elev':
+        return getelevtile(zoomlevel,mx,my,mtime)
+    raise Exception("Unknown image variant: "+variant)
+    
+def getelevtile(zoomlevel,mx,my,mtime): 
+    assert zoomlevel>=5   
+    raws=[]
+    for dy in xrange(0,256,64):
+        for dx in xrange(0,256,64):            
+            raw,status=getmaptile('elev',zoomlevel,mx+dx,my+dy,mtime)
+            if status['status']!="ok":
+                return open("fplan/public/nodata.png").read(),dict(status="underlying getmaptile failed: "+status['status'])
+            assert type(raw)==str
+            raws.append(raw)
+    rawimg=fplanquick.colorize_combine_heightmap(svector(raws))
+    if len(rawimg)==0:
+        print "Colorize found nothing"
+        return open("fplan/public/nodata.png").read(),dict(status="colorize returned 0-len")
+    assert len(rawimg)==256*256*3
+    img=Image.fromstring("RGB",(256,256),rawimg)
+
+    io=StringIO.StringIO()
+    img.save(io,'png')
+    io.seek(0)
+    return io.read(),dict(status="ok")
+    
+def getmaptile(variant,zoomlevel,mx,my,mtime=None):
     """
     Some explanation is in order for the mtime parameter:
     If it is supplied, the blobfiles are reloaded if mtime
@@ -75,7 +109,7 @@ def gettile(variant,zoomlevel,mx,my,mtime=None):
         if blobcache==None or reopen_blobs:
             #print "Reopen blobs:",reopen_blobs
             blobcache=dict()
-            loadvariants=["airspace","plain"]
+            loadvariants=["airspace","plain",'elev']
             for loadvariant in loadvariants:
                 for loadzoomlevel in xrange(14):
                     path="/home/anders/saker/avl_fplan_world/tiles/%s/level%d"%(
@@ -84,7 +118,9 @@ def gettile(variant,zoomlevel,mx,my,mtime=None):
                     #print "Reading: ",path
                     if os.path.exists(path):
                         #print "Reopening "+path
-                        blobcache[(loadvariant,loadzoomlevel)]=BlobFile(path)
+                        ltilesize=256
+                        if loadvariant=="elev": ltilesize=64
+                        blobcache[(loadvariant,loadzoomlevel)]=BlobFile(path,tilesize=ltilesize)
         loaded_mtime=mtime
     finally:
         blobcachelock.release()        

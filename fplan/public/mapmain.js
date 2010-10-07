@@ -79,7 +79,7 @@ function save_data(cont)
 	params['tripname']=document.getElementById('entertripname').value;
 	params['oldtripname']=document.getElementById('oldtripname').value;
 	params['showarea']=showarea;
-	params['showairspaces']=showairspaces;
+	params['mapvariant']=mapvariant;
 	params['pos']=''+parseInt(map_topleft_merc[0]+screen_size_x/2)+','+parseInt(map_topleft_merc[1]+screen_size_y/2);
 	params['zoomlevel']=map_zoomlevel;
 	var def=doSimpleXMLHttpRequest(saveurl,
@@ -87,19 +87,18 @@ function save_data(cont)
 	def.addCallback(save_data_cb);
 }
 
-function on_change_showairspace()
+function on_change_mapvariant()
 {
-	var elem=document.getElementById('showairspaces');
-	if (elem.checked)
+	var elem=document.getElementById('mapvariant');
+	mapvariant=elem.value;
+	if (mapvariant=='elev' && map_zoomlevel>8)
 	{
-		showairspaces=1;
+    	zoom_out([map_topleft_merc[0]+screen_size_x/2,map_topleft_merc[1]+screen_size_y/2]);
 	}
 	else
 	{
-		showairspaces=0;
-	}
-	reload_map();
-	
+    	reload_map();
+    }
 }
 function reload_map()
 {
