@@ -32,4 +32,31 @@ def short(x,l):
         
 def jsescape(s):
     return s.replace("'","\\'")
-    
+def timefmt(h):
+    totmin=int(60*h)
+    h=int(totmin//60)
+    min_=totmin-h*60
+    return "%dh%02dm"%(h,min_)
+def clockfmt(h):
+    totmin=int(60*h)
+    h=int(totmin//60)
+    min_=totmin-h*60
+    return "%02d:%02d"%(h,min_)
+def lfvclockfmt(h):
+    totmin=int(60*h)
+    h=int(totmin//60)
+    min_=totmin-h*60
+    return "%02d%02d"%(h,min_)
+
+def parse_clock(s):
+    if s.endswith("Z") or s.endswith("z"):
+        s=s[:-1]
+    if s.count(":"):
+        h,m=s.split(":")
+        return float(h)+float(m)/60.0
+    if s.isdigit():
+        if len(s)==4:
+            return float(s[0:2])+float(s[2:4])/60.0
+        return float(s[0:2])
+    raise Exception("Bad clock string:"+s)
+

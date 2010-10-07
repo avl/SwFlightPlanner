@@ -19,6 +19,7 @@ screen_size_y=0;
 tilesize=256;
 xsegcnt=0;
 ysegcnt=0;
+next_waypoint_id=${c.next_waypoint_id};
 selfurl='${h.url_for(controller="mapview",action="index")}';
 shareurl='${h.url_for(controller="mapview",action="share")}';
 saveurl='${h.url_for(controller="mapview",action="save")}';
@@ -28,7 +29,7 @@ mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
 dynamic_id='${c.dynamic_id}'; /*Id to keep different tiles uniquely named - needed since we allow the browser to cache the tiles*/
 uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
 fastmap=${"1" if c.fastmap else "0"};
-showairspaces=${"1" if c.show_airspaces else "0"};
+mapvariant='${c.mapvariant}';
 
 tilestart=[];//upper left corner of tile grid
 tiles=[];
@@ -37,7 +38,7 @@ overlay_top=0;
 
 function calctileurl(zoomlevel,mercx,mercy)
 {
-	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&showairspaces='+showairspaces+'&dynamic_id='+dynamic_id;
+	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&mapvariant='+mapvariant+'&dynamic_id='+dynamic_id+'&mtime=${c.mtime}';
 }
 function clip_mappos(mercx,mercy)
 {
@@ -176,8 +177,12 @@ function loadmap()
 	'</form>'+
 	'</div>'+
 	'<div class="first"><form id="showdataformbuttons" action="">'+
-	'Show on map:<br/>'+
-	'<input type="checkbox" onchange="on_change_showairspace()" id="showairspaces" name="showairspaces" ${'checked="1"' if c.show_airspaces else ''|n} />Show airspaces'+
+	'Show on map:'+
+	'<select style="font-size:10px" onchange="on_change_mapvariant()" id="mapvariant" name="mapvariant"/>'+
+    '<option value="plain" ${'selected="selected"' if c.mapvariant=='plain' else ''}>Regular</option>'+
+    '<option value="airspace" ${'selected="selected"' if c.mapvariant=='airspace' else ''}>Airspace</option>'+
+    '<option value="elev" ${'selected="selected"' if c.mapvariant=='elev' else ''}>Elevation</option>'+
+    '</select>'+
 	'<br/><button style="font-size:10px" onclick="zoom_in([map_topleft_merc[0]+screen_size_x/2,map_topleft_merc[1]+screen_size_y/2]);return false;">Zoom in</button>'+
 	'<button style="font-size:10px" onclick="zoom_out([map_topleft_merc[0]+screen_size_x/2,map_topleft_merc[1]+screen_size_y/2]);return false;">Zoom out</button>'+
 
@@ -250,10 +255,10 @@ function loadmap()
 	jg.setColor("#00d000"); 
 	
 	var idx=0;	
-	%for wp in sorted(c.waypoints,key=lambda x:x.ordinal):	
+	%for wp in sorted(c.waypoints,key=lambda x:x.ordering):	
 	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
+	tab_add_waypoint(idx,me,${wp.id},'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
 	idx++;
 	%endfor
 	draw_jg();

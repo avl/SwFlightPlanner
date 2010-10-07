@@ -2,7 +2,6 @@ from time import sleep
 import os
 import urllib2
 import random
-import fplan.extract.extracted_cache as extracted_cache
 from datetime import datetime
 
 def download_notam():
@@ -22,7 +21,17 @@ def download_notam():
     north=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinesun.txt&SubTitle=&T=SWEDEN%20-%20North&Frequency=250").read()
     mid=urllib2.urlopen(  "http://www.lfv.se/AISInfo.asp?TextFile=odinesos.txt&SubTitle=&T=SWEDEN%20-%20Middle&Frequency=250").read()
     south=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinesmm.txt&SubTitle=&T=SWEDEN%20-%20South&Frequency=250").read()
-    text="\n".join([north,mid,south,all_notams_but_seldom_updated])
+    print "Downloaded swedish, now Finnish"
+    
+    finland_n=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefps.txt&SubTitle=&T=Finland%20N&Frequency=250").read()
+    finland_s=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefes.txt&SubTitle=&T=Finland%20S&Frequency=250").read()
+    finland_all=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefin.txt&SubTitle=&T=Finland&Frequency=250").read()
+    print "Downloaded Finnish"
+    
+    text="\n".join([north,mid,south,
+        all_notams_but_seldom_updated,
+        finland_n,finland_s,finland_all
+        ])
     
     outfile="notams/%08d"%(nextnotam,)
     if lasttext!=text:        
@@ -40,7 +49,6 @@ def download_notams():
     if not os.path.exists("notams"):
         os.makedirs("notams")
     while True:
-        extracted_cache.run_update_iteration()        
         try:
             download_notam()
         except Exception,cause:

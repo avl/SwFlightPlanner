@@ -33,7 +33,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
     l=len(rts)
     out=[]
     for idx,rt in enumerate(rts):
-        print "ord:",rt.a.ordinal
+        #print "ord:",rt.a.ordering
         merca=rt.subposa
         mercb=rt.subposb
         
@@ -70,7 +70,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
             #    continue
                
             if alt-elev<vertdist:
-                #print "idx",idx,"ord:",rt.a.ordinal
+                #print "idx",idx,"ord:",rt.a.ordering
                 #print "Terrain warning: ",dict(a=rt.a.waypoint,b=rt.b.waypoint,kind=rt.legpart,startalt=rt.startalt,endalt=rt.endalt,along=alongf,end=end)
                 out.append(dict(
                     name="Terrain warning",
@@ -85,7 +85,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                     dir_from_a=describe_dir(rt.tt),
                     a=rt.a,
                     b=rt.b,
-                    ordinal=rt.a.ordinal))
+                    id=rt.a.id))
                 along_nm+=interval
             else:
                 along_nm+=minstep
@@ -95,8 +95,6 @@ def get_terrain_near_route(rts,vertdist,interval=10):
 
 def get_stuff_near_route(rts,items,dist,vertdist):
     for item in items:
-        #if not item['name'].count("NG/DOMKYR"): continue
-        
         try:
             itemmerc=mapper.latlon2merc(mapper.from_str(item['pos']),13)
         except:
@@ -113,7 +111,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
             actualclosest=l.approx_closest(itemv)
             #print item['name'],"A: ",av,"B: ",bv,"clo:",actualclosest
             actualdist=(actualclosest-itemv).approxlength()/onenm
-            
+            #print "Actualdist: ",actualdist
             ls=(actualclosest-av).approxlength()
             #print "Length from start:",ls
             #print "Linelen:",linelen
@@ -138,6 +136,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
             if actualdist<dist and altmargin<vertdist:
                 bear=mapper.approx_bearing_vec(actualclosest,itemv)            
                 d=dict(item)
+                #print "Yielding."
                 d['name']=d['kind']+': ' +d['name']
                 d['dist_from_a']=alongnm_a
                 d['dir_from_a']=describe_dir(rt.tt)
@@ -149,7 +148,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 d['closestalt']=closealt
                 d['a']=rt.a
                 d['b']=rt.b
-                d['ordinal']=rt.a.ordinal
+                d['id']=rt.a.id
                 yield d
       
             

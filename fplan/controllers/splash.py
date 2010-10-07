@@ -9,10 +9,17 @@ import routes.util as h
 from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
 import fplan.lib.tripsharing as tripsharing
-from fplan.lib.maptilereader import get_tiles_timestamp
+from fplan.lib.maptilereader import get_mtime
 import re
+import os
 
 log = logging.getLogger(__name__)
+
+if os.path.exists("master_key"):
+    master_key=open("master_key").read()
+else:
+    master_key=None
+
 
 class SplashController(BaseController):
 
@@ -47,7 +54,7 @@ class SplashController(BaseController):
         except Exception,cause:
             c.aipupdate=None
         try:
-            c.mapupdate=get_tiles_timestamp()
+            c.mapupdate=datetime.fromtimestamp(get_mtime())
         except:
             c.mapupdate=datetime(1970,1,1)
         
@@ -60,7 +67,7 @@ class SplashController(BaseController):
         if len(users)==1:
             user=users[0]
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5(request.params['password']).hexdigest(),user.password)
-            if user.password==md5(request.params['password']).hexdigest() or request.params['password']=='KGIHMEKDGNMGNNKEEJNHOAKKDCIELDFJ':
+            if user.password==md5(request.params['password']).hexdigest() or (master_key and request.params['password']==master_key):
                 session['user']=users[0].user
                 tripsharing.cancel()
                 session.save()

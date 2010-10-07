@@ -58,9 +58,16 @@ ${ac.aircraft}
 %endif
 
 <table>
+
 <tr>
-<td>Registration/name:</td><td><input type="hidden" name="orig_aircraft" value="${c.orig_aircraft}" />
-<input type="text" name="aircraft" value="${c.ac.aircraft}" /></td>
+<td>Registration:</td><td><input type="hidden" name="orig_aircraft" value="${c.orig_aircraft}" />
+<input type="text" name="aircraft" value="${c.ac.aircraft}" />(Example: SE-ABC)</td>
+</tr>
+
+<tr>
+<td>Aircraft Type :</td><td>
+    <input type="text" name="atstype" value="${c.ac.atstype}" />(Type-designator as used in ATS-flight plans)</td>
+</tr>
 </tr>
 <tr>
 <td>Cruise speed:</td><td><input ${c.fmterror('cruise_speed')|n} type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt ${c.msgerror('cruise_speed')}</td>
@@ -87,12 +94,24 @@ ${ac.aircraft}
 <td>Descent fuel burn:</td><td><input ${c.fmterror('descent_burn')|n} type="text" name="descent_burn" value="${c.ac.descent_burn}" />L/h ${c.msgerror('descent_burn')}</td>
 </tr>
 
+<tr>
+<td>Aircraft Color and Markings :</td><td>
+    <input type="text" name="markings" value="${c.ac.markings}" />(Aircraft Colour and Markings for use in ATS-flight plan)</td>
+</tr>
+<td colspan="2" style="font-size:10px">
+The following abbreviations are allowed: 
+ B = Blue , G = Green , R = Red , W = White , Y = Yellow. Other colours should be written in plain text, like: ORANGE.
+</td>
+
+<tr>
+
 </table>
 %endif        
 <input type="hidden" id="navigate_to" name="navigate_to" value="" />
 %if len(c.all_aircraft):
 <input type="submit" name="save_button" value="Save"/>
 %endif
+
 
 </form>
 </div>

@@ -129,17 +129,20 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
 
     ctx=cairo.Context(im)
     if tma:
-        
+        def tolocal(merc):
+            return (merc[0]-x1,merc[1]-y1)
         for space in get_airspaces()+get_notam_objs_cached()['areas']+get_aip_sup_areas():        
             
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
-                ctx.line_to(merc[0]-x1,merc[1]-y1)
+                ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)
             areacol,solidcol=dict(
                         TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+                        RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+                        CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
                         R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
                         CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
-                        notamarea=((0.5,1,0.5,0.15),(0.5,1,0.5,0.75)),
+                        notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
                         aip_sup=  ((0.8,1,0.8,0.05),(0.8,1,0.8,0.75)),
                         mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
                         )[space['type']]
@@ -153,7 +156,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
                 merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
-                pos=(merc[0]-x1,merc[1]-y1)            
+                pos=tolocal(merc)#(merc[0]-x1,merc[1]-y1)            
                 radius=parse_obstacles.get_pixel_radius(obst,zoomlevel)
                 
                 ctx.new_path()
@@ -168,7 +171,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
                 merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
-                pos=(merc[0]-x1,merc[1]-y1)            
+                pos=tolocal(merc)#(merc[0]-x1,merc[1]-y1)            
                 radius=3            
                 ctx.new_path()
                 ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
@@ -184,7 +187,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
                 if zoomlevel>=8:
                     ctx.set_source(cairo.SolidPattern(0.25,1,0.25,0.25))
                     merc=mapper.latlon2merc(mapper.from_str(item['pos']),zoomlevel)
-                    pos=(merc[0]-x1,merc[1]-y1)            
+                    pos=tolocal(merc)#(merc[0]-x1,merc[1]-y1)            
                     radius=5
                     
                     ctx.new_path()
@@ -213,6 +216,31 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             ctx.new_path()
             ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
             ctx.stroke()
+            
+            for rwy in airfield.get('runways',[]):
+                ends=rwy['ends']
+                mercs=[]
+                #print "Ends:",ends
+                for end in ends:
+                    #print "pos:",end['pos']
+                    latlon=mapper.from_str(end['pos'])
+                    #print "latlon:",latlon
+                    merc=mapper.latlon2merc(latlon,zoomlevel)
+                    #print "Merc:",merc
+                    mercs.append(merc)
+                if len(mercs)==2:
+                    a,b=mercs
+                    #print "Drawing:",airfield['icao'],a,b
+                    ctx.set_source(cairo.SolidPattern(0.0,0.0,0.0,1))
+                    lwidth=mapper.approx_scale(a,zoomlevel,40.0/1852.0)
+                    if lwidth<=2:
+                        lwidth=2.0
+                    ctx.set_line_width(lwidth)
+                    ctx.new_path()
+                    ctx.move_to(*tolocal(a))
+                    ctx.line_to(*tolocal(b))
+                    ctx.stroke()
+
         
             
     

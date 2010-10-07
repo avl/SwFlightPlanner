@@ -27,6 +27,8 @@ class NotamController(BaseController):
         user=meta.Session.query(User).filter(User.user==session['user']).one()
         c.showobst=user.showobst
         
+        
+        
         def vandalize(x):
             x=x.replace(u"Å",u"A")
             x=x.replace(u"Ä",u"A")
@@ -38,7 +40,10 @@ class NotamController(BaseController):
         c.shown=[]
         c.show_cnt=0
         c.hide_cnt=0
-        
+        c.countries=[
+           # dict(name="Sweden",sel=True),
+           # dict(name="Finland",sel=False),
+        ]
         ms=[]
         ms.append(re.compile(r".*\bOBST\s+ERECTED\b.*"))
         ms.append(re.compile(r".*TURBINE?S?\s+ERECTED\b.*"))
@@ -89,7 +94,7 @@ class NotamController(BaseController):
         meta.Session.flush()
         meta.Session.commit()
         user=meta.Session.query(User).filter(User.user==session['user']).one()
-        print "Numbe rof items: ",meta.Session.query(NotamCategoryFilter).filter(NotamCategoryFilter.user==session['user']).count()
+        print "Number of items: ",meta.Session.query(NotamCategoryFilter).filter(NotamCategoryFilter.user==session['user']).count()
         cats=set()
         if 'showobst' in request.params:
             user.showobst=True

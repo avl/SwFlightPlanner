@@ -81,13 +81,16 @@ def parse_notam(html):
         if len(l) and l[0]=='+':
             l=' '+l[1:]
         l=l.lstrip()
+        	
+        #if re.match("AIS AREA INFORMATION ISSUED \d+ \d+ SDI\d+ PAGE \d+(\d+)",l.strip()): continue
+
         if l.strip()=="END OF AIS FIR INFORMATION": continue
         if l.strip()=="ALL ACTIVE AND INACTIVE NOTAM INCLUDED": continue
         if l.strip()=="FIR: ESAA": continue
         if l.strip()=="AERODROMES INCLUDED: ALL": continue            
         if l.strip()=="INSIGNIFICANT NOTAM INCLUDED, EXCEPT OLD PERM NOTAM": continue
         if re.match(r"VALID\s*\d+-\d+\s*ALL\s*FL\s*CS.{3,19}",l.strip()): continue
-        iss=re.match(r"\s*AIS FIR INFORMATION\s+ISSUED\s+(\d{6})\s+(\d{4})\s+SFI\d+\s+PAGE\s+\d+\(\d+\)\s*",l)
+        iss=re.match(r"\s*AIS\s*(?:FIR|AREA)\s*INFORMATION\s+ISSUED\s+(\d{6})\s+(\d{4})\s+...\d+\s+PAGE\s+\d+\(\d+\)\s*",l)
         if not iss:
             iss=re.match(r"ISSUED BY ODIN ESSA AIS\s+(\d{6})\s+(\d{4})\s+HAVE A NICE FLIGHT",l)
         #print "iss match <%s>: %s"%(l,iss!=None)
@@ -121,6 +124,7 @@ def parse_notam(html):
         if b.text and not (b.text in seen):
             seen.add(b.text)
             items.append(b)
+    print "Items:",len(items)
     downloaded=datetime.utcnow()
     notam=Notam(downloaded,items,"".join(ls))
     return notam

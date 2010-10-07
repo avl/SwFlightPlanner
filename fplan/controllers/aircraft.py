@@ -59,8 +59,8 @@ class AircraftController(BaseController):
             for name,value in request.params.items():            
                 if name=='orig_aircraft': continue
                 if hasattr(ac,name):
-                    if name=='aircraft':
-                        ac.aircraft=value
+                    if name in ['aircraft','atstype','markings']:
+                        setattr(ac,name,value)
                     else:
                         try:
                             fvalue=float(value)
@@ -102,7 +102,7 @@ class AircraftController(BaseController):
         if request.params.get('add_button',False):
             print "add button"
             i=None
-            cur_acname="Enter name"
+            cur_acname="SE-ABC"
             while True:
                 if i!=None:
                     cur_acname+="(%d)"%(i,)

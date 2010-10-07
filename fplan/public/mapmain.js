@@ -70,14 +70,16 @@ function save_data(cont)
 		var namefield=rowelem.cells[1].childNodes[0];
 		var posfield=rowelem.cells[2].childNodes[0];
 		var altfield=rowelem.cells[2].childNodes[1];
+		var idfield=rowelem.cells[2].childNodes[2];
 		params[namefield.name]=namefield.value;
 		params[posfield.name]=posfield.value;
 		params[altfield.name]=altfield.value;
+		params[idfield.name]=idfield.value;
 	}			
 	params['tripname']=document.getElementById('entertripname').value;
 	params['oldtripname']=document.getElementById('oldtripname').value;
 	params['showarea']=showarea;
-	params['showairspaces']=showairspaces;
+	params['mapvariant']=mapvariant;
 	params['pos']=''+parseInt(map_topleft_merc[0]+screen_size_x/2)+','+parseInt(map_topleft_merc[1]+screen_size_y/2);
 	params['zoomlevel']=map_zoomlevel;
 	var def=doSimpleXMLHttpRequest(saveurl,
@@ -85,19 +87,18 @@ function save_data(cont)
 	def.addCallback(save_data_cb);
 }
 
-function on_change_showairspace()
+function on_change_mapvariant()
 {
-	var elem=document.getElementById('showairspaces');
-	if (elem.checked)
+	var elem=document.getElementById('mapvariant');
+	mapvariant=elem.value;
+	if (mapvariant=='elev' && map_zoomlevel>8)
 	{
-		showairspaces=1;
+    	zoom_out([map_topleft_merc[0]+screen_size_x/2,map_topleft_merc[1]+screen_size_y/2]);
 	}
 	else
 	{
-		showairspaces=0;
-	}
-	reload_map();
-	
+    	reload_map();
+    }
 }
 function reload_map()
 {
@@ -217,10 +218,12 @@ function reorder_wp_impl(idx,delta)
 	var name1e=rowelem1.cells[1].childNodes[0];
 	var pos1e=rowelem1.cells[2].childNodes[0];
 	var alt1e=rowelem1.cells[2].childNodes[1];
+	var id1e=rowelem1.cells[2].childNodes[2];
     var rowelem2=glist.rows[odx];		
 	var name2e=rowelem2.cells[1].childNodes[0];
 	var pos2e=rowelem2.cells[2].childNodes[0];
 	var alt2e=rowelem2.cells[2].childNodes[1];
+	var id2e=rowelem2.cells[2].childNodes[2];
 
     var pos1=pos1e.value;
     var pos2=pos2e.value;
@@ -228,17 +231,26 @@ function reorder_wp_impl(idx,delta)
     var name2=name2e.value;
     var alt1=alt1e.value;
     var alt2=alt2e.value;
+    var id1=id1e.value;
+    var id2=id2e.value;
     pos1e.value=pos2;
     pos2e.value=pos1;
     name1e.value=name2;
     name2e.value=name1; 
     alt1e.value=alt2;
     alt2e.value=alt1; 
+    id1e.value=id2;
+    id2e.value=id1; 
 }
-function tab_add_waypoint(idx,pos,name,altitude)
+function tab_add_waypoint(idx,pos,id,name,altitude)
 {	
    	var latlon=merc2latlon(pos);
-	
+	var curid=id;
+	if (curid==null)
+	{
+	    curid=next_waypoint_id;
+	    next_waypoint_id+=1;
+	}
 	if (name==null)
 		name=default_wpname(latlon);
 	var glist=document.getElementById('tab_fplan');
@@ -266,6 +278,7 @@ function tab_add_waypoint(idx,pos,name,altitude)
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_altitude" value="'+altitude+'"/>'+
+    '<input type="hidden" name="row_'+idx+'_id" value="'+curid+'"/>'+
     '</td>'+
     '';
 	
@@ -294,6 +307,7 @@ function tab_renumber_single(i)
 	rowelem.cells[1].childNodes[2].onclick=function(ev) { reorder_wp(i,+1);return false; }; 
 	rowelem.cells[2].childNodes[0].name='row_'+i+'_pos';
 	rowelem.cells[2].childNodes[1].name='row_'+i+'_altitude';
+	rowelem.cells[2].childNodes[2].name='row_'+i+'_id';
 }
 
 function on_key(event)
@@ -358,6 +372,8 @@ function handle_mouse_wheel(delta,event)
 {
 	var screen_x=event.clientX-document.getElementById('mapcontainer').offsetLeft;
 	var screen_y=event.clientY-document.getElementById('mapcontainer').offsetTop;
+	if (screen_x<0 || screen_y<0 || screen_x>=screen_size_x || screen_y>=screen_size_y)
+	    return false;	   
 	var dx=screen_x-(screen_size_x/2);
 	var dy=screen_y-(screen_size_y/2);
 	var centerx=map_topleft_merc[0]+screen_size_x/2;
@@ -375,6 +391,7 @@ function handle_mouse_wheel(delta,event)
 	    var y=centery-dy;
 		zoom_out([parseInt(x),parseInt(y)]); 		
 	}
+	return true;
 }
 
 
@@ -933,7 +950,7 @@ function add_waypoint(name,pos)
 	var merc=latlon2merc(pos);
 	relx=merc[0];
 	rely=merc[1];
-	tab_add_waypoint(wps.length,[relx,rely],name,'');
+	tab_add_waypoint(wps.length,[relx,rely],null,name,'');
 	wps.push([relx,rely]);
 	anychangetosave=1;
 	jgq.clear();
@@ -1000,7 +1017,7 @@ function on_mouseup(event)
 	if (waypointstate=='addwaypoint' || waypointstate=='addfirstwaypoint')
 	{
 		clear_mapinfo();
-		tab_add_waypoint(wps.length,[relx,rely],null,'');
+		tab_add_waypoint(wps.length,[relx,rely],null,null,'');
 		wps.push([client2merc_x(event.clientX),client2merc_y(event.clientY)]);
 		anychangetosave=1;
 		anchorx=wps[wps.length-1][0];
@@ -1391,7 +1408,7 @@ function menu_insert_waypoint_mode()
 		}
 		wps=tmpwps;
 		anychangetosave=1;		
-		tab_add_waypoint(clo[0]+1,[relx,rely],null,'');
+		tab_add_waypoint(clo[0]+1,[relx,rely],null,null,'');
 		waypointstate='moving';
 		movingwaypoint=clo[0]+1;
 		draw_jg();

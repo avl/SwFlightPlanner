@@ -18,17 +18,26 @@ import csv
 from itertools import chain
 from fplan.lib.extract_heights_near_path import heightmap_tiles_near
 import zlib
-
+import math
 
 def cleanup_poly(latlonpoints):
-    mercpoints=[]
-    lastmerc=None
-    for latlon in latlonpoints:
-        merc=mapper.latlon2merc(latlon,13)
-        if merc==lastmerc:
-            continue
-        lastmerc=merc
-        mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
+    
+    for minstep in [0,10,100,1000,10000,100000]:
+        mercpoints=[]
+        lastmerc=None
+        for latlon in latlonpoints:
+            merc=mapper.latlon2merc(latlon,13)
+            if lastmerc!=None:
+                dist=math.sqrt(sum([(lastmerc[i]-merc[i])**2 for i in xrange(2)]))
+                print "Dist:",dist
+                if dist<minstep:
+                    continue
+            if merc==lastmerc:
+                continue
+            lastmerc=merc
+            mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
+        if len(mercpoints)<50:
+            break
     assert len(mercpoints)>2
     if mercpoints[0]==mercpoints[-1]:
         del mercpoints[-1]
@@ -70,7 +79,7 @@ class ApiController(BaseController):
                 lat=lat,
                 lon=lon,
                 kind="airport",
-                alt=float(airp['elev'])))
+                alt=float(airp.get('elev',0))))
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
             points.append(dict(

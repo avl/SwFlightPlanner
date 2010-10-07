@@ -62,6 +62,7 @@ class BlobFile(object):
             x2=self.x2
             y2=self.y2
             zoomlevel=self.zoomlevel
+            print "%d,%d-%d,%d zoom: %d"%(x1,y1,x2,y2,zoomlevel)
  
         #print x2,x1
         assert x2>x1
@@ -163,7 +164,7 @@ class BlobFile(object):
             p=unpack(">I",t)[0]
             #print "Tile number coords: %d,%d = %d"%(tx,ty,p)
             if p==0:
-                print "No tile at position %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
+                #print "No tile at position %d,%d, zoomlevel %d"%(x,y,self.zoomlevel)
                 return None
             f.seek(p)
             sbuf=f.read(4)

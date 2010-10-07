@@ -18,6 +18,14 @@ fpcolshort=[];
 fpcoldesc=[];
 fpcolextra=[];
 fpcolwidth=[];
+%if c.stay:
+firstwaypointid=${c.stay.waypoint_id};
+%endif
+%if not c.stay:
+firstwaypointid=null;
+%endif
+
+fpid=[];
 num_rows=${len(c.waypoints)};
 function loadfplan()
 {
@@ -30,16 +38,25 @@ function loadfplan()
 	fpcolwidth.push('${col["width"]}');
 %endfor
 	
-%for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordinal)):
-
+%for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordering)):
+    fpid.push(${wp.id});
 	var rowdata=[
 	%if cnt!=len(c.waypoints)-1:
-	%for whati,what in h.izip(h.count(),c.cols):
+	%for whati,what in enumerate(c.cols):
 	'${c.get(what['short'],c.waypoints[cnt],c.waypoints[cnt+1])}'${',' if whati!=len(c.cols)-1 else ''}\
 	%endfor
 	%endif
 	];	
-	fpaddwaypoint('${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(unicode(wp.altitude,"latin1"))|n}');
+	var stay=[];
+	%if wp.stay:
+	stay=[
+	    '${h.jsescape(wp.stay.date_of_flight)|n}','${h.jsescape(wp.stay.departure_time)|n}',
+	    ${"''" if wp.stay.fuel==None else "'%d'"%(int(wp.stay.fuel))},
+	    ${wp.stay.nr_persons if wp.stay.nr_persons else "''"}
+	];
+	%endif
+	
+	fpaddwaypoint(${wp.id},${cnt},'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(unicode(wp.altitude,"latin1"))|n}',stay);
 
 %endfor
 
@@ -117,8 +134,22 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 %endif
 %if len(c.waypoints)!=0:
 <form id="flightplanform" method="POST" action="${h.url_for(controller="flightplan",action="save")}">
-Fuel at takeoff: <input size="4" type="text" onchange="makedirty()" id="startfuel" name="startfuel" value="${c.startfuel}"/>L<br/><br/>
 
+%if c.stay:
+<table>
+<tr><td>Date of Flight: </td><td><input size="10" type="text" onchange="makedirty();onchange="makedirty()"" 
+    id="date_of_flight_${c.stay.waypoint_id}" value="${c.stay.date_of_flight}"/>(YYYY-MM-DD)</td></tr>
+<tr><td>Estimated Start Time (UTC): </td><td><input size="5" type="text" onchange="makedirty();on_updaterow(${c.stay.waypoint_id},0,'Clock');" 
+    id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
+<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="makedirty();" 
+    id="fuel_${c.stay.waypoint_id}" value="${int(c.stay.fuel) if c.stay.fuel else ''}"/>(L)</td></tr>
+<tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="makedirty();" 
+    id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
+<tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="makedirty();onchange="makedirty()"" 
+    id="realname" value="${c.realname}"/></td></tr>
+</table>
+%endif
+<br/>
 %if False:
 %if len(c.all_aircraft):
 Aircraft: <select id="curaircraft" name="aircraft">
@@ -146,7 +177,7 @@ ${ac.aircraft}
 %endif
 <br/>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
-Total time: <input id="tottime" type="text" readonly="1" value="" size="4"> (not counting time for climb).<br/>
+Total time (enroute): <input id="tottime" type="text" readonly="1" value="" size="4"> (not counting time for climb).<br/>
 %if False and len(c.all_aircraft)==0:
 <a href="#" onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" ><u>Add</u> an aircraft to use on this trip.</a><br/>
 %endif
