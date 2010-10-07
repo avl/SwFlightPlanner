@@ -102,7 +102,7 @@ class AircraftController(BaseController):
         if request.params.get('add_button',False):
             print "add button"
             i=None
-            cur_acname="Enter name"
+            cur_acname="SE-ABC"
             while True:
                 if i!=None:
                     cur_acname+="(%d)"%(i,)

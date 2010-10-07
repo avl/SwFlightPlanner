@@ -60,8 +60,8 @@ ${ac.aircraft}
 <table>
 
 <tr>
-<td>Registration/name:</td><td><input type="hidden" name="orig_aircraft" value="${c.orig_aircraft}" />
-<input type="text" name="aircraft" value="${c.ac.aircraft}" /></td>
+<td>Registration:</td><td><input type="hidden" name="orig_aircraft" value="${c.orig_aircraft}" />
+<input type="text" name="aircraft" value="${c.ac.aircraft}" />(Example: SE-ABC)</td>
 </tr>
 
 <tr>
