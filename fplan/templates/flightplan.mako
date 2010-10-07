@@ -145,6 +145,8 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
     id="fuel_${c.stay.waypoint_id}" value="${int(c.stay.fuel) if c.stay.fuel else ''}"/>(L)</td></tr>
 <tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="makedirty();" 
     id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
+<tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="makedirty();onchange="makedirty()"" 
+    id="realname" value="${c.realname}"/></td></tr>
 </table>
 %endif
 <br/>

@@ -34,7 +34,12 @@ class ProfileController(BaseController):
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         print "As user:",user.user
-        user.user=request.params.get('username',user.user)
+        
+        name_busy=False
+        if meta.Session.query(User).filter(User.user==request.params.get("username")).count():
+            name_busy=True
+        else:
+            user.user=request.params.get('username',user.user)
         user.phonenr=request.params.get('phonenr',user.phonenr)
         user.realname=request.params.get('realname',user.realname)
         if request.params.get("password1",'')!='' and request.params.get('password2','')!='':
@@ -52,6 +57,10 @@ class ProfileController(BaseController):
         session.save()
         meta.Session.flush()
         meta.Session.commit();
+        if name_busy:
+            redirect_to(h.url_for(controller='profile',action="index",splash=u"That username is already taken. Try some other name."))
+            return 
+        
         redirect_to(h.url_for(controller='profile',action="index"))
         
             

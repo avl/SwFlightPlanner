@@ -100,7 +100,7 @@ ${ac.aircraft}
 </tr>
 <td colspan="2" style="font-size:10px">
 The following abbreviations are allowed: 
- B = Blue , G = Green , R = Red , W = White , Y = Yellow
+ B = Blue , G = Green , R = Red , W = White , Y = Yellow. Other colours should be written in plain text, like: ORANGE.
 </td>
 
 <tr>

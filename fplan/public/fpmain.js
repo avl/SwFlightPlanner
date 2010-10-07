@@ -174,10 +174,7 @@ function save_data(cont)
     }
     
 	params['tripname']=tripname;
-	if (document.getElementById('startfuel'))	
-    	params['startfuel']=document.getElementById('startfuel').value;
-    else
-        params['startfuel']=0.0;
+	params['realname']=document.getElementById('realname').value;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);

@@ -65,7 +65,7 @@
 63: FIXAD: Handle the case where a certain waypoint has been deleted when saving the flightplan->overview page.
 64: FIXAD: A *LOT* of verification to do. Is it so that we should even deploy in parallel? (NO!?)
 65: FIXAD: Använd id, inte idx, även i flightplan-overview-sidan!
-66: Behöver validering i t.ex "estimated takeoff"-fältet, samt andra fält i overview-sidan.
+66: FIXAD: Behöver validering i t.ex "estimated takeoff"-fältet, samt andra fält i overview-sidan.
 
 
 

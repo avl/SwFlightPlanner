@@ -68,19 +68,13 @@ class FlightplanController(BaseController):
         #print "Saving tripname:",request.params['tripname']
         trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==request.params['tripname'])).one()
+        userobj=meta.Session.query(User).filter(User.user==session['user']).one()
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordering).all()
-            
-        #print "Save:",request.params
-        if 'startfuel' in request.params:
-            try: 
-                pass#trip.startfuel=float(request.params['startfuel'])
-                #TODO: Add fuel-management again
-            except:
-                pass
+        print "REquest:",request.params
+        userobj.realname=request.params.get('realname',userobj.realname)
                             
-        #print request.params
         for idx,way in enumerate(waypoints):
             dof_s="date_of_flight_%d"%(way.id,)
             dep_s="departure_time_%d"%(way.id,)
@@ -334,6 +328,8 @@ class FlightplanController(BaseController):
                 if stay and stay.fuel:
                     fuel=stay.fuel
                     
+                if not c.ac:
+                    raise AtsException("You must choose an aircraft type for this journey to be able to create an ATS flight plan")
                 if c.ac.cruise_burn>1e-3 and fuel:
                     endurance=float(fuel)/float(c.ac.cruise_burn)
                 else:
@@ -426,6 +422,9 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             Trip.trip==session['current_trip'])).all()
         if len(trips)!=1:
             return redirect_to(h.url_for(controller='mapview',action="index"))            
+        
+        userobj=meta.Session.query(User).filter(User.user==session['user']).one()
+        
         c.flash=request.params.get('flash',None)
         trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
@@ -444,7 +443,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         else:
             c.stay=None
                 
-        
+        c.realname=userobj.realname
         
         c.totdist=0.0
         for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
