@@ -164,20 +164,19 @@ class MaptileController(BaseController):
         mx=int(request.params.get('mercx'))
         zoomlevel=int(request.params.get('zoom'))
         #print "dynid: ",request.params.get('dynamic_id','None')
-        airspaces=True
-        if 'showairspaces' in request.params:
-            airspaces=int(request.params['showairspaces'])
+        if 'showairspaces' in request.params and request.params['showairspaces']:
+            variant="airspace"
+        else:
+            variant="plain"
+        variant=request.params.get('mapvariant',variant)
+        
+
         neededit=False
         if session.get('showarea','')!='':
             neededit=True                
         if session.get('showtrack',None)!=None:
             neededit=True                
         
-        variant=None
-        if airspaces:
-            variant="airspace"
-        else:
-            variant="plain"
         mtime=request.params.get('mtime',None)
         generate_on_the_fly=False
         #print "get: %d,%d,%d (showair:%s, neededit: %s)"%(mx,my,zoomlevel,airspaces,neededit)

@@ -6,6 +6,7 @@
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
 	<title>SwFlightPlanner</title>
 	<meta http-equiv="Content-Language" content="en-us" />
+    <link rel="shortcut icon" href="/favicon.png">
 	<link href="/style.css" rel="stylesheet" type="text/css" />
     <title>
     Welcome to SwFlightplanner

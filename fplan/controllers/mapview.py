@@ -36,8 +36,10 @@ class MapviewController(BaseController):
             zoomlevel=zoom
             if zoomlevel<5:
                 zoomlevel=5
-            if zoomlevel>13:
-                zoomlevel=13            
+            if session.get('mapvariant',None)=='elev':
+                if zoomlevel>8: zoomlevel=8
+            else:            
+                if zoomlevel>13: zoomlevel=13
             merc_x,merc_y=mapper.latlon2merc(latlon,zoomlevel)
             
         merc_limx1,merc_limy1,merc_limx2,merc_limy2=merc_limits(zoomlevel,conservative=False)
@@ -107,10 +109,7 @@ class MapviewController(BaseController):
                     session['showarea_id']=md5(sha.encode('utf8')).hexdigest()
                     session['showtrack']=None
             
-            if int(request.params.get('showairspaces',0)):
-                session['showairspaces']=True
-            else:
-                session['showairspaces']=False
+            session['mapvariant']=request.params.get('mapvariant','airspace')
                 
             #print "Req:",request.params
             oldtrip=None
@@ -390,10 +389,13 @@ class MapviewController(BaseController):
         else:
             zoomlevel=float(request.params['zoom'])
             if zoomlevel<0: zoomlevel=0
-            if zoomlevel>13: zoomlevel=13
-            print "Zoomlevel: %s"%(zoomlevel,)
-    
             pos=mapper.merc2latlon(tuple([int(x) for x in request.params['center'].split(",")]),zoomlevel)
+            if session.get('mapvariant',None)=='elev':
+                if zoomlevel>8: zoomlevel=8
+            else:                
+                if zoomlevel>13: zoomlevel=13
+            print "Zoomlevel: %s"%(zoomlevel,)    
+            print "Pos:",pos
             self.set_pos_zoom(pos,zoomlevel)
 
         redirect_to(h.url_for(controller='mapview',action="index"))
@@ -471,9 +473,20 @@ class MapviewController(BaseController):
             session.save()
             trip=None
 
+        c.mapvariant=session.get('mapvariant',"airspace")
 
         self.set_pos_zoom()
         zoomlevel=session['zoom']
+        if c.mapvariant=="elev":
+            if zoomlevel>8:
+                session['zoom']=8
+                session.save()
+                try:
+                    session['last_pos']=mapper.latlon2merc(mapper.merc2latlon(session['last_pos'],zoomlevel),8)
+                except:
+                    session['last_pos']=mapper.latlon2merc((59,18),8)
+                zoomlevel=8
+                
         c.merc_x,c.merc_y=session['last_pos']
         
         c.merc_limx1,c.merc_limy1,c.merc_limx2,c.merc_limy2=merc_limits(zoomlevel,conservative=False)
@@ -485,7 +498,6 @@ class MapviewController(BaseController):
         c.tripname=session['current_trip']
         c.showarea=session.get('showarea','')
         c.showtrack=session.get('showtrack',None)!=None
-        c.show_airspaces=session.get('showairspaces',True)
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         c.fastmap=user.fastmap;
