@@ -174,7 +174,8 @@ function save_data(cont)
     }
     
 	params['tripname']=tripname;
-	params['realname']=document.getElementById('realname').value;
+	if (document.getElementById('realname'))
+    	params['realname']=document.getElementById('realname').value;
 	var def=doSimpleXMLHttpRequest(saveurl,
 		params);
 	def.addCallback(save_data_cb);
@@ -196,6 +197,7 @@ function get_wp_clock(id)
 {
     //return ''+time_hours;
     var e=document.getElementById('departure_time_'+id);
+    if (e==null) return null;
     var val=e.value;
     if (val.length<2)
         return null;
@@ -332,6 +334,7 @@ function on_updaterow_impl(id,idx,col)
 function update_clocks()
 {
     var partsum=get_wp_clock(firstwaypointid);
+    if (partsum==null) return;
     for(var i=0;i<num_rows-1;++i)
     {
         var id=fpid[i];

@@ -33,9 +33,9 @@ def heightmap_tiles_near(routes,dist_nm):
     zoomlevel=8
     factor=1
     tiles_on_levels=dict()
-    
+    print "routes:",len(routes)
     while zoomlevel>=5:       
-        path="/home/anders/saker/avl_fplan_world/elevmap.bin-%d"%(zoomlevel)
+        path="/home/anders/saker/avl_fplan_world/tiles/elev/level%d"%(zoomlevel)
         blob=BlobFile(path,tilesize=tilesize)
         def cm(latlonstr,zoomlevel):
             return clampmerc(mapper.latlon2merc(mapper.from_str(latlonstr),zoomlevel))

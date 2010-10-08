@@ -171,7 +171,7 @@ class ApiController(BaseController):
         trip=request.params['trip']
         print "trip:",trip
         rts=sorted(list(meta.Session.query(Route).filter(sa.and_(
-            Route.user==request.params['user'],Route.trip==trip)).all()),key=lambda x:x.a.ordinal)
+            Route.user==request.params['user'],Route.trip==trip)).all()),key=lambda x:x.a.ordering)
         #return "rt.a.waypoint:"+rt.a.waypoint+" trip: "+rt.a.trip+" user: "+rt.a.user
         response.headers['Content-Type'] = 'application/binary'                            
         return android_fplan_hmap_format(heightmap_tiles_near(rts,10))
