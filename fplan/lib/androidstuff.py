@@ -23,11 +23,15 @@ def android_fplan_hmap_format(hmap):
         writeInt(zoomlevel)
         writeInt(len(tiles)) #tiles in this zoomlevel
         for merc,tile in tiles.items():
+            if not tile: continue
             #print "Zoom: %d Merc: %s"%(zoomlevel,merc)
             writeInt(merc[0])
             writeInt(merc[1])
-            writeBuf(tile if tile else "")
+            assert len(tile)==2*2*64*64
+            print "Tile len is:%d"%(len(tile,))
+            writeBuf(tile)
     writeInt(0x1beef) #Magic to verify writing
+    out.flush()
     print "Binary hmap download complete"
     return out.getvalue()
     
