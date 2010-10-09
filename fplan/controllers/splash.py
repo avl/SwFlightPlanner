@@ -16,7 +16,7 @@ import os
 log = logging.getLogger(__name__)
 
 if os.path.exists("master_key"):
-    master_key=open("master_key").read()
+    master_key=open("master_key").read().strip()
 else:
     master_key=None
 

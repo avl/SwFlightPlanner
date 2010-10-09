@@ -55,7 +55,7 @@ def download_notams():
             print "download failed:",cause
             raise
         print "Time now",datetime.utcnow()
-        sleep(random.randrange(9000,10000))        
+        sleep(random.randrange(3600,4000))        
     
 
 
