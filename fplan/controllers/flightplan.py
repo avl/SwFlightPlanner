@@ -665,8 +665,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
             else:
                 rt.maxobstelev=0#"unknown"
-            rt.startelev=get_terrain_elev.get_terrain_elev(mapper.from_str(rt.a.pos))
-            rt.endelev=get_terrain_elev.get_terrain_elev(mapper.from_str(rt.b.pos))
+            rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
+            rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
             #for obst in c.obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):

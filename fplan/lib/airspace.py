@@ -3,6 +3,17 @@ from pyshapemerge2d import Line2,Vertex,Polygon,vvector
 import fplan.extract.extracted_cache as cache
 import fplan.extract.parse_obstacles as parse_obstacles
 from notam_geo_search import get_notam_objs_cached
+from fplan.lib.get_terrain_elev import get_terrain_elev
+
+def get_pos_elev(latlon):
+    for airf in cache.get_airfields():
+        #print "Considering:",airf
+        apos=mapper.from_str(airf['pos'])
+        dx=apos[0]-latlon[0]
+        dy=apos[1]-latlon[1]
+        if abs(dx)+abs(dy)<0.25*1.0/60.0 and 'elev' in airf:
+            return airf['elev']
+    return get_terrain_elev(latlon)
 
 def get_obstacles(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
