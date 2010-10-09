@@ -5,6 +5,7 @@ import math
 import sqlalchemy as sa
 from fplan.lib.get_terrain_elev import get_terrain_elev
 from fplan.extract.extracted_cache import get_airfields
+from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
 def wind_computer(winddir,windvel,tt,tas):
     f=1.0/(180.0/math.pi)
@@ -33,15 +34,8 @@ def wind_computer(winddir,windvel,tt,tas):
 
 class TechRoute(object):
     pass
-def get_pos_elev(latlon):
-    for airf in get_airfields():
-        #print "Considering:",airf
-        apos=mapper.from_str(airf['pos'])
-        dx=apos[0]-latlon[0]
-        dy=apos[1]-latlon[1]
-        if abs(dx)+abs(dy)<0.25*1.0/60.0 and 'elev' in airf:
-            return airf['elev']
-    return get_terrain_elev(latlon)
+    
+    
 class DummyAircraft(object):pass
 def get_route(user,trip):
     #print "Getting ",user,trip
