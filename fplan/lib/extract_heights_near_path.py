@@ -17,9 +17,9 @@ def fill(blob,line,merc,zoomlevel,maxdist,result=dict()):
     if merc[0]<0 or merc[1]<0: return
     if merc in result: return
     dist=line.approx_dist(Vertex(merc[0]+tilesize/2,merc[1]+tilesize/2))
-    print "zoomlevel:",zoomlevel,"merc:",merc,"dist:",dist,"maxdist:",maxdist
     if dist>maxdist: return
     tile=blob.get_tile(*merc)
+    print "zoomlevel:",zoomlevel,"merc:",merc,"dist:",dist,"maxdist:",maxdist    
     result[merc]=tile
     x,y=merc
     for cand in [
@@ -36,7 +36,7 @@ def heightmap_tiles_near(routes,dist_nm):
     tiles_on_levels=dict()
     print "routes:",len(routes)
     tottiles=0
-    while zoomlevel>=5:       
+    while zoomlevel>=0:       
         path="/home/anders/saker/avl_fplan_world/tiles/elev/level%d"%(zoomlevel)
         blob=BlobFile(path,tilesize=tilesize)
         def cm(latlonstr,zoomlevel):
@@ -53,8 +53,8 @@ def heightmap_tiles_near(routes,dist_nm):
             av=Vertex(int(m1[0]),int(m1[1]))
             bv=Vertex(int(m2[0]),int(m2[1]))
             l=Line2(av,bv)
-            print "Line: %s -> %s"%(m1,m2)
-            print "Rt: ",rt.a.waypoint,rt.b.waypoint
+            #print "Line: %s -> %s"%(m1,m2)
+            #print "Rt: ",rt.a.waypoint,rt.b.waypoint
             startmerc=clampmerc(m1)
             maxdist=mapper.approx_scale(startmerc,zoomlevel,dist_nm)
             #maxdist=32
@@ -65,6 +65,7 @@ def heightmap_tiles_near(routes,dist_nm):
         
         zoomlevel-=1
         factor*=2
+        print "Tilecount on zoomlevel %d: %d"%(zoomlevel,len(result))
     print "Total tile count",tottiles
     return tiles_on_levels
 

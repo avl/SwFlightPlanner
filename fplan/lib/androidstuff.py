@@ -21,14 +21,14 @@ def android_fplan_hmap_format(hmap):
     writeInt(len(hmap)) #zoomlevels    
     for zoomlevel,tiles in hmap.items():
         writeInt(zoomlevel)
-        writeInt(len(tiles)) #tiles in this zoomlevel
-        for merc,tile in tiles.items():
-            if not tile: continue
+        nonemptytiles=[(merc,tile) for (merc,tile) in tiles.items() if tile]
+        writeInt(len(nonemptytiles)) #tiles in this zoomlevel
+        for merc,tile in nonemptytiles:
             #print "Zoom: %d Merc: %s"%(zoomlevel,merc)
             writeInt(merc[0])
             writeInt(merc[1])
             assert len(tile)==2*2*64*64
-            print "Tile len is:%d"%(len(tile,))
+            #print "Tile len is:%d"%(len(tile,))
             writeBuf(tile)
     writeInt(0x1beef) #Magic to verify writing
     out.flush()
