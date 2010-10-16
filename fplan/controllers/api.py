@@ -129,7 +129,9 @@ class ApiController(BaseController):
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
             response.headers['Content-Type'] = 'application/binary'                    
-            return android_fplan_map_format(airspaces=out,points=points)
+            ret=android_fplan_map_format(airspaces=out,points=points)
+            print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')
+            return ret
         else:
             rawtext=json.dumps(dict(airspaces=out,points=points))
             if 'zip' in request.params:

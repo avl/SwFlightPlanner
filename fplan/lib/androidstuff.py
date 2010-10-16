@@ -82,6 +82,7 @@ def android_fplan_map_format(airspaces,points):
     ret=out.getvalue()
     assert ret[0]==chr(0x08)
     assert ret[1]==chr(0xA3)
+    print "binary download complete"
     return ret
     
 
