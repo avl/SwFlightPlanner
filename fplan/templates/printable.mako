@@ -41,6 +41,18 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 <td colspan="7">There ${"are" if len(rt.notampoints)>1 else "is"} ${len(rt.notampoints)} NOTAM${"s" if len(rt.notampoints)>1 else ""} for this leg.</td>
 </tr>
 %endif
+%if len(rt.freqset)>0:
+<tr style="font-size:11px">
+<td colspan="7">
+%for name,freqs in sorted(rt.freqset.items()):
+<b>${name}</b>
+%for freq in freqs:
+${freq}
+%endfor
+%endfor
+</td>
+</tr>
+%endif
 
 <tr><td colspan="7" style="font-size:16px">
 <b>${rt.b.waypoint}</b>

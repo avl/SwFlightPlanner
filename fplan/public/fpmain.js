@@ -379,8 +379,8 @@ function format_empty_landingrow(id,idx)
 {
     return '<td colspan="'+fpcolnum+'"><table>'+
             '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="makedirty()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
-            '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="makedirty();on_updaterow('+id+','+idx+',\'Clock\');" id="departure_time_'+id+'" value=""/>(HH:MM)</td></tr>'+
-            '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="makedirty()" id="fuel_'+id+'" value=""/>(L)</td>'+
+            '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="makedirty();on_updaterow('+id+','+idx+',\'Clock\');" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
+            '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="makedirty()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
             '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
         	'</table></td>';
 }

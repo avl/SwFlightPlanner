@@ -35,7 +35,7 @@ Click on items when you have read them.<br/>
 
 <b>Show Obstacles and Broken Lights:</b><input type="checkbox" name="showobst" ${'checked="checked"' if c.showobst else ''|n} /> <br/>
 %for country in c.countries:
-<b>Show ${country['name']}:</b><input type="checkbox" name="show_${country['name']}" ${'checked="checked"' if country['sel'] else ''|n} /> <br/>
+<b>Show ${country['name']}:</b><input type="checkbox" name="country_${country['name']}" ${'checked="checked"' if country['sel'] else ''|n} /> <br/>
 %endfor
 <b>Filter Regions:</b><br/><input id="searchcat" onchange="filtercat()" onkeyup="filtercat()" type="text" name="searchcat"/>
 <div style="height:300px;width:500px;overflow:auto">
