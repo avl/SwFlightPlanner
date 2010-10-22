@@ -42,12 +42,12 @@
 41: FIXAD: Nån sorts skala skulle vara bra.
 42: FIXAD: Skalan borde typ använda "jämna tal", istället för att alltid vara 70 pixels eller vad den är...
 42: FIXAD: Regenerera plain-kartan, helt utan obstacles etc etc... (eller finns inte det felet på live-servern?)
-43: Calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
+43: FIXAD: Calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
 44: FIXAD: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
 45: METAR+TAF
 46: Links to LHP och SWC.
-47: En-route frekvenser på något bra sätt
-48: Visa TWR och ATIS-frekv i driftfärdplan
+47: FIXAD: En-route frekvenser på något bra sätt
+48: FIXAD: Visa TWR och ATIS-frekv i driftfärdplan
 49: WONTFIX: Flygfältsdata
 50: WONTFIX NOW: Färga tracken efter ground warnings + olika färg beroende på luftrum. (too complex)
 51: FIXAD: Vissa flygplatser har samma runway upprepad flera gånger.
@@ -67,6 +67,7 @@
 65: FIXAD: Använd id, inte idx, även i flightplan-overview-sidan!
 66: FIXAD: Behöver validering i t.ex "estimated takeoff"-fältet, samt andra fält i overview-sidan.
 67: FIXAD: Om man går till flightplan-sidan utan waypoints, så kommer man inte därifrån.
-
-
+68: WONTFIX: Show climb-rate fpm in printable? (What would it be good for?)
+69: FIXAD: The program should remember which was the last trip shown, when re-logging-in.
+70: Unclicking "Land here" doesn't reset the departure time from that waypoint.
 

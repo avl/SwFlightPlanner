@@ -34,7 +34,8 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column("isregistered",Boolean(),nullable=False),
                         sa.Column("lastlogin",DateTime(),nullable=False),
                         sa.Column('fastmap',Boolean(),nullable=False,default=True),
-                        sa.Column('showobst',Boolean(),nullable=False,default=True)
+                        sa.Column('showobst',Boolean(),nullable=False,default=True),
+                        sa.Column('lasttrip',Unicode(50),nullable=True,default=None)
                         )
 
 notam_table = sa.Table("notam",meta.metadata,

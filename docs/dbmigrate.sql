@@ -34,6 +34,8 @@ alter table waypoint add column ordering integer;
 update waypoint set ordering=id;
 alter table waypoint ALTER COLUMN ordering set not null;
 
+#version 7:
+alter table "user" add column "lasttrip" varchar(50);
 
 
 

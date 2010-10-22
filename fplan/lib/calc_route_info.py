@@ -148,25 +148,29 @@ def get_route(user,trip):
         
         rt.performance="ok"
         begindelta=mid_alt-prev_alt
-        begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
-        if begindist>rt.d:
-            #print "Begin delta ",begindelta," not fulfilled"
-            ratio=rt.d/float(begindist)
-            begindist=rt.d
-            rt.performance="notok"
-            begindelta*=ratio
-            mid_alt=prev_alt+begindelta                    
-
-        #print "mid_alt",mid_alt
         enddelta=alt2-mid_alt
-                
-        enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
-        #print "begindist: %f, enddist: %f, rt.d: %f"%(begindist,enddist,rt.d)
-        if enddist+begindist>rt.d:
-            #print "End delta ",enddelta," not fulfilled"
-            enddist=rt.d-begindist            
-            rt.performance="notok"
         
+        begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
+        enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
+
+        #if begindist>rt.d:
+        #    ratio=rt.d/float(begindist)
+        #    begindist=rt.d
+        #    rt.performance="notok"
+        #    begindelta*=ratio
+        #    mid_alt=prev_alt+begindelta                    
+        if enddist+begindist>rt.d:
+            factor=float(enddist+begindist)/float(rt.d)
+            beginrate*=factor
+            endrate*=factor
+            beginburn*=factor
+            endburn*=factor
+            #beginspeed/=factor
+            #endspeed/=factor
+            begindist/=factor
+            enddist/=factor
+            rt.performance="notok"
+                    
         del begindelta
         del enddelta
         del mid_alt        
@@ -218,6 +222,7 @@ def get_route(user,trip):
             out.startalt=prev_alt
             prev_alt+=beginrate*begintime*60
             out.endalt=prev_alt
+            out.altrate=beginrate
             out.accum_time=accum_time
             out.time=begintime
             out.fuel_burn=begintime*beginburn
@@ -238,6 +243,7 @@ def get_route(user,trip):
             out.clock_hours=accum_clock
             out.startalt=prev_alt
             out.endalt=prev_alt
+            out.altrate=0
             out.accum_time=accum_time
             out.time=midtime
             out.fuel_burn=midtime*calc_midburn(rt.tas)
@@ -261,6 +267,7 @@ def get_route(user,trip):
             out.endalt=prev_alt
             if abs(out.endalt)<1e-6:
                 out.endalt=0
+            out.altrate=endrate
             out.accum_time=accum_time
             out.time=endtime
             out.what=endwhat

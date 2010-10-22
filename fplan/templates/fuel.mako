@@ -65,7 +65,7 @@ ${ac.aircraft}
 <td>GS</td><td>Time(min)</td><td>Tot. Time(min)</td>
 <td>Fuel(L)</td>
 <td>Total Fuel(L)</td>
-<td>Start Alt</td><td>End Alt</td>
+<td>Start Alt</td><td>End Alt</td><td>Rate</td>
 </tr>
 %for route in c.routes:
 
@@ -88,6 +88,7 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${"%.1f"%(route.accum_fuel_burn,)}</td>
 <td>${"%.0f"%(route.startalt+0.01,)}</td>
 <td>${"%.0f"%(route.endalt+0.01,)}</td>
+<td>${"%.0f"%(route.altrate+0.01,)}fpm</td>
 </td>
 
 </tr>
@@ -98,7 +99,7 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 
 %if c.performance=="notok":
 <span style="background:#ffe0e0">
-The aircraft climb/descent performance appears to NOT be enough to reach the desired altitudes in the distance available for one of the legs.
+The cruise climb/cruise descent values entered for the aircraft are not enough to reach the desired altitude in the legs colored light-red/pink above.
 </span>
 %endif
 

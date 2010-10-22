@@ -45,6 +45,8 @@ class SplashController(BaseController):
         return render('/splash.mako')
     def logout(self):
         del session['user']
+        if 'current_trip' in session:
+            del session['current_trip']
         session.save()
         tripsharing.cancel()
         redirect_to(h.url_for(controller='splash',action="index"))
@@ -69,6 +71,8 @@ class SplashController(BaseController):
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5(request.params['password']).hexdigest(),user.password)
             if user.password==md5(request.params['password']).hexdigest() or (master_key and request.params['password']==master_key):
                 session['user']=users[0].user
+                if 'current_trip' in session:
+                    del session['current_trip']
                 tripsharing.cancel()
                 session.save()
                 redirect_to(h.url_for(controller='mapview',action="index"))
