@@ -41,6 +41,17 @@ def approx_scale(merc_coords,zoomlevel,length_in_nautical_miles):
     latrad=lat/(180.0/math.pi)
     scale_diff=math.cos(latrad)
     return 256*factor*(float(length_in_nautical_miles)/(360*60.0))/scale_diff
+
+def approx_scale_lat(lat,zoomlevel,length_in_nautical_miles):
+    """Return the number of mercator proj 'pixels'
+    which correspond most closely to the distance given in nautical miles.
+    This scale is only valid at the latitude of the given mercator coords. 
+    """  
+    factor=(2.0**(zoomlevel))
+    latrad=lat/(180.0/math.pi)
+    scale_diff=math.cos(latrad)
+    return 256*factor*(float(length_in_nautical_miles)/(360*60.0))/scale_diff
+
     
 def _from_decimal(x):
     """From decimal lat/lon tuple to to format: N47-13'30" E12-49'37" """

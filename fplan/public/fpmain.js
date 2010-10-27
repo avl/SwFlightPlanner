@@ -374,6 +374,8 @@ function toggle_landing(id,idx)
     	var landingrow=document.getElementById('landingrow'+id);
     	landingrow.innerHTML='';        
     }
+    dirty=1;
+    update_clocks();
 }
 function format_empty_landingrow(id,idx)
 {

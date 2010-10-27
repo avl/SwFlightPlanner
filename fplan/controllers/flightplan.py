@@ -725,7 +725,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.routes=[]
             c.acwarn=True
             c.ac=None
-            c.endfuel=c.tripobj.startfuel
+            c.endfuel=0
         else:        
             c.routes,dummy=get_route(tripuser(),session['current_trip'])
             c.acwarn=False
@@ -733,7 +733,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             if len(c.routes)>0:
                 c.endfuel=c.routes[-1].accum_fuel_burn
             else:
-                c.endfuel=c.startfuel
+                c.endfuel=0
         c.performance="ok"
         c.sharing=tripsharing.sharing_active()
         for rt in c.routes:
