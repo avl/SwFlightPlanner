@@ -12,7 +12,7 @@ from fplanquick.fplanquick import svector
 import Image
         
 def latlon_limits():
-    limits="55,10,70.5,31.8"
+    limits="53,3,71.5,31.8"
     lat1,lon1,lat2,lon2=limits.split(",")
     return float(lat1),float(lon1),float(lat2),float(lon2)
 
