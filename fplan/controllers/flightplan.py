@@ -87,9 +87,13 @@ class FlightplanController(BaseController):
                     way.stay=Stay(tripuser(),trip.trip,way.id)
                 if re.match(ur"\d{2,4}-?\d{2}\-?\d{2}",request.params.get(dof_s,'')):
                     way.stay.date_of_flight=request.params.get(dof_s,'')
+                else:
+                    way.stay.date_of_flight=''
                     
                 if re.match(ur"\d{2}:?\d{2}",request.params.get(dep_s,'')):
                     way.stay.departure_time=request.params.get(dep_s,'')
+                else:
+                    way.stay.departure_time=''
                     
                 try:
                     way.stay.nr_persons=int(request.params[persons_s])

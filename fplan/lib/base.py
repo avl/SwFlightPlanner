@@ -35,7 +35,7 @@ class BaseController(WSGIController):
                     meta.Session.add(user1)                    
                     meta.Session.flush()
                     meta.Session.commit()
-                    print "Users:",meta.Session.query(User).all()
+                    #print "Users:",meta.Session.query(User).all()
                     session['user']=cand
                     session['realuser']=False
                     session.save()
