@@ -32,4 +32,26 @@ def heightmap_tiles_near(routes,dist_nm):
 
     return tiles_on_levels
 
+def map_tiles_near(routes,dist_nm):
+    tilesize=256
+    zoomlevel=7
+
+    tiles_on_levels=dict()
+
+    tottiles=0
+
+    path="/home/anders/saker/avl_fplan_world/tiles/airspace/level%d"%(zoomlevel)
+    blob=BlobFile(path,tilesize=tilesize)
+    def cm(latlonstr,zoomlevel):
+        return clampmerc(mapper.latlon2merc(mapper.from_str(latlonstr),zoomlevel))
+            
+    resultset=get_all_tiles_near(routes,zoomlevel,dist_nm,tilesize)
+    result=dict()
+    for merc in resultset:
+        result[merc]=blob.get_tile(*merc)
+    tottiles+=len(result)
+    tiles_on_levels[zoomlevel]=result
+
+    return tiles_on_levels
+
         
