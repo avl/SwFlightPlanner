@@ -4,7 +4,9 @@ from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 from fplan.model import meta,User,Trip,Waypoint,Route
 from fplan.lib import mapper
-import md5
+#import md5
+from fplan.lib.helpers import md5str
+
 import fplan.lib.calc_route_info as calc_route_info
 from fplan.lib.base import BaseController, render
 import json
@@ -149,7 +151,7 @@ class ApiController(BaseController):
             if len(users)==0:
                 return json.dumps(dict(error=u"No user with that name"))
             user,=users
-            if user.password!=request.params['password'] and user.password!=md5.md5(request.params['password']).hexdigest():
+            if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
                 return json.dumps(dict(error=u"Wrong password"))
                 
             out=[]        
@@ -168,7 +170,7 @@ class ApiController(BaseController):
         if len(users)==0:
             return json.dumps(dict(error=u"No user with that name"))
         user,=users
-        if user.password!=request.params['password'] and user.password!=md5.md5(request.params['password']).hexdigest():
+        if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
             return json.dumps(dict(error=u"Wrong password"))
         trip=request.params['trip']
 
@@ -201,7 +203,7 @@ class ApiController(BaseController):
             if len(users)==0:
                 return json.dumps(dict(error=u"No user with that name"))
             user,=users
-            if user.password!=request.params['password'] and user.password!=md5.md5(request.params['password']).hexdigest():
+            if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
                 return json.dumps(dict(error=u"Wrong password"))
             
             trip,=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user,Trip.trip==request.params['trip'])).order_by(Trip.trip).all()

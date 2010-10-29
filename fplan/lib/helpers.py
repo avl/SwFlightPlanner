@@ -8,8 +8,13 @@ available to Controllers. This module is available to templates as 'h'.
 from routes.util import url_for
 from itertools import count,izip
 import cgi
+from md5 import md5
 from pylons import request, response, session, tmpl_context as c
 
+def md5str(anystr):
+    if type(anystr)==unicode:
+        return md5(anystr.encode('utf8')).hexdigest()
+    return md5(anystr).hexdigest()
 
 def get_username():
     if session.get('isreg',False):

@@ -1,11 +1,12 @@
 import logging
 import sqlalchemy as sa
-from md5 import md5
+#from md5 import md5
 from fplan.model import meta,User,Trip,Waypoint,Route
 from datetime import datetime
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 import routes.util as h
+from fplan.lib.helpers import md5str
 from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
 import fplan.lib.tripsharing as tripsharing
@@ -68,8 +69,8 @@ class SplashController(BaseController):
                 ).all()
         if len(users)==1:
             user=users[0]
-            print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5(request.params['password']).hexdigest(),user.password)
-            if user.password==md5(request.params['password']).hexdigest() or (master_key and request.params['password']==master_key):
+            print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5str(request.params['password']),user.password)
+            if user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key):
                 session['user']=users[0].user
                 if 'current_trip' in session:
                     del session['current_trip']
@@ -78,7 +79,7 @@ class SplashController(BaseController):
                 redirect_to(h.url_for(controller='mapview',action="index"))
             else:
                 print "Bad password!"
-                user.password=md5(request.params['password']).hexdigest()                
+                user.password=md5str(request.params['password'])                
                 redirect_to(h.url_for(controller='splash',action="index",explanation="Wrong password"))
         else:
             redirect_to(h.url_for(controller='splash',action="index",explanation="No such user"))
