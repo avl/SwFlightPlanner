@@ -41,9 +41,21 @@ class NotamController(BaseController):
         c.show_cnt=0
         c.hide_cnt=0
         c.countries=[
-           # dict(name="Sweden",sel=True),
-           # dict(name="Finland",sel=False),
+           dict(name="Sweden",sel=False,short="ES"),
+           dict(name="Finland",sel=False,short="EF"),
         ]
+        if 1:
+            for ct in meta.Session.query(NotamCountryFilter).filter(
+                    NotamCountryFilter.user==session['user']).all():
+                for countrydict in c.countries:
+                    if countrydict['name']==ct.country:
+                        countrydict['sel']=True
+        selcountries=set()
+        for ct in c.countries:
+            if ct['sel']:
+                selcountries.add(ct['short'])
+        if len(selcountries)==0:
+            selcountries=None
         ms=[]
         ms.append(re.compile(r".*\bOBST\s+ERECTED\b.*"))
         ms.append(re.compile(r".*TURBINE?S?\s+ERECTED\b.*"))
@@ -61,7 +73,8 @@ class NotamController(BaseController):
                     c.hide_cnt+=1
                     continue
                 
-            if len(c.sel_cat)==0 or notamupdate.category in c.sel_cat:
+            if (len(c.sel_cat)==0 or notamupdate.category in c.sel_cat) and \
+                (selcountries==None or notamupdate.category==None or notamupdate.category[:2] in selcountries):
                 c.shown.append((notamupdate,acks,downloaded))
                 c.show_cnt+=1
             else:
@@ -100,7 +113,9 @@ class NotamController(BaseController):
             user.showobst=True
         else:
             user.showobst=False
+        meta.Session.query(NotamCountryFilter).filter(NotamCountryFilter.user==session['user']).delete()
         for key,value in request.params.items():
+            print "Processing ",key,value
             if key.startswith("category_"):
                 cat=key.split("_")[1]
                 if cat in cats: continue
@@ -108,6 +123,12 @@ class NotamController(BaseController):
                 category=NotamCategoryFilter(session['user'],cat)
                 print "Inserted ",cat
                 meta.Session.add(category)
+            if key.startswith("country_"):
+                country=key.split("_")[1]
+                countryf=NotamCountryFilter(session['user'],country)
+                print "Added country obj",country
+                meta.Session.add(countryf)
+                
         meta.Session.flush()
         meta.Session.commit()
         return redirect_to(h.url_for(controller='notam',action="index"))

@@ -451,15 +451,23 @@ class MapviewController(BaseController):
         #print "index called",request.params
         #user=meta.Session.query(User).filter(
         #        User.user==tripuser()).one()
+        user=meta.Session.query(User).filter(
+                User.user==session['user']).one()
         
         c.all_trips=list(meta.Session.query(Trip).filter(Trip.user==session['user']).all())
+        print "current trip:",session.get('current_trip',None)
+        if not ('current_trip' in session) or session['current_trip']==None:            
+            if user.lasttrip!=None:
+                print "Reusing lasttrip:",user.lasttrip
+                session['current_trip']=user.lasttrip        
+        
         if 'current_trip' in session and meta.Session.query(Trip).filter(sa.and_(
                 Trip.user==tripuser(),
                 Trip.trip==session['current_trip']
                     )).count()==0:
             session['current_trip']=None
                         
-        if not 'current_trip' in session or session['current_trip']==None:
+        if not 'current_trip' in session or session['current_trip']==None:            
             trips=meta.Session.query(Trip).filter(
                 Trip.user==tripuser()).all()
             if len(trips)==0:
@@ -468,11 +476,16 @@ class MapviewController(BaseController):
                 meta.Session.flush()
                 meta.Session.commit()
             else:
-                trip=trips[0]
+                trip=min(trips,key=lambda x:x.trip) #Select first trip, alphabetically - we have no better idea.
             session['current_trip']=trip.trip
             session.save()
             trip=None
-
+        if session.get('current_trip',None)!=user.lasttrip:
+            user.lasttrip=session.get('current_trip',None)
+            print "Storing lasttrip=",user.lasttrip
+            meta.Session.flush()
+            meta.Session.commit()
+            
         c.mapvariant=session.get('mapvariant',"airspace")
 
         self.set_pos_zoom()
@@ -498,8 +511,6 @@ class MapviewController(BaseController):
         c.tripname=session['current_trip']
         c.showarea=session.get('showarea','')
         c.showtrack=session.get('showtrack',None)!=None
-        user=meta.Session.query(User).filter(
-                User.user==session['user']).one()
         c.fastmap=user.fastmap;
         #print "Zoomlevel active: ",zoomlevel
         c.zoomlevel=zoomlevel

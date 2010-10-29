@@ -34,7 +34,8 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column("isregistered",Boolean(),nullable=False),
                         sa.Column("lastlogin",DateTime(),nullable=False),
                         sa.Column('fastmap',Boolean(),nullable=False,default=True),
-                        sa.Column('showobst',Boolean(),nullable=False,default=True)
+                        sa.Column('showobst',Boolean(),nullable=False,default=True),
+                        sa.Column('lasttrip',Unicode(50),nullable=True,default=None)
                         )
 
 notam_table = sa.Table("notam",meta.metadata,
@@ -50,6 +51,14 @@ notam_category_filter_table = sa.Table("notam_category_filter",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('category',Unicode(),nullable=False,primary_key=True)
                         )
+
+
+notam_country_filter_table = sa.Table("notam_country_filter",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('country',Unicode(32),nullable=False,primary_key=True)
+                        )
+
+
                         
 notamupdate_table = sa.Table('notamupdate',meta.metadata,
                         sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
@@ -237,6 +246,10 @@ class NotamCategoryFilter(object):
     def __init__(self,user,category):
         self.user=user
         self.category=category
+class NotamCountryFilter(object):
+    def __init__(self,user,country):
+        self.user=user
+        self.country=country
     
 class Aircraft(object):
     def __init__(self,user,aircraft):
@@ -268,6 +281,7 @@ orm.mapper(Waypoint, waypoint_table,
         ])
     ))
 orm.mapper(NotamCategoryFilter, notam_category_filter_table)
+orm.mapper(NotamCountryFilter, notam_country_filter_table)
 
 orm.mapper(Route, route_table,
  properties=dict(

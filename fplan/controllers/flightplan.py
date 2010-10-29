@@ -22,7 +22,7 @@ from fplan.lib import get_terrain_elev
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.tripsharing import tripuser
 import fplan.lib.airspace as airspace
-from fplan.lib.helpers import lfvclockfmt
+from fplan.lib.helpers import lfvclockfmt,fmt_freq
 from fplan.lib.helpers import parse_clock
 
 import unicodedata
@@ -653,9 +653,24 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.departure_time=None
         c.departure=c.route[0].a.waypoint
         c.arrival=c.route[-1].b.waypoint        
+
+    def get_freqs(self,route):
+        for rt in route:
+            rt.freqset=dict()
+            for air in airspace.get_airspaces_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
+                for freq in air['freqs']:
+                    try:
+                        currs=rt.freqset.setdefault(freq[0],[])
+                        new=fmt_freq(freq[1])
+                        if not new in currs:
+                            currs.append(new)
+                    except Exception,cause:
+                        print "Couldn't add freq %s: %s"%(freq,cause)
+                #print "Airspace:",air
+            #print "Inspecting leg",rt
     def printable(self):
         self.standard_prep(c)
-
+        self.get_freqs(c.route)
         c.obsts=self.get_obstacles(c.techroute,1e6,2)
         for rt in c.route:
             rt.notampoints=set()
@@ -665,8 +680,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
             else:
                 rt.maxobstelev=0#"unknown"
-            rt.startelev=get_terrain_elev.get_terrain_elev(mapper.from_str(rt.a.pos))
-            rt.endelev=get_terrain_elev.get_terrain_elev(mapper.from_str(rt.b.pos))
+            rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
+            rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
             #for obst in c.obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
@@ -710,7 +725,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.routes=[]
             c.acwarn=True
             c.ac=None
-            c.endfuel=c.tripobj.startfuel
+            c.endfuel=0
         else:        
             c.routes,dummy=get_route(tripuser(),session['current_trip'])
             c.acwarn=False
@@ -718,7 +733,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             if len(c.routes)>0:
                 c.endfuel=c.routes[-1].accum_fuel_burn
             else:
-                c.endfuel=c.startfuel
+                c.endfuel=0
         c.performance="ok"
         c.sharing=tripsharing.sharing_active()
         for rt in c.routes:

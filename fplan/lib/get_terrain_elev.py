@@ -31,7 +31,8 @@ def initreslevel():
         yres/=2    
     
 initreslevel()    
-        
+
+     
 def get_terrain_elev_in_box_approx(latlon,nautmiles):
     pixels=nautmiles/0.5
     lat,lon=latlon

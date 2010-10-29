@@ -13,10 +13,10 @@ import sqlalchemy as sa
 import fplan.extract.extracted_cache as extracted_cache
 from pyshapemerge2d import Polygon,Vertex,vvector
 import fplan.lib.notam_geo_search as notam_geo_search
-from fplan.lib.androidstuff import android_fplan_map_format,android_fplan_hmap_format
+from fplan.lib.androidstuff import android_fplan_map_format,android_fplan_bitmap_format
 import csv
 from itertools import chain
-from fplan.lib.extract_heights_near_path import heightmap_tiles_near
+from fplan.lib.get_near_route import heightmap_tiles_near,map_tiles_near
 import zlib
 import math
 
@@ -129,7 +129,9 @@ class ApiController(BaseController):
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
             response.headers['Content-Type'] = 'application/binary'                    
-            return android_fplan_map_format(airspaces=out,points=points)
+            ret=android_fplan_map_format(airspaces=out,points=points)
+            print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')
+            return ret
         else:
             rawtext=json.dumps(dict(airspaces=out,points=points))
             if 'zip' in request.params:
@@ -169,12 +171,27 @@ class ApiController(BaseController):
         if user.password!=request.params['password'] and user.password!=md5.md5(request.params['password']).hexdigest():
             return json.dumps(dict(error=u"Wrong password"))
         trip=request.params['trip']
-        print "trip:",trip
+
         rts=sorted(list(meta.Session.query(Route).filter(sa.and_(
-            Route.user==request.params['user'],Route.trip==trip)).all()),key=lambda x:x.a.ordinal)
-        #return "rt.a.waypoint:"+rt.a.waypoint+" trip: "+rt.a.trip+" user: "+rt.a.user
+            Route.user==request.params['user'],Route.trip==trip)).all()),key=lambda x:x.a.ordering)
+
         response.headers['Content-Type'] = 'application/binary'                            
-        return android_fplan_hmap_format(heightmap_tiles_near(rts,10))
+        return android_fplan_bitmap_format(heightmap_tiles_near(rts,10))
+
+    def get_map_near_trip(self):
+        users=meta.Session.query(User).filter(User.user==request.params['user']).all()
+        if len(users)==0:
+            return json.dumps(dict(error=u"No user with that name"))
+        user,=users
+        if user.password!=request.params['password'] and user.password!=md5.md5(request.params['password']).hexdigest():
+            return json.dumps(dict(error=u"Wrong password"))
+        trip=request.params['trip']
+
+        rts=sorted(list(meta.Session.query(Route).filter(sa.and_(
+            Route.user==request.params['user'],Route.trip==trip)).all()),key=lambda x:x.a.ordering)
+
+        response.headers['Content-Type'] = 'application/binary'                            
+        return android_fplan_bitmap_format(map_tiles_near(rts,10))
         
                     
     def get_trip(self):
