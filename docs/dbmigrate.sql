@@ -36,7 +36,6 @@ alter table waypoint ALTER COLUMN ordering set not null;
 
 #version 7:
 alter table "user" add column "lasttrip" varchar(50);
-
-
+#Dont forget to run setup-app.
 
 
