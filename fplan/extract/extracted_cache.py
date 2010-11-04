@@ -6,6 +6,7 @@ from fplan.extract.fi_parse_restrict import fi_parse_restrictions
 from fplan.extract.fi_parse_sigpoints import fi_parse_sigpoints
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.fi_extract_airfields import fi_parse_airfields
+from fplan.extract.fi_extract_small_airfields import fi_parse_small_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
 from fplan.extract.parse_aip_sup import parse_all_sups
@@ -85,6 +86,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(fi_spaces)
                 airspaces.extend(fi_parse_restrictions())
                 airfields.extend(fi_airfields)
+                airfields.extend(fi_parse_small_airfields())
             if 1: #sweden
                 se_airfields,se_points=extract_airfields()
                 sig_points_extend(se_points)

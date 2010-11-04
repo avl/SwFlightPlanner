@@ -185,7 +185,7 @@ class ApiController(BaseController):
         if len(users)==0:
             return json.dumps(dict(error=u"No user with that name"))
         user,=users
-        if user.password!=request.params['password'] and user.password!=md5.md5(request.params['password']).hexdigest():
+        if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
             return json.dumps(dict(error=u"Wrong password"))
         trip=request.params['trip']
 
