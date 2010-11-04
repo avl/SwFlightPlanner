@@ -10,7 +10,6 @@ import fplan.extract.rwy_constructor as rwy_constructor
 def fi_parse_airfield(icao=None):
     spaces=[]
     ad=dict()
-    ad['freqs']=[]
     ad['icao']=icao
     sigpoints=[]
     #https://ais.fi/ais/eaip/pdf/aerodromes/EF_AD_2_EFET_EN.pdf
@@ -60,6 +59,7 @@ def fi_parse_airfield(icao=None):
                 ad['pos']=crd
     ad['runways']=[]
     thrs=[]
+    freqs=[]
     for pagenr in xrange(p.get_num_pages()):
         page=p.parse_page_to_items(pagenr)
         for item in page.get_by_regex("\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*"):
@@ -161,21 +161,23 @@ def fi_parse_airfield(icao=None):
                     if len(missing)==0: break
                 if len(missing)==0: break
                 line=lines.next()
-                
-            freqs=[]      
-            for item2 in page.get_by_regex("ATS COMMUNICATION FACILITIES"):
-                lines=page.get_lines(page.get_partially_in_rect(0,item2.y2+0.1,100,100))
-                for line in lines:
-                    if line.count("RADIO NAVIGATION AND LANDING AIDS"): break
-                    twr=re.match(ur"TWR.*(\d{3}\.\d{3})",line)
-                    if twr:
-                        freqs.append(('TWR',float(twr.groups()[0]))) 
-                    atis=re.match(ur"ATIS.*(\d{3}\.\d{3})",line)
-                    if atis:
-                        freqs.append(('ATIS',float(atis.groups()[0])))
-            for space in spaces:
-                space['freqs']=freqs
+            
+        print "Parse f o n page",pagenr      
+        for item2 in page.get_by_regex(ur".*ATS\s*COMMUNICATION\s*FACILITIES.*"):
+            lines=page.get_lines(page.get_partially_in_rect(0,item2.y2+0.1,100,100))
+            for line in lines:
+                if line.count("RADIO NAVIGATION AND LANDING AIDS"): break
+                print "Comm line:",line
+                twr=re.match(ur"TWR.*(\d{3}\.\d{3})\b.*",line)
+                if twr:
+                    freqs.append(('TWR',float(twr.groups()[0]))) 
+                atis=re.match(ur"ATIS.*(\d{3}\.\d{3})",line)
+                if atis:
+                    freqs.append(('ATIS',float(atis.groups()[0])))
+    for space in spaces:
+        space['freqs']=freqs
     ad['runways'].extend(rwy_constructor.get_rwys(thrs))
+    ad['freqs']=freqs
                              
     #print ad
     return ad,spaces,sigpoints
