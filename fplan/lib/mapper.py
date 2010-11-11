@@ -534,11 +534,12 @@ def parse_elev(elev):
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
     if elev.lower().endswith("ft msl"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft amsl"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft gnd"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
     if elev.lower()=="unl": return 99999
     if elev.lower()=="sfc": return 0 #TODO: Lookup using elevation map
-    if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using a elevation map!!
+    if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using an elevation map!!
     elev=elev.replace(" ","")
     if not elev.isdigit():
         raise NotAnAltitude(repr(elev))    
