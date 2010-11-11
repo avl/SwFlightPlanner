@@ -63,8 +63,8 @@ def refine_merc_elevmap(src,srczoomlevel):
     assert (limitx1&tilesizemask)==0
     assert (limity1&tilesizemask)==0
 
-    srcblob=BlobFile(src+"-%d"%(srczoomlevel,),tilesize=tilesize)
-    trgfile=src+"-%d"%(zoomlevel,)
+    srcblob=BlobFile(src+"%d"%(srczoomlevel,),tilesize=tilesize)
+    trgfile=src+"%d"%(zoomlevel,)
     if os.path.exists(trgfile):
         os.unlink(trgfile)
     trgblob=BlobFile(trgfile,zoomlevel,limitx1,limity1,limitx2,limity2,"w",tilesize=tilesize)
@@ -126,7 +126,7 @@ def verify(src,zoomlevel):
     tilesizemask=tilesize-1
     limitx1&=~tilesizemask
     limity1&=~tilesizemask
-    srcblob=BlobFile(src+"-%d"%(zoomlevel,),tilesize=tilesize)
+    srcblob=BlobFile(src+"%d"%(zoomlevel,),tilesize=tilesize)
     f=16
     im=Image.new("RGB",(f*tilesize,f*tilesize))
     basey=0    
@@ -166,7 +166,7 @@ if __name__=='__main__':
     elif task=='verify':
         verify(dest,int(sys.argv[3]))
     elif task=="create":
-        create_merc_elevmap(dest+"-8")
+        create_merc_elevmap(dest+"8")
     else:
         print "Unknown command:",task
     

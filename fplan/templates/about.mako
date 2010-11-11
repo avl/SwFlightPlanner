@@ -64,6 +64,9 @@ The software that runs this site has not been tested rigorously (this is an enth
 engineer with experience in writing and testing high quality software, I fully appreciate that it is has not been tested nearly enough to have caught even the most severe bugs. Use with caution,
 and always ask yourself if the data presented by the program is reasonable.   
 </p>
+<p>
+A further limitation is that the weather data is only valid for Sweden. Pressing the "fetch winds" button may give strange results for Finland or Norway.
+</p>
 </div>
 <br/>
 <br/>

@@ -155,7 +155,7 @@ def run_update_iteration():
     global single_force
     try:
         d=datetime.utcnow()
-        if single_force or ((d.hour>=0 and d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6))): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
+        if single_force or ((d.hour>23 or d.hour<=2) and (last_update==None or datetime.utcnow()-last_update>timedelta(0,3600*6))): #Wait until it is night before downloading AIP, and at least 6 hours since last time  
             single_force=False
             last_update=datetime.utcnow()
             #if not debug: #non-caching is just annoying
