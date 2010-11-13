@@ -68,6 +68,7 @@ class ApiController(BaseController):
                     name=space['name'],
                     freqs=space['freqs'] if (space['freqs']!="" and space['freqs']!=None) else [],
                     floor=space['floor'],
+                    type=space['type'],
                     ceiling=space['ceiling'],
                     points=[dict(lat=p[0],lon=p[1]) for p in cleanup_poly([mapper.from_str(x) for x in space['points']])]))
             
@@ -131,7 +132,7 @@ class ApiController(BaseController):
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
             response.headers['Content-Type'] = 'application/binary'                    
-            ret=android_fplan_map_format(airspaces=out,points=points)
+            ret=android_fplan_map_format(airspaces=out,points=points,version=request.params.get("version",None))
             print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')
             return ret
         else:
