@@ -10,8 +10,11 @@ def fi_parse_sigpoints():
     p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_4_4_EN.pdf",lambda x: x,country='fi')
     for pagenr in xrange(p.get_num_pages()):        
         page=p.parse_page_to_items(pagenr)
-        for item in page.get_by_regex(ur"\d{6}N\s*\d{7}E"):        
+        for item in page.get_by_regex(ur"\d{6}N\s*\d{7}E"):                    
             lines=page.get_lines(page.get_partially_in_rect(0,item.y1,100,item.y2))
+            print "Sigpoint lines:%s"%(repr(lines,))
+            
+            lines=[line for line in lines if re.match(ur"[A-Z]{5}.*\d{6}N\s*\d{7}E.*",line)]
             assert len(lines)==1
             print "parse:",lines[0]
             name,lat,lon=re.match(ur"\s*([A-Z]{5})\s*(?:\(\s*FLYOVER\s*\))?\s*X?\s*(\d{6}N)\s*(\d{7}E)\s*.*",lines[0]).groups()
