@@ -298,18 +298,23 @@ def extract_airfields(filtericao=None):
                     for item in altlines:
                         if item.strip()=="": continue
                         print "Matchin alt <%s>"%(item,)
-                        m=re.match(r"(.*?)(?:(\d{3,5})\s*ft\s*.*(?:(GND)|(MSL))|\s*(GND)\s*)",item)
+                        m=re.match(r"(.*?)(?:(\d{3,5})\s*ft\s*.*(?:(GND)|(MSL))|\s*(GND)\s*|\s*(FL\s*\d{2,3}))",item)
                         if not m:
                             continue
-                        name,alt,agnd,amsl,gnd=m.groups()
-                        print "Matched alt:",name,alt,agnd,amsl,gnd
+                        name,alt,agnd,amsl,gnd,fl=m.groups()
+                        print "Matched alt:",name,alt,agnd,amsl,gnd,fl
                         if alt:
                             if agnd:
                                 altitude="%s ft GND"%(alt,)
                             else:
                                 altitude="%s ft"%(alt,)                                
                         else:
-                            altitude="GND"
+                            if gnd:
+                                altitude="GND"
+                            else:
+                                assert fl
+                                altitude=fl
+                                
                         name=name.strip()
                         if not name and altnum==0 and len(subspacelines)==1:
                             name=subspacelines.keys()[0]                        
@@ -369,7 +374,7 @@ def extract_airfields(filtericao=None):
                         space=dict(
                             name=spacename,
                             ceil=subspacealts[altspacename]['ceil'],
-                            floor=subspacealts[altspacename].get('floor','GND'),
+                            floor=subspacealts[altspacename]['floor'],
                             points=parse_coord_str(" ".join(subspacelines[spacename])),
                             freqs=freqs
                             )
