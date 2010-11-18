@@ -1,6 +1,7 @@
 from struct import pack
 from StringIO import StringIO
 import zlib
+from fplan.lib.tilegen_worker import get_airspace_color
 
 def android_fplan_bitmap_format(hmap):
     out=StringIO()
@@ -37,7 +38,15 @@ def android_fplan_bitmap_format(hmap):
 
 
     
-def android_fplan_map_format(airspaces,points):
+def android_fplan_map_format(airspaces,points,version):
+    print "Version: ",version
+    versionnum=1
+    try:
+        versionnum=int(version.strip())
+    except:
+        pass
+    assert versionnum in [0,1,2]
+    print "Decoded vers:",versionnum
     out=StringIO()
     print "Binary download in progress"
 
@@ -45,6 +54,10 @@ def android_fplan_map_format(airspaces,points):
         out.write(pack(">f",f))
     def writeInt(i):
         out.write(pack(">I",i))
+    def writeByte(b):
+        if b<0: b=0
+        if b>255: b=255
+        out.write(pack(">B",b))
     def writeUTF(s):
         if s==None: s=u""
         try:
@@ -57,10 +70,16 @@ def android_fplan_map_format(airspaces,points):
         out.write(encoded)
         
     writeInt(0x8A31CDA)
-    writeInt(1)
+    writeInt(versionnum)
     writeInt(len(airspaces))
     for space in airspaces:
         writeUTF(space['name'])
+        if versionnum>=2:
+            (r,g,b,a),dummy_edge_col=get_airspace_color(space['type'])
+            writeByte(255*r)
+            writeByte(255*g)
+            writeByte(255*b)
+            writeByte(255*a)
         writeInt(len(space['points']))
         for point in space['points']:
             lat,lon=point['lat'],point['lon']

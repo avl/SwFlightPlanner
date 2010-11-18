@@ -36,6 +36,8 @@ def getrawdata(relpath,country="se"):
         durl="http://www.lfv.se"+fixed
     elif country=="fi":
         durl="http://ais.fi"+fixed
+    elif country=="no":
+        durl="http://www.ippc.no"+fixed
     else:
         raise Exception("Unknown country:"+country)
     print "Downloading url: "+durl

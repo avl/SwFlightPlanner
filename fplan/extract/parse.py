@@ -10,7 +10,7 @@ import re
 
 
 class Item(object):
-    def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None):
+    def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None,bold=False,italic=False):
         self.text=text
         self.x1=x1
         self.y1=y1
@@ -19,6 +19,8 @@ class Item(object):
         self.font=font
         if fontsize!=None: fontsize=int(fontsize)
         self.fontsize=fontsize
+        self.bold=bold
+        self.italic=italic
     def __repr__(self):
         return "Item(%.1f,%.1f - %.1f,%.1f : %s)"%(self.x1,self.y1,self.x2,self.y2,repr(self.text))
 def uprint(s):
@@ -141,6 +143,16 @@ class Parser(object):
             raw=loadhook(raw)
            
         xml=ElementTree.fromstring(raw)        
+        
+        self.fonts=dict()
+        for page in xml.getchildren():
+            for fontspec in page.findall(".//fontspec"):
+                fontid=int(fontspec.attrib['id'])
+                fontsize=int(fontspec.attrib['size'])
+                if fontid in self.fonts:
+                    assert self.fonts[fontid]['size']==fontsize
+                self.fonts[fontid]=dict(size=fontsize)
+
         return xml
         
     def get_num_pages(self):
@@ -148,16 +160,16 @@ class Parser(object):
     def parse_page_to_items(self,pagenr):
         page=self.xml.getchildren()[pagenr]
         out=[]
-        fonts=dict()
-        for fontspec in page.findall(".//fontspec"):
-            fontid=int(fontspec.attrib['id'])
-            fontsize=int(fontspec.attrib['size'])
-            fonts[fontid]=dict(size=fontsize)
+        fonts=self.fonts
         for item in page.findall(".//text"):
-            t=[]
+            t=[]            
+            bold=False
+            italic=False
             if item.text:
                 t.append(item.text)
             for it2 in item.findall(".//*"):
+                if it2.tag=="b": bold=True
+                if it2.tag=="i": italic=True
                 if it2.text!=None:
                     t.append(it2.text)
                 if it2.tail!=None:
@@ -168,6 +180,7 @@ class Parser(object):
                 fontsize=fontobj.get('size',None)
             else:
                 fontsize=None
+
             #print "Parsed fontid: %d, known: %s (size:%s)"%(fontid,fonts.keys(),fontsize)
             it=Item(text=" ".join(t),
               x1=float(item.attrib['left']),
@@ -175,7 +188,9 @@ class Parser(object):
               y1=float(item.attrib['top']),
               y2=float(item.attrib['top'])+float(item.attrib['height']),
               font=fontid,
-              fontsize=fontsize
+              fontsize=fontsize,
+              bold=bold,
+              italic=italic
               )
             out.append(it)
         
@@ -197,7 +212,9 @@ class Parser(object):
                 x2=100.0*(item.x2-minx)/xfactor,
                 y2=100.0*(item.y2-miny)/yfactor,
                 fontsize=item.fontsize,
-                font=item.font
+                font=item.font,
+                bold=item.bold,
+                italic=item.italic
                 )
     
     def __init__(self,path,loadhook=None,country="se"):

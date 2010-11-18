@@ -44,9 +44,20 @@ def get_dirpath(cachedir,zoomlevel,x1,y1):
 def get_path(cachedir,zoomlevel,x1,y1):
     return os.path.join(get_dirpath(cachedir,zoomlevel,x1,y1),str(x1)+".png")
     
+typecolormap=dict(
+    TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+    RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
+    CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
+    R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
+    CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
+    notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
+    aip_sup=  ((0.8,1,0.8,0.05),(0.8,1,0.8,0.75)),
+    mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
+    )
 
-
-
+def get_airspace_color(airspacetype):
+    """returns area-color , edge/solid color"""
+    return typecolormap[airspacetype]
     
 def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
     imgx,imgy=pixelsize
@@ -136,16 +147,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
                 ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)
-            areacol,solidcol=dict(
-                        TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
-                        RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
-                        CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
-                        R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
-                        CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
-                        notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
-                        aip_sup=  ((0.8,1,0.8,0.05),(0.8,1,0.8,0.75)),
-                        mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
-                        )[space['type']]
+            areacol,solidcol=get_airspace_color(space['type'])
                         
             ctx.close_path()   
             ctx.set_source(cairo.SolidPattern(*areacol))

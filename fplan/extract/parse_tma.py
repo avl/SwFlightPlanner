@@ -182,8 +182,8 @@ def parse_page(parser,pagenr,kind="TMA"):
         pa['name']=d['name']
         pa['floor']=floor
         pa['ceiling']=ceiling
-        #print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
-        #print pa
+        print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
+        print pa
         pa['points']=list(parse_coord_str(" ".join(arealines[:last_coord_idx])))
         vs=[]
         for p in pa['points']:
@@ -217,12 +217,12 @@ def pretty(pa):
 def parse_all_tma():
     def fixgote(raw):
         #Fix illogical composition of Göteborg TMA description. 2010 04 02
-        illo="""<text top="295" left="57" width="268" height="7" font="1">     Part of GÖTEBORG TMA  584558N 0122951E """
+        illo="""<text top="294" left="57" width="268" height="9" font="6">     Part of GÖTEBORG TMA  584558N 0122951E - 584358N 0130950E - </text>"""
         assert raw.count(illo)
-        #print "fix up gote"
+        print "fix up gote"
         raw=raw.replace(illo,                
-                        """<text top="296" left="5" width="138" height="7" font="1">     Part of GÖTEBORG TMA</text>
-                           <text top="296" left="168" width="58" height="7" font="1">584558N 0122951E """)
+                        """<text top="294" left="57" width="58" height="9" font="6">Part of GÖTEBORG TMA</text>
+                           <text top="294" left="168" width="156" height="9" font="6">584558N 0122951E - 584358N 0130950E - </text>""")
         return raw
     p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_2_1_en.pdf",fixgote)
 	
