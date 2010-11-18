@@ -369,7 +369,7 @@ def extract_airfields(filtericao=None):
                         space=dict(
                             name=spacename,
                             ceil=subspacealts[altspacename]['ceil'],
-                            floor=subspacealts[altspacename]['floor'],
+                            floor=subspacealts[altspacename].get('floor','GND'),
                             points=parse_coord_str(" ".join(subspacelines[spacename])),
                             freqs=freqs
                             )

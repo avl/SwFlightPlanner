@@ -9,11 +9,15 @@ import md5
 import math
 
 predef={
-('L24','c3d07b60f586fb24ad054ac98050225e') : 
-    ( 10, 'FL 65','FL 95','602733N 0241439E 602652N 0240237E 602617N 0235235E 602849N 0233644E 602942N 0230554E 603055N 0221523E'),
-('L80','da1af9331304f79686403627906932e8') :
+#('L24','c3d07b60f586fb24ad054ac98050225e') : 
+#    ( 10, 'FL 65','FL 95','602733N 0241439E 602652N 0240237E 602617N 0235235E 602849N 0233644E 602942N 0230554E 603055N 0221523E'),
+#TODO: Update L24, it has in fact changed
+
+("L24","0679ab4cea290636ac02b4ec4d3035d8") : ( 10,"FL 65","FL 95","602733N 0241439E 602652N 0240237E 602617N 0235235E 602849N 0233644E 602942N 0230554E 603055N 0221523E"),
+
+('L80',"3705096c45c33f6b85df0f1fc063e445") :
     ( 10, 'FL 65','FL 95','612436N 0233440E 612558N 0225520E 612659N 0222145E 612753N 0214745E'),
-('N198','fa4e80bd86fb0f0619782be532c29aaf') :
+('N198','866aaf523c7d17679852ead9dc4fb7d0') :
     ( 10,'FL 65','FL 95',"""MARIE
     VOR/DME (MAR)
     600828N 0195452E
@@ -142,8 +146,7 @@ INKOL
     694730N 0261340E
     VADLA FIR BDRY
     694506N 0284743E
-    """),
-    
+    """),    
 }
 
 
@@ -265,8 +268,12 @@ def fi_parse_ats_rte():
         def get_airspaces(routes):
             for routename,coords,altspec in routes:
                 sig=getsig(coords,altspec)
-                if (routename,sig) in predef:
-                    width_nm,floor,ceiling,coordstr=predef[(routename,sig)]
+                if 1 or (routename,sig) in predef:
+                    pobj=None
+                    for sroutename,ssig in predef:
+                        if routename==sroutename:
+                            pobj=(sroutename,ssig)
+                    width_nm,floor,ceiling,coordstr=predef[pobj]
                     rawcoords=re.findall(ur"(\d{6}N)\s*(\d{7}E)",coordstr)
                     coords=[mapper.latlon2merc(mapper.from_str(mapper.parse_coords(lats,lons)),13) for lats,lons in rawcoords]
                     width=float(mapper.approx_scale(coords[0],13,1.25*width_nm))
