@@ -46,6 +46,12 @@ class FlightplanController(BaseController):
                 lon=-lon
             return json.dumps([['Unknown Waypoint',[lat,lon]]])                
 
+        dec_match=re.match(r"\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)\s*",searchstr)
+        if dec_match:
+            latdec,londec=dec_match.groups()
+            lat=float(latdec)
+            lon=float(londec)
+            return json.dumps([['Unknown Waypoint',[lat,lon]]])                
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()

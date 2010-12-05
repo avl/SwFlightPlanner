@@ -67,9 +67,10 @@ ${c.expl}
 <table style="height:30%;margin: 0 auto">
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
-<b style="color:#9f0000;font-size:14px">Warning 2010-11-17</b>: Recent AIP changes means the data on this site is <b style="color:#9f0000;font-size:14px">NOT UP TO DATE</b>. The airspace data is from 17th of November 2010.<b>Beware!</b><br/>(What has happened is that AIP changes have made our automatic AIP-parser fail. It will be fixed ASAP.<br/><br/>
+
+<b>Updated 2010-11-19:</b>The AIP parser problems have been solved.<br/>
+<b>Warning 2010-11-18:</b> The AIP parser failed on 17th of november, which means that during the 17th and 18th, airspace data was not updated.<br/>
 <b>Updated 2010-10-09: </b>Support for creating complete ATS flightplans which can be copy-pasted to www.aro.lfv.se.<br/>
-<b>Updated 2010-09-26: </b>Experimental support for Finnish airspace. Also, some airfields now have runways drawn on the map.<br/>
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br/>
 <br/>
