@@ -14,18 +14,28 @@ python-elementtree or python-xml
 python-dev
 python-psycopg2
 pyro
-
+authbind
+shapemerge2d (not in apt-get, can be obtained from author)
 
 
 Openstreetmap (optional, only needed to regenerate map tiles):
 follow:
 http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
 
+You need to manage postgresql user authenticatino somehow.
+The simplest way is probably to edit 
+/etc/postgresql/8.4/main/pg_hba.conf
+and change "ident" to "trust" for localhost connections.
+
 Prepare database user 'flightplanner':
 create ROLE "flightplanner" SUPERUSER LOGIN;
-("SUPERUSER" may not be necessary)
+
+Then you need to change /etc/hosts so that "localhost" only appears for 127.0.0.1, and not for ::1.
+
+Then run, to create the database:
+sudo ./resetdb.sh
+WARNING! this removes the database if already present!
 
 
-Not needed any more:
-shapelib
+Not needed anymore:
 pyshapelib (Not not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)

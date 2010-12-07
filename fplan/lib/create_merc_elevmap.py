@@ -155,7 +155,7 @@ if __name__=='__main__':
     print sys.argv
     task=sys.argv[1]
     if len(sys.argv)<=2:
-        dest="/home/anders/saker/avl_fplan_world/elevmap.bin"
+        dest="/home/anders/saker/avl_fplan_world/tiles/elev/level"
     else:
         dest=sys.argv[2]
     if task=='refine':

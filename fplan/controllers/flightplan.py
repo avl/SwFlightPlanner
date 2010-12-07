@@ -2,7 +2,7 @@
 import logging
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import redirect_to
 from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,Stay 
 from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
 from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
-from fplan.lib.airspace import get_airspaces_on_line,get_notam_areas_on_line,get_notampoints_on_line
+from fplan.lib.airspace import get_notam_areas_on_line,get_notampoints_on_line
 import json
 import re
 import fplan.lib.weather as weather
@@ -70,6 +70,7 @@ class FlightplanController(BaseController):
         ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in points[:15]])
         #print "returning json:",ret
         return ret
+    
     def save(self):
         #print "Saving tripname:",request.params['tripname']
         trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
@@ -110,12 +111,12 @@ class FlightplanController(BaseController):
                     way.stay.fuel=float(request.params.get(fuel_s,''))
                 except:
                     pass
-                way.altitude=str(int(get_terrain_elev.get_terrain_elev(mapper.from_str(way.pos))))
+                way.altitude=unicode(int(get_terrain_elev.get_terrain_elev(mapper.from_str(way.pos))))
             else:
                 #remove any stay
                 meta.Session.query(Stay).filter(sa.and_(
                     Stay.user==way.user,Stay.trip==way.trip,Stay.waypoint_id==way.id)).delete()
-                way.altitude=''
+                way.altitude=u''
 
         for idx,way in enumerate(waypoints[:-1]):
             #print "Found waypoint #%d"%(idx,)    
@@ -512,7 +513,6 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 dict(width=5,short='Clock',desc="Time of Day (hours, minutes)",extra="The approximate time in UTC you will have finished the leg.")
                 ]
        
-        c.acname=trip.trip
         c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
                  Aircraft.user==session['user'])).all()
 
@@ -522,6 +522,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.ac=trip.acobj
             
         c.sharing=tripsharing.sharing_active()
+        print repr(c)
         return render('/flightplan.mako')
     def select_aircraft(self):
         if not tripsharing.sharing_active():  

@@ -17,10 +17,10 @@ class AircraftController(BaseController):
         print "Cur aircraft:",cur_acname
         c.ac=None
         if cur_acname:
-             cac=meta.Session.query(Aircraft).filter(sa.and_(
+            cac=meta.Session.query(Aircraft).filter(sa.and_(
                  Aircraft.user==session['user'],
                  Aircraft.aircraft==cur_acname)).all()
-             if len(cac)==1:
+            if len(cac)==1:
                 c.ac=cac[0]
         
                 

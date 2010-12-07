@@ -41,6 +41,7 @@ function loadfplan()
 %for cnt,wp in h.izip(h.count(),sorted(c.waypoints,key=lambda x:x.ordering)):
     fpid.push(${wp.id});
 	var rowdata=[
+
 	%if cnt!=len(c.waypoints)-1:
 	%for whati,what in enumerate(c.cols):
 	'${c.get(what['short'],c.waypoints[cnt],c.waypoints[cnt+1])}'${',' if whati!=len(c.cols)-1 else ''}\
@@ -48,6 +49,7 @@ function loadfplan()
 	%endif
 	];	
 	var stay=[];
+
 	%if wp.stay:
 	stay=[
 	    '${h.jsescape(wp.stay.date_of_flight)|n}','${h.jsescape(wp.stay.departure_time)|n}',
@@ -56,7 +58,9 @@ function loadfplan()
 	];
 	%endif
 	
-	fpaddwaypoint(${wp.id},${cnt},'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(unicode(wp.altitude,"latin1"))|n}',stay);
+%if 1:
+	fpaddwaypoint(${wp.id},${cnt},'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(wp.altitude)|n}',stay);
+%endif
 
 %endfor
 
@@ -150,17 +154,6 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 </table>
 %endif
 <br/>
-%if False:
-%if len(c.all_aircraft):
-Aircraft: <select id="curaircraft" name="aircraft">
-%for ac in c.all_aircraft:
-<option ${'selected="1"' if ac.aircraft==c.acname else ''|n}>
-${ac.aircraft}
-</option>
-%endfor
-</select><br/>
-%endif
-%endif
 
 <table id="flightplantable" class="bordered" cellspacing="0" borders="0">
 <tr>

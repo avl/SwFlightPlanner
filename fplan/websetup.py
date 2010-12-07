@@ -6,7 +6,7 @@ from fplan.model import meta
 from fplan.model import *
 log = logging.getLogger(__name__)
 from pylons import config
-import extract.loader
+#import extract.loader
 
 def setup_app(command, conf, vars):
     """Place any commands to setup fplan here"""
@@ -21,8 +21,8 @@ def setup_app(command, conf, vars):
         meta.Session.flush()
     meta.Session.commit()
     
-    if config['preload_aerodrome_info']==True:
-        print "Preloading aerodrome-info"
-        extract.loader.update_airfields()
+    #if config['preload_aerodrome_info']==True:
+    #    print "Preloading aerodrome-info"
+    #    extract.loader.update_airfields()
         
     
