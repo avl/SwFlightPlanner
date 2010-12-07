@@ -88,7 +88,7 @@ class MaptileController(BaseController):
         obstbytype=dict()
         for obst in get_obstacles(lat,lon,zoomlevel):
             obstbytype.setdefault(obst['kind'],[]).append(obst)
-            print "processing",obst
+            #print "processing",obst
         obstacles=[]
         if len(obstbytype):
             for kind,obsts in sorted(obstbytype.items()):

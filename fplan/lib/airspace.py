@@ -1,6 +1,7 @@
 import fplan.lib.mapper as mapper
 from pyshapemerge2d import Line2,Vertex,Polygon,vvector
 import fplan.extract.extracted_cache as cache
+from fplan.lib.bsptree import BoundingBox
 import fplan.extract.parse_obstacles as parse_obstacles
 from notam_geo_search import get_notam_objs_cached
 from fplan.lib.get_terrain_elev import get_terrain_elev
@@ -16,35 +17,37 @@ def get_pos_elev(latlon):
     return get_terrain_elev(latlon)
 
 def get_obstacles(lat,lon,zoomlevel):
-    clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
-    for obst in cache.get_obstacles():
-        x,y=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
-        radius=parse_obstacles.get_pixel_radius(obst,zoomlevel)
+    clickx,clicky=mapper.latlon2merc((lat,lon),13)
+    rad=6<<(13-zoomlevel)
+    bb=BoundingBox(clickx-rad,clicky-rad,clickx+rad,clicky+rad)
+    #print "Looking for stuff in bb",bb
+    for obst in cache.get_obstacles_in_bb(bb):
+        #print "Got obstacle ",obst
+        yield obst
+
+def get_sigpoints(lat,lon,zoomlevel):
+    clickx,clicky=mapper.latlon2merc((lat,lon),13)
+    rad=6<<(13-zoomlevel)
+    bb=BoundingBox(clickx-rad,clicky-rad,clickx+rad,clicky+rad)
+    out=[]
+    for sigp in cache.get_sig_points_in_bb(bb):
+        x,y=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
         d=(clickx-x)**2+(clicky-y)**2
-        if d<=(radius+5)**2:
-           yield obst
+        out.append((d,sigp))
+    return [sigp for d,sigp in sorted(out)]
+
 
 def get_airfields(lat,lon,zoomlevel):
-    clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
+    clickx,clicky=mapper.latlon2merc((lat,lon),13)
+    rad=6<<(13-zoomlevel)
+    bb=BoundingBox(clickx-rad,clicky-rad,clickx+rad,clicky+rad)
     out=[]
-    for airp in cache.get_airfields():
+    for airp in cache.get_airfields_in_bb(bb):
         x,y=mapper.latlon2merc(mapper.from_str(airp['pos']),zoomlevel)
-        radius=20
         d=(clickx-x)**2+(clicky-y)**2
-        if d<=(radius)**2:
-           out.append((d,airp))
+        out.append((d,airp))
     return [airp for d,airp in sorted(out)]
     
-def get_sigpoints(lat,lon,zoomlevel):
-    clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
-    out=[]
-    for sigp in cache.get_sig_points():
-        x,y=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
-        radius=10
-        d=(clickx-x)**2+(clicky-y)**2
-        if d<=(radius)**2:
-           out.append((d,sigp))
-    return [sigp for d,sigp in sorted(out)]
 
 def get_notampoints(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),zoomlevel)
@@ -106,6 +109,20 @@ def get_polygons_around(lat,lon,polys):
         else:
             pass#print "Is NOT inside"
     return insides
+def get_polygons_around2(lat,lon,polyspaces):
+    """for Polygon,Space-pairs"""
+    zoomlevel=13
+    px,py=mapper.latlon2merc((lat,lon),zoomlevel)
+    insides=[]
+    for polyspace in polyspaces:                
+        poly,space=polyspace
+        #print "Checking if inside poly:",space
+        if poly.is_inside(Vertex(int(px),int(py))):
+            insides.append(space)
+            #print "Is inside"
+        else:
+            pass#print "Is NOT inside"
+    return insides
 
 def get_polygons_on_line(latlon1,latlon2,polys):
     zoomlevel=13
@@ -132,7 +149,10 @@ def get_polygons_on_line(latlon1,latlon2,polys):
 
 
 def get_airspaces(lat,lon):
-    spaces=get_polygons_around(lat,lon,cache.get_airspaces())
+    zoomlevel=13
+    px,py=mapper.latlon2merc((lat,lon),zoomlevel)
+    bb0=BoundingBox(px,py,px,py)
+    spaces=get_polygons_around2(lat,lon,cache.get_airspaces_in_bb(bb0))
     return spaces
 
 def get_aip_sup_areas(lat,lon):

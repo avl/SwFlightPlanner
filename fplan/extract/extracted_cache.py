@@ -1,3 +1,4 @@
+
 from fplan.extract.parse_tma import parse_all_tma,parse_r_areas
 from fplan.extract.fi_parse_tma import fi_parse_tma
 from fplan.extract.parse_obstacles import parse_obstacles
@@ -12,7 +13,11 @@ from fplan.extract.fetchdata import get_filedate
 from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
 from fplan.extract.fi_extract_ats_rte import fi_parse_ats_rte
+from fplan.lib.bbtree import BBTree
+from pyshapemerge2d import Line2,Vertex,Polygon,vvector
+from fplan.lib.bsptree import BspTree,BoundingBox
 import fplan.lib.remove_unused_users
+import fplan.lib.mapper as mapper
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 import pickle
@@ -23,13 +28,76 @@ import sys
 from threading import Lock
 version=2
 
-aipdata=[]
+aipdata=None
+aipdatalookup=None
 debug=True
 loaded_aipdata_cachefiledate=None
 last_timestamp_check=datetime.utcnow()
 lock=Lock()
+
+def gen_bsptree_lookup(data):
+    r=dict()
+    
+    lookup_points=['obstacles',
+             'airfields',
+             'sig_points']
+    for look in lookup_points:
+        items=data.get(look,None)
+        if items:
+            bspitems=[BspTree.Item(
+                    mapper.latlon2merc(mapper.from_str(item['pos']),13),item) for
+                    item in items]
+            #print "Items for bsptree",items
+            bsp=BspTree(bspitems)   
+            #assert len(bsp.getall())==len(items)
+            #after=sorted(set(x['name'] for x in bsp.getall()))
+            #before=sorted(set(x['name'] for x in obsts))
+            #print after,"\n-------------------\n\n",before
+            #assert after==before
+            #print "same before as after"
+            r[look]=bsp
+    del item
+    del items
+    del bspitems
+    del bsp
+    
+    
+    lookup_spaces=['airspaces']
+    for look in lookup_spaces:
+        spaces=data.get(look,None)
+        if spaces:
+            bbitems=[]
+            zoomlevel=13
+            for space in spaces:
+                poly_coords=[]
+                bb=BoundingBox(1e30,1e30,-1e30,-1e30)
+                for coord in space['points']:
+                    x,y=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
+                    bb.x1=min(bb.x1,x)
+                    bb.x2=max(bb.x2,x)
+                    bb.y1=min(bb.y1,y)
+                    bb.y2=max(bb.y2,y)
+                    poly_coords.append(Vertex(int(x),int(y)))
+                if len(poly_coords)<3:
+                    continue
+                poly=Polygon(vvector(poly_coords))
+                print "Item:",space
+                bbitems.append(
+                    BBTree.TItem(bb,(poly,space)))
+                                
+                #if poly.is_inside(Vertex(int(px),int(py))):
+                #    insides.append(space)
+            
+            
+            bbt=BBTree(bbitems,0.5)
+            r[look]=bbt       
+    
+    return r
+            
+                          
 def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
     global aipdata
+    global aipdatalookup
     global loaded_aipdata_cachefiledate
     global last_timestamp_check
     lock.acquire()
@@ -47,18 +115,21 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         if newaipdata.get('version',None)!=version:
                             raise Exception("Bad aipdata version")
                         loaded_aipdata_cachefiledate=get_filedate(cachefile);
-                        aipdata=newaipdata
+                        newaipdatalookup=gen_bsptree_lookup(newaipdata)
+                        aipdata,aipdatalookup=newaipdata,newaipdatalookup
+                        
                         return aipdata
                     except Exception,cause:
                         print "Tried to load new aipdata from disk, but failed"
             return aipdata
         try:
             aipdata=pickle.load(open(cachefile))
+            aipdatalookup=gen_bsptree_lookup(aipdata)
             if aipdata.get('version',None)!=version:
                 raise Exception("Bad aipdata version")
             loaded_aipdata_cachefiledate=get_filedate(cachefile);
             return aipdata
-        except:
+        except Exception,cause:
             if not generate_if_missing:
                 raise Exception("You must supply generate_if_missing-parameter for aip-data parsing and generation to happen")
             airspaces=[]
@@ -119,6 +190,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 aip_sup_areas=parse_all_sups(),
                 version=version
                 )
+            aipdatalookup=gen_bsptree_lookup(aipdata)
             pickle.dump(aipdata,open(cachefile,"w"),-1)        
             loaded_aipdata_cachefiledate=get_filedate(cachefile);
             return aipdata
@@ -129,18 +201,38 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
 def get_airspaces():
     aipdata=get_aipdata()
     return aipdata['airspaces']
+def get_airspaces_in_bb(bb):
+    get_aipdata()
+    for item in aipdatalookup['airspaces'].overlapping(bb):
+        yield item.payload #tuple of (Polygon,Airspace-dict)
+
 def get_aip_sup_areas():
     aipdata=get_aipdata()
     return aipdata.get('aip_sup_areas',[])
+
 def get_obstacles():
     aipdata=get_aipdata()
     return aipdata['obstacles']
-def get_airfields():
-    aipdata=get_aipdata()
-    return aipdata['airfields']
+def get_obstacles_in_bb(bb):
+    get_aipdata()
+    for item in aipdatalookup['obstacles'].findall_in_bb(bb):
+        yield item.val
 def get_sig_points():
     aipdata=get_aipdata()
     return aipdata['sig_points']
+def get_sig_points_in_bb(bb):
+    get_aipdata()
+    for item in aipdatalookup['sig_points'].findall_in_bb(bb):
+        yield item.val
+
+def get_airfields_in_bb(bb):
+    get_aipdata()
+    for item in aipdatalookup['airfields'].findall_in_bb(bb):
+        yield item.val
+        
+def get_airfields():
+    aipdata=get_aipdata()
+    return aipdata['airfields']
 def get_aip_download_time():
     aipdata=get_aipdata()
     return aipdata.get('downloaded',None)
@@ -160,7 +252,7 @@ def run_update_iteration():
             last_update=datetime.utcnow()
             #if not debug: #non-caching is just annoying
             #    fetchdata.caching_enabled=False
-            aipdata=[]
+            aipdata=None
             get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
