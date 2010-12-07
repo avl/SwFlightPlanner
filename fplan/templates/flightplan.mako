@@ -58,9 +58,7 @@ function loadfplan()
 	];
 	%endif
 	
-%if 1:
 	fpaddwaypoint(${wp.id},${cnt},'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(wp.altitude)|n}',stay);
-%endif
 
 %endfor
 

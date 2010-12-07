@@ -4,7 +4,6 @@ from sqlalchemy import orm
 from datetime import datetime,timedelta
 from fplan.model import meta
 
-
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     ## Reflected tables must be defined and mapped here

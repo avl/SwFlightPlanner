@@ -522,7 +522,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.ac=trip.acobj
             
         c.sharing=tripsharing.sharing_active()
-        print repr(c)
+        #print repr(c)
         return render('/flightplan.mako')
     def select_aircraft(self):
         if not tripsharing.sharing_active():  
