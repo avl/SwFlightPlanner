@@ -12,9 +12,11 @@ from fplanquick.fplanquick import svector
 import Image
         
 def latlon_limits():
-    limits="53,3,71.5,31.8"
-    lat1,lon1,lat2,lon2=limits.split(",")
-    return float(lat1),float(lon1),float(lat2),float(lon2)
+    lat1=53
+    lon1=3
+    lat2=71.5
+    lon2=31.8
+    return lat1,lon1,lat2,lon2
 
 def merc_limits(zoomlevel,conservative=False):
     def ints(xs): return [int(x) for x in xs]
@@ -46,7 +48,7 @@ def get_mtime():
     global last_mtime_check
     global last_mtime
     if datetime.utcnow()-last_mtime_check>timedelta(0,60):
-        path="/home/anders/saker/avl_fplan_world/tiles/airspace/level5" #used to detect if map has been updated
+        path=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/airspace/level5") #used to detect if map has been updated
         mtime=os.stat(path)[stat.ST_MTIME]
         last_mtime=mtime
         last_mtime_check=datetime.utcnow()
@@ -111,9 +113,9 @@ def getmaptile(variant,zoomlevel,mx,my,mtime=None):
             loadvariants=["airspace","plain",'elev']
             for loadvariant in loadvariants:
                 for loadzoomlevel in xrange(14):
-                    path="/home/anders/saker/avl_fplan_world/tiles/%s/level%d"%(
+                    path=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/%s/level%d"%(
                             loadvariant,
-                            loadzoomlevel)
+                            loadzoomlevel))
                     #print "Reading: ",path
                     if os.path.exists(path):
                         #print "Reopening "+path

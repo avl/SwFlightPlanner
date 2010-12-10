@@ -1,0 +1,105 @@
+swflightplanner.se
+
+Hello! You're viewing the source code of the http://swflightplanner.se website.
+
+This guide covers installing and starting the application.
+
+NOTE! This app was never made with ease of distribution in mind. Setting
+up a working version of the program will take a few hours, and it is 
+unfortunately rather likely that I have missed something in these
+instructions, and those under docs/install.txt. However, I'll be glad to
+answer any questions, so if you do give it a go, and have problems: Just
+send me a mail, then continue the next day :-)... Don't bang your head
+against the wall :-). I answer questions in Swedish or English, at 
+anders.musikka@gmail.com.
+
+
+Basics
+
+The swflightplanner is built using the Pylons python web framework. It is
+mostly written in Python, but some small parts are written in C++ for
+performance. The application uses a large amount of external data, which 
+is not included in the source code repository. The app needs postgres to
+store user data and some information about NOTAMs. Most external data is
+not stored in the postgres database however. The map data (normal map data,
+as well as elevation map data) is stored in a custom binary on-disk hash-map
+format, developed especially for the swflightplanner.
+
+
+Installing
+
+To install the app you need linux. Other unix-variants probably work, but
+I haven't tried. Running the app on windows is probably possible, but will
+require some work. 
+
+See the file docs/install.txt for basic information about how to install the app.
+
+Miscellaneous
+
+The application requires some disk space. 
+The two maps (airspace map, base map) require about 2 gigabytes each. The
+maps consist of prerendered openstreetmap data, in tiles that are 256x256
+pixels large, png-compressed, and stored in a custom on-disk hash map.
+
+Elevation maps require a few hundred megs, and are stored in 64x64 tiles.
+Elevation tiles are not compressed, but are still (slightly suboptimally)
+stored in the same kind of hashmap as the other map tiles. The
+hashmap implementation can be found in fplan/lib/blobfile.py.
+
+Environment variables
+You need to set PYTHONPATH to point at the root source directory of this app 
+(to the directory where this README file is).
+
+You need to set SWFP_DATADIR to point to a directory with the following
+layout:
+
+./tiles/plain/ - Normal map
+./tiles/airspace - Map which shows airspaces
+./tiles/elev - Elevation map
+./srtp/ - Nasa Shuttle Radio topography mission data
+
+Map files
+The files to put in ./tiles/plain/ and ./tiles/airspace can be generated
+from openstreetmap data. To do this, follow the guide in docs/install.txt
+
+Running
+The following environment variables need to be set:
+PYTHONPATH - path-to-this-readmefile:shapemerge2d-path
+SWFP_DATADIR - path to directory with map tiles, elevation map etc. 
+SWFP_ROOT - path to this readmefile
+
+Where shapemerge2d-path is the place where you built the shapemerge2d library
+obtained separately.
+
+Then, you need to update airspace data. This is done by running the following:
+./updateaip.sh force
+The updateaip-script calls a python program, which downloads latest AIP 
+airspace data from LFV and Finavia. The force directive forces an immediate
+download. If force is not given, the program waits until night-time, then
+downloads the data. The program does not exist after downloading data once,
+it sleeps till next night, and does it again.
+
+The program also re-renders the bitmapped airspace-map. This takes a very long
+time, up to 4-5 hours. Therefore it is a good idea that the script starts
+running just after midnight, so that a fresh map is available in the 
+morning.
+
+
+You cannot run the application until airspace data has been downloaded.
+The airspace map is not absolutely necessary, one can be faked by adding
+a symlink from $SWFP_DATADIR/tiles/airspace -> $SWFP_DATADIR/tiles/plain .
+
+To start the main web-server process, do:
+./start.sh
+This runs the server on port 80, using the settings of production.ini.
+
+
+
+
+
+
+
+
+
+
+

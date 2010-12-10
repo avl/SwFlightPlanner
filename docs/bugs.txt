@@ -71,6 +71,8 @@
 69: FIXAD: The program should remember which was the last trip shown, when re-logging-in.
 70: FIXAD: Unclicking "Land here" doesn't reset the departure time from that waypoint.
 71: AIP SUP should be presented just as a NOTAM. It should be warned about in printable flight plan and NOTAM on route screen.
+72: Holding point Listersjön for ESDF (Ronneby) is wrong. Fix.
+73: Update the gentiles.sh script. Path therein is gravely wrong?
 
 
 

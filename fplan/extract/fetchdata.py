@@ -5,7 +5,8 @@ import socket
 host=socket.gethostname()
 from urllib2 import urlopen
 
-tmppath="/home/anders/saker/avl_fplan_world/aip"
+dev_computer=os.getenv('SWFP_DEVCOMP')
+tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
 
 caching_enabled=True #True for debug, set to false by background updater
 
@@ -26,12 +27,10 @@ def changeext(path,from_,to_):
     return path+to_
 
 #def get_date(path):
-#    return get_filedate('/home/anders/lfv/www.lfv.se'+path)
 def getrawdata(relpath,country="se"):
     fixed=relpath.replace(" ","%20")
     print relpath
     assert(relpath.startswith("/"))
-    #return open('/home/anders/lfv/www.lfv.se'+relpath).read()
     if country=="se":
         durl="http://www.lfv.se"+fixed
     elif country=="fi":
@@ -60,7 +59,7 @@ def getxml(relpath,country="se"):
         age=nowdate-cacheddate
         print "cache-age:",age
         maxcacheage=7200
-        if host=='macbook':
+        if host==dev_computer:
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
             print "Returning cached %s"%(relpath,)
@@ -69,12 +68,12 @@ def getxml(relpath,country="se"):
     try:
         pdfdata=getrawdata(relpath,country=country)
     except Exception,cause:
-        if host=="macbook":
+        if host==dev_computer:
             print "Failed to fetch  ",relpath,cause
             try:
                 return open(cachenamexml).read()
             except:
-                pdfdata=open("/home/anders/lfv/www.lfv.se"+relpath).read()
+                pdfdata=open(os.path.join(os.getenv("SWFP_DATADIR","/lfv/www.lfv.se"+relpath))).read()
         else:
             raise
     if not os.path.exists(tmppath):
@@ -89,11 +88,11 @@ def getxml(relpath,country="se"):
     return open(cachenamexml).read() 
 
 def get_raw_aip_sup_page():
-    if host=='macbook':
+    if host==dev_computer:
         try:
             return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()    
         except:
-            return open("/home/anders/saker/avl_traveltools/fplan/fplan/AIP SUP.html").read()
+            return open(os.path.join(os.getenv("SWFP_ROOT"),"AIP SUP.html")).read()
     else:
         #TODO: 
         return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()
@@ -104,8 +103,8 @@ weatherlookup=dict(A="http://www.lfv.se/MetInfo.asp?TextFile=llf.esms-day.txt&Te
        C="http://www.lfv.se/MetInfo.asp?TextFile=llf.esnn-day.txt&TextFile=llf.esnn-tot.txt&TextFile=llf.esnn-n.txt&TextFile=llf.esnn-mid.txt&TextFile=llf.esnn-se.txt&TextFile=llf.esnn-sw.txt&Subtitle=Omr%e5de%A0C%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0C%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0C%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Mellersta%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0C%A0-%A0Norra%A0Sverige&Frequency=60")
 def get_raw_weather_for_area(cur_area2):
     cur_area=cur_area2.upper()
-    if host=='macbook':           
-        return open("/home/anders/saker/avl_traveltools/fplan/fplan/MetInfo%s.asp"%(cur_area.upper(),)).read()    
+    if host==dev_computer:           
+        return open(os.path.join(os.getenv("SWFP_ROOT"),"/MetInfo%s.asp"%(cur_area.upper(),))).read()    
     cd=weathercache.get(cur_area,None)
     if cd and (datetime.utcnow()-cd['time'])<timedelta(0,1800):
         return cd['data']        

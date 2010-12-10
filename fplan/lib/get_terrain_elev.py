@@ -2,17 +2,19 @@ from struct import unpack
 from math import floor
 import math
 
+import os
+
 terrain_files=[]
 
 def init_terrain():
     terrain_files.append(dict(
-        fname="/home/anders/saker/avl_fplan_world/srtp/E020N90.DEM",
+        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/E020N90.DEM"),
         west=20.0,#-1e-5,
         east=60.0,
         north=90.0,
         south=40.0))
     terrain_files.append(dict(
-        fname="/home/anders/saker/avl_fplan_world/srtp/W020N90.DEM",
+        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/W020N90.DEM"),
         west=-20.0,
         east=20.0,#+1e-5,
         north=90.0,

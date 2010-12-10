@@ -14,29 +14,21 @@ def run_unithread(target_path,tma,zoomlevel=13):
     p.close()
     
 def update_unithread(zoomlevel=13):
-    if os.path.exists("/home/anders/saker/avl_fplan_world/intermediate/"):
-        if os.system("rm -rfv /home/anders/saker/avl_fplan_world/intermediate/level*"):
+    if os.path.exists(os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/")):
+        if os.system("rm -rfv "+os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/level*")):
             raise Exception("Couldn't clear dir")
     else:
-        if os.system("mkdir -pv /home/anders/saker/avl_fplan_world/intermediate"):
+        if os.system("mkdir -pv "+os.path.join(os.getenv("SWFP_DATADIR"),"intermediate")):
             raise Exception("Couldn't create dir")
-    run_unithread("/home/anders/saker/avl_fplan_world/intermediate","1",zoomlevel)
+    run_unithread(os.path.join(os.getenv("SWFP_DATADIR"),"intermediate"),"1",zoomlevel)
     for zl in xrange(zoomlevel+1):
-        newpath="/home/anders/saker/avl_fplan_world/intermediate/level%d"%(zl,)
+        newpath=os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/level%d"%(zl,))
         try:
-            destpath="/home/anders/saker/avl_fplan_world/tiles/airspace/level%d"%(zl,)
+            destpath=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/airspace/level%d"%(zl,))
             oldsize=os.stat(destpath)[stat.ST_SIZE]
         except:
             oldsize=0            
         newsize=os.stat(newpath)[stat.ST_SIZE]
-        for openfd in os.listdir("/proc/self/fd"):
-            try:
-                openf=os.readlink("/proc/self/fd/"+openfd)
-            except:
-                continue
-            if openf.count("avl_fplan_world/intermediate") or \
-                openf.count("avl_fplan_world/tiles/airspace"):
-                raise Exception("Unexpected open file: %s - %s"%(openfd,openf))
             
             
         if newsize<oldsize*0.7:

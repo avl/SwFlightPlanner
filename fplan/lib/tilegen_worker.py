@@ -12,26 +12,18 @@ import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
 import socket
+import maptilereader
 #have_mapnik=True
 
-have_mapnik=False
 #If changing this - also change 'meta=x' in tilegen_planner .
-if socket.gethostname()=="ragnar":
-    have_mapnik=True
-    print "Using real mapnik"
-
-def use_existing_tiles():
-    if have_mapnik: return None
-    #if tma:
-    #    return "/home/anders/saker/avl_fplan_world/tiles/airspace"
-    #else:
-    return True
-    
-if have_mapnik:
+try:
     import mapnik
+    have_mapnik=True
     prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
-else:
-    import maptilereader
+except:
+    have_mapnik=False
+
+
 
 def get_dirpath(cachedir,zoomlevel,x1,y1):
     print "X1: %d, Y1: %d, tilepixelsize: %d"%(x1,y1,tilepixelsize)
@@ -59,13 +51,18 @@ def get_airspace_color(airspacetype):
     """returns area-color , edge/solid color"""
     return typecolormap[airspacetype]
     
-def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
+def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format="PIL"):
+    """
+    set osmdraw==True and make sure a full working openstreetmap mapnik environment is available,
+    in order to draw using mapnik. If false, a basemap must already have been drawn, and all that can
+    be done is that new airspaces etc an be filled in.
+    """
     imgx,imgy=pixelsize
-
-    if not use_existing_tiles():
+    assert osmdraw in [True,False]
+    if not osmdraw:
         #print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
         #print "Generating tile"
-        mapfile = "/home/anders/saker/avl_fplan_world/mapnik_render/osm.xml"
+        mapfile = os.path.join(os.getenv("SWFP_DATADIR"),"mapnik_render/osm.xml")
         
         #---------------------------------------------------
         #  Change this to the bounding box you want
@@ -110,13 +107,6 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
         im=Image.new("RGBA",(imgx,imgy))
         for i in xrange(0,pixelsize[0],256):
             for j in xrange(0,pixelsize[1],256):
-                #print "i,j: %d,%d"%(i,j)
-                #fname=get_path(use_existing_tiles(),zoomlevel,x1+i,y1+j)
-                #if os.path.exists(fname):
-                #    sub=Image.open(fname)
-                #else:
-                #    print "Warning, missing data: ",fname
-                #    sub=Image.open("fplan/public/nodata.png")
                 rawtile,tilemeta=maptilereader.gettile("plain",zoomlevel,x1+i,y1+j)
                 io=StringIO.StringIO(rawtile)
                 io.seek(0)
@@ -259,7 +249,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,tma=False,return_format="PIL"):
     return im
 
 def test_stockholm_tile():
-    im=generate_big_tile((2048,2048),71936-256*4,38400-256*4,9,tma=True)
+    im=generate_big_tile((2048,2048),71936-256*4,38400-256*4,9,osmdraw=False,tma=True)
     p="output.png"
     if hasattr(im,'crop'):
         #print "PIL-image"
@@ -292,7 +282,7 @@ def do_work_item(planner,coord,descr):
     maxy=mapper.max_merc_y(zoomlevel)
     maxx=mapper.max_merc_x(zoomlevel)
     
-    im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel,tma=render_tma)
+    im=generate_big_tile((mx2-mx1+metax1+metax2,my2-my1+metay1+metay2),mx1-metax1,my1-metay1,zoomlevel,osmdraw=render_tma,tma=render_tma)
     cadir=planner.get_cachedir()            
     subwork=[]
     for j in xrange(0,2048,tilepixelsize):

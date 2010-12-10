@@ -16,7 +16,7 @@ def generate_tile(pixelsize,x1,y1,zoomlevel):
 
     print "Making tile at %s/%s, zoomlevel: %d"%(x1,y1,zoomlevel)
     #print "Generating tile"
-    mapfile = "/home/anders/saker/avl_fplan_world/mapnik_render/osm.xml"
+    mapfile = os.path.join(os.getenv("SWFP_DATADIR"),"mapnik_render/osm.xml")
     
     #---------------------------------------------------
     #  Change this to the bounding box you want

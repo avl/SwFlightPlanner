@@ -5,7 +5,7 @@ import sys
 from coord2latlon import parse_line
 base=sys.argv[1] #"llf_middle"
 
-filename="/home/anders/saker/avl_fplan_world/%s.png"%(base,)
+filename=os.path.join(os.getenv("SWFP_DATADIR"),"%s.png"%(base,))
 output=open(base+".txt","a")
 
 class Popup(wx.Frame):

@@ -18,7 +18,11 @@ def get_pos_elev(latlon):
 
 def get_obstacles(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),13)
-    rad=6<<(13-zoomlevel)
+    rad=8
+    if zoomlevel>=11:
+        rad+=(zoomlevel-11)*6
+        
+    rad<<=(13-zoomlevel)
     bb=BoundingBox(clickx-rad,clicky-rad,clickx+rad,clicky+rad)
     #print "Looking for stuff in bb",bb
     for obst in cache.get_obstacles_in_bb(bb):
@@ -27,7 +31,7 @@ def get_obstacles(lat,lon,zoomlevel):
 
 def get_sigpoints(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),13)
-    rad=6<<(13-zoomlevel)
+    rad=8<<(13-zoomlevel)
     bb=BoundingBox(clickx-rad,clicky-rad,clickx+rad,clicky+rad)
     out=[]
     for sigp in cache.get_sig_points_in_bb(bb):
@@ -39,7 +43,10 @@ def get_sigpoints(lat,lon,zoomlevel):
 
 def get_airfields(lat,lon,zoomlevel):
     clickx,clicky=mapper.latlon2merc((lat,lon),13)
-    rad=6<<(13-zoomlevel)
+    rad=10
+    if zoomlevel>=10:
+        rad<<=(zoomlevel-10)      
+    rad<<=(13-zoomlevel)
     bb=BoundingBox(clickx-rad,clicky-rad,clickx+rad,clicky+rad)
     out=[]
     for airp in cache.get_airfields_in_bb(bb):

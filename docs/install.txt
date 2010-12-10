@@ -1,26 +1,21 @@
 
+Dependencies
 
-dependencies:
-(mapnik)
-(cairo)
-python-cairo
-python-mapnik
-python-numpy
-poppler-utils
-pylons
-proj
-postgresql
-python-elementtree or python-xml
-python-dev
-python-psycopg2
-pyro
-authbind
-shapemerge2d (not in apt-get, can be obtained from author)
+To install swflightplanner you need to install a large number of different
+libraries. This guide is written with Ubuntu 10.10 in mind. It is possible
+that package names could differ if using another distribution.
 
+First, install the following dependencies:
 
-Openstreetmap (optional, only needed to regenerate map tiles):
-follow:
-http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
+sudo apt-get install python-cairo python-mapnik python-numpy poppler-utils \
+pylons proj postgresql python-elementtree python-dev python-psycopg2 pyro authbind
+
+If python-elementtree doesn't exist, you can try "python-xml" instead.
+
+Then you need the package shapemerge2d, which is not part of debian 
+(at time of writing). Get it from github:
+
+git clone github.com/shapemerge3d (TODO: Fix this path, it is wrong)
 
 You need to manage postgresql user authenticatino somehow.
 The simplest way is probably to edit 
@@ -30,12 +25,84 @@ and change "ident" to "trust" for localhost connections.
 Prepare database user 'flightplanner':
 create ROLE "flightplanner" SUPERUSER LOGIN;
 
-Then you need to change /etc/hosts so that "localhost" only appears for 127.0.0.1, and not for ::1.
+Then you need to change /etc/hosts so that "localhost" only appears for 
+127.0.0.1, and not for ::1. (Otherwise adding postgres 'trust' for localhost
+connections doesn't work).
 
-Then run, to create the database:
+Then create the database:
 sudo ./resetdb.sh
 WARNING! this removes the database if already present!
 
+Building the C++-component
+A very small part of the application, namely the part that merges the 64x64
+pixel uncompressed heightmaps into 256x256 color images, shading in different
+colors depending on elevation.
 
-Not needed anymore:
-pyshapelib (Not not in apt-get, download separately. Needs separate download of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python setup.py install)
+To build this component you need the build-tool "scons", Gnu C++, and SWIG.
+(Simple Wrapper Interface Generator). These will all be found in any
+modern linux distribution. Then go to the root directory (the one with
+the README-file), and type:
+
+scons
+
+An extension module for python, called _fplanquick.so will be built.
+
+
+Obtaining 3D-party data
+
+Two primary data sources need to be downloaded manually; SRTP and Openstreetmap.
+
+
+
+SRTP
+
+SRTP is the Shuttle Radar Topography mission, and contains elevation data for 
+the entire earth. This data is available in chunks covering approximately 
+40x60 degrees of the earth. Download this from <TODO TBD>.
+
+Openstreetmap
+You need to download an appropriate .osm-file for the part of the world
+you wish to cover. You can download an .osm-file for the entire world,
+but unless you plan to support the entire world in the application, this
+will be needlessly slow to use. Get something like Sweden.osm for sweden.
+
+http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
+
+Once you have installed openstreetmap, and unpacked a suitable .osm-file
+into the postgres GIS database, you need to generate swflightplanner
+bitmap tiles. This is slightly needlessly complicated
+
+
+Customizing
+
+The swflightplanner app was *not* made with extreme configurability in mind.
+Instead, the focus was to "do one thing, and do it well". The one thing in 
+this case is "help General Aviation VFR pilots to plan flights within Sweden".
+
+Change Area Limits
+
+However, it is not impossible to adapt the application to other areas. The
+application has a concept of the "working area". It is impossible to scroll
+outside of this area, for instance. This is defined in the file
+fplan/lib/maptilereader.py, in the function "latlon_limits".
+Note that the AIP-parser, and everything else about the program, is adapted
+to Swedish (and to some extend, Nordic) conditions, so just changing the
+area covered will not be enough to make the app usable outside of Sweden.
+
+
+
+
+Running
+See the README-file in the project root for information on how to
+run the application.
+
+
+
+
+
+Library that used to be required:
+pyshapelib (Not not in apt-get, download separately. Needs separate download
+of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python
+setup.py install). Shapelib was used to parse a file with all nation
+boundaries in the world
+
