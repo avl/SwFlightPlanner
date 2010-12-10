@@ -68,8 +68,7 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
-<b>Updated 2010-11-19:</b>The AIP parser problems have been solved.<br/>
-<b>Warning 2010-11-18:</b> The AIP parser failed on 17th of november, which means that during the 17th and 18th, airspace data was not updated.<br/>
+<b>Updated 2010-12-07:</b>Implemented <u><a href="http://en.wikipedia.org/wiki/Binary_space_partitioning">BSP-Trees</a></u> to speedup airspace, airfield and obstacle lookups. Site is slightly snappier now when clicking in map.<br/>
 <b>Updated 2010-10-09: </b>Support for creating complete ATS flightplans which can be copy-pasted to www.aro.lfv.se.<br/>
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br/>
