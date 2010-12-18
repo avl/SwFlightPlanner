@@ -81,7 +81,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         if item.text.strip().startswith("The LFV Group"): continue
         if kind=="R" and not is_r_or_danger_area_name(item.text.strip()):
             continue
-        if item.y1>avg_heading_y+1 and item.x1<10 and not item.text in ["Name",'None']:
+        if item.y1>avg_heading_y+1 and item.x1<12 and not item.text in ["Name",'None',"LFV"]:
             zone_candidates.append(item)
     
     zone_candidates.sort(key=lambda x:x.y1)
@@ -90,8 +90,6 @@ def parse_page(parser,pagenr,kind="TMA"):
         assert not zone.text.count("AOR")
         assert not zone.text.count("FIR")
             
-    
-        
     assert len(headings)==3
     
     
@@ -174,7 +172,7 @@ def parse_page(parser,pagenr,kind="TMA"):
                 heights.append(gnd.strip())
             if unl:
                 heights.append(unl.strip())
-        #print "heights:",repr(heights)
+        #print "heights for ",d['name'],":",repr(heights)
         assert len(heights)==2
         ceiling=heights[0].strip()
         floor=heights[1].strip()
@@ -217,12 +215,29 @@ def pretty(pa):
 def parse_all_tma():
     def fixgote(raw):
         #Fix illogical composition of Göteborg TMA description. 2010 04 02
-        illo="""<text top="294" left="57" width="268" height="9" font="6">     Part of GÖTEBORG TMA  584558N 0122951E - 584358N 0130950E - </text>"""
-        assert raw.count(illo)
-        print "fix up gote"
-        raw=raw.replace(illo,                
-                        """<text top="294" left="57" width="58" height="9" font="6">Part of GÖTEBORG TMA</text>
-                           <text top="294" left="168" width="156" height="9" font="6">584558N 0122951E - 584358N 0130950E - </text>""")
+        did_replace=[0]
+        def replacer(args):
+            print args.groups()
+            y,x,w,h,font=args.groups()            
+            assert int(w)>=260 and int(w)<280
+            assert int(h)>=6 and int(h)<=10
+            x1=x
+            y1=y
+            w1=80
+            h1=h
+
+            x2=168
+            y2=y
+            w2=150
+            h2=h
+            did_replace[0]+=1
+            repl="""<text top="%s" left="%s" width="%s" height="%s" font="%s">Part of GÖTEBORG TMA</text>
+                           <text top="%s" left="%s" width="%s" height="%s" font="%s">584558N 0122951E - 584358N 0130950E - </text>"""%(
+                           y1,x1,w1,h1,font,y2,x2,w2,h2,font)
+            print "\n======================================\nReplacement:\n",repl
+            return repl
+        raw=re.sub(r"""<text top="(\d+)" left="(\d+)" width="(\d+)" height="(\d+)" font="(\d+)">\s*Part of GÖTEBORG TMA  584558N 0122951E - 584358N 0130950E - </text>""",replacer,raw)
+        assert did_replace[0]==1
         return raw
     p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_2_1_en.pdf",fixgote)
 	
