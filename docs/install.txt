@@ -8,16 +8,28 @@ that package names could differ if using another distribution.
 First, install the following dependencies:
 
 sudo apt-get install python-cairo python-mapnik python-numpy poppler-utils \
-pylons proj postgresql python-elementtree python-dev python-psycopg2 pyro authbind
+pylons proj postgresql python-elementtree python-dev python-psycopg2 pyro authbind swig \
+proj-bin
 
 If python-elementtree doesn't exist, you can try "python-xml" instead.
 
 Then you need the package shapemerge2d, which is not part of debian 
 (at time of writing). Get it from github:
 
-git clone github.com/shapemerge3d (TODO: Fix this path, it is wrong)
+git clone git://github.com/avl/shapemerge2d.git
 
-You need to manage postgresql user authenticatino somehow.
+Install shapemerge2d by going to its directory, and running:
+
+> scons
+
+(You must install the 'scons' build tool, available in all
+modern linus distributions)
+
+There is a 'configure'-script in shapemerge2d, but it doesn't build
+the python bindings for shapemerge2d, so it cannot be used. (Or rather,
+you may use it, but it doesn't help).
+
+You need to manage postgresql user authentication somehow.
 The simplest way is probably to edit 
 /etc/postgresql/8.4/main/pg_hba.conf
 and change "ident" to "trust" for localhost connections.
@@ -36,7 +48,7 @@ WARNING! this removes the database if already present!
 Building the C++-component
 A very small part of the application, namely the part that merges the 64x64
 pixel uncompressed heightmaps into 256x256 color images, shading in different
-colors depending on elevation.
+colors depending on elevation, is written in C++.
 
 To build this component you need the build-tool "scons", Gnu C++, and SWIG.
 (Simple Wrapper Interface Generator). These will all be found in any
@@ -58,7 +70,10 @@ SRTP
 
 SRTP is the Shuttle Radar Topography mission, and contains elevation data for 
 the entire earth. This data is available in chunks covering approximately 
-40x60 degrees of the earth. Download this from <TODO TBD>.
+40x60 degrees of the earth. The SRTP's webpage is:
+http://www2.jpl.nasa.gov/srtm/. 
+The actual data is linked to from that page.
+
 
 Openstreetmap
 You need to download an appropriate .osm-file for the part of the world
@@ -70,7 +85,30 @@ http://wiki.openstreetmap.org/wiki/Mapnik/PostGIS#or_with_Ubuntu
 
 Once you have installed openstreetmap, and unpacked a suitable .osm-file
 into the postgres GIS database, you need to generate swflightplanner
-bitmap tiles. This is slightly needlessly complicated
+bitmap tiles. This is slightly needlessly complicated.
+
+First make sure you have "Pyro" installed (a python library for writing
+distributed applications). Start the pyro nameserver:
+
+> pyro-ns
+
+Then start the map-generation server:
+> python fplan/lib/tilegen_planner.py <output directory (choose any existing)>
+
+This line creates a 'planner' for rendering a 'base'/'plain' map in the given
+directory. Note, the planner keeps information about all tiles that will be
+generated in memory. If you try to generate for the entire earth, you will need
+a 64-bit system with lots and lots of memory.
+
+Now, run any number of tile-generators workers:
+
+> python fplan/lib/tilegen_worker.py
+
+You should be able to run these at any number of machines (given that all machines
+have a working openstreetmap-install, with preferably the exact same maps on them).
+If you have a multi-cpu system, it may be advantageous to run multiple workers
+locally, since map rendering is often CPU-bound.
+
 
 
 Customizing
@@ -89,8 +127,15 @@ Note that the AIP-parser, and everything else about the program, is adapted
 to Swedish (and to some extend, Nordic) conditions, so just changing the
 area covered will not be enough to make the app usable outside of Sweden.
 
+The program is known to fail in many places for negative longitudes. This
+is mostly because of various pattern-matching functions not having support
+for "west", and decimal lat/lon formats not supporting negative numbers.
 
-
+There may also be a few places where distances are calculated in a mercator
+projection, for approximate distance indications, and these will not work
+at all when a track crosses the 180-degree longitude. However, exact distances
+are calculated using the third-party 'proj' utility, which does of course
+handle all these special cases properly.
 
 Running
 See the README-file in the project root for information on how to
@@ -99,10 +144,10 @@ run the application.
 
 
 
-
-Library that used to be required:
+Library that is not required, but may be in the future.
 pyshapelib (Not not in apt-get, download separately. Needs separate download
 of shapelib as well. Copy pyshapelib into shapelib dir, then sudo python
 setup.py install). Shapelib was used to parse a file with all nation
 boundaries in the world
+
 

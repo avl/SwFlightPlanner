@@ -82,12 +82,15 @@ it sleeps till next night, and does it again.
 The program also re-renders the bitmapped airspace-map. This takes a very long
 time, up to 4-5 hours. Therefore it is a good idea that the script starts
 running just after midnight, so that a fresh map is available in the 
-morning.
+morning. Note that you need a pre-rendered basemap for this step to work.
 
 
 You cannot run the application until airspace data has been downloaded.
 The airspace map is not absolutely necessary, one can be faked by adding
 a symlink from $SWFP_DATADIR/tiles/airspace -> $SWFP_DATADIR/tiles/plain .
+The 'plain' map is the 'base' map, without airspace info. The two terms
+'base' and 'plain' are both (slightly confusingly) used - they mean
+the same thing.
 
 To start the main web-server process, do:
 ./start.sh

@@ -34,6 +34,7 @@ def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
             limitx1,limity1,limitx2,limity2,'w')
             
         for my1 in xrange(limity1,limity2,2048):
+
             for mx1 in xrange(limitx1,limitx2,2048):
                 already=True
                 for i in xrange(0,2048,256):
@@ -148,7 +149,11 @@ if __name__=='__main__':
     ns=Pyro.naming.NameServerLocator().getNS()
     daemon.useNameServer(ns)
     p=TilePlanner()
-    p.init(sys.argv[1],sys.argv[2])
+    if len(sys.argv)>2:
+        tma=sys.argv[2]
+    else:
+        tma='0'
+    p.init(sys.argv[1],tma)
     uri=daemon.connect(p,"planner")
     daemon.requestLoop()
 
