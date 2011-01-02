@@ -1,5 +1,5 @@
 import fplan.lib.mapper as mapper
-from pyshapemerge2d import Vertex,Line2
+from pyshapemerge2d import Vertex,Line
 
 def clampmerc(merc,tilesize):
     tilesizemask=tilesize-1
@@ -34,7 +34,7 @@ def get_all_tiles_near(routes,zoomlevel,dist_nm,tilesize):
         
         av=Vertex(int(m1[0]),int(m1[1]))
         bv=Vertex(int(m2[0]),int(m2[1]))
-        l=Line2(av,bv)
+        l=Line(av,bv)
         startmerc=clampmerc(m1,tilesize)
         maxdist=mapper.approx_scale(startmerc,zoomlevel,dist_nm)
         maxdist+=3*tilesize/2

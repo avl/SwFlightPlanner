@@ -14,7 +14,7 @@ from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
 from fplan.extract.fi_extract_ats_rte import fi_parse_ats_rte
 from fplan.lib.bbtree import BBTree
-from pyshapemerge2d import Line2,Vertex,Polygon,vvector
+from pyshapemerge2d import Line,Vertex,Polygon,vvector
 from fplan.lib.bsptree import BspTree,BoundingBox
 import fplan.lib.remove_unused_users
 import fplan.lib.mapper as mapper

@@ -13,7 +13,7 @@ from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sig
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx,get_stats
 from fplan.lib.get_terrain_elev import get_terrain_elev
-from pyshapemerge2d import Vector,Line2,Vertex
+from pyshapemerge2d import Vector,Line,Vertex
 from itertools import izip,chain
 import routes.util as h
 
@@ -113,7 +113,7 @@ class MaptileController(BaseController):
                 for a,b in izip(track.points,track.points[1:]): 
                     merc=mapper.latlon2merc(a[0],zoomlevel)
                     nextmerc=mapper.latlon2merc(b[0],zoomlevel)
-                    l=Line2(Vertex(int(merc[0]),int(merc[1])),Vertex(int(nextmerc[0]),int(nextmerc[1])))
+                    l=Line(Vertex(int(merc[0]),int(merc[1])),Vertex(int(nextmerc[0]),int(nextmerc[1])))
                     diff=l.approx_dist(clickvec)                
                     print diff
                     if diff<mindiff:

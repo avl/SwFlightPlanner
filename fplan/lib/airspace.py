@@ -1,5 +1,5 @@
 import fplan.lib.mapper as mapper
-from pyshapemerge2d import Line2,Vertex,Polygon,vvector
+from pyshapemerge2d import Line,Vertex,Polygon,vvector
 import fplan.extract.extracted_cache as cache
 from fplan.lib.bsptree import BoundingBox
 import fplan.extract.parse_obstacles as parse_obstacles
@@ -74,7 +74,7 @@ def get_notampoints_on_line(latlon1,latlon2,dist_nm):
     px2,py2=mapper.latlon2merc(latlon2,zoomlevel)
     a=Vertex(int(px1),int(py1))
     b=Vertex(int(px2),int(py2))
-    line=Line2(a,b)    
+    line=Line(a,b)    
     crosses=[]
     for kind,items in get_notam_objs_cached().items():
         if kind!="areas":
@@ -135,7 +135,7 @@ def get_polygons_on_line(latlon1,latlon2,polys):
     zoomlevel=13
     px1,py1=mapper.latlon2merc(latlon1,zoomlevel)
     px2,py2=mapper.latlon2merc(latlon2,zoomlevel)
-    line=Line2(Vertex(int(px1),int(py1)),Vertex(int(px2),int(py2)))
+    line=Line(Vertex(int(px1),int(py1)),Vertex(int(px2),int(py2)))
     crosses=[]
     for space in polys:                
         poly_coords=[]

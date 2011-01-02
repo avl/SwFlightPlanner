@@ -1,5 +1,5 @@
 import fplan.lib.mapper as mapper
-from pyshapemerge2d import Vector,Line2,Vertex
+from pyshapemerge2d import Vector,Line,Vertex
 from fplan.lib.get_terrain_elev import get_terrain_elev_in_box_approx
 
 dirs=["N",
@@ -106,7 +106,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
             #print "========================================="
             av=Vertex(int(rt.subposa[0]),int(rt.subposa[1]))
             bv=Vertex(int(rt.subposb[0]),int(rt.subposb[1]))
-            l=Line2(av,bv)
+            l=Line(av,bv)
             linelen=(bv-av).approxlength()
             actualclosest=l.approx_closest(itemv)
             #print item['name'],"A: ",av,"B: ",bv,"clo:",actualclosest

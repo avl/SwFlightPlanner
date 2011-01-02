@@ -1,6 +1,6 @@
 import math
 import fplan.lib.mapper as mapper
-from pyshapemerge2d import Vertex,Line2
+from pyshapemerge2d import Vertex,Line
 from fplan.lib.blobfile import BlobFile
 from tiles_near_route import get_all_tiles_near
 import StringIO

@@ -1,6 +1,6 @@
 import fplan.extract.weather_chart_areas as weather_chart_areas
 import fplan.extract.parse_llf_forecast as parse_llf_forecast
-from pyshapemerge2d import Line2,Vertex,Polygon,vvector
+from pyshapemerge2d import Line,Vertex,Polygon,vvector
 import fplan.lib.mapper as mapper
 import math
 from datetime import datetime,timedelta
