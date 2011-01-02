@@ -42,7 +42,7 @@ def map_tiles_near(routes,dist_nm):
 
     tottiles=0
 
-    path="/home/anders/saker/avl_fplan_world/tiles/airspace/level%d"%(zoomlevel)
+    path=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/elev/level%d"%(zoomlevel))
     blob=BlobFile(path,tilesize=tilesize)
     def cm(latlonstr,zoomlevel):
         return clampmerc(mapper.latlon2merc(mapper.from_str(latlonstr),zoomlevel))

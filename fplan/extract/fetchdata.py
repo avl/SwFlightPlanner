@@ -115,8 +115,6 @@ def get_raw_weather_for_area(cur_area2):
     weathercache[cur_area]=cd
     return cd['data']
     
-#def get_raw_notam():
-#    return open("/home/anders/saker/avl_traveltools/fplan/fplan/fplan/extract/notam_sample.html").read()
 
 
 
