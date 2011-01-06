@@ -3,6 +3,8 @@ import re
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
 import fplan.lib.mapper as mapper
+import fplan.lib.helpers as helpers
+import fplan.extract.extracted_cache as extracted_cache
 import StringIO
 import math
 import cairo
@@ -79,7 +81,7 @@ class MaptileController(BaseController):
         notamareas="".join("<li>%s <b><u><a href=\"javascript:navigate_to('%s#notam')\">Link</a></u></b></li>"%(
             text,h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=notam,line=line)) for text,(notam,line) in notams.items())
         if notamareas!="":
-            notamareas="<b>Notams:</b><ul>"+notamareas+"</ul>"
+            notamareas="<b>Area Notams:</b><ul>"+notamareas+"</ul>"
 
         aip_sup_strs="".join(["<li>%s <a href=\"%s\">link</a></li>"%(x['name'],x['url'].replace(" ","%20")) for x in get_aip_sup_areas(lat,lon)])
         if aip_sup_strs:
@@ -129,9 +131,27 @@ class MaptileController(BaseController):
         if len(fields):
             airports.append("<b>Airfield:</b><ul>")
             for airp in fields:
-                flygkartan=""
+                linksstr=""
+                links=[]
                 if 'flygkartan_id' in airp:
-                    flygkartan="<br/><a href=\"javascript:navigate_to('http://www.flygkartan.se/0%s');\">Show in flygkartan.se</a>"%(airp['flygkartan_id'].strip(),)
+                    links.append(('http://www.flygkartan.se/0%s'%(airp['flygkartan_id'].strip(),),
+                      'www.flygkartan.se'))
+                if 'aiptexturl' in airp:
+                    links.append((airp['aiptexturl'],
+                      'AIP Text'))
+                if 'aipvacurl' in airp:
+                    links.append((airp['aipvacurl'],
+                      'AIP Visual Approach Chart'))
+                    
+                if 'aipsup' in airp:
+                    links.append((
+                        extracted_cache.get_se_aip_sup_hours_url(),
+                        "AIP SUP Opening Hours"))
+                
+                    
+                if len(links)>0:                    
+                    linksstr=helpers.foldable_links(airp['icao']+"links",links)
+
                 rwys=[]
                 if 'runways' in airp:
                     for rwy in airp['runways']:
@@ -139,7 +159,7 @@ class MaptileController(BaseController):
                             rwys.append(end['thr'])
                 if len(rwys):
                     rwys=["<br/><b> Runways</b>: "]+rwys
-                airports.append(u"<li><b>%s</b> - %s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],flygkartan," ".join(rwys)))
+                airports.append(u"<li><b>%s</b> - %s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],linksstr," ".join(rwys)))
             airports.append("</ul>")
         
         sigpoints=[]
@@ -154,7 +174,7 @@ class MaptileController(BaseController):
        
 
         terrelev=get_terrain_elev((lat,lon))
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,notamareas,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),terrelev)
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev)
 
     def get(self):
         # Return a rendered template

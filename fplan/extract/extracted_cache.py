@@ -181,13 +181,15 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         pa['freqs']=space.get('freqs',"")
                         airspaces.append(pa)
             
+            sup_areas,sup_hours=parse_all_sups()
             aipdata=dict(
                 downloaded=datetime.utcnow(),
                 airspaces=airspaces,
                 obstacles=obstacles,
                 airfields=airfields,
                 sig_points=sig_points,
-                aip_sup_areas=parse_all_sups(),
+                aip_sup_areas=sup_areas,
+                se_aip_sup_hours=sup_hours,
                 version=version
                 )
             aipdatalookup=gen_bsptree_lookup(aipdata)
@@ -201,6 +203,11 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
 def get_airspaces():
     aipdata=get_aipdata()
     return aipdata['airspaces']
+
+def get_se_aip_sup_hours_url():
+    aipdata=get_aipdata()
+    return aipdata.get('se_aip_sup_hours','http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/')
+
 def get_airspaces_in_bb(bb):
     get_aipdata()
     for item in aipdatalookup['airspaces'].overlapping(bb):

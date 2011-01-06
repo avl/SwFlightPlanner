@@ -27,10 +27,10 @@ def changeext(path,from_,to_):
     return path+to_
 
 #def get_date(path):
-def getrawdata(relpath,country="se"):
+def getrawurl(relpath,country="se"):
     fixed=relpath.replace(" ","%20")
-    print relpath
-    assert(relpath.startswith("/"))
+    print fixed
+    assert(fixed.startswith("/"))
     if country=="se":
         durl="http://www.lfv.se"+fixed
     elif country=="fi":
@@ -39,6 +39,9 @@ def getrawdata(relpath,country="se"):
         durl="http://www.ippc.no"+fixed
     else:
         raise Exception("Unknown country:"+country)
+    return durl
+def getrawdata(relpath,country="se"):
+    durl=getrawurl(relpath,country)
     print "Downloading url: "+durl
     data=urlopen(durl).read()
     print "Got %d bytes"%(len(data),)

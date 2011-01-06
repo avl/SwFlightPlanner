@@ -22,7 +22,6 @@ function provide_help(msg)
 }
 
 opinprogress=0;
-anychangetosave=0;
 
 function navigate_to(where)
 {	
@@ -32,13 +31,14 @@ function navigate_to(where)
 	}
 	save_data(finish_nav);
 }
+
 function save_data(cont)
 {
 	if (opinprogress==1)
 	{
 		return;
 	}
-	anychangetosave=0;
+	setnotdirty();
 	var oldtripname=document.getElementById('oldtripname').value;
 	var progm=document.getElementById("progmessage");
 	function save_data_cb(req)
@@ -212,7 +212,7 @@ function reorder_wp_impl(idx,delta)
     var w2=wps[odx];        
     wps[odx]=w1;
     wps[idx]=w2;
-    anychangetosave=1;
+    setdirty();
     var glist=document.getElementById('tab_fplan');
     var rowelem1=glist.rows[idx];		
 	var name1e=rowelem1.cells[1].childNodes[0];
@@ -273,7 +273,7 @@ function tab_add_waypoint(idx,pos,id,name,altitude)
    	*/
     elem.innerHTML=''+
     '<td style="cursor:pointer">#'+idx+':</td>'+
-    '<td><input size="15" style="background:#c0ffc0" type="text" onkeypress="return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
+    '<td><input size="15" style="background:#c0ffc0" type="text" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
     '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
@@ -952,7 +952,7 @@ function add_waypoint(name,pos)
 	rely=merc[1];
 	tab_add_waypoint(wps.length,[relx,rely],null,name,'');
 	wps.push([relx,rely]);
-	anychangetosave=1;
+	setdirty();
 	jgq.clear();
 	draw_jg();
 }
@@ -1019,7 +1019,7 @@ function on_mouseup(event)
 		clear_mapinfo();
 		tab_add_waypoint(wps.length,[relx,rely],null,null,'');
 		wps.push([client2merc_x(event.clientX),client2merc_y(event.clientY)]);
-		anychangetosave=1;
+		setdirty();
 		anchorx=wps[wps.length-1][0];
 		anchory=wps[wps.length-1][1];
 		waypointstate='addwaypoint';
@@ -1032,7 +1032,7 @@ function on_mouseup(event)
 	{
 		clear_mapinfo();
 		wps[movingwaypoint]=[relx,rely];
-		anychangetosave=1;		
+		setdirty();		
 		tab_modify_pos(movingwaypoint,[relx,rely]);
 		waypointstate='none';
 		jgq.clear();
@@ -1356,7 +1356,7 @@ function remove_all_waypoints()
 		return;
 	var oldcnt=wps.length;
 	wps=[];
-	anychangetosave=1;
+	setdirty();
 	
 	for(var i=0;i<oldcnt;++i)
 		tab_remove_waypoint(oldcnt-i-1);
@@ -1378,7 +1378,7 @@ function remove_waypoint()
 				wpsout.push([wps[i][0],wps[i][1]]);
 		}
 		wps=wpsout;
-		anychangetosave=1;		
+		setdirty();		
 		tab_remove_waypoint(closest_i);
 
 		draw_jg();		
@@ -1407,7 +1407,7 @@ function menu_insert_waypoint_mode()
 				tmpwps.push([clo[1],clo[2]]);
 		}
 		wps=tmpwps;
-		anychangetosave=1;		
+		setdirty();		
 		tab_add_waypoint(clo[0]+1,[relx,rely],null,null,'');
 		waypointstate='moving';
 		movingwaypoint=clo[0]+1;
