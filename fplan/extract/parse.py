@@ -141,7 +141,7 @@ class Parser(object):
         
         if loadhook:
             raw=loadhook(raw)
-           
+        url=fetchdata.getrawurl(path,country)
         xml=ElementTree.fromstring(raw)        
         
         self.fonts=dict()
@@ -152,8 +152,8 @@ class Parser(object):
                 if fontid in self.fonts:
                     assert self.fonts[fontid]['size']==fontsize
                 self.fonts[fontid]=dict(size=fontsize)
-
-        return xml
+        
+        return url,xml
         
     def get_num_pages(self):
         return len(self.xml.getchildren())
@@ -216,8 +216,9 @@ class Parser(object):
                 bold=item.bold,
                 italic=item.italic
                 )
-    
+    def get_url(self):
+        return self.url
     def __init__(self,path,loadhook=None,country="se"):
-        self.xml=self.load_xml(path,loadhook,country=country)
+        self.url,self.xml=self.load_xml(path,loadhook,country=country)
 
 

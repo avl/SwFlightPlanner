@@ -70,7 +70,7 @@ def extract_airfields(filtericao=None):
             if icao in ['ESIB','ESNY','ESCM','ESPE']:
                 continue
             p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao))
-            
+            ad['aipvacurl']=p.get_url()
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
                 print "Parsing ",icao
@@ -171,6 +171,7 @@ def extract_airfields(filtericao=None):
         if icao in big_ad:
             print "Parsing ",icao
             p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao))
+            ad['aiptexturl']=p.get_url()
             te=p.parse_page_to_items(0).get_all_text()
             print te
             coords=re.findall(r"(\d{6}N)\s*(\d{7}E)",te)
@@ -193,6 +194,16 @@ def extract_airfields(filtericao=None):
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
                 uprint("Looking on page %d"%(pagenr,))
+                for item in page.get_by_regex(".*OPERATIONAL HOURS.*"):
+                    lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
+                    for line in lines:
+                        things=["ATS","Fuelling","Operating"]
+                        if not line.count("AIP SUP"): continue
+                        for thing in things:
+                            if line.count(thing):
+                                ad['aipsup']=True
+                    
+                    
                 for item in page.get_by_regex(".*\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*.*"):
                     uprint("Physical char on page")
                     lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))

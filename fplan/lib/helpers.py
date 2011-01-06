@@ -53,6 +53,18 @@ def lfvclockfmt(h):
     min_=totmin-h*60
     return "%02d%02d"%(h,min_)
 
+def foldable_links(htmlid,urls):    
+    out=["""<div id="%(id)s" class="foldable"><div>
+    <a href="#" onclick="show_foldedlink('%(id)s');return false;"><u>Show Links...</u></a>
+    </div><div style="display:none">
+    Links:<br/>
+    <ul>
+    """%dict(id=htmlid)]
+    for url,desc in urls:        
+        out.append("<li><u><a href=\"%s\">%s</a></u></li>"%(cgi.escape(url),cgi.escape(desc)))
+    out.append("</ul></div></div>")
+    return "\n".join(out)
+    
 def parse_clock(s):
     if s.endswith("Z") or s.endswith("z"):
         s=s[:-1]

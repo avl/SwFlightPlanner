@@ -136,7 +136,7 @@ function loadmap()
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
-	'Trip Name:<br/><input style="background:#c0ffc0" onkeypress="return not_enter(event)" ${"readonly=\"readonly\"" if c.sharing else ""|n} id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
+	'Trip Name:<br/><input style="background:#c0ffc0" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" ${"readonly=\"readonly\"" if c.sharing else ""|n} id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
 	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
 	%if c.sharing:
 	'<br/><span style="font-size:9px">(Trip owner: ${c.shared_by})</span>'+
@@ -262,9 +262,9 @@ function loadmap()
 	idx++;
 	%endfor
 	draw_jg();
-	anychangetosave=0;
-	setInterval("if (anychangetosave!=0) save_data(null)", 5*1000);
+	setInterval("if (getisdirty()) save_data(null)", 5*1000);
 	
+	register_foldedlink_hook(save_data);
 	
 }
 

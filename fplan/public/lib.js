@@ -8,6 +8,57 @@ function on_keypress(event)
 	return false;
 }
 
+libhook=false;
+function register_foldedlink_hook(hook)
+{
+	libhook=hook;
+}
+libshownlinks=[];
+function show_foldedlink(id)
+{
+	function complete()
+	{
+		var elem=document.getElementById(id);
+		var links=elem.childNodes[0];
+		var payload=elem.childNodes[1];
+		links.style.display='none';
+		payload.style.display='block';
+		libshownlinks.push(id);
+	}
+	if (libhook!=false)
+		libhook(complete);
+	else
+		complete();
+}
+function hide_foldedlinks()
+{
+	function hide(id)
+	{
+		var elem=document.getElementById(id);		
+		var links=elem.childNodes[0];
+		var payload=elem.childNodes[1];		
+		links.style.display='block';
+		payload.style.display='none';
+	}
+	libshownlinks.map(hide);
+	libshownlink=[];
+}
+libdirty=false;
+function getisdirty()
+{
+	return libdirty;
+}
+function setnotdirty()
+{
+	libdirty=false;
+}
+function setdirty()
+{
+	if (libdirty==true)
+		return;
+	libdirty=true;
+	hide_foldedlinks();
+}
 
 global_onload=0;
 /*Helper to support multiple onload functions easily*/ 
