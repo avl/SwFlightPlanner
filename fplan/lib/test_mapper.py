@@ -24,10 +24,19 @@ def test_parse_coord():
     assert abs(from_str(c)[1]-(18+0.5/60.0))<1e-6
 
     c,=parsecoords("5900.5N01800.5W")
+    print c
     assert abs(from_str(c)[0]-(59+0.5/60.0))<1e-6
     assert abs(from_str(c)[1]--(18+0.5/60.0))<1e-6
 
     c,=parsecoords("590000N 0180000E")
+    assert from_str(c)[0]==59
+    assert from_str(c)[1]==18
+    
+    c,=parsecoords("590000,00N 0180000,00E")
+    assert from_str(c)[0]==59
+    assert from_str(c)[1]==18
+    
+    c,=parsecoords("590000,0N 0180000,0E")
     assert from_str(c)[0]==59
     assert from_str(c)[1]==18
     
