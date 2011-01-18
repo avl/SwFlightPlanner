@@ -110,12 +110,14 @@ def approx_dist_vec(vec_a,vec_b,zoomlevel):
     
 class MapperBadFormat(Exception):pass    
 
-compre=re.compile(ur"(\d{2,7})(\.\d+)?([NSEWnsew])")
+compre=re.compile(ur"(\d{2,7})([\.,]\d+)?([NSEWnsew])")
 def parse_coord_component(comp):
     m=compre.match(comp)
     if not m:
         raise MapperBadFormat(u"Bad format: %s"%(comp,))
     w,dec,what=m.groups()
+    if dec!=None and dec.startswith(","):
+        dec="."+dec[1:]
     decf=0.0
     what=what.upper()
     if len(w) in [2,3]:
@@ -142,8 +144,12 @@ def parse_coord_component(comp):
 
 def parse_lfv_format(lat,lon):    
     latdec,what=parse_coord_component(lat)
+    if what=='W':
+        latdec=-latdec
     if not what in 'NS': raise MapperBadFormat("Bad format(3): %s,%s"%(lat,lon))
     londec,what=parse_coord_component(lon)
+    if what=='W':
+        londec=-londec
     if not what in 'EW': raise MapperBadFormat("Bad format(4): %s,%s"%(lat,lon))
     londec=(londec+180)%360-180
     if latdec<-85 or latdec>85:
@@ -197,7 +203,7 @@ def format_lfv_ats(lat,lon):
         
 def parse_lfv_area(area,allow_decimal_format=True):
     found=False
-    for lat,lon in re.findall(r"(\d{4,6}(?:,\d+)?[NS])\s*(\d{5,7}(?:,\d+)?[EW])",area):
+    for lat,lon in re.findall(r"(\d{4,6}(?:[,\.]\d+)?[NS])\s*(\d{5,7}(?:[,\.]\d+)?[EW])",area):
         yield parse_lfv_format(lat.strip(),lon.strip())
         found=True
     if not found and allow_decimal_format:
@@ -279,7 +285,7 @@ def parsecoord(seg):
 
 def parsecoords(seg):
     coords=[]
-    for lat,lon in re.findall(r"(\d+\.?\d*[NS])\s*(\d+\.?\d*[EW]\b)",seg):
+    for lat,lon in re.findall(r"(\d+[\.,]?\d*[NS])\s*(\d+[\.,]?\d*[EW]\b)",seg):
         coord=parse_coords(lat.strip(),lon.strip())
         coords.append(coord)
     return coords
