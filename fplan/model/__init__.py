@@ -22,6 +22,7 @@ def ForeignKeyConstraint(a,b):
 Unicode=sa.types.Unicode
 String=sa.types.String
 Integer=sa.types.Integer
+BigInteger=sa.types.BigInteger
 DateTime=sa.types.DateTime
 Boolean=sa.types.Boolean
 Float=sa.types.Float
@@ -41,7 +42,7 @@ user_table = sa.Table("user",meta.metadata,
 notam_table = sa.Table("notam",meta.metadata,
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
                         sa.Column('downloaded',DateTime(),nullable=False),
-                        sa.Column("notamtext",Unicode(),nullable=False)
+                        sa.Column("notamtext",Unicode(),nullable=False),
                         )
 
 
@@ -114,6 +115,12 @@ trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
                         sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                        )
+
+download_table = sa.Table("download",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column("when",DateTime(),nullable=False,primary_key=True),
+                        sa.Column('bytes',BigInteger(),nullable=False,primary_key=True)
                         )
                         
 stay_table = sa.Table("stay",meta.metadata,
@@ -222,6 +229,11 @@ class Trip(object):
         self.user=user
         self.trip=trip
         self.aircraft=aircraft
+class Download(object):
+    def __init__(self, user, bytes):
+        self.user=user
+        self.when=datetime.utcnow()
+        self.bytes=bytes
 class Stay(object):
     def __init__(self,user,trip,waypoint_id):
         self.user=user
@@ -263,6 +275,7 @@ class SharedTrip(object):
             
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(User, user_table)
+orm.mapper(Download, download_table)
 orm.mapper(Stay, stay_table)
 orm.mapper(SharedTrip, shared_trip_table)
 orm.mapper(Trip, trip_table, properties=dict(

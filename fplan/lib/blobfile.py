@@ -110,6 +110,8 @@ class BlobFile(object):
                 self.f.seek(0,2) #seek to end of file        
                 p=self.f.tell()
                 print "writing %d bytes to %d (coords: %d,%d zoom: %d)"%(len(data),p,x,y,self.zoomlevel)
+                if p>(1<<32-1):
+                    raise Exception("Blobfile is larger than 2^32, which is embarassingly enough the maximum size!")
                 self.f.write(pack(">I",len(data)))
                 self.f.write(data)
                 self.f.flush()

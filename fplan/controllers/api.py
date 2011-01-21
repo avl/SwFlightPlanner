@@ -2,11 +2,12 @@ import logging
 import StringIO
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route
+from fplan.model import meta,User,Trip,Waypoint,Route,Download
 from fplan.lib import mapper
+from datetime import datetime,timedelta
 #import md5
 from fplan.lib.helpers import md5str
-
+import stat
 import fplan.lib.calc_route_info as calc_route_info
 from fplan.lib.base import BaseController, render
 import json
@@ -21,6 +22,8 @@ from itertools import chain
 from fplan.lib.get_near_route import heightmap_tiles_near,map_tiles_near
 import zlib
 import math
+import struct
+import os
 
 def cleanup_poly(latlonpoints):
     
@@ -231,3 +234,75 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'text/plain'            
             return json.dumps(dict(error=repr(cause)))
         
+    def getmap(self):
+
+        users=meta.Session.query(User).filter(User.user==request.params['user']).all()
+        badpass=False
+        if len(users)==0:
+            badpass=True
+        else:
+            user,=users
+            if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
+                badpass=True
+        def writeInt(x):
+            response.write(struct.pack(">I",x))
+        def writeLong(x):
+            response.write(struct.pack(">Q",x))
+        response.headers['Content-Type'] = 'application/binary'        
+        writeInt(0xf00df00d)
+        writeInt(1) #version
+        if badpass:
+            print "badpassword"
+            writeInt(1) #error, bad pass
+            return None
+        print "Correct password"
+        version,level,offset,maxlen=\
+            [int(request.params[x]) for x in "version","level","offset","maxlen"];
+        
+        totalsize=0
+        stamp=0
+        for lev in xrange(10+1):
+            tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(lev))
+            totalsize+=os.path.getsize(tlevelfile)
+            stamp=max(stamp,os.stat(tlevelfile)[stat.ST_MTIME])
+        levelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(level))
+        curlevelsize=os.path.getsize(levelfile)    
+        cursizeleft=curlevelsize-offset
+        print "cursize left:",cursizeleft
+        print "maxlen:",maxlen
+        if cursizeleft<0:
+            cursizeleft=0
+        if maxlen>cursizeleft:
+            maxlen=cursizeleft
+        if maxlen>1000000:
+            maxlen=1000000
+        
+         
+        writeInt(0) #no error
+        print "No error"
+        writeLong(stamp) #"data version"
+        print "stamp:",stamp
+        writeLong(curlevelsize)
+        writeLong(totalsize)
+        writeLong(cursizeleft)
+        writeInt(0xa51c2)
+        latest=meta.Session.query(Download).filter(Download.user==user.user).order_by(sa.desc(Download.when)).first()
+        if not latest or datetime.utcnow()-latest.when>timedelta(0,3600):
+            down=Download(user.user, maxlen)
+            meta.Session.add(down)
+        else:
+            down=latest
+            down.bytes+=maxlen
+        
+        f=open(levelfile)
+        meta.Session.flush()
+        meta.Session.commit()
+        
+        if offset<curlevelsize:
+            print "seeking to %d of file %s, then reading %d bytes"%(offset,levelfile,maxlen)
+            f.seek(offset)
+            data=f.read(maxlen)
+            print "Writing %d bytes to client"%(len(data),)
+            response.write(data)
+        f.close()
+        return None
