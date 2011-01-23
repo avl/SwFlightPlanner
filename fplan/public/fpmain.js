@@ -415,7 +415,7 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
     else 
         landheres='';
 
-	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+id+': <input title="Name of waypoint. Go to map-screen to change." readonly="1" type="text" name="name'+id+'" value="'+name+'"/>'+
+	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." readonly="1" type="text" name="name'+id+'" value="'+name+'"/>'+
 	    landheres+
 	    '</td>';
 
