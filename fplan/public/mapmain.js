@@ -272,7 +272,7 @@ function tab_add_waypoint(idx,pos,id,name,altitude)
    	elem.onclick=onclick_waypoint;
    	*/
     elem.innerHTML=''+
-    '<td style="cursor:pointer">#'+idx+':</td>'+
+    '<td style="cursor:pointer">#'+(idx+1)+':</td>'+
     '<td><input size="15" style="background:#c0ffc0" type="text" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
     '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
     '<td>'+
@@ -297,7 +297,7 @@ function tab_renumber_single(i)
 {
 	var glist=document.getElementById('tab_fplan');
 	var rowelem=glist.rows[i];		
-	rowelem.cells[0].innerHTML='#'+i+':';
+	rowelem.cells[0].innerHTML='#'+(i+1)+':';
 	rowelem.cells[0].oncontextmenu=function(ev) { rightclick_waypoint_tab(i,ev); return false; };
 	rowelem.cells[0].onclick=function(ev) { select_waypoint(i); clear_mapinfo(); hidedetailpane(); return false; };
 	

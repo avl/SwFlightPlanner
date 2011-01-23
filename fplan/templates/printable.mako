@@ -27,7 +27,7 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 </td></tr>
 %for rt in c.route:
 <tr>
-<td><span style="font-size:10px">CH:</span>${"%.0f"%(rt.ch,)}</td>
+<td><span style="font-size:10px">CH:</span>${"%03.0f"%(rt.ch,)}</td>
 <td><span style="font-size:10px">D:</span>${"%.0f"%(rt.d,)}<span style="font-size:10px">NM</span></td>
 <td><span style="font-size:10px">Obst-free alt.:</span>${"%.0f"%(rt.maxobstelev+500,)}<span style="font-size:10px">ft</span></td>
 <td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}<span style="font-size:10px">dgr</span></td>

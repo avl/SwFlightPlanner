@@ -328,7 +328,7 @@ def get_route(user,trip):
                 out.wca=cruise_wca
             tot_dist+=out.d
             out.total_d=tot_dist
-            out.ch=out.tt+out.wca-val(rt.variation)-val(rt.deviation)
+            out.ch=(out.tt+out.wca-val(rt.variation)-val(rt.deviation))%360.0
             out.a=rt.a
             out.b=rt.b
             out.id1=rt.waypoint1
@@ -349,7 +349,7 @@ def get_route(user,trip):
                         
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
                     
-        rt.ch=rt.tt+rt.wca-val(rt.variation)-val(rt.deviation)
+        rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
         rt.accum_time_hours=accum_time
         rt.accum_dist=tot_dist
         rt.accum_fuel_burn=accum_fuel

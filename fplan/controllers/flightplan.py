@@ -311,7 +311,9 @@ class FlightplanController(BaseController):
                 if stay.date_of_flight.strip():
                     dof=stay.date_of_flight.replace("-","").strip()
                     if len(dof)==8 and dof.startswith("20"):
-                        dof=dof[2:]                        
+                        dof=dof[2:]
+                else:
+                    dof=""                        
                 if len(dof)!=6:
                     raise AtsException(u"You need to enter the Date of Flight (DOF)!")
                 else:                    
@@ -476,9 +478,9 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 if len(routes)==1:
                     route=routes[0]
                     if what=='W':
-                        return "%.0f"%(route.winddir+0.5)
+                        return "%03.0f"%(route.winddir)
                     elif what=='V':
-                        return "%.0f"%(route.windvel+0.5)
+                        return "%.0f"%(route.windvel)
                     elif what=='Var':
                         return "%.0f"%(route.variation) if route.variation!=None else ''
                     elif what=='Alt':
