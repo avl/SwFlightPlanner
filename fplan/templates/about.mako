@@ -45,7 +45,7 @@ Chrome is free and is easy to download and install: <a href="http://www.google.c
 <br/>
 
 <h2>What does it cost?</h2>
-swflightplanner.se is free for any use. The software source code that runs the site is available upon request (I will put it up for public download soon). I will keep this server running as long as bandwidth-costs do not become excessive.   
+swflightplanner.se is free for any use. It is open source, and the source code can be found at git://github.com/avl/shapemerge2d.git (use the open source tool git to download). I will keep this server running as long as bandwidth-costs do not become excessive.   
 <br/>
 <br/>
 <h2>Is this site reliable?</h2>
@@ -57,7 +57,7 @@ The airspace data presented by this site is automatically parsed from the PDF-fo
 on the site will be wrong. I feel it is mostly correct, but comparison with an up-to-date map is advised. Also, note that I live in Stockholm, which means I am more likely to find problems with 
 airspace definitions near Stockholm. Testers from other parts of the country are most welcome.</p>
 <p>
-Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspaces, even those very close to or overlapping Swedish territory, are missing entirely.
+Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspaces, even those very close to or overlapping Swedish territory, are missing entirely. Yet another limitation is that only the coordinates of holding points are given, not how the holding pattern should be aligned with that point, or if it's a left-hand or right-hand pattern. Also, some holding points are missing. Entry/exit-points to CTRs are wrong for some airports. Always cross-check using the official VAC (Visual Approach Chart).
 </p>
 <p style="font-size:14px">
 The software that runs this site has not been tested rigorously (this is an enthusiast project after all). I feel that it usually works as intended. However, as a professional software
