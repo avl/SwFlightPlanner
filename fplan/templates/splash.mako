@@ -68,7 +68,7 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
-<b>Updated 2010-12-07:</b>Implemented <u><a href="http://en.wikipedia.org/wiki/Binary_space_partitioning">BSP-Trees</a></u> to speedup airspace, airfield and obstacle lookups. Site is slightly snappier now when clicking in map.<br/>
+<b>Updated 2011-01-06: </b>Added links to AIP-information for the larger airports.<br/>
 <b>Updated 2010-10-09: </b>Support for creating complete ATS flightplans which can be copy-pasted to www.aro.lfv.se.<br/>
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br/>
