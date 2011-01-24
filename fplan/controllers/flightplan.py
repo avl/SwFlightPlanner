@@ -59,7 +59,9 @@ class FlightplanController(BaseController):
         for airp in get_airfields():
             if airp['name'].lower().count(searchstr) or \
                 airp['icao'].lower().count(searchstr):
-                points.append(airp)  
+                d=dict(airp)
+                d['kind']='airport'
+                points.append(d)  
                 
         for sigpoint in get_sig_points():
             if sigpoint['name'].lower().count(searchstr):
@@ -67,7 +69,11 @@ class FlightplanController(BaseController):
         if len(points)==0:
             return ""
         points.sort(key=lambda x:x['name'])
-        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in points[:15]])
+        def extract_name(x):
+            if 'kind' in x:
+                return "%s (%s)"%(x['name'],x['kind'])
+            return x.get('name','unknown item')
+        ret=json.dumps([[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]])
         #print "returning json:",ret
         return ret
     

@@ -80,19 +80,23 @@ class ApiController(BaseController):
             lat,lon=mapper.from_str(airp['pos'])
             #if lat<58.5 or lat>60.5:
             #    continue
+            aname=airp['name']+"*" if airp.get('icao','ZZZZ').upper()!='ZZZZ' else airp['name']
             points.append(dict(
-                name=airp['name'],
+                name=aname,
                 lat=lat,
                 lon=lon,
                 kind="airport",
                 alt=float(airp.get('elev',0))))
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
+            kind=sigp.get('kind','sigpoint')
+            if not kind in ['sigpoint','city','town']:
+                kind='sigpoint'
             points.append(dict(
                 name=sigp['name'],
                 lat=lat,
                 lon=lon,
-                kind='sigpoint',
+                kind=kind,
                 alt=-9999.0
                 ))
             #print "Just added:",points[-1]
@@ -256,12 +260,12 @@ class ApiController(BaseController):
             writeInt(1) #error, bad pass
             return None
         print "Correct password"
-        version,level,offset,maxlen=\
-            [int(request.params[x]) for x in "version","level","offset","maxlen"];
+        version,level,offset,maxlen,maxlevel=\
+            [int(request.params[x]) for x in "version","level","offset","maxlen","maxlevel"];
         
         totalsize=0
         stamp=0
-        for lev in xrange(10+1):
+        for lev in xrange(maxlevel+1):
             tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(lev))
             totalsize+=os.path.getsize(tlevelfile)
             stamp=max(stamp,os.stat(tlevelfile)[stat.ST_MTIME])
@@ -306,3 +310,4 @@ class ApiController(BaseController):
             response.write(data)
         f.close()
         return None
+ 
