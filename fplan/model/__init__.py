@@ -26,6 +26,7 @@ BigInteger=sa.types.BigInteger
 DateTime=sa.types.DateTime
 Boolean=sa.types.Boolean
 Float=sa.types.Float
+Binary=sa.types.Binary
 
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
@@ -122,6 +123,20 @@ download_table = sa.Table("download",meta.metadata,
                         sa.Column("when",DateTime(),nullable=False,primary_key=True),
                         sa.Column('bytes',BigInteger(),nullable=False,primary_key=True)
                         )
+recordings_table = sa.Table("recordings",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column("start",DateTime(),nullable=False,primary_key=True),
+                        sa.Column("end",DateTime(),nullable=False,primary_key=False),
+                        sa.Column("duration",Float(),nullable=False,primary_key=False),
+                        sa.Column("distance",Float(),nullable=False,primary_key=False),
+                        sa.Column('depdescr',Unicode(32),primary_key=False,nullable=False,default=""),
+                        sa.Column('destdescr',Unicode(32),primary_key=False,nullable=False,default=""),
+                        sa.Column('trip',Binary(),primary_key=False,nullable=False,default=""),                        
+                        )
+class Recording(object):
+    def __init__(self, user, start):
+        self.user=user
+        self.start=start
                         
 stay_table = sa.Table("stay",meta.metadata,
                     sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
@@ -295,6 +310,7 @@ orm.mapper(Waypoint, waypoint_table,
     ))
 orm.mapper(NotamCategoryFilter, notam_category_filter_table)
 orm.mapper(NotamCountryFilter, notam_country_filter_table)
+orm.mapper(Recording, recordings_table)
 
 orm.mapper(Route, route_table,
  properties=dict(

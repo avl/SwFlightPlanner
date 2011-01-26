@@ -5,6 +5,7 @@ from pylons.controllers.util import abort, redirect_to
 from fplan.model import meta,User,Trip,Waypoint,Route,Download
 from fplan.lib import mapper
 from datetime import datetime,timedelta
+from fplan.lib.recordings import parseRecordedTrip
 #import md5
 from fplan.lib.helpers import md5str
 import stat
@@ -310,4 +311,20 @@ class ApiController(BaseController):
             response.write(data)
         f.close()
         return None
- 
+    def uploadtrip(self):
+        print "POST:",request.POST
+        recording=parseRecordedTrip(request.POST['upload'].file)
+        print recording
+        
+        #print "GOt bytes: ",len(cont)
+        print "Upload!",request.params
+        response.headers['Content-Type'] = 'application/binary'        
+        def writeInt(x):
+            response.write(struct.pack(">I",x))
+        writeInt(0xf00db00f)
+        writeInt(1) #version
+        writeInt(0) #errorcode
+        return None
+    
+        
+        
