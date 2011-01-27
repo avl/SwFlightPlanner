@@ -38,10 +38,10 @@ public:
 		p += 4;
 		return ret;
 	}
-	int readLong() {
+	long readLong() {
 		if (p + 8 > (int)data.length())
 			throw std::runtime_error("No int left to read");
-		int64_t ret = 0;
+		uint64_t ret = 0;
 		memcpy(&ret, data.data()+p, 8);
 		ret = be64toh(ret);
 		p += 8;
@@ -145,22 +145,22 @@ public:
 	void init_from(BufReader& buf)
 	{
 		int len=buf.readInt();
-		printf("len field=%d (tot buf len: %d)\n",len,buf.avail());
+		//printf("len field=%d (tot buf len: %d)\n",len,buf.avail());
 		size=buf.readInt();
-		printf("Size: %d bits\n",size);
+		//printf("Size: %d bits\n",size);
 		bits.resize(len);
 		buf.read_raw((char*)(bits.data()),4*len);
 		for(int i=0;i<len;++i)
 		{
 			bits[i]=ntohl(bits[i]);
 		}
-		printf("Read buf. Now avail: %d\n",buf.avail());
+		//printf("Read buf. Now avail: %d\n",buf.avail());
 		int magic=buf.readInt();
 		if (magic!=0xfeed42)
 			throw std::runtime_error("Bad magic in fphelper");
 		idx=0;
 		off=0;
-		printf("BinaryCodeBUf init complete\n");
+		//printf("BinaryCodeBUf init complete\n");
 	}
 	bool read(BitSeq& seq, int len) {
 		int bitlen = idx * 32 + off;
@@ -186,7 +186,7 @@ public:
 			throw std::runtime_error("Out of bits");
 
 		bool b = (bits[idx] & (1 << off)) != 0;
-		printf("  Decode single bit: %d\n",(int)b);
+		//printf("  Decode single bit: %d\n",(int)b);
 		off += 1;
 		if (off == 32) {
 			off = 0;
@@ -197,7 +197,7 @@ public:
 	long gammadecode() {
 		if (!readbit())
 		{
-			printf("Read gammacoded: 0\n");
+			//printf("Read gammacoded: 0\n");
 			return 0;
 		}
 		bool negative = false;
@@ -213,7 +213,7 @@ public:
 		++x;
 		if (negative)
 			x = -x;
-		printf("Read gammacoded: %ld\n",(long)x);
+		//printf("Read gammacoded: %ld\n",(long)x);
 		return x;
 	}
 

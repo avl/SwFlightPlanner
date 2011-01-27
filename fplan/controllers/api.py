@@ -2,7 +2,7 @@ import logging
 import StringIO
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route,Download
+from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording
 from fplan.lib import mapper
 from datetime import datetime,timedelta
 from fplan.lib.recordings import parseRecordedTrip
@@ -25,6 +25,7 @@ import zlib
 import math
 import struct
 import os
+class BadCredentials(Exception):pass
 
 def cleanup_poly(latlonpoints):
     
@@ -311,19 +312,57 @@ class ApiController(BaseController):
             response.write(data)
         f.close()
         return None
+    
     def uploadtrip(self):
-        print "POST:",request.POST
-        recording=parseRecordedTrip(request.POST['upload'].file)
-        print recording
-        
-        #print "GOt bytes: ",len(cont)
-        print "Upload!",request.params
-        response.headers['Content-Type'] = 'application/binary'        
         def writeInt(x):
             response.write(struct.pack(">I",x))
+        
+        print "upload trip",request.params
+        try:
+            f=request.POST['upload'].file
+            def readShort():
+                return struct.unpack(">H",f.read(2))[0]
+            def readUTF():
+                len=readShort()
+                print "Read string of length %d"%(len,)
+                data=f.read(len)
+                return unicode(data,"utf8")
+            
+            username=readUTF()
+            password=readUTF()
+            print "user,pass",username,password
+            users=meta.Session.query(User).filter(User.user==username).all()
+            if len(users)==0:
+                raise BadCredentials("bad user")
+            user=users[0]
+            if user.password!=password and user.password!=md5str(password):
+                raise BadCredentials("bad password")
+            
+            print "POST:",request.POST
+            newrec=parseRecordedTrip(user.user,f)
+            
+            meta.Session.query(Recording).filter(
+                sa.and_(Recording.start==newrec.start,
+                        Recording.user==newrec.user)).delete()
+            meta.Session.add(newrec)
+            meta.Session.flush()
+            meta.Session.commit()
+            
+            #print "GOt bytes: ",len(cont)
+            print "Upload!",request.params
+        except BadCredentials,cause:
+            response.headers['Content-Type'] = 'application/binary'        
+            writeInt(0xf00db00f)
+            writeInt(1) #version
+            writeInt(1) #errorcode, bad user/pass
+            return None
+        except Exception,cause:
+            print cause
+            raise
+        response.headers['Content-Type'] = 'application/binary'        
         writeInt(0xf00db00f)
         writeInt(1) #version
-        writeInt(0) #errorcode
+        writeInt(0) #errorcode, success
         return None
     
         

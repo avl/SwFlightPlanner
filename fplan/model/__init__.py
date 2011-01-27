@@ -129,8 +129,8 @@ recordings_table = sa.Table("recordings",meta.metadata,
                         sa.Column("end",DateTime(),nullable=False,primary_key=False),
                         sa.Column("duration",Float(),nullable=False,primary_key=False),
                         sa.Column("distance",Float(),nullable=False,primary_key=False),
-                        sa.Column('depdescr',Unicode(32),primary_key=False,nullable=False,default=""),
-                        sa.Column('destdescr',Unicode(32),primary_key=False,nullable=False,default=""),
+                        sa.Column('depdescr',Unicode(100),primary_key=False,nullable=False,default=""),
+                        sa.Column('destdescr',Unicode(100),primary_key=False,nullable=False,default=""),
                         sa.Column('trip',Binary(),primary_key=False,nullable=False,default=""),                        
                         )
 class Recording(object):
