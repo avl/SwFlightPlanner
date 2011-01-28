@@ -10,7 +10,7 @@ from itertools import count,izip
 import cgi
 from md5 import md5
 from pylons import request, response, session, tmpl_context as c
-
+from datetime import datetime,timedelta
 def md5str(anystr):
     if type(anystr)==unicode:
         return md5(anystr.encode('utf8')).hexdigest()
@@ -52,6 +52,15 @@ def lfvclockfmt(h):
     h=int(totmin//60)
     min_=totmin-h*60
     return "%02d%02d"%(h,min_)
+
+def utcdatetime2stamp(d):
+    assert d.microsecond==0
+    delta=d-datetime(1970,1,1)
+    stamp=int(delta.days*86400+delta.seconds)
+    check=datetime.utcfromtimestamp(stamp)
+    if check-d!=timedelta(0):
+        raise Exception("Unexpected internal error converting times")
+    return stamp
 
 def foldable_links(htmlid,urls):    
     out=["""<div id="%(id)s" class="foldable"><div>

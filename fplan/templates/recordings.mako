@@ -24,6 +24,8 @@ ${c.flash}
 </span></p><br/>
 %endif
 
+<form action="${h.url_for(controller="recordings",action="load")}" method="POST">
+
 <table border="1">
 <tr>
 <td>
@@ -44,6 +46,8 @@ Start (Z)
 <td>
 End (Z)
 </td>
+<td>
+</td>
 </tr>
 %for trip in c.trips:
 <tr>
@@ -53,10 +57,13 @@ End (Z)
 <td>${h.timefmt(trip.duration/1000.0/3600.0)}</td>
 <td>${trip.start.strftime("%Y-%m-%d %H:%MZ")}</td>
 <td>${trip.end.strftime("%Y-%m-%d %H:%MZ")}</td>
+<td>
+<input type="submit" name="view_${h.utcdatetime2stamp(trip.start)}"/>	
+</td>
 </tr>
 %endfor
 </table>
-
+</form>
 </div>
 	
 

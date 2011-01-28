@@ -3,6 +3,7 @@ import fplan.lib.mapper as mapper
 from datetime import datetime
 from fplanquick.fplanquick import decode_flightpath
 from fplan.model import Recording
+from md5 import md5
 
 def parseRecordedTrip(user,inp,headers_only=False):
 	
@@ -61,16 +62,38 @@ def parseRecordedTrip(user,inp,headers_only=False):
 	distance=path['distance']
 	path=path['path']
 	print "uploaded stamp:",startstamp
-	rec=Recording(user,datetime.utcfromtimestamp(startstamp/1000.0))
-	rec.end=datetime.utcfromtimestamp(endstamp/1000.0)
+	rec=Recording(user,datetime.utcfromtimestamp(startstamp//1000))
+	rec.end=datetime.utcfromtimestamp(endstamp//1000)
 	rec.duration=float(endstamp-startstamp)
 	rec.distance=distance
-	rec.depdescr=departure
-	rec.destdescr=destination
+	rec.depdescr=departure[:99]
+	rec.destdescr=destination[:99]
 	rec.trip=buf
+	rec.version=version
 						
-	return rec				
-				
+	return rec	
+class Track():pass
+			
+def load_recording(rec):
+	path=decode_flightpath(rec.trip,rec.version)
+	dynamic_id=md5(rec.trip).hexdigest()	
+	out=Track()
+	out.points=[]
+	maxlat=-1000
+	maxlon=-1000
+	minlat=1000
+	minlon=1000
+	for pos,stamp in path['path']:
+		lat,lon=mapper.merc2latlon(pos,17)
+		maxlat=max(maxlat,lat)
+		minlat=min(minlat,lat)
+		maxlon=max(maxlon,lon)
+		minlon=min(minlon,lon)
+		out.points.append(((lat,lon),0,datetime.utcfromtimestamp(stamp/1000.0)))
+	out.bb1=(maxlat,minlon)
+	out.bb2=(minlat,maxlon)
+	out.dynamic_id=dynamic_id
+	return out
 """
 				start17.serialize(data);
 				data.writeLong(startstamp);

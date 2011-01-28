@@ -75,5 +75,10 @@
 73: Update the gentiles.sh script. Path therein is gravely wrong?
 74: Would be really nice to have a function to get wind-corrected 5-minute (or 6-minute) marks on the map!
 75: Fix so that you can see in the notam view, which notams are mapped to the map. Also, fix so that notams files are parsed separately.
+76: More testing of triplog functionality required.
+77: Trip-log GPX-export functionality required!
+78: GPX-import functionality would be nice!
+79: Mouse-wheel scroll doesn't always work on chrome. Broken pipe when sending from server.
+80: Save on zoom doesn't work well in chrome. Maybe take the step to a reload-free zoom?
 
 

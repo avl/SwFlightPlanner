@@ -132,6 +132,7 @@ recordings_table = sa.Table("recordings",meta.metadata,
                         sa.Column('depdescr',Unicode(100),primary_key=False,nullable=False,default=""),
                         sa.Column('destdescr',Unicode(100),primary_key=False,nullable=False,default=""),
                         sa.Column('trip',Binary(),primary_key=False,nullable=False,default=""),                        
+                        sa.Column("version",Integer(),nullable=False,primary_key=False,default="2")
                         )
 class Recording(object):
     def __init__(self, user, start):
