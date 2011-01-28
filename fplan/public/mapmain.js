@@ -31,7 +31,13 @@ function navigate_to(where)
 	}
 	save_data(finish_nav);
 }
-
+function save_data_if_dirty(cont)
+{
+	if (getisdirty())
+		save_data(cont);
+	else
+		cont();
+}
 function save_data(cont)
 {
 	if (opinprogress==1)
@@ -52,7 +58,10 @@ function save_data(cont)
 			document.getElementById('entertripname').value=newtripname;
 			progm.style.display='none';
 			if (cont!=null)
-				cont();		
+			{
+				cont();
+				//setTimeout(cont,100);
+			}
 		}
 		else
 		{
@@ -273,7 +282,7 @@ function tab_add_waypoint(idx,pos,id,name,altitude)
    	*/
     elem.innerHTML=''+
     '<td style="cursor:pointer">#'+(idx+1)+':</td>'+
-    '<td><input size="15" style="background:#c0ffc0" type="text" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
+    '<td><input size="15" style="background:#c0ffc0" type="text" onchange="setdirty();" onkeydown="setdirty();return not_enter(event)" onkeypress="setdirty();return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
     '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
     '<td>'+
     '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
@@ -349,16 +358,17 @@ function dozoom(how,pos)
 	
 	form.zoom.value=''+(zoomparam);
 	form.center.value=''+parseInt(mercx)+','+parseInt(mercy);
-		
+	//alert('actually zooming');
 	form.submit();
 }
 function zoom_out(pos)
 {
+	
 	function zoom_out_impl()
 	{
 		dozoom(-1,pos);
 	}
- 	save_data(zoom_out_impl);
+ 	save_data_if_dirty(zoom_out_impl);
 }
 function zoom_in(pos)
 {
@@ -366,7 +376,7 @@ function zoom_in(pos)
 	{
 		dozoom(1,pos);
 	}
- 	save_data(zoom_in_impl);
+ 	save_data_if_dirty(zoom_in_impl);
 }
 function handle_mouse_wheel(delta,event) 
 {
