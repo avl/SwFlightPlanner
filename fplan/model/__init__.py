@@ -22,7 +22,7 @@ def ForeignKeyConstraint(a,b):
 Unicode=sa.types.Unicode
 String=sa.types.String
 Integer=sa.types.Integer
-BigInteger=sa.types.BigInteger
+Numeric=sa.types.Numeric
 DateTime=sa.types.DateTime
 Boolean=sa.types.Boolean
 Float=sa.types.Float
@@ -121,7 +121,7 @@ trip_table = sa.Table("trip",meta.metadata,
 download_table = sa.Table("download",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column("when",DateTime(),nullable=False,primary_key=True),
-                        sa.Column('bytes',BigInteger(),nullable=False,primary_key=True)
+                        sa.Column('bytes',Numeric(20),nullable=False,primary_key=True)
                         )
 recordings_table = sa.Table("recordings",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),

@@ -82,5 +82,5 @@
 80: FIXAD: Save on zoom doesn't work well in chrome. Maybe take the step to a reload-free zoom?
 81: Handle very very long flights better (more than a day)
 82: Fundera ut varför search-dialogen inte funkar som den egentligen borde.
-
+83: Spara inte alla NOTAMS så jäkla länge, det tar plats.
 
