@@ -80,5 +80,6 @@
 78: GPX-import functionality would be nice!
 79: Mouse-wheel scroll doesn't always work on chrome. Broken pipe when sending from server.
 80: Save on zoom doesn't work well in chrome. Maybe take the step to a reload-free zoom?
+81: Handle very very long flights better (more than a day)
 
 

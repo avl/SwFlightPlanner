@@ -14,7 +14,9 @@ class BlobFile(object):
         assert y>=0
         if x%self.tilesize!=0 or y%self.tilesize!=0:
             print "Warning, bad tile number in BlobFile!",x,y,self.zoomlevel
-            raise Exception("Oops!")
+            raise Exception("Oops!: x=%d, y=%d, xmod=%d, ymod=%d"%(
+                    x,y,x%self.tilesize,y%self.tilesize
+                                ))
         tx,ty=(x-self.x1)/self.tilesize,(y-self.y1)/self.tilesize
         return tx,ty
     def __init__(self,name,zoomlevel=None,x1=None,y1=None,x2=None,y2=None,mode='r',tilesize=256):

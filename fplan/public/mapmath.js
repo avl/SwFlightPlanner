@@ -205,3 +205,11 @@ function merc2latlon(xy)
     var factor=Math.pow(2.0,map_zoomlevel);
     return [unmerc((128*factor-y)/128.0/factor*merc(85.05113)),x*360.0/(256.0*factor)-180.0];
 }
+function merc2merc(xy,zoom1,zoom2)
+{
+	var delta=zoom2-zoom1;
+	if (delta==0)
+		return [xy[0],xy[1]];
+	var f=Math.pow(2.0,delta);
+	return [f*xy[0],f*xy[1]];
+}

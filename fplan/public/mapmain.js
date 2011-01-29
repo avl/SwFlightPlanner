@@ -330,15 +330,109 @@ function on_key(event)
 keyhandler=on_key
 
 function dozoom(how,pos)
-{
-	var form=document.getElementById('helperform');
-
+{	
 	if (how=='auto')
 	{
 		form.zoom.value='auto';
 		form.submit();
 		return;
 	}
+	if (how<0 && map_zoomlevel<=5)
+		return;
+	if (how>0 && map_zoomlevel>=13)
+		return;
+		
+	var oldzoom=map_zoomlevel;
+	var newzoom=map_zoomlevel;
+	if (how>0) newzoom+=1;
+	if (how<0) newzoom-=1;
+	
+	
+	//alert('zoompos:'+pos);
+	var new_zoomcenter=merc2merc(pos,oldzoom,newzoom);
+	var new_desired_topleft=[
+	     new_zoomcenter[0]-screen_size_x/2,
+	     new_zoomcenter[1]-screen_size_y/2
+         ];
+	
+	if (newzoom==oldzoom)
+	{
+		dx=new_desired_topleft[0]-map_topleft_merc[0];
+		dy=new_desired_topleft[1]-map_topleft_merc[1];
+		pan_map(-dx, -dy);
+    	var overlay2=document.getElementById('overlay2');
+        accum_pan_dx=0;
+        accum_pan_dy=0;
+    	var overlay2=document.getElementById('overlay2');
+	    overlay2.style.left=''+(overlay_left)+'px';
+	    overlay2.style.top=''+(overlay_top)+'px';
+		jgq.clear();
+		draw_jg();
+		return;
+	}
+	
+	for(var i=0;i<wps.length;++i)
+	{
+		wp=wps[i];
+		var newpos=merc2merc(wp,oldzoom,newzoom);
+		wp[0]=newpos[0];
+		wp[1]=newpos[1];
+	}
+	var newanchor=merc2merc((anchorx,anchory),oldzoom,newzoom);
+	anchorx=newanchor[0];
+	anchory=newanchor[1];
+	
+	map_zoomlevel=newzoom;
+	map_topleft_merc=merc2merc(map_topleft_merc,oldzoom,newzoom);
+	
+	var orig=[10000,10000];
+	var tilestart=[256<<22,256<<22];
+	for(var i=0;i<tiles.length;++i)
+	{
+		var tile=tiles[i];
+		orig[0]=Math.min(tile.x1,orig[0]);
+		orig[1]=Math.min(tile.y1,orig[1]);
+		tilestart[0]=Math.min(tile.mercx,tilestart[0]);
+		tilestart[1]=Math.min(tile.mercy,tilestart[1]);
+	}	
+	var old_tilestart=merc2merc(tilestart,oldzoom,newzoom);
+	
+	new_tilestart=[parseInt(old_tilestart[0]+0.5),
+	               parseInt(old_tilestart[1]+0.5)];
+	new_tilestart[0]=new_tilestart[0]-new_tilestart[0]%256;
+	new_tilestart[1]=new_tilestart[1]-new_tilestart[1]%256;
+	
+	map_topleft_merc[0]=new_tilestart[0]-orig[0];
+	map_topleft_merc[1]=new_tilestart[1]-orig[1];
+	
+	for(var i=0;i<tiles.length;++i)
+	{
+		var tile=tiles[i];
+		var tdx=tile.x1-orig[0];
+		var tdy=tile.y1-orig[1];		
+		tile.mercx=new_tilestart[0]+tdx;
+		tile.mercy=new_tilestart[1]+tdy;
+//		tile.img.title="zoom:"+map_zoomlevel+", "+tile.mercx+","+tile.mercy;
+		tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
+
+	}
+
+	
+	dx=new_desired_topleft[0]-map_topleft_merc[0];
+	dy=new_desired_topleft[1]-map_topleft_merc[1];
+	//alert("pan required:"+[dx,dy]);
+	pan_map(-dx, -dy);
+    accum_pan_dx=0;
+    accum_pan_dy=0;
+	var overlay2=document.getElementById('overlay2');
+    overlay2.style.left=''+(overlay_left)+'px';
+    overlay2.style.top=''+(overlay_top)+'px';
+	jgq.clear();
+	draw_jg();
+
+	/*
+	var form=document.getElementById('helperform');
+
 
 	var zoomparam=map_zoomlevel;
 	var mercx=pos[0];
@@ -360,26 +454,36 @@ function dozoom(how,pos)
 	form.center.value=''+parseInt(mercx)+','+parseInt(mercy);
 	//alert('actually zooming');
 	form.submit();
+	*/
 }
 function zoom_out(pos)
 {
-	
+	dozoom(-1,pos);
+	/*
 	function zoom_out_impl()
 	{
-		dozoom(-1,pos);
+		
 	}
  	save_data_if_dirty(zoom_out_impl);
+ 	*/
 }
 function zoom_in(pos)
-{
+{	
+	dozoom(1,pos);
+	/*
 	function zoom_in_impl()
 	{
 		dozoom(1,pos);
 	}
  	save_data_if_dirty(zoom_in_impl);
+ 	*/
 }
+var lastwheel=0;
 function handle_mouse_wheel(delta,event) 
 {
+	//if (lastwheel==(delta<0))
+	//	return;
+	lastwheel=(delta<0);
 	var screen_x=event.clientX-document.getElementById('mapcontainer').offsetLeft;
 	var screen_y=event.clientY-document.getElementById('mapcontainer').offsetTop;
 	if (screen_x<0 || screen_y<0 || screen_x>=screen_size_x || screen_y>=screen_size_y)
@@ -1190,8 +1294,6 @@ function on_mousemovemap(event)
 			if (Math.max(dx,dy)>20)
 			{
 				dragmode=1;
-				//dragstarttopleftmerc=[map_topleft_merc[0],map_topleft_merc[1]];
-				//dragstarttilestart=[tilestart[0],tilestart[1]];
 				accum_pan_dx=0;
 				accum_pan_dy=0;
 				dragstart=[event.clientX,event.clientY];
@@ -1448,6 +1550,10 @@ function center_map()
 {
 	var merc_x=lastrightclickx;
 	var merc_y=lastrightclicky;
+	dozoom(0,[merc_x,merc_y]);
+	hidepopup();
+	/*
+	
 	function implement_center()
 	{
 		var form=document.getElementById('helperform');
@@ -1455,7 +1561,8 @@ function center_map()
 		form.zoom.value=map_zoomlevel; 
 		form.submit();
 	}
-	save_data(implement_center);	
+	save_data(implement_center);
+	*/	
 }
 
 function end_drag_mode(clientX,clientY)
@@ -1463,18 +1570,6 @@ function end_drag_mode(clientX,clientY)
 	if (dragmode==1)
 	{
 		dragmode=0;
-		/*var dx=parseInt(clientX-dragstart[0]);
-		var dy=parseInt(clientY-dragstart[1]);
-		for(var i=0;i<tiles.length;++i)
-		{
-			var tile=tiles[i];
-			tile.x1+=dx;		
-			tile.y1+=dy;		
-		}
-		dragstarttopleftmerc[0]=map_topleft_merc[0];
-		dragstarttilestart[0]=tilestart[0];
-		dragstarttopleftmerc[1]=map_topleft_merc[1];
-		dragstarttilestart[1]=tilestart[1];*/
 		var dx=parseInt(clientX-dragstart[0]);
 		var dy=parseInt(clientY-dragstart[1]);
 		pan_map(dx,dy); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
@@ -1495,8 +1590,6 @@ function pan_map(dx,dy)
     dy=parseInt(dy);
 	var h=screen_size_y;
 	var w=screen_size_x;
-	//tilestart[0]-=dx;//dragstarttilestart[0]-dx;
-	//tilestart[1]-=dy;//dragstarttilestart[1]-dy;
 	
 	clipped=clip_mappos(map_topleft_merc[0]-dx,map_topleft_merc[1]-dy);
 	var delta=[clipped[0]-map_topleft_merc[0],clipped[1]-map_topleft_merc[1]];
@@ -1510,8 +1603,8 @@ function pan_map(dx,dy)
 		var tile=tiles[i];	
 		tile.x1+=dx;
 		tile.y1+=dy;	
-		var x=tile.x1;+dx;
-		var y=tile.y1;+dy;
+		var x=tile.x1;
+		var y=tile.y1;
 		var need_reload=0;
 		if (x+tilesize<=-tilesize/4)
 		{ //tile has passed too far to the left
