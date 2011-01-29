@@ -354,7 +354,7 @@ function dozoom(how,pos)
 	     new_zoomcenter[0]-screen_size_x/2,
 	     new_zoomcenter[1]-screen_size_y/2
          ];
-	
+/*	
 	if (newzoom==oldzoom)
 	{
 		dx=new_desired_topleft[0]-map_topleft_merc[0];
@@ -371,6 +371,7 @@ function dozoom(how,pos)
 		draw_jg();
 		return;
 	}
+*/
 	
 	for(var i=0;i<wps.length;++i)
 	{
@@ -398,31 +399,42 @@ function dozoom(how,pos)
 	}	
 	var old_tilestart=merc2merc(tilestart,oldzoom,newzoom);
 	
-	new_tilestart=[parseInt(old_tilestart[0]+0.5),
+	var new_tilestart=[parseInt(old_tilestart[0]+0.5),
 	               parseInt(old_tilestart[1]+0.5)];
 	new_tilestart[0]=new_tilestart[0]-new_tilestart[0]%256;
 	new_tilestart[1]=new_tilestart[1]-new_tilestart[1]%256;
 	
 	map_topleft_merc[0]=new_tilestart[0]-orig[0];
 	map_topleft_merc[1]=new_tilestart[1]-orig[1];
+	var dx=new_desired_topleft[0]-map_topleft_merc[0];
+	var dy=new_desired_topleft[1]-map_topleft_merc[1];
+	
+	var xstride=xsegcnt*tilesize;
+	var ystride=ysegcnt*tilesize;
+	var dxwhole=parseInt(dx/xstride);
+	var dywhole=parseInt(dy/ystride);
+	var predx=dxwhole*xstride;
+	var predy=dywhole*ystride;
+	map_topleft_merc[0]+=predx;
+	map_topleft_merc[1]+=predy;
+	dx-=predx;
+	dy-=predy;
 	
 	for(var i=0;i<tiles.length;++i)
 	{
 		var tile=tiles[i];
 		var tdx=tile.x1-orig[0];
 		var tdy=tile.y1-orig[1];		
-		tile.mercx=new_tilestart[0]+tdx;
-		tile.mercy=new_tilestart[1]+tdy;
+		tile.mercx=new_tilestart[0]+tdx+predx;
+		tile.mercy=new_tilestart[1]+tdy+predy;
 //		tile.img.title="zoom:"+map_zoomlevel+", "+tile.mercx+","+tile.mercy;
-		tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
+		//tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
 
 	}
 
 	
-	dx=new_desired_topleft[0]-map_topleft_merc[0];
-	dy=new_desired_topleft[1]-map_topleft_merc[1];
 	//alert("pan required:"+[dx,dy]);
-	pan_map(-dx, -dy);
+	pan_map(-dx, -dy, true);
     accum_pan_dx=0;
     accum_pan_dy=0;
 	var overlay2=document.getElementById('overlay2');
@@ -1261,7 +1273,7 @@ function on_mousemovemap(event)
 			var dx=evcx-dragstart[0];
 			var dy=evcy-dragstart[1];
 			//alert('drag:'+dx+' , '+dy);
-			pan_map(dx,dy);						
+			pan_map(dx,dy, false);						
 			dragstart[0]=evcx;
 			dragstart[1]=evcy;
 		}
@@ -1551,7 +1563,7 @@ function end_drag_mode(clientX,clientY)
 		dragmode=0;
 		var dx=parseInt(clientX-dragstart[0]);
 		var dy=parseInt(clientY-dragstart[1]);
-		pan_map(dx,dy); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
+		pan_map(dx,dy,false); //last mousemove event may have fired some ways away (and on cell phone - there might be no mousemove)
         accum_pan_dx=0;
         accum_pan_dy=0;
     	var overlay2=document.getElementById('overlay2');
@@ -1563,7 +1575,7 @@ function end_drag_mode(clientX,clientY)
 	}
 	return 0;
 }
-function pan_map(dx,dy)
+function pan_map(dx,dy,force)
 {
     dx=parseInt(dx);
     dy=parseInt(dy);
@@ -1615,7 +1627,7 @@ function pan_map(dx,dy)
 			need_reload=1;
 		}
 		
-		if (need_reload)
+		if (need_reload || force)
 		{
 			//tile.img.src='/boilerplate.jpg';
 			tile.img.src='/loading.png';
