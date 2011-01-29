@@ -333,6 +333,7 @@ function dozoom(how,pos)
 {	
 	if (how=='auto')
 	{
+		var form=document.getElementById('helperform');
 		form.zoom.value='auto';
 		form.submit();
 		return;

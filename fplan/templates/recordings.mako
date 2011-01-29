@@ -8,6 +8,10 @@
 function loadrecordings()
 {
 }
+function navigate_to(where)
+{
+	window.location.href=where;	
+}
 
 addLoadEvent(loadrecordings);
 
