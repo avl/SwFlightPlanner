@@ -24,7 +24,7 @@ from fplan.lib.tripsharing import tripuser
 import fplan.lib.airspace as airspace
 from fplan.lib.helpers import lfvclockfmt,fmt_freq
 from fplan.lib.helpers import parse_clock
-
+import fplan.lib.sunrise as sunrise
 import unicodedata
 def strip_accents(s):
    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
@@ -59,7 +59,9 @@ class FlightplanController(BaseController):
         for airp in get_airfields():
             if airp['name'].lower().count(searchstr) or \
                 airp['icao'].lower().count(searchstr):
-                points.append(airp)  
+                d=dict(airp)
+                d['kind']='airport'
+                points.append(d)  
                 
         for sigpoint in get_sig_points():
             if sigpoint['name'].lower().count(searchstr):
@@ -67,7 +69,11 @@ class FlightplanController(BaseController):
         if len(points)==0:
             return ""
         points.sort(key=lambda x:x['name'])
-        ret=json.dumps([[x['name'],mapper.from_str(x['pos'])] for x in points[:15]])
+        def extract_name(x):
+            if 'kind' in x:
+                return "%s (%s)"%(x['name'],x['kind'])
+            return x.get('name','unknown item')
+        ret=json.dumps([[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]])
         #print "returning json:",ret
         return ret
     
@@ -699,7 +705,20 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
                 rt.notampoints.add(space['name'])
-
+        
+        if len(c.route)>0:
+            lat,lon=mapper.from_str(c.route[-1].b.pos)
+            poss=[mapper.from_str(c.route[0].a.pos)]
+            poss+=[mapper.from_str(r.b.pos) for r in c.route]
+            dta,dtb=[c.route[0].a.dt,c.route[-1].b.dt]
+            print "sunrise:",dta,dtb
+            fall,what=sunrise.earliestsunset([dta,dtb],poss)
+            if what!=None:
+                c.sunset=what
+            elif fall!=None:
+                c.sunset=fall.strftime("%H:%MZ")
+            else:
+                c.sunset="unknown"
         return render('/printable.mako')
 
     def enroutenotams(self):

@@ -124,7 +124,10 @@ def extract_airfields(filtericao=None):
                                 continue #reached HOLDING-part of VAC
                                 
                             #Check for other headings
+                            #Fixup strange formatting of points in some holding items: (whitespace between coord and 'E')                            
+                            s=re.sub(ur"(\d+)\s*(N)\s*(\d+)\s*(E)",lambda x:"".join(x.groups()),s)
                             print "Holding item",item,"s:<%s>"%(s,)
+
                             m=re.match(r"([A-Z]{2,}).*?(\d+N)\s*(\d+E).*",s)
                             if not m:                                
                                 m=re.match(r".*?(\d+N)\s*(\d+E).*",s) 
@@ -145,12 +148,12 @@ def extract_airfields(filtericao=None):
                                     continue
                             else:
                                 name,lat,lon=m.groups()
-                            print name,lat,lon
                             try:
                                 coord=parse_coords(lat,lon)
                             except:
                                 print "Couldn't parse:",lat,lon
                                 continue
+                            print name,lat,lon,mapper.format_lfv(*mapper.from_str(coord))
                             
                             if name.count("REMARK") or len(name)<=2:
                                 print "Suspicious name: ",name
@@ -422,7 +425,7 @@ def extract_airfields(filtericao=None):
     print
     print
     for k,v in sorted(points.items()):
-        print k,v
+        print k,v,mapper.format_lfv(*mapper.from_str(v['pos']))
         
     print "Num points:",len(points)
     

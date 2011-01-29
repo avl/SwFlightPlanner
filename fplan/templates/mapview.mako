@@ -30,8 +30,6 @@ dynamic_id='${c.dynamic_id}'; /*Id to keep different tiles uniquely named - need
 uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
 fastmap=${"1" if c.fastmap else "0"};
 mapvariant='${c.mapvariant}';
-
-tilestart=[];//upper left corner of tile grid
 tiles=[];
 overlay_left=0;
 overlay_top=0;
@@ -42,10 +40,12 @@ function calctileurl(zoomlevel,mercx,mercy)
 }
 function clip_mappos(mercx,mercy)
 {
+/*
     if (mercx+screen_size_x>${c.merc_limx2}) mercx=${c.merc_limx2}-screen_size_x;
     if (mercy+screen_size_y>${c.merc_limy2}) mercy=${c.merc_limy2}-screen_size_y;
     if (mercx<${c.merc_limx1}) mercx=${c.merc_limx1};
     if (mercy<${c.merc_limy1}) mercy=${c.merc_limy1};
+*/
     return [mercx,mercy];
 }
 
@@ -71,7 +71,7 @@ function loadmap()
 	map_topleft_merc=clip_mappos(map_topleft_merc[0],map_topleft_merc[1]);
 
 
-	tilestart=[map_topleft_merc[0],map_topleft_merc[1]];
+	var tilestart=[map_topleft_merc[0],map_topleft_merc[1]];
 	tilestart[0]=parseInt(tilestart[0]-(tilestart[0]%tilesize));
 	tilestart[1]=parseInt(tilestart[1]-(tilestart[1]%tilesize));
 	//alert('topleft merc x: '+map_topleft_merc[0]+' tilestart x: '+tilestart[0]);
@@ -79,8 +79,8 @@ function loadmap()
 	var tileoffset_y=tilestart[1]-map_topleft_merc[1];
 	//alert('tileoffset x: '+tileoffset_x);
 	var imgs='';
-	xsegcnt=parseInt(Math.ceil(w/tilesize)+1.5);
-	ysegcnt=parseInt(Math.ceil(h/tilesize)+1.5);
+	xsegcnt=parseInt(Math.floor(w/tilesize+2.5));
+	ysegcnt=parseInt(Math.floor(h/tilesize+2.5));
 	var offy1=tileoffset_y;
 	var mercy=tilestart[1];
 	for(var iy=0;iy<ysegcnt;++iy)
@@ -136,7 +136,7 @@ function loadmap()
 	'</div>'+
 	'<div class="first" id="trip-pane">'+
 	'<form id="tripform" action="${h.url_for(controller="mapview",action="trip_actions")}" method="POST">'+
-	'Trip Name:<br/><input style="background:#c0ffc0" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" ${"readonly=\"readonly\"" if c.sharing else ""|n} id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
+	'Trip Name:<br/><input style="background:#c0ffc0" onchange="setdirty();" onkeydown="setdirty();return not_enter(event)" onkeypress="setdirty();return not_enter(event)" ${"readonly=\"readonly\"" if c.sharing else ""|n} id="entertripname" name="tripname" type="text" value="${h.jsescape(c.tripname)}" />'+
 	'<button style="font-size:10px" onclick="more_trip_functions();return false;">more</button>'+
 	%if c.sharing:
 	'<br/><span style="font-size:9px">(Trip owner: ${c.shared_by})</span>'+

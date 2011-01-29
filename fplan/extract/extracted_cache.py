@@ -10,6 +10,7 @@ from fplan.extract.fi_extract_airfields import fi_parse_airfields
 from fplan.extract.fi_extract_small_airfields import fi_parse_small_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate
+import fplan.extract.extract_cities as extract_cities
 from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
 from fplan.extract.fi_extract_ats_rte import fi_parse_ats_rte
@@ -168,7 +169,10 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(parse_mountain_area())
                 
                 obstacles.extend(parse_obstacles())
-                
+            
+            #cities    
+            sig_points.extend(extract_cities.get_cities())
+            
             for ad in airfields:
                 if 'spaces' in ad:
                     for space in ad['spaces']:

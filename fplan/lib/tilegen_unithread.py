@@ -36,6 +36,8 @@ def update_unithread(zoomlevel=13):
         print "Move %s (%d) -> %s (%d)"%(newpath,newsize,destpath,oldsize)
         if os.system("mv -v %s %s"%(newpath,destpath)):
             raise Exception("Couldn't move updated airspace blobs to active dir")
+        if os.system("touch %s"%(destpath,)):
+            raise Exception("Couldn't touch updated airspace blobs in active dir")
 
 if __name__=='__main__':
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    

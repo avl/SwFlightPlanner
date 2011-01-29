@@ -50,8 +50,9 @@ class MapviewController(BaseController):
     
         session['last_pos']=(merc_x,merc_y)
         session['zoom']=zoomlevel
-        #print "Setting pos to %s"%(mapper.merc2latlon(session['last_pos'],zoomlevel),)
-        session.save()        
+        
+        print "Setting pos to %s, zoom = %d"%(mapper.merc2latlon(session['last_pos'],zoomlevel),zoomlevel)
+        session.save()
 
     def get_waypoints(self,parms):
         wpst=dict()
@@ -448,6 +449,7 @@ class MapviewController(BaseController):
         
         
     def index(self):
+        print "Index called", session.get('zoom',-1)
         #print "index called",request.params
         #user=meta.Session.query(User).filter(
         #        User.user==tripuser()).one()
