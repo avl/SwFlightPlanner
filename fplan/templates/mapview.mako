@@ -79,8 +79,8 @@ function loadmap()
 	var tileoffset_y=tilestart[1]-map_topleft_merc[1];
 	//alert('tileoffset x: '+tileoffset_x);
 	var imgs='';
-	xsegcnt=parseInt(Math.floor(w/tilesize)+3);
-	ysegcnt=parseInt(Math.floor(h/tilesize)+3);
+	xsegcnt=parseInt(Math.floor(w/tilesize+2.5));
+	ysegcnt=parseInt(Math.floor(h/tilesize+2.5));
 	var offy1=tileoffset_y;
 	var mercy=tilestart[1];
 	for(var iy=0;iy<ysegcnt;++iy)

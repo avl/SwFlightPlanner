@@ -58,7 +58,7 @@ End (Z)
 <td>${trip.start.strftime("%Y-%m-%d %H:%MZ")}</td>
 <td>${trip.end.strftime("%Y-%m-%d %H:%MZ")}</td>
 <td>
-<input type="submit" name="view_${h.utcdatetime2stamp(trip.start)}"/>	
+<input type="submit" value="View" name="view_${h.utcdatetime2stamp(trip.start)}"/>	
 </td>
 </tr>
 %endfor

@@ -366,7 +366,8 @@ function dozoom(how,pos)
     	var overlay2=document.getElementById('overlay2');
 	    overlay2.style.left=''+(overlay_left)+'px';
 	    overlay2.style.top=''+(overlay_top)+'px';
-		jgq.clear();
+		document.getElementById("footer").innerHTML='Map centered on point';
+	    
 		draw_jg();
 		return;
 	}
@@ -378,7 +379,7 @@ function dozoom(how,pos)
 		wp[0]=newpos[0];
 		wp[1]=newpos[1];
 	}
-	var newanchor=merc2merc((anchorx,anchory),oldzoom,newzoom);
+	var newanchor=merc2merc([anchorx,anchory],oldzoom,newzoom);
 	anchorx=newanchor[0];
 	anchory=newanchor[1];
 	
@@ -427,34 +428,13 @@ function dozoom(how,pos)
 	var overlay2=document.getElementById('overlay2');
     overlay2.style.left=''+(overlay_left)+'px';
     overlay2.style.top=''+(overlay_top)+'px';
-	jgq.clear();
 	draw_jg();
-
-	/*
-	var form=document.getElementById('helperform');
-
-
-	var zoomparam=map_zoomlevel;
-	var mercx=pos[0];
-	var mercy=pos[1];
-	if (how==1 && map_zoomlevel<13)
-	{
-		mercx*=2.0;
-		mercy*=2.0;
-		zoomparam+=1;
-	}
-	else if (how==-1 && map_zoomlevel>0)
-	{
-		mercx/=2.0;
-		mercy/=2.0;
-		zoomparam-=1;
-	}
 	
-	form.zoom.value=''+(zoomparam);
-	form.center.value=''+parseInt(mercx)+','+parseInt(mercy);
-	//alert('actually zooming');
-	form.submit();
-	*/
+	var what='Zoomed in on point. (zoom level = '+map_zoomlevel+')';
+	if (how<0)
+		what='Zoomed out. (zoom level = '+map_zoomlevel+')';
+	document.getElementById("footer").innerHTML=what;
+
 }
 function zoom_out(pos)
 {
@@ -478,12 +458,10 @@ function zoom_in(pos)
  	save_data_if_dirty(zoom_in_impl);
  	*/
 }
-var lastwheel=0;
 function handle_mouse_wheel(delta,event) 
 {
 	//if (lastwheel==(delta<0))
 	//	return;
-	lastwheel=(delta<0);
 	var screen_x=event.clientX-document.getElementById('mapcontainer').offsetLeft;
 	var screen_y=event.clientY-document.getElementById('mapcontainer').offsetTop;
 	if (screen_x<0 || screen_y<0 || screen_x>=screen_size_x || screen_y>=screen_size_y)
@@ -1567,6 +1545,7 @@ function center_map()
 
 function end_drag_mode(clientX,clientY)
 {
+	
 	if (dragmode==1)
 	{
 		dragmode=0;
