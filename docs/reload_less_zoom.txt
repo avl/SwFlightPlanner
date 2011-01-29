@@ -1,0 +1,23 @@
+${c.merc_lim[xy][12]}
+
+calctileurl() //check
+
+
+tiles //(with id = mapid+iy+ix //Borde vara? mapid_{ix}_{iy}?
+${c.zoomlevel} på vissa ställen..
+tileoffset_y/tileoffset_x //Borde inte behöva ändras va?
+
+FOrm probably doesn't have to be changed, it seems to use latlon already.
+
+FIXED:
+wps=[];
+anchorx=-1;
+anchory=-1;
+map_topleft_merc
+map_zoomlevel
+
+
+UNUSED: 
+
+tilestart //check. Used after startup?
+
