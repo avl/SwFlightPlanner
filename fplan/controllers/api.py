@@ -2,11 +2,13 @@ import logging
 import StringIO
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect_to
-from fplan.model import meta,User,Trip,Waypoint,Route
+from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording
 from fplan.lib import mapper
+from datetime import datetime,timedelta
+from fplan.lib.recordings import parseRecordedTrip
 #import md5
 from fplan.lib.helpers import md5str
-
+import stat
 import fplan.lib.calc_route_info as calc_route_info
 from fplan.lib.base import BaseController, render
 import json
@@ -21,6 +23,9 @@ from itertools import chain
 from fplan.lib.get_near_route import heightmap_tiles_near,map_tiles_near
 import zlib
 import math
+import struct
+import os
+class BadCredentials(Exception):pass
 
 def cleanup_poly(latlonpoints):
     
@@ -77,19 +82,23 @@ class ApiController(BaseController):
             lat,lon=mapper.from_str(airp['pos'])
             #if lat<58.5 or lat>60.5:
             #    continue
+            aname=airp['name']+"*" if airp.get('icao','ZZZZ').upper()!='ZZZZ' else airp['name']
             points.append(dict(
-                name=airp['name'],
+                name=aname,
                 lat=lat,
                 lon=lon,
                 kind="airport",
                 alt=float(airp.get('elev',0))))
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
+            kind=sigp.get('kind','sigpoint')
+            if not kind in ['sigpoint','city','town']:
+                kind='sigpoint'
             points.append(dict(
                 name=sigp['name'],
                 lat=lat,
                 lon=lon,
-                kind='sigpoint',
+                kind=kind,
                 alt=-9999.0
                 ))
             #print "Just added:",points[-1]
@@ -230,4 +239,131 @@ class ApiController(BaseController):
         except Exception,cause:
             response.headers['Content-Type'] = 'text/plain'            
             return json.dumps(dict(error=repr(cause)))
+        
+    def getmap(self):
+
+        users=meta.Session.query(User).filter(User.user==request.params['user']).all()
+        badpass=False
+        if len(users)==0:
+            badpass=True
+        else:
+            user,=users
+            if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
+                badpass=True
+        def writeInt(x):
+            response.write(struct.pack(">I",x))
+        def writeLong(x):
+            response.write(struct.pack(">Q",x))
+        response.headers['Content-Type'] = 'application/binary'        
+        writeInt(0xf00df00d)
+        writeInt(1) #version
+        if badpass:
+            print "badpassword"
+            writeInt(1) #error, bad pass
+            return None
+        print "Correct password"
+        version,level,offset,maxlen,maxlevel=\
+            [int(request.params[x]) for x in "version","level","offset","maxlen","maxlevel"];
+        
+        totalsize=0
+        stamp=0
+        for lev in xrange(maxlevel+1):
+            tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(lev))
+            totalsize+=os.path.getsize(tlevelfile)
+            stamp=max(stamp,os.stat(tlevelfile)[stat.ST_MTIME])
+        levelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(level))
+        curlevelsize=os.path.getsize(levelfile)    
+        cursizeleft=curlevelsize-offset
+        print "cursize left:",cursizeleft
+        print "maxlen:",maxlen
+        if cursizeleft<0:
+            cursizeleft=0
+        if maxlen>cursizeleft:
+            maxlen=cursizeleft
+        if maxlen>1000000:
+            maxlen=1000000
+        
+         
+        writeInt(0) #no error
+        print "No error"
+        writeLong(stamp) #"data version"
+        print "stamp:",stamp
+        writeLong(curlevelsize)
+        writeLong(totalsize)
+        writeLong(cursizeleft)
+        writeInt(0xa51c2)
+        latest=meta.Session.query(Download).filter(Download.user==user.user).order_by(sa.desc(Download.when)).first()
+        if not latest or datetime.utcnow()-latest.when>timedelta(0,3600):
+            down=Download(user.user, maxlen)
+            meta.Session.add(down)
+        else:
+            down=latest
+            down.bytes+=maxlen
+        
+        f=open(levelfile)
+        meta.Session.flush()
+        meta.Session.commit()
+        
+        if offset<curlevelsize:
+            print "seeking to %d of file %s, then reading %d bytes"%(offset,levelfile,maxlen)
+            f.seek(offset)
+            data=f.read(maxlen)
+            print "Writing %d bytes to client"%(len(data),)
+            response.write(data)
+        f.close()
+        return None
+    
+    def uploadtrip(self):
+        def writeInt(x):
+            response.write(struct.pack(">I",x))
+        
+        print "upload trip",request.params
+        try:
+            f=request.POST['upload'].file
+            def readShort():
+                return struct.unpack(">H",f.read(2))[0]
+            def readUTF():
+                len=readShort()
+                print "Read string of length %d"%(len,)
+                data=f.read(len)
+                return unicode(data,"utf8")
+            
+            username=readUTF()
+            password=readUTF()
+            print "user,pass",username,password
+            users=meta.Session.query(User).filter(User.user==username).all()
+            if len(users)==0:
+                raise BadCredentials("bad user")
+            user=users[0]
+            if user.password!=password and user.password!=md5str(password):
+                raise BadCredentials("bad password")
+            
+            print "POST:",request.POST
+            newrec=parseRecordedTrip(user.user,f)
+            
+            meta.Session.query(Recording).filter(
+                sa.and_(Recording.start==newrec.start,
+                        Recording.user==newrec.user)).delete()
+            meta.Session.add(newrec)
+            meta.Session.flush()
+            meta.Session.commit()
+            
+            #print "GOt bytes: ",len(cont)
+            print "Upload!",request.params
+        except BadCredentials,cause:
+            response.headers['Content-Type'] = 'application/binary'        
+            writeInt(0xf00db00f)
+            writeInt(1) #version
+            writeInt(1) #errorcode, bad user/pass
+            return None
+        except Exception,cause:
+            print cause
+            raise
+        response.headers['Content-Type'] = 'application/binary'        
+        writeInt(0xf00db00f)
+        writeInt(1) #version
+        writeInt(0) #errorcode, success
+        return None
+    
+        
         

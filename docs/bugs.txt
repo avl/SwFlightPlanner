@@ -70,10 +70,17 @@
 68: WONTFIX: Show climb-rate fpm in printable? (What would it be good for?)
 69: FIXAD: The program should remember which was the last trip shown, when re-logging-in.
 70: FIXAD: Unclicking "Land here" doesn't reset the departure time from that waypoint.
-71: AIP SUP should be presented just as a NOTAM. It should be warned about in printable flight plan and NOTAM on route screen.
-72: Holding point Listersjön for ESDF (Ronneby) is wrong. Fix.
-73: Update the gentiles.sh script. Path therein is gravely wrong?
-74: Would be really nice to have a function to get wind-corrected 5-minute (or 6-minute) marks on the map!
-
-
+71: TRIAGED: AIP SUP should be presented just as a NOTAM. It should be warned about in printable flight plan and NOTAM on route screen.
+72: FIXED: Holding point Listersjön for ESDF (Ronneby) is wrong. Fix.
+73: FIXED: Update the gentiles.sh script. Path therein is gravely wrong?
+74: TRIAGED: Would be really nice to have a function to get wind-corrected 5-minute (or 6-minute) marks on the map!
+75: Fix so that you can see in the notam view, which notams are mapped to the map. Also, fix so that notams files are parsed separately.
+76: FIXED: More testing of triplog functionality required.
+77: TRIAGED: Trip-log GPX-export functionality required!
+78: TRIAGED: GPX-import functionality would be nice!
+79: FIXAD: Mouse-wheel scroll doesn't always work on chrome. Broken pipe when sending from server.
+80: FIXAD: Save on zoom doesn't work well in chrome. Maybe take the step to a reload-free zoom?
+81: Handle very very long flights better (more than a day)
+82: Fundera ut varför search-dialogen inte funkar som den egentligen borde.
+83: Spara inte alla NOTAMS så jäkla länge, det tar plats.
 

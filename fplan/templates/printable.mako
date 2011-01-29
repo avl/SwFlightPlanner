@@ -15,7 +15,10 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 <td style="font-size:12px">Fuel needed:</td><td>${"%.1f"%(sum(r.fuel_burn for r in c.route),)}L</td>
 <td style="font-size:12px">Number of fuel stops:</td><td>${sum(1 if (x.a.stay and x.a.stay.fuel>0) else 0 for x in c.route[1:])}</td>
 </tr>
-<tr><td style="font-size:12px">Reserve:</td><td>${c.reserve_endurance}</td></tr>
+<tr>
+<td style="font-size:12px">Reserve:</td><td>${c.reserve_endurance}</td>
+<td style="font-size:12px">Sunset:</td><td>${c.sunset}<span style="font-size:10px">(earliest enroute)</span></td>
+</tr>
 </table>
 
 <table border="1" width="100%"> 

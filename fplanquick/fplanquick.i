@@ -13,6 +13,7 @@
 #include <exception>
 #include <string>
 std::string colorize_combine_heightmap(std::vector<std::string>& arr);
+PyObject* decode_flightpath(const std::string& buf,int version);
 %}
 
 namespace std {
@@ -20,6 +21,7 @@ namespace std {
 }
 
 std::string colorize_combine_heightmap(std::vector<std::string>& arr);
+PyObject* decode_flightpath(const std::string& buf,int version);
 
 
 %exception {

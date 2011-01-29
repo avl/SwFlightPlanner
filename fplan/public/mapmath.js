@@ -54,6 +54,16 @@ function format_distance(meters,extra)
 		return ''+naut.toFixed(prec)+" NM";
 	}
 }
+function to_vector_ellipse(latlon)
+{	
+	var lat=latlon[0]/(180.0/Math.PI);
+	var lon=latlon[1]/(180.0/Math.PI);
+	var z=Math.sin(lat)*(1.0-1.0/298.257223563);
+	var t=Math.cos(lat);
+	var x=t*Math.cos(lon);
+	var y=t*Math.sin(lon);	
+	return [x,y,z];
+}
 function to_vector(latlon)
 {	
 	var lat=latlon[0]/(180.0/Math.PI);
@@ -112,8 +122,9 @@ function format_heading(hdg)
 {
 	return hdg.toFixed(0)+'\u00B0';		
 }
-function to_polar_coord(cur)
+function to_polar_coord(cur_)
 {
+	var cur=vector_normalize(cur_);
 	var lat=Math.asin(cur[2])*(180.0/Math.PI);
 	var lon=Math.atan2(cur[1],cur[0])*(180.0/Math.PI);
 
@@ -129,6 +140,7 @@ function great_circle_points(c1,c2,num)
 	var cur=v1;	
 	for(var i=0;i<num;++i)
 	{
+
 		
 		out.push(to_polar_coord(cur));
 			
@@ -142,8 +154,8 @@ function great_circle_points(c1,c2,num)
 }
 function dist_between(latlon1,latlon2)
 {	
-	var v1=to_vector(latlon1);
-	var v2=to_vector(latlon2);
+	var v1=vector_normalize(to_vector_ellipse(latlon1));
+	var v2=vector_normalize(to_vector_ellipse(latlon2));
 	var sc=scalar_prod(v1,v2);
 
 	var ang=0;
@@ -156,7 +168,7 @@ function dist_between(latlon1,latlon2)
 		ang=Math.acos(sc);
 	}
 	
-	return  6367500*ang; //meters
+	return  6378137.0*ang; //meters (old value: 6367500)
 	
 }
 
@@ -192,4 +204,12 @@ function merc2latlon(xy)
 	var y=xy[1];
     var factor=Math.pow(2.0,map_zoomlevel);
     return [unmerc((128*factor-y)/128.0/factor*merc(85.05113)),x*360.0/(256.0*factor)-180.0];
+}
+function merc2merc(xy,zoom1,zoom2)
+{
+	var delta=zoom2-zoom1;
+	if (delta==0)
+		return [xy[0],xy[1]];
+	var f=Math.pow(2.0,delta);
+	return [f*xy[0],f*xy[1]];
 }

@@ -86,7 +86,7 @@ def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
             assert not (dx<0 or dy<0 or dx>=64 or dy>=64)
             idx=2*(64*dy+dx)
             rawheight=raw[idx:idx+2]
-            height=struct.unpack(">H",rawheight)[0]
+            height=struct.unpack(">h",rawheight)[0]
             print "Adding",height
             heights.append(height)
     print "Returning",max(heights)

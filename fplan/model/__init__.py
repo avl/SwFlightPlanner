@@ -22,9 +22,11 @@ def ForeignKeyConstraint(a,b):
 Unicode=sa.types.Unicode
 String=sa.types.String
 Integer=sa.types.Integer
+Numeric=sa.types.Numeric
 DateTime=sa.types.DateTime
 Boolean=sa.types.Boolean
 Float=sa.types.Float
+Binary=sa.types.Binary
 
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
@@ -41,7 +43,7 @@ user_table = sa.Table("user",meta.metadata,
 notam_table = sa.Table("notam",meta.metadata,
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
                         sa.Column('downloaded',DateTime(),nullable=False),
-                        sa.Column("notamtext",Unicode(),nullable=False)
+                        sa.Column("notamtext",Unicode(),nullable=False),
                         )
 
 
@@ -115,6 +117,27 @@ trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
                         sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                         )
+
+download_table = sa.Table("download",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column("when",DateTime(),nullable=False,primary_key=True),
+                        sa.Column('bytes',Numeric(20),nullable=False,primary_key=True)
+                        )
+recordings_table = sa.Table("recordings",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column("start",DateTime(),nullable=False,primary_key=True),
+                        sa.Column("end",DateTime(),nullable=False,primary_key=False),
+                        sa.Column("duration",Float(),nullable=False,primary_key=False),
+                        sa.Column("distance",Float(),nullable=False,primary_key=False),
+                        sa.Column('depdescr',Unicode(100),primary_key=False,nullable=False,default=""),
+                        sa.Column('destdescr',Unicode(100),primary_key=False,nullable=False,default=""),
+                        sa.Column('trip',Binary(),primary_key=False,nullable=False,default=""),                        
+                        sa.Column("version",Integer(),nullable=False,primary_key=False,default="2")
+                        )
+class Recording(object):
+    def __init__(self, user, start):
+        self.user=user
+        self.start=start
                         
 stay_table = sa.Table("stay",meta.metadata,
                     sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
@@ -222,6 +245,11 @@ class Trip(object):
         self.user=user
         self.trip=trip
         self.aircraft=aircraft
+class Download(object):
+    def __init__(self, user, bytes):
+        self.user=user
+        self.when=datetime.utcnow()
+        self.bytes=bytes
 class Stay(object):
     def __init__(self,user,trip,waypoint_id):
         self.user=user
@@ -263,6 +291,7 @@ class SharedTrip(object):
             
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(User, user_table)
+orm.mapper(Download, download_table)
 orm.mapper(Stay, stay_table)
 orm.mapper(SharedTrip, shared_trip_table)
 orm.mapper(Trip, trip_table, properties=dict(
@@ -282,6 +311,7 @@ orm.mapper(Waypoint, waypoint_table,
     ))
 orm.mapper(NotamCategoryFilter, notam_category_filter_table)
 orm.mapper(NotamCountryFilter, notam_country_filter_table)
+orm.mapper(Recording, recordings_table)
 
 orm.mapper(Route, route_table,
  properties=dict(

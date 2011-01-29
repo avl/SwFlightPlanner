@@ -28,8 +28,8 @@ addLoadEvent(fixcontentsize);
 		<dt id="nav-map"><a onclick="navigate_to('${h.url_for(controller="mapview",action="index")}')" href="#">Map</a></dt>
 		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#">Flightplan</a></dt>
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#">Aircraft</a></dt>
+		<dt id="nav-recordings"><a onclick="navigate_to('${h.url_for(controller="recordings",action="index")}')" href="#">Triplog</a></dt>
 	</dl>
-
 </div>
 <div id="right-nav">
 	<dl>

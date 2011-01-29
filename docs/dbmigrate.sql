@@ -38,4 +38,6 @@ alter table waypoint ALTER COLUMN ordering set not null;
 alter table "user" add column "lasttrip" varchar(50);
 #Dont forget to run setup-app.
 
+#version 8:
+#run paster setup-app production.ini
 
