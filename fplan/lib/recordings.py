@@ -75,7 +75,8 @@ def parseRecordedTrip(user,inp,headers_only=False):
 class Track():pass
 			
 def load_recording(rec):
-	path=decode_flightpath(rec.trip,rec.version)
+	print "Rec.trip type:",type(rec.trip)
+	path=decode_flightpath(str(rec.trip),rec.version)
 	dynamic_id=md5(rec.trip).hexdigest()	
 	out=Track()
 	out.points=[]
