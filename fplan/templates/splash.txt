@@ -1,0 +1,4 @@
+<b style="color:#ff0000;font-size:20px">Notice</b>
+<div style="font-size:14px">
+swflightplanner will be stopped for maintenance some time between <b>18:00 UTC</b> and <b>22:00 UTC</b> today, <b>8th of January</b>. The stop is expected to last 1-2 minutes.
+</div>
