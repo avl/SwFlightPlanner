@@ -118,6 +118,10 @@ def sunset_str(dt,latitude,longitude):
         return "--:--"
     return down.strftime("%H:%MZ")
 
+
+#TODO: ALso calc sun position using
+#http://pvcdrom.pveducation.org/SUNLIGHT/SUNPOS.HTM
+#http://www.math.niu.edu/~rusin/uses-math/position.sun/
     
 if __name__=='__main__':
     for funcname,func in list(globals().items()):

@@ -271,6 +271,7 @@ class ApiController(BaseController):
             tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(lev))
             totalsize+=os.path.getsize(tlevelfile)
             stamp=max(stamp,os.stat(tlevelfile)[stat.ST_MTIME])
+        print "Maxlevel: %d, stamp: %d"%(maxlevel,stamp)
         levelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(level))
         curlevelsize=os.path.getsize(levelfile)    
         cursizeleft=curlevelsize-offset
