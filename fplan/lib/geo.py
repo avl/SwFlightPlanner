@@ -1,6 +1,8 @@
 import fplan.lib.mapper as mapper
 from pyshapemerge2d import Vector,Line,Vertex
 from fplan.lib.get_terrain_elev import get_terrain_elev_in_box_approx
+from datetime import timedelta,datetime
+from sunrise import sun_position_in_sky
 
 dirs=["N",
       "NNE",
@@ -26,7 +28,56 @@ def describe_dir(tt):
     if r<0: r=0
     if r>15: r=15
     return dirs[r]
-
+def seconds(td):
+    return td.days*86400.0+td.seconds+td.microseconds/1e6
+def divide(ta,tb):
+    return seconds(ta)/seconds(tb)
+def get_low_sun_near_route(rts):
+    l=len(rts)
+    out=[]
+    dt=None
+    for idx,rt in enumerate(rts):
+        #print "ord:",rt.a.ordering
+        tottime=rt.dt-rt.startdt
+        merca=rt.subposa
+        mercb=rt.subposb
+        curtime=timedelta(0)
+        real_heading=rt.tt+rt.wca
+        while True:
+            if curtime>=tottime:
+                break
+            f=divide(curtime,tottime)
+            fi=1.0-f
+            merc=(fi*merca[0]+f*mercb[0],fi*merca[1]+f*mercb[1])
+            latlon=mapper.merc2latlon(merc,13)        
+            when=rt.startdt+curtime
+            ele,azi=sun_position_in_sky(when,latlon[0],latlon[1])
+            print "Sun position: ele=%s, azi=%s, heading=%s"%(ele,azi,real_heading)
+            if (ele>-0.5 and ele<25):
+                off=(azi-real_heading)
+                if abs(off)<25:
+                    dirclock=int(round(off/15.0))
+                    if dirclock<=0:
+                        dirclock+=12
+                    out.append(dict(
+                        name="Low Sun Warning (Direction: %d o'clock, %.0f deg above horizon. Blinding?)"%(
+                                dirclock,max(0,ele)),
+                        pos=mapper.to_str(latlon),
+                        elev="",
+                        elevf="0",
+                        dist=0,
+                        bearing=azi,
+                        closestalt=None,
+                        kind='lowsun',
+                        dist_from_a=mapper.bearing_and_distance(mapper.from_str(rt.a.pos),latlon)[1],
+                        dir_from_a=describe_dir(rt.tt),
+                        a=rt.a,
+                        b=rt.b,
+                        id=rt.a.id))
+                    print "Generated sun warning:",out[-1]
+                    break
+            curtime+=timedelta(minutes=2)
+    return out
     
 
 def get_terrain_near_route(rts,vertdist,interval=10):

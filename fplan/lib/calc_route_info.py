@@ -100,9 +100,9 @@ def get_route(user,trip):
     prev_alt=None    
     numroutes=len(routes)
     for idx,rt in enumerate(routes):
-        rt.a.dt=accum_dt
         if rt.a.stay:
             stay=rt.a.stay
+            print "Stay A:",stay.departure_time
             if stay.fuel!=None:
                 try:
                     accum_fuel=stay.fuel
@@ -120,8 +120,15 @@ def get_route(user,trip):
             if stay.departure_time!=None:
                 try:
                     accum_clock=parse_clock(stay.departure_time)
-                except:
+                    accum_dt=accum_dt.replace(
+                            hour=0,minute=0,second=0,microsecond=0)+\
+                            timedelta(0,3600*accum_clock)
+                    print "accum dt:",accum_dt
+                except Exception,cause:
+                    print "Couldn't parse departure time %s"%(stay.departure_time)
                     pass
+                
+        rt.a.dt=accum_dt
         climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
         descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
 
@@ -229,6 +236,7 @@ def get_route(user,trip):
             out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
             out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
             accum_time+=begintime
+            out.startdt=accum_dt
             accum_dt+=timedelta(0,3600*begintime)
             accum_clock+=begintime
             out.clock_hours=accum_clock%24.0
@@ -252,6 +260,7 @@ def get_route(user,trip):
             out.relstartd=begindist
             out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
             out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+            out.startdt=accum_dt
             accum_time+=midtime
             accum_clock+=midtime
             accum_dt+=timedelta(0,3600*midtime)
@@ -275,6 +284,7 @@ def get_route(user,trip):
             out.relstartd=begindist+middist
             out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
             out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+            out.startdt=accum_dt
             accum_time+=endtime
             accum_clock+=endtime
             accum_dt+=timedelta(0,3600*endtime)
@@ -309,6 +319,7 @@ def get_route(user,trip):
                 out.performance="notok"
             out.accum_time=accum_time
             out.clock_hours=accum_clock%24
+            out.startdt=accum_dt
             out.dt=accum_dt
             out.what="cruise"
             out.legpart="mid"

@@ -61,7 +61,7 @@ ${item['name']}
 ${"%s"%(item['elev'],)}
 </td>
 <td>
-${"%.0f"%(item['closestalt'],)}
+${"%.0f"%(item['closestalt'],) if item['closestalt']!=None else ''}
 </td>
 </tr>
 %endfor

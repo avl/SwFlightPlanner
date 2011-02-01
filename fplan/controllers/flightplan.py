@@ -558,7 +558,9 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
-                        geo.get_terrain_near_route(routes,vertdist,interval=interval)):
+                        geo.get_terrain_near_route(routes,vertdist,interval=interval),
+                        geo.get_low_sun_near_route(routes)
+                        ):
             byid.setdefault(closeitem['id'],[]).append(closeitem)
 
         for v in byid.values():
@@ -577,6 +579,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         def classify(item):
             print item
             vertlimit=1000
+            if item.get('kind',None)=='lowsun':
+                return "#ffffb0"            
             if item.get('kind',None)=='terrain':
                 vertlimit=500                
             try:

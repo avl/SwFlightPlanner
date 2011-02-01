@@ -191,14 +191,14 @@ def topolar(v):
     
 def sun_position_in_sky(dt,latitude,longitude):
     UP=frompolar(latitude,0)
-    
+    print "Calc sun-pos for %s at %f,%f"%(dt,latitude,longitude)
     dz=cos(latitude)
     dx=-sin(latitude)
     dy=0
     TN=Vector(dx,dy,dz)
     left=TN.cross(UP)
     
-    print "Reference system UP, TN, left:",UP,TN,left
+    #print "Reference system UP, TN, left:",UP,TN,left
     yearstart=dt.replace(month=1,day=1,hour=0,minute=0,second=0,microsecond=0)
     since=(dt-yearstart)
     d=since.days+since.seconds/86400.0
@@ -219,6 +219,7 @@ def sun_position_in_sky(dt,latitude,longitude):
     ele,azi=topolar(local)
     azi+=180.0
     azi%=360.0
+    print "Calculated azi=%f, ele=%f"%(azi,ele)
     return ele,azi
             
     
@@ -244,7 +245,7 @@ if __name__=='__main__':
         globals()[funcname]=makefun(func,funcname)
     
     print "Calc sun pos now"
-    task=(datetime(2011,6,24,1,50,0),59.3333,18.0+1.0/30)
+    task=(datetime(2011,1,31,15,00,0),59.3333,18.0+1.0/30)
     print "position:",sun_position_in_sky(*task)
     
     if 0:
