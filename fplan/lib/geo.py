@@ -64,7 +64,7 @@ def get_low_sun_near_route(rts):
                                 dirclock,max(0,ele)),
                         pos=mapper.to_str(latlon),
                         elev="",
-                        elevf="0",
+                        elevf=0,
                         dist=0,
                         bearing=azi,
                         closestalt=None,
