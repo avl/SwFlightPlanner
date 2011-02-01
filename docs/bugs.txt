@@ -85,4 +85,5 @@
 83: Spara inte alla NOTAMS så jäkla länge, det tar plats.
 84: Borde inte rendera *alla* punkter från en trip när man visar recordings i webappen. Det kan bli för många points.
 85: Gör så att man får en varning om man lägger en track mot lågt stående sol.
+86: Borde skriva mer om android-flightplannern på hemsidan.
 
