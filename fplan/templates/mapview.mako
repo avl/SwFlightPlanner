@@ -38,14 +38,19 @@ function calctileurl(zoomlevel,mercx,mercy)
 {
 	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&mapvariant='+mapvariant+'&dynamic_id='+dynamic_id+'&mtime=${c.mtime}';
 }
+merc5_limx1=${c.merc5_limx1};
+merc5_limy1=${c.merc5_limy1};
+merc5_limx2=${c.merc5_limx2};
+merc5_limy2=${c.merc5_limy2};
 function clip_mappos(mercx,mercy)
 {
-/*
-    if (mercx+screen_size_x>${c.merc_limx2}) mercx=${c.merc_limx2}-screen_size_x;
-    if (mercy+screen_size_y>${c.merc_limy2}) mercy=${c.merc_limy2}-screen_size_y;
-    if (mercx<${c.merc_limx1}) mercx=${c.merc_limx1};
-    if (mercy<${c.merc_limy1}) mercy=${c.merc_limy1};
-*/
+	var a=merc2merc([merc5_limx1,merc5_limy1],5,map_zoomlevel);
+	var b=merc2merc([merc5_limx2,merc5_limy2],5,map_zoomlevel);
+    if (mercx+screen_size_x>b[0]) mercx=b[0]-screen_size_x;
+    if (mercy+screen_size_y>b[1]) mercy=b[1]-screen_size_y;
+    if (mercx<a[0]) mercx=a[0];
+    if (mercy<a[1]) mercy=a[1];
+
     return [mercx,mercy];
 }
 

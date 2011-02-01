@@ -504,7 +504,7 @@ class MapviewController(BaseController):
                 
         c.merc_x,c.merc_y=session['last_pos']
         
-        c.merc_limx1,c.merc_limy1,c.merc_limx2,c.merc_limy2=merc_limits(zoomlevel,conservative=False)
+        c.merc5_limx1,c.merc5_limy1,c.merc5_limx2,c.merc5_limy2=merc_limits(5,conservative=False)
 
         
                                         
