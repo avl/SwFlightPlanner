@@ -575,12 +575,12 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         return byid
     
     def obstacles(self):    
-        routes,dummy=get_route(tripuser(),session['current_trip'])
+        routes,baseroute=get_route(tripuser(),session['current_trip'])
         
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
-        id2order=dict([(rt.id,rt.ordering) for rt in routes])
+        id2order=dict([(rt.a.id,rt.a.ordering) for rt in baseroute])
         byidsorted=sorted(self.get_obstacles(routes).items(),key=lambda x:id2order.get(x[0],0))
         out=[]
         def classify(item):
