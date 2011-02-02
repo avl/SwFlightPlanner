@@ -81,7 +81,7 @@
 79: FIXAD: Mouse-wheel scroll doesn't always work on chrome. Broken pipe when sending from server.
 80: FIXAD: Save on zoom doesn't work well in chrome. Maybe take the step to a reload-free zoom?
 81: Handle very very long flights better (more than a day)
-82: Fundera ut varför search-dialogen inte funkar som den egentligen borde.
+82: FIXAD: Fundera ut varför search-dialogen inte funkar som den egentligen borde.
 83: Spara inte alla NOTAMS så jäkla länge, det tar plats.
 84: FIXAD: Borde inte rendera *alla* punkter från en trip när man visar recordings i webappen. Det kan bli för många points.
 85: FIXAD: Gör så att man får en varning om man lägger en track mot lågt stående sol.
