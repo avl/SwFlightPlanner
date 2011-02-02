@@ -83,7 +83,8 @@
 81: Handle very very long flights better (more than a day)
 82: Fundera ut varför search-dialogen inte funkar som den egentligen borde.
 83: Spara inte alla NOTAMS så jäkla länge, det tar plats.
-84: Borde inte rendera *alla* punkter från en trip när man visar recordings i webappen. Det kan bli för många points.
-85: Gör så att man får en varning om man lägger en track mot lågt stående sol.
+84: FIXAD: Borde inte rendera *alla* punkter från en trip när man visar recordings i webappen. Det kan bli för många points.
+85: FIXAD: Gör så att man får en varning om man lägger en track mot lågt stående sol.
 86: Borde skriva mer om android-flightplannern på hemsidan.
-
+87: Det är skumt hur DOF hanteras i alla situationer förutom ATS.
+88: FIXAD: Det blir skumt när man zoomar med långsam uppkoppling.

@@ -15,6 +15,7 @@ public:
 	int lasthdg;
 	int lastrate;
 	int lastturn;
+	int lastalt;
 	long laststamp;
 	int laststampdelta;
 	long distance_millinm;
@@ -22,11 +23,14 @@ public:
 	BinaryCodeBuf binbuf;
 	iMerc real_endpos;
 	long real_endstamp;
+	int real_endalt;
+	int version;
 
 
 	Chunk() {
-		startstamp = lasthdg = lastrate = lastturn = laststamp = laststampdelta
-				= distance_millinm = finished = 0;
+		startstamp = lasthdg = lastrate = lastalt = lastturn = laststamp = laststampdelta
+				= distance_millinm = version = 0;
+		finished = 0;
 	}
 	long getStartStamp() {
 		return startstamp;
@@ -45,14 +49,18 @@ public:
 		last17.deserialize(data);
 		lasthdg = data.readInt();
 		lastrate = data.readInt();
+		if (version>=3)
+			lastalt = data.readInt();
 		lastturn = data.readInt();
 		laststamp = data.readLong();
-		printf("Deserialized stamp: %ld\n",laststamp/1000);
+		//printf("Deserialized stamp: %ld\n",laststamp/1000);
 		laststampdelta = data.readInt();
 		real_endpos=last17;
 		real_endstamp=laststamp;
+		real_endalt=lastalt;
 		finished = data.readInt() != 0;
 
+		this->version=version;
 		if (version > 1)
 			distance_millinm = data.readLong();
 		else
@@ -64,6 +72,8 @@ public:
 		lasthdg = 0;
 		lastturn = 0;
 		lastrate = 50;
+
+		lastalt=0;
 		laststamp = startstamp;
 		laststampdelta = 1000;
 
@@ -78,6 +88,11 @@ public:
 		long raw_stampdelta = binbuf.gammadecode();
 		long raw_turn = binbuf.gammadecode();
 		long raw_rate = binbuf.gammadecode();
+		if (version>=3)
+		{
+			long raw_alt = binbuf.gammadecode();
+			lastalt+=raw_alt;
+		}
 		laststampdelta += raw_stampdelta;
 		long code_turn = raw_turn;
 		long code_rate = lastrate + raw_rate;
@@ -96,6 +111,9 @@ public:
 			if (real_endpos.x!=last17.x ||
 				real_endpos.y!=last17.y)
 				throw std::runtime_error("Internal error - last17 after finishing playback is not identical to expected endpos");
+			if (real_endalt!=lastalt)
+				throw std::runtime_error("Internal error - last altitude after finishing playback is not identical to expected alt");
+			//printf("New alt coding worked beautifully: %d %d",real_endalt,lastalt);
 		}
 		/*
 		PosTime item = new PosTime();
@@ -106,9 +124,11 @@ public:
 		PyTuple_SET_ITEM(postup,0,PyInt_FromLong(last17.x));
 		PyTuple_SET_ITEM(postup,1,PyInt_FromLong(last17.y));
 
-		PyObject* tup=PyTuple_New(2);
+		PyObject* tup=PyTuple_New(3);
 		PyTuple_SET_ITEM(tup,0,postup);
 		PyTuple_SET_ITEM(tup,1,PyInt_FromLong(laststamp));
+		PyTuple_SET_ITEM(tup,2,PyInt_FromLong(25*lastalt));
+
 
 		return tup;
 	}
