@@ -1639,7 +1639,7 @@ function pan_map(dx,dy,force)
 		
 		if (need_reload || force)
 		{
-			//tile.img.src='/loading.png';
+			tile.img.src='/loading.png';
 			tile.img.src=calctileurl(parseInt(map_zoomlevel),parseInt(tile.mercx),parseInt(tile.mercy));
 	        	
 		}
