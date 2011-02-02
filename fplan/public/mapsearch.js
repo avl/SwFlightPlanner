@@ -98,12 +98,21 @@ function on_search_keyup(keyevent)
 	var field=document.getElementById('searchfield');
 	searchfor(field.value);
 }
+searchinprog=0;
+searchnext=null;
 function searchfor(fieldval)
 {
 	var s=document.getElementById('searchpopup');
 	var field=document.getElementById('searchfield');
+	if (searchinprog!=0)
+	{
+		searchnext=fieldval;
+		return;
+	}
+	searchnext=null;
 	function search_cb(req)
 	{	
+		searchinprog=0;
 		if (req.responseText=='')
 		{			
 			s.style.display='none';
@@ -133,10 +142,16 @@ function searchfor(fieldval)
 				s.innerHTML=inner;
 			}
 		}
+		if (searchnext!=null)
+		{
+			searchfor(searchnext);
+		}
 	}
 	
 	if (fieldval=='')
 	{
+		searchinprog=0;
+		++searchordinal;
 		remove_searchpopup();
 	}	
 	else
@@ -145,6 +160,7 @@ function searchfor(fieldval)
 		params['search']=fieldval;
 		++searchordinal;
 		params['ordinal']=searchordinal;
+		searchinprog=1;
 		var def=doSimpleXMLHttpRequest(searchairporturl,
 			params);
 		def.addCallbacks(search_cb);
