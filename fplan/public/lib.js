@@ -34,14 +34,17 @@ function hide_foldedlinks()
 {
 	function hide(id)
 	{
-		var elem=document.getElementById(id);		
-		var links=elem.childNodes[0];
-		var payload=elem.childNodes[1];		
-		links.style.display='block';
-		payload.style.display='none';
+		var elem=document.getElementById(id);
+		if (elem!=null)
+		{
+			var links=elem.childNodes[0];
+			var payload=elem.childNodes[1];		
+			links.style.display='block';
+			payload.style.display='none';
+		}
 	}
 	libshownlinks.map(hide);
-	libshownlink=[];
+	libshownlinks=[];
 }
 libdirty=false;
 function getisdirty()
