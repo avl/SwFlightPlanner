@@ -26,15 +26,20 @@ from fplan.lib.helpers import lfvclockfmt,fmt_freq
 from fplan.lib.helpers import parse_clock
 import fplan.lib.sunrise as sunrise
 import unicodedata
+import time
+
 def strip_accents(s):
    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
 class AtsException(Exception): pass
+import random
 
 class FlightplanController(BaseController):
     def search(self):
         searchstr=request.params.get('search','')
-
+        ordi=int(request.params.get('ordinal',0))
+        #print "searching:",searchstr,ordi
+        #time.sleep(1.5*random.random())
         latlon_match=re.match(r"(\d+)\.(\d+)([NS])(\d+)\.(\d+)([EW])",searchstr)
         if latlon_match:
             latdeg,latdec,ns,londeg,londec,ew=latlon_match.groups()
@@ -44,14 +49,14 @@ class FlightplanController(BaseController):
                 lat=-lat
             if ew in ['W','w']:
                 lon=-lon
-            return json.dumps([['Unknown Waypoint',[lat,lon]]])                
+            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon]]]))                
 
         dec_match=re.match(r"\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)\s*",searchstr)
         if dec_match:
             latdec,londec=dec_match.groups()
             lat=float(latdec)
             lon=float(londec)
-            return json.dumps([['Unknown Waypoint',[lat,lon]]])                
+            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon]]]))                
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()
@@ -73,7 +78,8 @@ class FlightplanController(BaseController):
             if 'kind' in x:
                 return "%s (%s)"%(x['name'],x['kind'])
             return x.get('name','unknown item')
-        ret=json.dumps([[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]])
+        hits=[[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]]
+        ret=json.dumps(dict(ordinal=ordi,hits=hits))
         #print "returning json:",ret
         return ret
     
