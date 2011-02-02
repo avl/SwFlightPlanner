@@ -860,7 +860,7 @@ function draw_jg()
                 	{
                 		jg.setColor("#20207f");
 			            jg.setFont("arial","14px",Font.BOLD);
-			            jg.drawString(''+i,screen_x+7,screen_y-5);			    		
+			            jg.drawString(''+(i+1),screen_x+7,screen_y-5);			    		
                 		jg.setColor("#0000bf");
 	                	jg.fillRect(screen_x-5,screen_y-5,10,10);
                 		jg.setColor("#ffffff");
@@ -870,7 +870,7 @@ function draw_jg()
                 	{
             			jg.setColor("#207f20");
 			            jg.setFont("arial","14px",Font.BOLD);
-			            jg.drawString(''+i,screen_x+7,screen_y-5);			    		
+			            jg.drawString(''+(i+1),screen_x+7,screen_y-5);			    		
                 		jg.setColor("#00bf00");
 	                	jg.fillRect(screen_x-5,screen_y-5,10,10);
                 		jg.setColor("#ffffff");
@@ -929,7 +929,7 @@ function draw_jg()
 			        		{
 				        		jg.setColor("#20207f");
 							    jg.setFont("arial","14px",Font.BOLD);
-							    jg.drawString(''+i,screen_x+6,screen_y-5);			    		
+							    jg.drawString(''+(i+1),screen_x+6,screen_y-5);			    		
 				        		jg.setColor("#0000bf");
 					        	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
 				        		jg.setColor("#ffffff");
@@ -942,7 +942,7 @@ function draw_jg()
 			        		{
 			        			jg.setColor("#207f20");
 							    jg.setFont("arial","14px",Font.BOLD);
-							    jg.drawString(''+i,screen_x+7,screen_y-5);			    		
+							    jg.drawString(''+(i+1),screen_x+7,screen_y-5);			    		
 				        		jg.setColor("#00bf00");
 					        	jg.fillEllipse(screen_x-5,screen_y-5,10,10);
 				        		jg.setColor("#ffffff");
