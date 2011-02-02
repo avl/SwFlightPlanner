@@ -39,7 +39,7 @@ class FlightplanController(BaseController):
         searchstr=request.params.get('search','')
         ordi=int(request.params.get('ordinal',0))
         #print "searching:",searchstr,ordi
-        #time.sleep(1.5*random.random())
+        #time.sleep(1.5*f.random())
         latlon_match=re.match(r"(\d+)\.(\d+)([NS])(\d+)\.(\d+)([EW])",searchstr)
         if latlon_match:
             latdeg,latdec,ns,londeg,londec,ew=latlon_match.groups()
@@ -580,10 +580,11 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
-        byidsorted=sorted(self.get_obstacles(routes).items())
+        id2order=dict([(rt.id,rt.ordering) for rt in routes])
+        byidsorted=sorted(self.get_obstacles(routes).items(),key=lambda x:id2order.get(x[0],0))
         out=[]
         def classify(item):
-            print item
+            #print item
             vertlimit=1000
             if item.get('kind',None)=='lowsun':
                 return "#ffffb0"            
@@ -700,18 +701,18 @@ C/%(commander)s %(phonenr)s)"""%(dict(
     def printable(self):
         self.standard_prep(c)
         self.get_freqs(c.route)
-        c.obsts=self.get_obstacles(c.techroute,1e6,2)
+        obsts=self.get_obstacles(c.techroute,1e6,2)
         for rt in c.route:
             rt.notampoints=set()
             rt.notampoints.update(set([info['item']['notam'] for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
         for rt in c.route:
-            if rt.waypoint1 in c.obsts:
-                rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
+            if rt.waypoint1 in obsts:
+                rt.maxobstelev=max([obst['elevf'] for obst in obsts[rt.waypoint1]])
             else:
                 rt.maxobstelev=0#"unknown"
             rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
             rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
-            #for obst in c.obsts:
+            #for obst in obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
                 rt.notampoints.add(space['name'])
