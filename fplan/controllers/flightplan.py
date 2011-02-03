@@ -22,7 +22,7 @@ from fplan.lib import get_terrain_elev
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.tripsharing import tripuser
 import fplan.lib.airspace as airspace
-from fplan.lib.helpers import lfvclockfmt,fmt_freq
+from fplan.lib.helpers import lfvclockfmt,fmt_freq,timefmt
 from fplan.lib.helpers import parse_clock
 import fplan.lib.sunrise as sunrise
 import unicodedata
@@ -85,7 +85,7 @@ class FlightplanController(BaseController):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),
              Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordering).all()
-        print "REquest:",request.params
+        #print "REquest:",request.params
         userobj.realname=request.params.get('realname',userobj.realname)
                             
         for idx,way in enumerate(waypoints):
@@ -159,7 +159,25 @@ class FlightplanController(BaseController):
             
         meta.Session.flush()
         meta.Session.commit()
-        return "ok"
+        
+        techroutes,routes=get_route(tripuser(),trip.trip)
+        out=dict()
+        rows=[]
+        
+        for rt in routes:
+            d=dict()
+            d['id']=rt.a.id
+            d['wca']=rt.wca
+            d['ch']=rt.ch
+            d['gs']=rt.gs
+            d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
+            rows.append(d)
+        if len(routes)>0:
+            out['tottime']=timefmt(routes[-1].accum_time_hours)
+        else:
+            out['tottime']='-'
+        out['rows']=rows
+        return json.dumps(out)
         
     def weather(self):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
@@ -470,6 +488,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.totdist+=dist
         def get(what,a,b):
             #print "A:<%s>"%(what,),a.pos,b.pos
+            
             if what in ['TT','D']:
                 bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
                 #print "Bear,dist:",bear,dist
@@ -490,6 +509,12 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                     elif what=='Var':
                         return "%.0f"%(route.variation) if route.variation!=None else ''
                     elif what=='Alt':
+                        try:
+                            print "Parsing elev:",route.altitude
+                            mapper.parse_elev(route.altitude)
+                        except Exception,cause:
+                            print "couldn't parse elev:",route.altitude
+                            return "1500"
                         return route.altitude                    
                     elif what=='Dev':
                         #print "Dev is:",repr(route.deviation)
