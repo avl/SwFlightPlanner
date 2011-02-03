@@ -1,10 +1,17 @@
 <h1>${c.departure} - ${c.arrival}</h1>
 
 %if min(r.accum_fuel_burn for r in c.route)<0:
-<span style="font-size:20px">
+<span style="font-size:20px;color:#ff0000">
 DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 </span>
 %endif
+
+%if min(next.a.dt-prev.b.dt for prev,next in zip(c.route,c.route[1:]))<h.timedelta(0):
+<span style="font-size:20px;color:#ff0000">
+DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
+</span>
+%endif
+
 <table>
 %if c.ac and c.ac.aircraft:
 <tr><td style="font-size:12px">Aircraft:</td><td> ${c.ac.aircraft}</td></tr>

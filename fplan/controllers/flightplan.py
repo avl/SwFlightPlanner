@@ -327,7 +327,7 @@ class FlightplanController(BaseController):
                 else:
                     dof=""                        
                 if len(dof)!=6:
-                    raise AtsException(u"You need to enter the Date of Flight (DOF)!")
+                    raise AtsException(u"You need to enter the Date of Flight/Takeoff date!")
                 else:                    
                     extra_remarks.append(u"DOF/%s"%(dof,))            
                 if stay.departure_time:
