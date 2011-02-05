@@ -6,7 +6,7 @@ DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 </span>
 %endif
 
-%if min(next.a.dt-prev.b.dt for prev,next in zip(c.route,c.route[1:]))<h.timedelta(0):
+%if min( (next.a.dt-(prev.a.dt+h.timedelta(hours=prev.time_hours))) for prev,next in zip(c.route,c.route[1:]))<h.timedelta(0):
 <span style="font-size:20px;color:#ff0000">
 DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
 </span>
