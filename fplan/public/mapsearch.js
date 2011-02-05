@@ -1,9 +1,7 @@
-searchopinprogress=0;
-searchagain=0;
-searchagainfor='';
 searchpopup=0;
 searchpopup_sel=-1;
 searchlastdata=[];
+searchordinal=0;
 
 function findPos(obj) {
 	var curleft = curtop = 0;
@@ -97,18 +95,24 @@ function on_search_keyup(keyevent)
 {
 	if (keyevent.which==38 || keyevent.which==40 || keyevent.which==13)
 		return false;
+	var field=document.getElementById('searchfield');
+	searchfor(field.value);
+}
+searchinprog=0;
+searchnext=null;
+function searchfor(fieldval)
+{
 	var s=document.getElementById('searchpopup');
 	var field=document.getElementById('searchfield');
-	if (searchopinprogress==1)
+	if (searchinprog!=0)
 	{
-		searchagain=1;
-		searchagainfor=searchfor;		
+		searchnext=fieldval;
 		return;
 	}
+	searchnext=null;
 	function search_cb(req)
 	{	
-		searchopinprogress=0;
-		
+		searchinprog=0;
 		if (req.responseText=='')
 		{			
 			s.style.display='none';
@@ -122,36 +126,44 @@ function on_search_keyup(keyevent)
 			var pos=findPos(field);
 			s.style.left=''+pos[0]+'px';
 			s.style.top=''+(pos[1]+field.offsetHeight)+'px';
-			searchlastdata=evalJSONRequest(req);
+			var ret=evalJSONRequest(req);
 			
-			var inner='';
-			for(var i=0;i<searchlastdata.length;++i)
+			if (parseInt(ret.ordinal)==searchordinal)
 			{
-				inner+='<p style="cursor:pointer" onclick="search_select('+i+')">'+searchlastdata[i][0]+'</p>';
+					
+				searchlastdata=ret.hits;
+				
+				var inner='';
+				for(var i=0;i<searchlastdata.length;++i)
+				{
+					inner+='<p style="cursor:pointer" onclick="search_select('+i+')">'+searchlastdata[i][0]+'</p>';
+				}
+				inner+='<p style="cursor:pointer;color:#808080" onclick="remove_searchpopup();"><u>close</u></p>';
+				s.innerHTML=inner;
 			}
-			inner+='<p style="cursor:pointer;color:#808080" onclick="remove_searchpopup();"><u>close</u></p>';
-			s.innerHTML=inner;
 		}
-	
-		if (searchagain)
+		if (searchnext!=null)
 		{
-			searchagain=0;
-			search_destination(searchagainfor);				
+			searchfor(searchnext);
 		}
 	}
 	
-	if (field.value=='')
+	if (fieldval=='')
 	{
+		searchinprog=0;
+		++searchordinal;
 		remove_searchpopup();
 	}	
 	else
 	{	
 		var params={};	
-		params['search']=field.value;
+		params['search']=fieldval;
+		++searchordinal;
+		params['ordinal']=searchordinal;
+		searchinprog=1;
 		var def=doSimpleXMLHttpRequest(searchairporturl,
 			params);
-		def.addCallback(search_cb);
+		def.addCallbacks(search_cb);
 	}	
 }
-/*
-*/
+

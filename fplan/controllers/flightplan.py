@@ -27,15 +27,20 @@ from fplan.lib.helpers import lfvclockfmt,fmt_freq,timefmt,clockfmt
 from fplan.lib.helpers import parse_clock
 import fplan.lib.sunrise as sunrise
 import unicodedata
+import time
+
 def strip_accents(s):
    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
 class AtsException(Exception): pass
+import random
 
 class FlightplanController(BaseController):
     def search(self):
         searchstr=request.params.get('search','')
-
+        ordi=int(request.params.get('ordinal',0))
+        #print "searching:",searchstr,ordi
+        #time.sleep(1.5*f.random())
         latlon_match=re.match(r"(\d+)\.(\d+)([NS])(\d+)\.(\d+)([EW])",searchstr)
         if latlon_match:
             latdeg,latdec,ns,londeg,londec,ew=latlon_match.groups()
@@ -45,14 +50,14 @@ class FlightplanController(BaseController):
                 lat=-lat
             if ew in ['W','w']:
                 lon=-lon
-            return json.dumps([['Unknown Waypoint',[lat,lon]]])                
+            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon]]]))                
 
         dec_match=re.match(r"\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)\s*",searchstr)
         if dec_match:
             latdec,londec=dec_match.groups()
             lat=float(latdec)
             lon=float(londec)
-            return json.dumps([['Unknown Waypoint',[lat,lon]]])                
+            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon]]]))                
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()
@@ -74,7 +79,8 @@ class FlightplanController(BaseController):
             if 'kind' in x:
                 return "%s (%s)"%(x['name'],x['kind'])
             return x.get('name','unknown item')
-        ret=json.dumps([[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]])
+        hits=[[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]]
+        ret=json.dumps(dict(ordinal=ordi,hits=hits))
         #print "returning json:",ret
         return ret
     
@@ -343,7 +349,7 @@ class FlightplanController(BaseController):
                 else:
                     dof=""                        
                 if len(dof)!=6:
-                    raise AtsException(u"You need to enter the Date of Flight (DOF)!")
+                    raise AtsException(u"You need to enter the Date of Flight/Takeoff date!")
                 else:                    
                     extra_remarks.append(u"DOF/%s"%(dof,))            
                 if stay.departure_time:
@@ -609,15 +615,16 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         return byid
     
     def obstacles(self):    
-        routes,dummy=get_route(tripuser(),session['current_trip'])
+        routes,baseroute=get_route(tripuser(),session['current_trip'])
         
         tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         c.trip=tripobj.trip
-        byidsorted=sorted(self.get_obstacles(routes).items())
+        id2order=dict([(rt.a.id,rt.a.ordering) for rt in baseroute])
+        byidsorted=sorted(self.get_obstacles(routes).items(),key=lambda x:id2order.get(x[0],0))
         out=[]
         def classify(item):
-            print item
+            #print item
             vertlimit=1000
             if item.get('kind',None)=='lowsun':
                 return "#ffffb0"            
@@ -734,18 +741,18 @@ C/%(commander)s %(phonenr)s)"""%(dict(
     def printable(self):
         self.standard_prep(c)
         self.get_freqs(c.route)
-        c.obsts=self.get_obstacles(c.techroute,1e6,2)
+        obsts=self.get_obstacles(c.techroute,1e6,2)
         for rt in c.route:
             rt.notampoints=set()
             rt.notampoints.update(set([info['item']['notam'] for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
         for rt in c.route:
-            if rt.waypoint1 in c.obsts:
-                rt.maxobstelev=max([obst['elevf'] for obst in c.obsts[rt.waypoint1]])
+            if rt.waypoint1 in obsts:
+                rt.maxobstelev=max([obst['elevf'] for obst in obsts[rt.waypoint1]])
             else:
                 rt.maxobstelev=0#"unknown"
             rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
             rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
-            #for obst in c.obsts:
+            #for obst in obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):
                 rt.notampoints.add(space['name'])
