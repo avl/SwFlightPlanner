@@ -126,8 +126,6 @@ def get_route(user,trip):
                         replace(day=pd.day)
                 except Exception,cause:
                     print "Couldn't parse date",stay.date_of_flight
-                    raise
-                    pass                        
             if stay.departure_time!=None:
                 try:
                     accum_clock=parse_clock(stay.departure_time)
