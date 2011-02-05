@@ -162,7 +162,7 @@ function loadmap()
 
 %if len(c.all_trips)>1 or (len(c.all_trips)==1 and c.all_trips[0].trip!=c.tripname):
 'Other saved trips:<br/><select name="choose_trip" id="choose_trip">'+
-%for ctrip in c.all_trips:
+%for ctrip in sorted(c.all_trips,key=lambda x:x.trip):
 %if ctrip.trip!=c.tripname:
 '<option>'+
 '${ctrip.trip}'+
