@@ -52,7 +52,7 @@ def parseRecordedTrip(user,inp,headers_only=False):
 class Track():pass
 			
 def load_recording(rec):
-	print "Rec.trip type:",type(rec.trip)
+	#print "Rec.trip type:",type(rec.trip)
 	path=decode_flightpath(str(rec.trip),rec.version)
 	dynamic_id=md5(rec.trip).hexdigest()	
 	out=Track()
@@ -72,7 +72,7 @@ def load_recording(rec):
 		maxlon=max(maxlon,lon)
 		minlon=min(minlon,lon)
 		if laststamp==None or stamp-laststamp>cutoff or idx==le-1:
-			out.points.append(((lat,lon),altitude,datetime.utcfromtimestamp(stamp/1000.0)))
+			out.points.append(((lat,lon),altitude*0.3048,datetime.utcfromtimestamp(stamp/1000.0)))
 		laststamp=stamp
 	out.bb1=(maxlat,minlon)
 	out.bb2=(minlat,maxlon)
