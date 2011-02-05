@@ -43,20 +43,20 @@ def get_terrain_elev_in_box_approx(latlon,nautmiles):
     merc_=mapper.latlon2merc(latlon,zoomlevel)
     merc=(int(merc_[0]),int(merc_[1]))
     pixels=mapper.approx_scale(merc, zoomlevel, nautmiles)
-    print "Num pixels on zoomlevel 8",pixels," naut",nautmiles
+    #print "Num pixels on zoomlevel 8",pixels," naut",nautmiles
     del merc
     del merc_
     while pixels>4 and zoomlevel>0:
         zoomlevel-=1
         pixels/=2
-        print "Pixels on zoom",zoomlevel,": ",pixels
+        #print "Pixels on zoom",zoomlevel,": ",pixels
     pixels=int(pixels+0.5)
     if pixels<=1: pixels=1
     if zoomlevel>=8: zoomlevel=8
 
     merc_=mapper.latlon2merc(latlon,zoomlevel)
     merc=(int(merc_[0]),int(merc_[1]))
-    print "Getting terrain zoomlevel ",zoomlevel
+    #print "Getting terrain zoomlevel ",zoomlevel
     return get_terrain_elev_merc(merc,zoomlevel,(pixels,pixels))
     
 def get_terrain_elev(latlon):
@@ -87,9 +87,9 @@ def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
             idx=2*(64*dy+dx)
             rawheight=raw[idx:idx+2]
             height=struct.unpack(">h",rawheight)[0]
-            print "Adding",height
+            #print "Adding",height
             heights.append(height)
-    print "Returning",max(heights)
+    #print "Returning",max(heights)
     return max(heights)
 
 if __name__=='__main__':

@@ -88,3 +88,5 @@
 86: Borde skriva mer om android-flightplannern på hemsidan.
 87: Det är skumt hur DOF hanteras i alla situationer förutom ATS.
 88: FIXAD: Det blir skumt när man zoomar med långsam uppkoppling.
+89: Borde vara samma gs/wca/ch etc etc i flightplan->Overview, som i fuel, printable etc.
+90: Borde skapa ett forum

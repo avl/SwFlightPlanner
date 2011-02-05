@@ -1,5 +1,6 @@
 #encoding=UTF8
 import logging
+import time
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import redirect_to
@@ -22,7 +23,7 @@ from fplan.lib import get_terrain_elev
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.tripsharing import tripuser
 import fplan.lib.airspace as airspace
-from fplan.lib.helpers import lfvclockfmt,fmt_freq,timefmt
+from fplan.lib.helpers import lfvclockfmt,fmt_freq,timefmt,clockfmt
 from fplan.lib.helpers import parse_clock
 import fplan.lib.sunrise as sunrise
 import unicodedata
@@ -78,7 +79,8 @@ class FlightplanController(BaseController):
         return ret
     
     def save(self):
-        #print "Saving tripname:",request.params['tripname']
+        time.sleep(1)
+        print "Saving tripname:",request.params
         trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==request.params['tripname'])).one()
         userobj=meta.Session.query(User).filter(User.user==session['user']).one()
@@ -160,7 +162,8 @@ class FlightplanController(BaseController):
         meta.Session.flush()
         meta.Session.commit()
         
-        techroutes,routes=get_route(tripuser(),trip.trip)
+        return self.get_json_routeinfo(get_route(tripuser(),trip.trip)[1])
+    def get_json_routeinfo(self,routes):
         out=dict()
         rows=[]
         
@@ -171,6 +174,7 @@ class FlightplanController(BaseController):
             d['ch']=rt.ch
             d['gs']=rt.gs
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
+            d['clockstr']=clockfmt(rt.clock_hours)
             rows.append(d)
         if len(routes)>0:
             out['tottime']=timefmt(routes[-1].accum_time_hours)
@@ -465,7 +469,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         c.flash=request.params.get('flash',None)
         trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==tripuser(),Waypoint.trip==session['current_trip'])).order_by(Waypoint.ordering).all())
+             Waypoint.user==tripuser(),Waypoint.trip==trip.trip)).order_by(Waypoint.ordering).all())
         
         if len(c.waypoints):        
             wp0=c.waypoints[0]
@@ -482,26 +486,36 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 
         c.realname=userobj.realname
         
+        #c.totdist=0.0
+        #for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
+        #    bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
+        #    c.totdist+=dist
+        dummy,routes=get_route(tripuser(),trip.trip)
+        c.derived_data=self.get_json_routeinfo(routes)
+         
         c.totdist=0.0
-        for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
-            bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-            c.totdist+=dist
+        if len(routes)>0:
+            c.totdist=routes[-1].accum_dist
+        
+        wp2route=dict()
+        for rt in routes:
+            wp2route[(rt.waypoint1,rt.waypoint2)]=rt
         def get(what,a,b):
             #print "A:<%s>"%(what,),a.pos,b.pos
+            route=wp2route.get((a.id,b.id),None)
             
-            if what in ['TT','D']:
-                bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-                #print "Bear,dist:",bear,dist
-                if what=='TT':
-                    return "%03.0f"%(bear,)
-                elif what=='D':
-                    return "%.1f"%(dist,)
-            if what in ['W','V','Var','Alt','TAS','Dev']:
-                routes=list(meta.Session.query(Route).filter(sa.and_(
-                    Route.user==tripuser(),Route.trip==session['current_trip'],
-                    Route.waypoint1==a.id,Route.waypoint2==b.id)).all())
-                if len(routes)==1:
-                    route=routes[0]
+            if route:                
+                if what in ['TT','D']:
+                    bear,dist=route.tt,route.d #mapper.bearing_and_distance(a.pos,b.pos)
+                    #print "Bear,dist:",bear,dist
+                    if what=='TT':
+                        return "%03.0f"%(bear,)
+                    elif what=='D':
+                        return "%.1f"%(dist,)
+                if what in ['W','V','Var','Alt','TAS','Dev']:
+                    #routes=list(meta.Session.query(Route).filter(sa.and_(
+                    #    Route.user==tripuser(),Route.trip==session['current_trip'],
+                    #    Route.waypoint1==a.id,Route.waypoint2==b.id)).all())
                     if what=='W':
                         return "%03.0f"%(route.winddir)
                     elif what=='V':
@@ -520,6 +534,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                         #print "Dev is:",repr(route.deviation)
                         return "%.0f"%(route.deviation) if route.deviation!=None else ''   
                     elif what=='TAS':
+                        print "A:<%s>"%(what,),a.id,b.id,route.tas,id(route)
                         if not route.tas:
                             return 75                        
                         return "%.0f"%(route.tas)

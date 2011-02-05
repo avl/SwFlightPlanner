@@ -1,7 +1,8 @@
 modifiable_cols=[];
 dirty=0;
 in_prog=0;
-
+cache={};
+recursion=0;
 function choose_aircraft()
 {
     function chooseac()
@@ -29,6 +30,7 @@ function makedirty()
     {
         var e=document.getElementById('printablelink');
         e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Printable</span>';
+        clear_fields();
     }
     dirty=1;    
 }
@@ -37,17 +39,14 @@ function get(id,wcol)
 {
 	var vid='fplanrow'+id+wcol;
 	var e=document.getElementById(vid);
-	if (e==null)
-	{   
-	    alert(id+','+wcol+','+vid);
-	}
-	if (e.value=='')
-		return 0.0;			
 	return e.value;
 }
 function getf(id,wcol)
 {
-	var pf=parseFloat(get(id,wcol));
+	var val=get(id,wcol);
+	if (val=='')
+		return 0.0;
+	var pf=parseFloat(val);
 	if (pf==NaN)
 	    pf=0.0;
 	return pf;
@@ -58,10 +57,23 @@ function gete(id,wcol)
 	var e=document.getElementById(vid);
 	return e;
 }
-
-function on_update()
+recursion=0;
+function on_update_all()
 {
+	if (recursion!=0) return;
+	makedirty();
 	save_data(null);
+}
+function on_update(id,wcol)
+{
+	if (recursion!=0) return;
+	var newval=get(id,wcol);
+	if (cache[''+id])
+	{
+		if (''+cache[''+id][wcol]==''+newval)
+			return;
+	}
+	on_update_all();
 }
 
 
@@ -80,10 +92,9 @@ function fetch_winds()
 				{
 			        w.value=parseInt(parseFloat(weather[i][0]));
 			        v.value=parseInt(parseFloat(weather[i][1]));
-        			on_update();
         		}
 			}
-        	dirty=1;
+        	makedirty();
         	do_save();
 		}	
 	}
@@ -125,7 +136,10 @@ function parsealt(what)
 function save_data(cont)
 {
     if (in_prog)
+    {
+    	//alert('too much work!');
         return;
+    }
     in_prog=1;
 	function save_data_cb(req)
 	{	
@@ -156,18 +170,25 @@ function save_data(cont)
 	}
 	dirty=0;
 	var params={};
+	
+	
 	for(var i=0;i<num_rows-1;i++)
 	{
+		cache[''+fpid[i]]={};
         for(var j=0;j<modifiable_cols.length;++j)
         {
             var wh=modifiable_cols[j];
             var val;
-            if (wh!='Alt')       
+            if (wh!='Alt')
+            {       
                 val=getf(fpid[i],wh);
+            }
             else
             {
                 val=parsealt(get(fpid[i],wh));
             }
+			cache[''+fpid[i]][wh]=get(fpid[i],wh);
+            //alert('Value:'+val);
             params[wh+'_'+fpid[i]]=val;
         }	    
 	}			
@@ -196,6 +217,7 @@ function save_data(cont)
 
 function update_fields(data)
 {
+	recursion=1;
 	for(var i=0;i<data.rows.length;++i)
 	{
 		var row=data.rows[i];
@@ -215,12 +237,39 @@ function update_fields(data)
 		ch.value=row.ch.toFixed(0);
 		var time=gete(id,'Time');
 		time.value=row.timestr;
+		var clock=gete(id,'Clock');
+		clock.value=row.clockstr;
 	}
 	var e=document.getElementById('tottime');
 	e.value=data.tottime;
-
+	recursion=0;
 	return;	
 }
+
+function clear_fields()
+{
+	recursion=1;
+	for(var i=0;i<num_rows-1;++i)
+	{
+		var id=fpid[i];
+		var wcae=gete(id,'WCA');		
+		var gse=gete(id,'GS');
+		var ch=gete(id,'CH');
+		var time=gete(id,'Time');
+		var clock=gete(id,'Clock');
+		wcae.value='--';
+		gse.value='--';
+		ch.value='--';
+		time.value='--';
+		clock.value='--:--';
+	}
+	var e=document.getElementById('tottime');
+	e.value='--';
+	recursion=0;
+
+}
+
+
 function toggle_landing(id,idx)
 {
     var toggle=document.getElementById('landhere'+id);
@@ -240,15 +289,16 @@ function toggle_landing(id,idx)
     	landingrow.innerHTML='';        
     }
     dirty=1;
+
     save_data(null);
 }
 function format_empty_landingrow(id,idx)
 {
     return '<td colspan="'+fpcolnum+'"><table>'+
-            '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="makedirty()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
-            '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="makedirty();on_update();" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
-            '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="makedirty()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
-            '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
+            '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="on_update_all()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
+            '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
+            '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
+            '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="on_update_all()" id="persons_'+id+'" value=""/></td></tr>'+
         	'</table></td>';
 }
 function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
@@ -289,7 +339,7 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
 		var elem=tab.insertRow(-1);
 		var s='';
 		for(var i=0;i<rowdata.length;++i)
-		{			
+		{	
 			var ro='';
 			var wh=fpcolshort[i];
 			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA' || wh=='Clock')
@@ -298,10 +348,10 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
 			}
 			else
 			{
-				ro='onkeypress="return not_enter(event)"';
+				ro='onkeyup="on_update('+id+',\''+wh+'\')"  onchange="on_update('+id+',\''+wh+'\')"'; 
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" onkeyup="makedirty();on_update();"  onchange="makedirty();on_update();" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 		

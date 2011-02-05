@@ -117,7 +117,7 @@ def get_route(user,trip):
                         replace(day=pd.day)
                 except:
                     pass                        
-            if stay.departure_time!=None:
+            if stay.departure_time!=None and stay.departure_time!="":
                 try:
                     accum_clock=parse_clock(stay.departure_time)
                     accum_dt=accum_dt.replace(
