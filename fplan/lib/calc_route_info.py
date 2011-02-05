@@ -8,6 +8,15 @@ from fplan.extract.extracted_cache import get_airfields
 from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
 from datetime import datetime,timedelta
+
+def parse_date(s):
+    if s.count("-")==2:
+        y,m,d=s.split("-")
+        return datetime(int(y),int(m),int(d),0,0,0,0)
+    if s.isdigit() and len(s)==8:
+        return datetime(int(s[0:4]),int(s[4:6]),int(s[6,8]),0,0,0,0)
+    raise Exception("Couldn't parse date %s"%(s,))
+
 def wind_computer(winddir,windvel,tt,tas):
     f=1.0/(180.0/math.pi)
     wca=0
@@ -115,7 +124,9 @@ def get_route(user,trip):
                         replace(year=pd.year).\
                         replace(month=pd.month).\
                         replace(day=pd.day)
-                except:
+                except Exception,cause:
+                    print "Couldn't parse date",stay.date_of_flight
+                    raise
                     pass                        
             if stay.departure_time!=None:
                 try:
