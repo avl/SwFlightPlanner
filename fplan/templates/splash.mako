@@ -15,6 +15,12 @@
 
 <body style="height:100%;margin:0;padding:0;border:none;">
 
+<div id="left-nav">
+	<dl>
+<dt><a href="http://swflightplanner.se:8080/phpBB3"><b><u>Forum</u></b></a></dt>
+<dt><a href="/splash/about"><b><u>About/FAQ</u></b></a></dt>
+	</dl>
+</div>
 <table style="height:30%;vertical-align:middle;margin: 0 auto;">
 <tr>
 <td style="width:100%;text-align:center">
@@ -64,10 +70,12 @@ ${c.expl}
 
 </tr></table>
 
+
 <table style="height:30%;margin: 0 auto">
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2011-02-05: </b>Added a <a href="http://swflightplanner.se:8080/phpBB3"><b><u>message-board/forum</u></b></a> for discussion of the swflightplanner suite of applications.<br/>
 <b>Updated 2011-01-06: </b>Added links to AIP-information for the larger airports.<br/>
 <b>Updated 2010-10-09: </b>Support for creating complete ATS flightplans which can be copy-pasted to www.aro.lfv.se.<br/>
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
