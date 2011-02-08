@@ -72,12 +72,15 @@ class ApiController(BaseController):
                 lat,lon=mapper.from_str(space['points'][0])
                 #if lat<57 or lat>62:
                 #    continue
+                name=space['name']
+                if space['type']=="notamarea":
+                    name="NOTAM:"+name
                 out.append(dict(
-                    name=space['name'],
+                    name=name,
                     freqs=space['freqs'] if space.get('freqs',"") else [],
-                    floor=space.get('floor',0),
+                    floor=space.get('floor',""),
                     type=space['type'],
-                    ceiling=space.get('ceiling',99999),
+                    ceiling=space.get('ceiling',""),
                     points=[dict(lat=p[0],lon=p[1]) for p in cleanup_poly([mapper.from_str(x) for x in space['points']])]))
             
         points=[]
