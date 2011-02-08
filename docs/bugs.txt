@@ -89,3 +89,5 @@
 87: Det är skumt hur DOF hanteras i alla situationer förutom ATS. Borde varna om man hoppar tillbaka i tiden.
 88: FIXAD: Det blir skumt när man zoomar med långsam uppkoppling.
 89: FIXAD: (var aldrig fel) Borde väl varna om bränslemängden <0 NÅGONSTANs på rutten?
+90: FIXAD: Borde skapa ett forum
+91: Mer källförteckningar

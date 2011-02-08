@@ -82,7 +82,7 @@ def gen_bsptree_lookup(data):
                 if len(poly_coords)<3:
                     continue
                 poly=Polygon(vvector(poly_coords))
-                print "Item:",space
+                #print "Item:",space
                 bbitems.append(
                     BBTree.TItem(bb,(poly,space)))
                                 

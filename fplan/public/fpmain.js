@@ -1,7 +1,8 @@
 modifiable_cols=[];
 dirty=0;
 in_prog=0;
-
+cache={};
+recursion=0;
 function choose_aircraft()
 {
     function chooseac()
@@ -29,6 +30,7 @@ function makedirty()
     {
         var e=document.getElementById('printablelink');
         e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Printable</span>';
+        clear_fields();
     }
     dirty=1;    
 }
@@ -37,17 +39,14 @@ function get(id,wcol)
 {
 	var vid='fplanrow'+id+wcol;
 	var e=document.getElementById(vid);
-	if (e==null)
-	{   
-	    alert(id+','+wcol+','+vid);
-	}
-	if (e.value=='')
-		return 0.0;			
 	return e.value;
 }
 function getf(id,wcol)
 {
-	var pf=parseFloat(get(id,wcol));
+	var val=get(id,wcol);
+	if (val=='')
+		return 0.0;
+	var pf=parseFloat(val);
 	if (pf==NaN)
 	    pf=0.0;
 	return pf;
@@ -58,8 +57,24 @@ function gete(id,wcol)
 	var e=document.getElementById(vid);
 	return e;
 }
-
-
+recursion=0;
+function on_update_all()
+{
+	if (recursion!=0) return;
+	makedirty();
+	save_data(null);
+}
+function on_update(id,wcol)
+{
+	if (recursion!=0) return;
+	var newval=get(id,wcol);
+	if (cache[''+id])
+	{
+		if (''+cache[''+id][wcol]==''+newval)
+			return;
+	}
+	on_update_all();
+}
 
 
 function fetch_winds()
@@ -77,10 +92,9 @@ function fetch_winds()
 				{
 			        w.value=parseInt(parseFloat(weather[i][0]));
 			        v.value=parseInt(parseFloat(weather[i][1]));
-        			on_updaterow(fpid[i],i,'all');
         		}
 			}
-        	dirty=1;
+        	makedirty();
         	do_save();
 		}	
 	}
@@ -122,40 +136,59 @@ function parsealt(what)
 function save_data(cont)
 {
     if (in_prog)
+    {
+    	//alert('too much work!');
         return;
+    }
     in_prog=1;
 	function save_data_cb(req)
 	{	
 	    in_prog=0;
-		if (req.responseText=='ok')
+		if (req.responseText!='')
 		{
+					
 		    if (!dirty)
 		    {
                 var e=document.getElementById('printablelink');
-                e.innerHTML='<a href="'+printableurl+'"><u>Printable</u></a>';		    
+                e.innerHTML='<a href="'+printableurl+'"><u>Printable</u></a>';
+                var ret=evalJSONRequest(req);
+                update_fields(ret);		    
 			    if (cont!=null)
-				    cont();		
+			    {
+			    	cont();
+				}		
 		    }
+    		else
+    		{
+    			save_data(cont);
+    		}
 		}
 		else
 		{
-			alert('Error:'+req.responseText);
+			alert('Error saving trip');
 		}
 	}
 	dirty=0;
 	var params={};
+	
+	
 	for(var i=0;i<num_rows-1;i++)
 	{
+		cache[''+fpid[i]]={};
         for(var j=0;j<modifiable_cols.length;++j)
         {
             var wh=modifiable_cols[j];
             var val;
-            if (wh!='Alt')       
+            if (wh!='Alt')
+            {       
                 val=getf(fpid[i],wh);
+            }
             else
             {
                 val=parsealt(get(fpid[i],wh));
             }
+			cache[''+fpid[i]][wh]=get(fpid[i],wh);
+            //alert('Value:'+val);
             params[wh+'_'+fpid[i]]=val;
         }	    
 	}			
@@ -182,105 +215,16 @@ function save_data(cont)
 }
 
 
-function format_time(time_hours)
+function update_fields(data)
 {
-	var time_whole_hours=parseInt(Math.floor(time_hours));
-	var time_minutes=60.0*(time_hours-time_whole_hours);
-	var time_i=parseInt(time_minutes);
-	if (time_i>=60) time_i=59;
-	var time_s=''+time_i;
-	if (time_i<10)
-		time_s='0'+time_s;
-	return ''+time_whole_hours+'h'+time_s+'m';
-}
-function get_wp_clock(id)
-{
-    //return ''+time_hours;
-    var e=document.getElementById('departure_time_'+id);
-    if (e==null) return null;
-    var val=e.value;
-    if (val.length<2)
-        return null;
-    var c=[val.substring(0,2),0]
-    c=e.value.split(":");
-    if (c.length<=1)
-    {
-        if (val.length==4)
-            c=[val.substring(0,2),val.substring(2,4)];
-    }
-
-    var hour=c[0]
-    var minutes=0;
-    if (c.length>1)
-        minutes=c[1];
-    return parseFloat(hour)+parseFloat(minutes)/60.0;    
-}
-function format_clock(hours)
-{    
-    //var hours=parseFloat(time_hours)+parseFloat(hour)+parseFloat(minutes)/60.0;    
-	var totmin=parseInt(hours*60.0);
-	var mins=totmin%60;
-	if (mins<10)
-	    min_str='0'+mins;
-	else
-	    min_str=''+mins;
-	var hours=parseInt(Math.floor(totmin/60))%24;
-	if (hours<10)
-	    hour_str='0'+hours;
-	else
-	    hour_str=''+hours;
-	return ''+hour_str+':'+min_str;
-}
-
-function on_updaterow(id,idx,col)
-{
-    on_updaterow_impl(id,idx,col);
-    update_clocks();
-}
-function on_updaterow_impl(id,idx,col)
-{
-	var next=0;
-	if (col=='all' || col=='TAS' || col=='W' || col=='V')
+	recursion=1;
+	for(var i=0;i<data.rows.length;++i)
 	{
-		var tas=getf(id,'TAS');
-		var tt=getf(id,'TT');
-		var wind=getf(id,'W');
-		var windvel=getf(id,'V');
-		var variation=getf(id,'Var');
-		var dev=getf(id,'Dev');
-		var pi=3.14159265;
-		var f=1.0/(180.0/pi);
-		var wca=0;
-		var GS=0;
-
-		var winddir=(wind+180) - tt;
-		var windx=Math.cos(winddir*f)*windvel;
-		var windy=Math.sin(winddir*f)*windvel;
-		if (windy>tas || -windy>tas)
-		{
-			if (windy>tas)
-				wca=-90;
-			else
-				wca=90;
-			GS=0;
-		}
-		else
-		{
-			if (-windx<tas)
-			{
-				wca=-Math.asin(windy/tas)/f;
-				
-				var tas_x=Math.cos(wca*f)*tas;
-				var tas_y=Math.sin(wca*f)*tas;
-				GS = Math.sqrt((tas_x+windx)*(tas_x+windx)+(tas_y+windy)*(tas_y+windy));
-			}
-			else
-			{
-				wca=0;
-				GS=0;
-			}			
-		}		
-		/* True = Air + Wind -> Air = True - Wind*/
+		var row=data.rows[i];
+		var id=row.id;
+		
+		var wca=row.wca;
+		
 		var wcae=gete(id,'WCA');
 		if (wca>0)
 			wcae.value='+'+wca.toFixed(0);
@@ -288,74 +232,44 @@ function on_updaterow_impl(id,idx,col)
 			wcae.value=''+wca.toFixed(0);
 		
 		var gse=gete(id,'GS');
-		gse.value=GS.toFixed(0);
-		next=1;	
-	}
-	if (next || col=='TAS' || col=='W' || col=='V' || col=='Var' || col=='Dev')
-	{
-		var tt=getf(id,'TT');
-		var wca=getf(id,'WCA');
-		var var_=getf(id,'Var');
-		var dev=getf(id,'Dev');
+		gse.value=row.gs.toFixed(0);
 		var ch=gete(id,'CH');
-		ch.value=parseInt(0.5+tt+wca-var_-dev)%360;
-		next=1;
-	}	
-	if (next || col=='TAS' || col=='W' || col=='V' || col=='Var' || col=='Dev' || col=='Clock')
-	{
-		var gs=getf(id,'GS');
-		var D=getf(id,'D');
+		ch.value=row.ch.toFixed(0);
 		var time=gete(id,'Time');
-		if (gs>0.0)
-		{
-			time_hours=D/gs;
-			time.value=format_time(time_hours);
-			idx2time_hours[idx]=time_hours;
-		}
-		else
-		{
-			time.value="-";
-			idx2time_hours[idx]=1e30;
-		}
-	}
-	var hour_sum=0;
-	for(var i=0;i<num_rows-1;++i)
-	{
-		hour_sum+=idx2time_hours[i];
+		time.value=row.timestr;
+		var clock=gete(id,'Clock');
+		clock.value=row.clockstr;
 	}
 	var e=document.getElementById('tottime');
-	if (hour_sum<1e10)
-		e.value=format_time(hour_sum);
-	else
-		e.value="-";
-
+	e.value=data.tottime;
+	recursion=0;
 	return;	
 }
-function update_clocks()
+
+function clear_fields()
 {
-    var partsum=get_wp_clock(firstwaypointid);
-    if (partsum==null) return;
-    for(var i=0;i<num_rows-1;++i)
-    {
-        var id=fpid[i];
-        //alert(document.getElementById('landingrow'+id).innerHTML);
-        if (document.getElementById('departure_time_'+id)!=null)
-        {
-            var t=get_wp_clock(id);
-            if (t!=null)
-                partsum=t;
-        }
-        else
-        {
-            //alert('no find: departure_time_'+id);
-        } 
-       
-        partsum+=idx2time_hours[i];
-	    var clocke=gete(id,'Clock');
-	    clocke.value=format_clock(partsum);				
+	recursion=1;
+	for(var i=0;i<num_rows-1;++i)
+	{
+		var id=fpid[i];
+		var wcae=gete(id,'WCA');		
+		var gse=gete(id,'GS');
+		var ch=gete(id,'CH');
+		var time=gete(id,'Time');
+		var clock=gete(id,'Clock');
+		wcae.value='--';
+		gse.value='--';
+		ch.value='--';
+		time.value='--';
+		clock.value='--:--';
 	}
+	var e=document.getElementById('tottime');
+	e.value='--';
+	recursion=0;
 
 }
+
+
 function toggle_landing(id,idx)
 {
     var toggle=document.getElementById('landhere'+id);
@@ -375,15 +289,16 @@ function toggle_landing(id,idx)
     	landingrow.innerHTML='';        
     }
     dirty=1;
-    update_clocks();
+
+    save_data(null);
 }
 function format_empty_landingrow(id,idx)
 {
     return '<td colspan="'+fpcolnum+'"><table>'+
-            '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="makedirty()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
-            '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="makedirty();on_updaterow('+id+','+idx+',\'Clock\');" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
-            '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="makedirty()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
-            '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
+            '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="on_update_all()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
+            '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
+            '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
+            '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="on_update_all()" id="persons_'+id+'" value=""/></td></tr>'+
         	'</table></td>';
 }
 function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
@@ -424,7 +339,7 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
 		var elem=tab.insertRow(-1);
 		var s='';
 		for(var i=0;i<rowdata.length;++i)
-		{			
+		{	
 			var ro='';
 			var wh=fpcolshort[i];
 			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA' || wh=='Clock')
@@ -433,10 +348,10 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
 			}
 			else
 			{
-				ro='onkeypress="return not_enter(event)"';
+				ro='onkeyup="on_update('+id+',\''+wh+'\')"  onchange="on_update('+id+',\''+wh+'\')"'; 
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" onkeyup="makedirty();on_updaterow('+id+','+idx+',\''+fpcolshort[i]+'\');"  onchange="makedirty();on_updaterow('+id+','+idx+',\''+fpcolshort[i]+'\');" size="'+fpcolwidth[i]+'" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 		
@@ -457,17 +372,9 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
 		}		
 	}
 }
-idx2time_hours=[];
 
 function fpmain_init()
 {
-	for(var i=0;i<num_rows-1;++i)
-		idx2time_hours.push(0);
-	for(var i=0;i<num_rows-1;++i)
-	{	
-		on_updaterow_impl(fpid[i],i,'all');
-	}
-	update_clocks();
 }
 
 
