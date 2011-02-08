@@ -6,9 +6,12 @@ from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording
 from fplan.lib import mapper
 from datetime import datetime,timedelta
 from fplan.lib.recordings import parseRecordedTrip
+
+
 #import md5
 from fplan.lib.helpers import md5str
 import stat
+from fplan.lib.notam_geo_search import get_notam_objs_cached
 import fplan.lib.calc_route_info as calc_route_info
 from fplan.lib.base import BaseController, render
 import json
@@ -65,16 +68,16 @@ class ApiController(BaseController):
         print "Get airspaces called"
         out=[]
         if 1:
-            for space in extracted_cache.get_airspaces():
+            for space in extracted_cache.get_airspaces()+get_notam_objs_cached()['areas']+extracted_cache.get_aip_sup_areas():
                 lat,lon=mapper.from_str(space['points'][0])
                 #if lat<57 or lat>62:
                 #    continue
                 out.append(dict(
                     name=space['name'],
-                    freqs=space['freqs'] if (space['freqs']!="" and space['freqs']!=None) else [],
-                    floor=space['floor'],
+                    freqs=space['freqs'] if space.get('freqs',"") else [],
+                    floor=space.get('floor',0),
                     type=space['type'],
-                    ceiling=space['ceiling'],
+                    ceiling=space.get('ceiling',99999),
                     points=[dict(lat=p[0],lon=p[1]) for p in cleanup_poly([mapper.from_str(x) for x in space['points']])]))
             
         points=[]
