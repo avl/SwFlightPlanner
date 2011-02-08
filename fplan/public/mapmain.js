@@ -432,6 +432,7 @@ function dozoom(how,pos)
 	}
 
 	
+	//alert("pan required:"+[dx,dy]);
 	pan_map(-dx, -dy, true);
     accum_pan_dx=0;
     accum_pan_dy=0;

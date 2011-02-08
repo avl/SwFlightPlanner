@@ -64,9 +64,6 @@ function loadfplan()
 
 	fpmain_init();
     setInterval("if (dirty!=0) do_save()", 5*1000);
-    var der='${h.jsescape(c.derived_data)|n}';
-
-    update_fields(evalJSON(der));
 
 }
 
@@ -142,15 +139,15 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 
 %if c.stay:
 <table>
-<tr><td>Date of Flight: </td><td><input size="10" type="text" onchange="on_update_all();" 
+<tr><td>Date of Flight: </td><td><input size="10" type="text" onchange="makedirty();onchange="makedirty()"" 
     id="date_of_flight_${c.stay.waypoint_id}" value="${c.stay.date_of_flight}"/>(YYYY-MM-DD)</td></tr>
-<tr><td>Estimated Start Time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" 
+<tr><td>Estimated Start Time (UTC): </td><td><input size="5" type="text" onchange="makedirty();on_updaterow(${c.stay.waypoint_id},0,'Clock');" 
     id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
-<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all();" 
+<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="makedirty();" 
     id="fuel_${c.stay.waypoint_id}" value="${int(c.stay.fuel) if c.stay.fuel else ''}"/>(L)</td></tr>
-<tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="on_update_all();" 
+<tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="makedirty();" 
     id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
-<tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="on_update_all();" 
+<tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="makedirty();onchange="makedirty()"" 
     id="realname" value="${c.realname}"/></td></tr>
 </table>
 %endif
@@ -171,7 +168,10 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 %endif
 <br/>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
-Total time (enroute): <input id="tottime" type="text" readonly="1" value="" size="4"> (including time for climb/descent).<br/>
+Total time (enroute): <input id="tottime" type="text" readonly="1" value="" size="4"> (not counting time for climb).<br/>
+%if False and len(c.all_aircraft)==0:
+<a href="#" onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" ><u>Add</u> an aircraft to use on this trip.</a><br/>
+%endif
 </form>
 %endif
 <br/>

@@ -111,7 +111,7 @@ def get_route(user,trip):
     for idx,rt in enumerate(routes):
         if rt.a.stay:
             stay=rt.a.stay
-            #print "Stay A:",stay.departure_time
+            print "Stay A:",stay.departure_time
             if stay.fuel!=None:
                 try:
                     accum_fuel=stay.fuel
@@ -126,13 +126,13 @@ def get_route(user,trip):
                         replace(day=pd.day)
                 except Exception,cause:
                     print "Couldn't parse date",stay.date_of_flight
-            if stay.departure_time!=None and stay.departure_time!="":
+            if stay.departure_time!=None:
                 try:
                     accum_clock=parse_clock(stay.departure_time)
                     accum_dt=accum_dt.replace(
                             hour=0,minute=0,second=0,microsecond=0)+\
                             timedelta(0,3600*accum_clock)
-                    #print "accum dt:",accum_dt
+                    print "accum dt:",accum_dt
                 except Exception,cause:
                     print "Couldn't parse departure time %s"%(stay.departure_time)
                     pass
@@ -157,10 +157,7 @@ def get_route(user,trip):
             rt.tas=ac.cruise_speed
         cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
 
-        try:
-            mid_alt=mapper.parse_elev(rt.altitude)
-        except:
-            mid_alt=1500
+        mid_alt=mapper.parse_elev(rt.altitude)
         if rt.a.stay:
             alt1=float(get_pos_elev(mapper.from_str(rt.a.pos)))
             if prev_alt==None: prev_alt=alt1
@@ -398,7 +395,7 @@ def get_route(user,trip):
         rt.clock_hours=accum_clock%24
         rt.b.dt=accum_dt
         if rt.gs>1e-3:
-            rt.time_hours=begintime+midtime+endtime;
+            rt.time_hours=rt.d/rt.gs;
         else:
             rt.time_hours=None                          
     return res,routes

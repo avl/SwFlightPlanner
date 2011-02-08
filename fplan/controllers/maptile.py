@@ -103,7 +103,7 @@ class MaptileController(BaseController):
         tracks=[]
         if session.get('showtrack',None)!=None:                
             track=session.get('showtrack')
-            #print "%d points"%(len(track.points))
+            print "%d points"%(len(track.points))
             mindiff=1e30
             found=dict()
             hdg=0
@@ -117,11 +117,11 @@ class MaptileController(BaseController):
                     nextmerc=mapper.latlon2merc(b[0],zoomlevel)
                     l=Line(Vertex(int(merc[0]),int(merc[1])),Vertex(int(nextmerc[0]),int(nextmerc[1])))
                     diff=l.approx_dist(clickvec)                
-
+                    print diff
                     if diff<mindiff:
                         mindiff=diff
                         found=(a,b)
-
+                print "Mindiff:",mindiff
                 if mindiff<10:
                     tracks.append(u"<b>GPS track:</b><ul><li>%(when)s - %(altitude)d ft hdg:%(heading)03d spd: %(speed)d kt</li></ul>"%(get_stats(*found)))
                                                   
