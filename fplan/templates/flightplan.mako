@@ -53,7 +53,7 @@ function loadfplan()
 	%if wp.stay:
 	stay=[
 	    '${h.jsescape(wp.stay.date_of_flight)|n}','${h.jsescape(wp.stay.departure_time)|n}',
-	    ${"''" if wp.stay.fuel==None else "'%d'"%(int(wp.stay.fuel))},
+	    '${wp.stay.fuelstr()}',
 	    ${wp.stay.nr_persons if wp.stay.nr_persons else "''"}
 	];
 	%endif
@@ -147,7 +147,7 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 <tr><td>Estimated Start Time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" 
     id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
 <tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all();" 
-    id="fuel_${c.stay.waypoint_id}" value="${int(c.stay.fuel) if c.stay.fuel else ''}"/>(L)</td></tr>
+    id="fuel_${c.stay.waypoint_id}" value="${c.stay.fuelstr()}"/>(L)</td></tr>
 <tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="on_update_all();" 
     id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
 <tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="on_update_all();" 

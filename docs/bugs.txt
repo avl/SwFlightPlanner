@@ -91,3 +91,8 @@
 89: FIXAD: (var aldrig fel) Borde väl varna om bränslemängden <0 NÅGONSTANs på rutten?
 90: FIXAD: Borde skapa ett forum
 91: Mer källförteckningar
+92: Varning om prestandaproblem i flightplan overview, t.ex cruisespeed < GS.
+93: stable: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
+94: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!)
+95: More testing needed!
+  

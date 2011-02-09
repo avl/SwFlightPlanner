@@ -147,6 +147,7 @@ stay_table = sa.Table("stay",meta.metadata,
                     sa.Column('fuel',Float(),nullable=True,primary_key=False,default=None),
                     sa.Column('departure_time',Unicode(5),nullable=False,primary_key=False,default=""),
                     sa.Column('nr_persons',Integer(),nullable=True,primary_key=False,default=None),
+                    sa.Column('fueladjust',Float(),nullable=True,primary_key=False,default=None),
                     sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                     sa.ForeignKeyConstraint(['user', 'trip','waypoint_id'], ['waypoint.user', 'waypoint.trip','waypoint.id'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
                     )
@@ -258,7 +259,18 @@ class Stay(object):
         self.fuel=None        
         self.date_of_flight=datetime.utcnow().strftime("%Y-%m-%d")
         self.departure_time=(datetime.utcnow()+timedelta(0,3600)).strftime("%H:%M")
+    def fuelstr(self):
+        ret=""
+        if self.fuel!=None:
+            ret="%.1f"%(self.fuel,)
+        if self.fueladjust!=None:
+            if self.fueladjust<0:
+                ret="%.1f"%(self.fueladjust,)
+            if self.fueladjust>0:
+                ret="+%.1f"%(self.fueladjust,)
         
+        print "Fuelstr",self.fuel,self.fueladjust,ret
+        return ret
 class User(object):
     def __init__(self, user, password):        
         self.user = user

@@ -73,14 +73,36 @@ ${freq}
 %if rt.accum_fuel_burn<0:
 <span style="font-size:10px">Fuel: </span><span style="color:#ff0000">EMPTY!</span>(${"%.1f"%(-rt.accum_fuel_burn,)}L SHORT)
 %endif
+
+%if rt.b.stay!=None: 
 %if not (rt.accum_fuel_burn<0):
-%if rt.b.stay and rt.b.stay.fuel>0:
+
+%if rt.b.stay.fueladjust==None:
+%if rt.b.stay.fuel!=None and rt.b.stay.fuel>0:
 <span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}<span style="font-size:10px">L Fill tanks to: </span>${"%.1f"%(rt.b.stay.fuel,)}<span style="font-size:10px">L</span>
 %endif
-%if not (rt.b.stay and rt.b.stay.fuel>0):
+%if (rt.b.stay.fuel==None or rt.b.stay.fuel<=0):
 <span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}<span style="font-size:10px">L</span>
 %endif
 %endif
+%if rt.b.stay.fueladjust!=None:
+%if rt.b.stay.fueladjust<0:
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}
+<span style="font-size:10px">L Drain: </span>${"%.1f"%(abs(rt.b.stay.fueladjust),)}
+%endif
+%if rt.b.stay.fueladjust>0:
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}
+<span style="font-size:10px">L Add: </span>${"%.1f"%((rt.b.stay.fueladjust),)}
+%endif
+<span style="font-size:10px">L Giving a total of: </span>${"%.1f"%((rt.accum_fuel_burn+rt.b.stay.fueladjust),)}
+<span style="font-size:10px">L</span>
+%endif
+%endif
+
+
+
+%endif
+
 
 
 <span style="font-size:10px">Terrain: </span>${"%.0f"%(rt.endelev,)}<span style="font-size:10px">ft</span>

@@ -41,3 +41,8 @@ alter table "user" add column "lasttrip" varchar(50);
 #version 8:
 #run paster setup-app production.ini
 
+#version 9:
+alter table "stay" add column "fueladjust" float default null;
+
+
+

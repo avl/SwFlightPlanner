@@ -97,9 +97,11 @@ def get_route(user,trip):
     def calc_midburn(tas):
         if tas>ac.cruise_speed:
             f=(tas/ac.cruise_speed)**3
-            return ac.cruise_burn*f
+            return ac.cruise_burn*f        
         f2=(tas/ac.cruise_speed)
-        return ac.cruise_burn*f2
+        if f2<0.75:
+            f2=0.75 #Don't assume we can fly slower than 75% of cruise, and still not waste fuel
+        return f2*ac.cruise_burn
     res=[]
     accum_fuel=0
     accum_time=0
@@ -113,10 +115,10 @@ def get_route(user,trip):
             stay=rt.a.stay
             #print "Stay A:",stay.departure_time
             if stay.fuel!=None:
-                try:
-                    accum_fuel=stay.fuel
-                except:
-                    pass
+                accum_fuel=stay.fuel
+            else:
+                if stay.fueladjust!=None:
+                    accum_fuel+=stay.fueladjust
             if stay.date_of_flight!=None:
                 try:
                     pd=parse_date(stay.date_of_flight)
@@ -145,17 +147,19 @@ def get_route(user,trip):
         def alt_change_dist(delta):
             if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
             if delta>0:
-                t=(delta/float(ac.climb_rate))/60.0
+                t=(delta/float(max(1e-3,ac.climb_rate)))/60.0
                 return t*climb_gs,climb_gs,ac.climb_burn,'climb',ac.climb_rate
             if delta<0:
-                t=(-delta/float(ac.descent_rate))/60.0
+                t=(-delta/float(max(1e-3,ac.descent_rate)))/60.0
                 return t*descent_gs,descent_gs,ac.descent_burn,'descent',-ac.descent_rate
             assert 0
 
 
         if not rt.tas:
             rt.tas=ac.cruise_speed
+            
         cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+        
 
         try:
             mid_alt=mapper.parse_elev(rt.altitude)
@@ -166,8 +170,7 @@ def get_route(user,trip):
             if prev_alt==None: prev_alt=alt1
         else:                        
             if prev_alt==None or idx==0:
-                prev_alt=get_pos_elev(mapper.from_str(rt.a.pos))                
-                
+                prev_alt=get_pos_elev(mapper.from_str(rt.a.pos))                            
             alt1=prev_alt
         if rt.b.stay:
             alt2=float(get_pos_elev(mapper.from_str(rt.b.pos)))
@@ -175,8 +178,7 @@ def get_route(user,trip):
             alt2=mid_alt
             if idx==numroutes-1:
                 alt2=get_pos_elev(mapper.from_str(rt.b.pos))
-        
-        
+                
         rt.performance="ok"
         begindelta=mid_alt-prev_alt
         enddelta=alt2-mid_alt
@@ -210,17 +212,17 @@ def get_route(user,trip):
             
             
         if beginspeed<1e-3:
-            begintime=9999.0
+            begintime=None
         else:
             begintime=begindist/beginspeed
         if endspeed<1e-3:
-            endtime=9999.0
+            endtime=None
         else:
             endtime=enddist/endspeed
         middist=rt.d-(begindist+enddist)
         #print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
         if cruise_gs<1e-3:
-            midtime=9999.0
+            midtime=None
         else:
             midtime=(rt.d-(begindist+enddist))/cruise_gs
         #print "d: %f, Begintime: %s midtime: %s endtime: %s"%(rt.d,begintime,midtime,endtime)
@@ -239,82 +241,108 @@ def get_route(user,trip):
             return (x,y)
 
         sub=[]
-        if abs(begintime)>1e-5:
+        if begintime==None or midtime==None or endtime==None or accum_dt==None:
             out=TechRoute()
             out.performance=rt.performance
             out.tt=rt.tt
-            out.d=begindist
+            out.d=rt.d
             out.relstartd=0
-            out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
-            out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
-            accum_time+=begintime
+            out.subposa=merca
+            out.subposb=mercb
             out.startdt=accum_dt
-            accum_dt+=timedelta(0,3600*begintime)
-            accum_clock+=begintime
-            out.clock_hours=accum_clock%24.0
-            out.dt=accum_dt
+            accum_time=None
+            accum_clock=None
+            accum_dt=None
+            out.clock_hours=None
+            out.dt=None
             out.startalt=prev_alt
-            prev_alt+=beginrate*begintime*60
-            out.endalt=prev_alt
-            out.altrate=beginrate
-            out.accum_time=accum_time
-            out.time=begintime
-            out.fuel_burn=begintime*beginburn
-            out.what=beginwhat
-            out.legpart="begin"
-            out.lastsub=0
-            sub.append(out)
-        if abs(midtime)>1e-5:
-            out=TechRoute()
-            out.performance=rt.performance
-            out.tt=rt.tt
-            out.d=middist
-            out.relstartd=begindist
-            out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
-            out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
-            out.startdt=accum_dt
-            accum_time+=midtime
-            accum_clock+=midtime
-            accum_dt+=timedelta(0,3600*midtime)
-            out.clock_hours=accum_clock%24
-            out.dt=accum_dt
-            out.startalt=prev_alt
-            out.endalt=prev_alt
+            prev_alt=None
+            out.endalt=None
             out.altrate=0
-            out.accum_time=accum_time
-            out.time=midtime
-            out.fuel_burn=midtime*calc_midburn(rt.tas)
+            out.accum_time=None
+            out.time=None
             out.what="cruise"
             out.legpart="mid"
+            out.fuel_burn=None
             out.lastsub=0
             sub.append(out)
-        if abs(endtime)>1e-5:
-            out=TechRoute()
-            out.performance=rt.performance
-            out.tt=rt.tt
-            out.d=enddist
-            out.relstartd=begindist+middist
-            out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
-            out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
-            out.startdt=accum_dt
-            accum_time+=endtime
-            accum_clock+=endtime
-            accum_dt+=timedelta(0,3600*endtime)
-            out.clock_hours=accum_clock%24
-            out.dt=accum_dt
-            out.startalt=prev_alt
-            prev_alt+=endrate*endtime*60
-            out.endalt=prev_alt
-            if abs(out.endalt)<1e-6:
-                out.endalt=0
-            out.altrate=endrate
-            out.accum_time=accum_time
-            out.time=endtime
-            out.what=endwhat
-            out.legpart="end"
-            out.fuel_burn=endtime*endburn
-            out.lastsub=0
-            sub.append(out)
+        else:
+            if abs(begintime)>1e-5:
+                out=TechRoute()
+                out.performance=rt.performance
+                out.tt=rt.tt
+                out.d=begindist
+                out.relstartd=0
+                out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
+                out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+                accum_time+=begintime
+                out.startdt=accum_dt
+                accum_dt+=timedelta(0,3600*begintime)
+                accum_clock+=begintime
+                out.clock_hours=accum_clock%24.0
+                out.dt=accum_dt
+                out.startalt=prev_alt
+                prev_alt+=beginrate*begintime*60
+                out.endalt=prev_alt
+                out.altrate=beginrate
+                out.accum_time=accum_time
+                out.time=begintime
+                out.fuel_burn=begintime*beginburn
+                out.what=beginwhat
+                out.legpart="begin"
+                out.lastsub=0
+                sub.append(out)
+            if abs(midtime)>1e-5:
+                out=TechRoute()
+                out.performance=rt.performance
+                out.tt=rt.tt
+                out.d=middist
+                out.relstartd=begindist
+                out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
+                out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+                out.startdt=accum_dt
+                accum_time+=midtime
+                accum_clock+=midtime
+                accum_dt+=timedelta(0,3600*midtime)
+                out.clock_hours=accum_clock%24
+                out.dt=accum_dt
+                out.startalt=prev_alt
+                out.endalt=prev_alt
+                out.altrate=0
+                out.accum_time=accum_time
+                out.time=midtime
+                out.fuel_burn=midtime*calc_midburn(rt.tas)
+                out.what="cruise"
+                out.legpart="mid"
+                out.lastsub=0
+                sub.append(out)
+            if abs(endtime)>1e-5:
+                out=TechRoute()
+                out.performance=rt.performance
+                out.tt=rt.tt
+                out.d=enddist
+                out.relstartd=begindist+middist
+                out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
+                out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+                out.startdt=accum_dt
+                accum_time+=endtime
+                accum_clock+=endtime
+                accum_dt+=timedelta(0,3600*endtime)
+                out.clock_hours=accum_clock%24
+                out.dt=accum_dt
+                out.startalt=prev_alt
+                prev_alt+=endrate*endtime*60
+                out.endalt=prev_alt
+                if abs(out.endalt)<1e-6:
+                    out.endalt=0
+                out.altrate=endrate
+                out.accum_time=accum_time
+                out.time=endtime
+                out.what=endwhat
+                out.legpart="end"
+                out.fuel_burn=endtime*endburn
+                out.lastsub=0
+                sub.append(out)
         if len(sub):
             sub[-1].lastsub=1        
         else:
@@ -378,29 +406,41 @@ def get_route(user,trip):
             out.winddir=rt.winddir
             out.windvel=rt.windvel
             res.append(out)
-            accum_fuel-=out.fuel_burn
+            if out.fuel_burn!=None:
+                accum_fuel-=out.fuel_burn
             out.accum_fuel_burn=accum_fuel
             #print "Processing out. %s-%s %s Alt: %s"%(
             #    out.a.waypoint,out.b.waypoint,out.what,out.startalt)
-        #print "Times:",begintime,midtime,endtime
-        if (begintime+midtime+endtime)>1e-3:
-            rt.avg_gs=rt.d/(begintime+midtime+endtime)
-        else:
-            rt.avg_gs=cruise_gs
-        rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
-                        
+        
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+        
+        print "Times:",begintime,midtime,endtime
+        if begintime==None or midtime==None or endtime==None:
+            rt.avg_gs=None
+            rt.fuel_burn=None
+            rt.time_hours=None
+        else:
+            if (begintime+midtime+endtime)>1e-3:
+                rt.avg_gs=rt.d/(begintime+midtime+endtime)
+            else:
+                rt.avg_gs=cruise_gs
+            rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
+            if rt.gs>1e-3:
+                rt.time_hours=begintime+midtime+endtime;
+            else:
+                rt.time_hours=None                          
+                        
                     
         rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
         rt.accum_time_hours=accum_time
         rt.accum_dist=tot_dist
         rt.accum_fuel_burn=accum_fuel
-        rt.clock_hours=accum_clock%24
-        rt.b.dt=accum_dt
-        if rt.gs>1e-3:
-            rt.time_hours=begintime+midtime+endtime;
+        if accum_clock!=None:
+            rt.clock_hours=accum_clock%24
         else:
-            rt.time_hours=None                          
+            rt.clock_hours=None
+            
+        rt.b.dt=accum_dt        
     return res,routes
 
 def test_route_info():

@@ -121,10 +121,15 @@ class FlightplanController(BaseController):
                 except:
                     way.stay.nr_persons=None
                 way.stay.fuel=None
+                way.stay.fueladjust=None
                 try:
-                    way.stay.fuel=float(request.params.get(fuel_s,''))
+                    fuelstr=request.params.get(fuel_s,'').strip()
+                    if fuelstr.startswith("+") or fuelstr.startswith("-"):
+                        way.stay.fueladjust=float(fuelstr)
+                    else:
+                        way.stay.fuel=float(fuelstr)
                 except:
-                    pass
+                    pass                
                 way.altitude=unicode(int(get_terrain_elev.get_terrain_elev(mapper.from_str(way.pos))))
             else:
                 #remove any stay
@@ -180,10 +185,10 @@ class FlightplanController(BaseController):
             d['ch']=rt.ch
             d['gs']=rt.gs
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
-            d['clockstr']=clockfmt(rt.clock_hours)
+            d['clockstr']=clockfmt(rt.clock_hours) if rt.clock_hours else "--"
             rows.append(d)
         if len(routes)>0:
-            out['tottime']=timefmt(routes[-1].accum_time_hours)
+            out['tottime']=timefmt(routes[-1].accum_time_hours) if routes[-1].accum_time_hours else "--"
         else:
             out['tottime']='-'
         out['rows']=rows
