@@ -102,6 +102,7 @@ function force_refresh_on_back_button(selfurl)
     {
         if (detect.value=='yes')
         {
+        	//alert('Back button detected');
 		    window.location.href=selfurl;
         }
         else

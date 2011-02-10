@@ -24,8 +24,8 @@ class BlobFile(object):
         self.lock=Lock()
         self.threads_reading=0
         assert mode in ["r","w"]
-        print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
-            name,zoomlevel,x1,y1,x2,y2,mode)
+        #print "Init Blob: name=%s, zoom=%s, %s,%s-%s,%s, %s"%(
+        #    name,zoomlevel,x1,y1,x2,y2,mode)
         self.mode=mode
         if mode=="w":
             if os.path.dirname(name).strip() and not os.path.exists(os.path.dirname(name)):
@@ -64,7 +64,7 @@ class BlobFile(object):
             x2=self.x2
             y2=self.y2
             zoomlevel=self.zoomlevel
-            print "%d,%d-%d,%d zoom: %d"%(x1,y1,x2,y2,zoomlevel)
+            #print "%d,%d-%d,%d zoom: %d"%(x1,y1,x2,y2,zoomlevel)
  
         #print x2,x1
         assert x2>x1

@@ -52,8 +52,8 @@ def get_notam_objs(kind=None):
                             assert unit=="NM"
                         centre=mapper.parse_coords(lat,lon)
                         coords=mapper.create_circle(centre,radius)
-                        print "Circle:",text
-                        print dict(radius=radius,lat=lat,lon=lon)
+                        #print "Circle:",text
+                        #print dict(radius=radius,lat=lat,lon=lon)
                         areas.append(dict(
                             points=coords,
                             kind="notamarea",
@@ -124,7 +124,7 @@ def get_notam_objs_cached():
     global notam_geo_cache
     cur_notam_ordinal,=meta.Session.query(sa.func.max(Notam.ordinal)).one()
     if notam_geo_cache==None or notam_geo_cache['ord']<cur_notam_ordinal:
-        print "Reparsing notams"
+        #print "Reparsing notams"
         objs=get_notam_objs()
         notam_geo_cache=dict()
         notam_geo_cache['data']=objs

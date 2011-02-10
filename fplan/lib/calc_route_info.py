@@ -8,6 +8,7 @@ from fplan.extract.extracted_cache import get_airfields
 from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
 from datetime import datetime,timedelta
+from copy import copy
 
 def parse_date(s):
     if s.count("-")==2:
@@ -105,7 +106,7 @@ def get_route(user,trip):
     res=[]
     accum_fuel=0
     accum_time=0
-    accum_clock=0
+    #accum_clock=0
     accum_dt=datetime.utcnow()
     tot_dist=0
     prev_alt=None    
@@ -119,27 +120,27 @@ def get_route(user,trip):
             else:
                 if stay.fueladjust!=None:
                     accum_fuel+=stay.fueladjust
-            if stay.date_of_flight!=None:
+            if stay.date_of_flight!=None and stay.date_of_flight.strip()!="":
                 try:
-                    pd=parse_date(stay.date_of_flight)
+                    pd=parse_date(stay.date_of_flight.strip())
                     accum_dt=accum_dt.\
                         replace(year=pd.year).\
                         replace(month=pd.month).\
                         replace(day=pd.day)
                 except Exception,cause:
                     print "Couldn't parse date",stay.date_of_flight
-            if stay.departure_time!=None and stay.departure_time!="":
+            if stay.departure_time!=None and stay.departure_time.strip()!="":
                 try:
-                    accum_clock=parse_clock(stay.departure_time)
+                    tempclock=parse_clock(stay.departure_time.strip())
                     accum_dt=accum_dt.replace(
                             hour=0,minute=0,second=0,microsecond=0)+\
-                            timedelta(0,3600*accum_clock)
+                            timedelta(0,3600*tempclock)
                     #print "accum dt:",accum_dt
                 except Exception,cause:
                     print "Couldn't parse departure time %s"%(stay.departure_time)
                     pass
                 
-        rt.a.dt=accum_dt
+        rt.a.dt=copy(accum_dt)
         climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
         descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
 
@@ -251,7 +252,7 @@ def get_route(user,trip):
             out.subposb=mercb
             out.startdt=accum_dt
             accum_time=None
-            accum_clock=None
+            #accum_clock=None
             accum_dt=None
             out.clock_hours=None
             out.dt=None
@@ -278,8 +279,8 @@ def get_route(user,trip):
                 accum_time+=begintime
                 out.startdt=accum_dt
                 accum_dt+=timedelta(0,3600*begintime)
-                accum_clock+=begintime
-                out.clock_hours=accum_clock%24.0
+                #accum_clock+=begintime
+                #out.clock_hours=accum_clock%24.0
                 out.dt=accum_dt
                 out.startalt=prev_alt
                 prev_alt+=beginrate*begintime*60
@@ -302,9 +303,9 @@ def get_route(user,trip):
                 out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
                 out.startdt=accum_dt
                 accum_time+=midtime
-                accum_clock+=midtime
+                #accum_clock+=midtime
                 accum_dt+=timedelta(0,3600*midtime)
-                out.clock_hours=accum_clock%24
+                #out.clock_hours=accum_clock%24
                 out.dt=accum_dt
                 out.startalt=prev_alt
                 out.endalt=prev_alt
@@ -326,9 +327,9 @@ def get_route(user,trip):
                 out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
                 out.startdt=accum_dt
                 accum_time+=endtime
-                accum_clock+=endtime
+                #accum_clock+=endtime
                 accum_dt+=timedelta(0,3600*endtime)
-                out.clock_hours=accum_clock%24
+                #out.clock_hours=accum_clock%24
                 out.dt=accum_dt
                 out.startalt=prev_alt
                 prev_alt+=endrate*endtime*60
@@ -358,7 +359,7 @@ def get_route(user,trip):
             if prev_alt!=rt.altitude:
                 out.performance="notok"
             out.accum_time=accum_time
-            out.clock_hours=accum_clock%24
+            #out.clock_hours=accum_clock%24
             out.startdt=accum_dt
             out.dt=accum_dt
             out.what="cruise"
@@ -435,12 +436,17 @@ def get_route(user,trip):
         rt.accum_time_hours=accum_time
         rt.accum_dist=tot_dist
         rt.accum_fuel_burn=accum_fuel
-        if accum_clock!=None:
-            rt.clock_hours=accum_clock%24
-        else:
-            rt.clock_hours=None
+        
+        rt.depart_dt=rt.a.dt
+        rt.arrive_dt=rt.a.dt+timedelta(hours=rt.time_hours)
+        #if accum_clock!=None:
+        #    rt.clock_hours=accum_clock%24
+        #else:
+        #    rt.clock_hours=None
             
-        rt.b.dt=accum_dt        
+    if len(routes):
+        last=routes[-1]
+        last.b.dt=accum_dt        
     return res,routes
 
 def test_route_info():

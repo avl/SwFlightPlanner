@@ -95,4 +95,5 @@
 93: stable: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
 94: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!)
 95: More testing needed!
+96: Skriv på forumet!
   

@@ -52,7 +52,7 @@ def get_low_sun_near_route(rts):
             latlon=mapper.merc2latlon(merc,13)        
             when=rt.startdt+curtime
             ele,azi=sun_position_in_sky(when,latlon[0],latlon[1])
-            print "Sun position: ele=%s, azi=%s, heading=%s"%(ele,azi,real_heading)
+            #print "Sun position: ele=%s, azi=%s, heading=%s"%(ele,azi,real_heading)
             if (ele>-0.5 and ele<25):
                 off=(azi-real_heading)
                 if abs(off)<25:

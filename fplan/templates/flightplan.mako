@@ -143,15 +143,15 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 %if c.stay:
 <table>
 <tr><td>Date of Flight: </td><td><input size="10" type="text" onchange="on_update_all();" 
-    id="date_of_flight_${c.stay.waypoint_id}" value="${c.stay.date_of_flight}"/>(YYYY-MM-DD)</td></tr>
+    name="date_of_flight_${c.stay.waypoint_id}" id="date_of_flight_${c.stay.waypoint_id}" value="${c.stay.date_of_flight}"/>(YYYY-MM-DD)</td></tr>
 <tr><td>Estimated Start Time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" 
-    id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
+    name="departure_time_${c.stay.waypoint_id}" id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
 <tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all();" 
-    id="fuel_${c.stay.waypoint_id}" value="${c.stay.fuelstr()}"/>(L)</td></tr>
+    name="fuel_${c.stay.waypoint_id}" id="fuel_${c.stay.waypoint_id}" value="${c.stay.fuelstr()}"/>(L)</td></tr>
 <tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="on_update_all();" 
-    id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
+    name="persons_${c.stay.waypoint_id}" id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
 <tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="on_update_all();" 
-    id="realname" value="${c.realname}"/></td></tr>
+    name="realname" id="realname" value="${c.realname}"/></td></tr>
 </table>
 %endif
 <br/>

@@ -185,7 +185,7 @@ class FlightplanController(BaseController):
             d['ch']=rt.ch
             d['gs']=rt.gs
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
-            d['clockstr']=clockfmt(rt.clock_hours) if rt.clock_hours else "--"
+            d['clockstr']=rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else "--"
             rows.append(d)
         if len(routes)>0:
             out['tottime']=timefmt(routes[-1].accum_time_hours) if routes[-1].accum_time_hours else "--"
@@ -236,7 +236,7 @@ class FlightplanController(BaseController):
                  #print "Got winds:",wi
                  ret.append([wi['direction'],wi['knots']])
         jsonstr=json.dumps(ret)
-        print "returning json:",jsonstr
+        #print "returning json:",jsonstr
         return jsonstr
         
         
@@ -538,7 +538,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                             #print "Parsing elev:",route.altitude
                             mapper.parse_elev(route.altitude)
                         except Exception,cause:
-                            print "couldn't parse elev:",route.altitude
+                            #print "couldn't parse elev:",route.altitude
                             return "1500"
                         return route.altitude                    
                     elif what=='Dev':
@@ -763,7 +763,6 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 rt.notampoints.add(space['name'])
         
         if len(c.route)>0:
-            lat,lon=mapper.from_str(c.route[-1].b.pos)
             poss=[mapper.from_str(c.route[0].a.pos)]
             poss+=[mapper.from_str(r.b.pos) for r in c.route]
             dta,dtb=[c.route[0].a.dt,c.route[-1].b.dt]
@@ -775,6 +774,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 c.sunset=fall.strftime("%H:%MZ")
             else:
                 c.sunset="unknown"
+            lat,lon=mapper.from_str(c.route[0].a.pos)
+            c.sunrise=sunrise.sunrise_str(dta,lat,lon)
         return render('/printable.mako')
 
     def enroutenotams(self):

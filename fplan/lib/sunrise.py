@@ -191,7 +191,7 @@ def topolar(v):
     
 def sun_position_in_sky(dt,latitude,longitude):
     UP=frompolar(latitude,0)
-    print "Calc sun-pos for %s at %f,%f"%(dt,latitude,longitude)
+    #print "Calc sun-pos for %s at %f,%f"%(dt,latitude,longitude)
     dz=cos(latitude)
     dx=-sin(latitude)
     dy=0
@@ -210,16 +210,16 @@ def sun_position_in_sky(dt,latitude,longitude):
     decl=declination2(d)
     
     sunvec=frompolar(decl,ha)
-    print "Sunvec:",sunvec
+    #print "Sunvec:",sunvec
     local=Vector(
             -(sunvec*TN),
             sunvec*left,
             sunvec*UP)
-    print "Local:",local
+    #print "Local:",local
     ele,azi=topolar(local)
     azi+=180.0
     azi%=360.0
-    print "Calculated azi=%f, ele=%f"%(azi,ele)
+    #print "Calculated azi=%f, ele=%f"%(azi,ele)
     return ele,azi
             
     

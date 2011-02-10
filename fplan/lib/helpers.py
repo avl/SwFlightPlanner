@@ -6,7 +6,7 @@ available to Controllers. This module is available to templates as 'h'.
 # Import helpers as desired, or define your own, ie:
 #from webhelpers.html.tags import checkbox, password
 from routes.util import url_for
-from itertools import count,izip
+from itertools import count,izip,chain
 import cgi
 from md5 import md5
 from pylons import request, response, session, tmpl_context as c
