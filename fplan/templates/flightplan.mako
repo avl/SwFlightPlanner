@@ -63,7 +63,7 @@ function loadfplan()
 %endfor
 
 	fpmain_init();
-    setInterval("if (dirty!=0) do_save()", 5*1000);
+    ///setInterval("if (dirty!=0) do_save()", 5*1000);
     var der='${h.jsescape(c.derived_data)|n}';
 
     update_fields(evalJSON(der));
@@ -148,7 +148,7 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
     name="departure_time_${c.stay.waypoint_id}" id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
 <tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all();" 
     name="fuel_${c.stay.waypoint_id}" id="fuel_${c.stay.waypoint_id}" value="${c.stay.fuelstr()}"/>(L)</td></tr>
-<tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="on_update_all();" 
+<tr><td>Number of persons on board: </td><td><input size="4" type="text" onchange="makedirty();" 
     name="persons_${c.stay.waypoint_id}" id="persons_${c.stay.waypoint_id}" value="${c.stay.nr_persons}"/></td></tr>
 <tr><td>Name of Commander: </td><td><input size="10" type="text" onchange="on_update_all();" 
     name="realname" id="realname" value="${c.realname}"/></td></tr>

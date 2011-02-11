@@ -3,6 +3,15 @@ searchpopup_sel=-1;
 searchlastdata=[];
 searchordinal=0;
 
+function add_searched_waypoint(sel)
+{
+	var d=searchlastdata[sel];
+	if (d.length>2)
+		add_waypoint(d[2],d[1]);
+	else
+		add_waypoint(d[0],d[1]);	
+}
+
 function findPos(obj) {
 	var curleft = curtop = 0;
 
@@ -55,8 +64,7 @@ function on_search_keydown(event)
 		{			
 			if (searchpopup_sel>=0 && searchpopup_sel<searchlastdata.length)
 			{
-				var d=searchlastdata[searchpopup_sel];
-				add_waypoint(d[0],d[1]);
+				add_searched_waypoint(searchpopup_sel);
         	    document.getElementById('searchfield').value='';
             	remove_searchpopup();	
 			}
@@ -76,8 +84,7 @@ function mapsearch_add_to_route_button()
 		alert('The search matches no items!');
 		return;
 	}
-	var d=searchlastdata[0];
-	add_waypoint(d[0],d[1]);			
+	add_searched_waypoint(0);
     document.getElementById('searchfield').value='';
 	remove_searchpopup();	
 }
@@ -85,8 +92,7 @@ function search_select(idx)
 {
     if (idx>=0 && idx<searchlastdata.length)
     {
-	    var d=searchlastdata[idx];
-	    add_waypoint(d[0],d[1]);
+		add_searched_waypoint(idx);
 	}
     remove_searchpopup();
 }

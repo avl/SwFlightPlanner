@@ -9,6 +9,7 @@ from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
 from datetime import datetime,timedelta
 from copy import copy
+from time import time
 
 def parse_date(s):
     if s.count("-")==2:
@@ -50,6 +51,7 @@ class TechRoute(object):
 class DummyAircraft(object):pass
 def get_route(user,trip):
     #print "Getting ",user,trip
+    start=time()
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==user,Trip.trip==trip)).one()
 
@@ -438,7 +440,10 @@ def get_route(user,trip):
         rt.accum_fuel_burn=accum_fuel
         
         rt.depart_dt=rt.a.dt
-        rt.arrive_dt=rt.a.dt+timedelta(hours=rt.time_hours)
+        if rt.time_hours!=None and rt.a.dt!=None:
+            rt.arrive_dt=rt.a.dt+timedelta(hours=rt.time_hours)
+        else:
+            rt.arrive_dt=None
         #if accum_clock!=None:
         #    rt.clock_hours=accum_clock%24
         #else:
@@ -447,6 +452,7 @@ def get_route(user,trip):
     if len(routes):
         last=routes[-1]
         last.b.dt=accum_dt        
+    print "Elapsed ms",1000.0*(time()-start)
     return res,routes
 
 def test_route_info():

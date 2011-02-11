@@ -157,6 +157,9 @@ class MapviewController(BaseController):
             removed=oldwps.difference(newwps)
             added=newwps.difference(oldwps)
             updated=newwps.intersection(oldwps)
+            
+            print "Removed: ",removed
+            
             addedwps=added
             removedwps=removed
             updatedwps=updated

@@ -93,7 +93,10 @@
 91: Mer källförteckningar
 92: Varning om prestandaproblem i flightplan overview, t.ex cruisespeed < GS.
 93: stable: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
-94: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!)
+94: FIXAD: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!) (It was chrome that was confused when returning by back-button to a form without name-attributes for its fields)
 95: More testing needed!
 96: Skriv på forumet!
+97: FIXAD Bättre prestanda när man trycker på "printable"; och även när man sparar flightplan overview. Är det calc_route_info som är seg? (det var en sleep som använts för att provocera fram concurrency-problem som låg kvar!)
+98: FIXAD: Kolla om notam "downloaded" stämpeln är UTC eller lokal tid! Gör tydligt att det är UTC (för det borde nog vara UTC). (It is UTC)
+
   

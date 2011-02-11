@@ -16,6 +16,7 @@ from paste.deploy import appconfig
     
 
 def notam_db_update():
+    #TODO: Remove this function!
     return notam_db_update_impl(get_latest_notam())
 def notam_db_update_impl(html):
     prevobjs=meta.Session.query(Notam).order_by(sa.desc(Notam.ordinal)).limit(1).all()

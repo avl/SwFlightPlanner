@@ -13,9 +13,12 @@ DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
 %endif
 
 <table>
+<tr>
+<td style="font-size:12px">Date:</td><td>${c.route[0].depart_dt.strftime("%Y-%m-%d")}</td>
 %if c.ac and c.ac.aircraft:
-<tr><td style="font-size:12px">Aircraft:</td><td> ${c.ac.aircraft}</td></tr>
+<td style="font-size:12px">Aircraft:</td><td> ${c.ac.aircraft}</td>
 %endif
+</tr>
 <tr><td style="font-size:12px">Total time:</td><td>${h.timefmt(c.route[-1].accum_time_hours)}</td>
 <td style="font-size:12px">Total distance:</td><td>${"%.1f"%(c.route[-1].accum_dist,)}NM</td></tr>
 <tr><td style="font-size:12px">Initial fuel:</td><td>${c.startfuel}L</td>
@@ -71,8 +74,17 @@ ${freq}
 %if rt.b.stay and next_rt!=None:
 <span style="font-size:10px">Depart: </span>${next_rt.depart_dt.strftime("%H:%M")} 
 %endif
-%if rt.accum_fuel_burn<0:
+
+%if rt.b.stay==None: 
+
+%if rt.accum_fuel_burn<=0:
 <span style="font-size:10px">Fuel: </span><span style="color:#ff0000">EMPTY!</span>(${"%.1f"%(-rt.accum_fuel_burn,)}L SHORT)
+%endif
+%if rt.accum_fuel_burn>0:
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}
+<span style="font-size:10px">L</span>
+%endif
+
 %endif
 
 %if rt.b.stay!=None: 

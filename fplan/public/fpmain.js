@@ -30,7 +30,6 @@ function makedirty()
     {
         var e=document.getElementById('printablelink');
         e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Printable</span>';
-        clear_fields();
     }
     dirty=1;    
 }
@@ -57,11 +56,11 @@ function gete(id,wcol)
 	var e=document.getElementById(vid);
 	return e;
 }
-recursion=0;
 function on_update_all()
 {
 	if (recursion!=0) return;
 	makedirty();
+	clear_fields();
 	save_data(null);
 }
 function on_update(id,wcol)
@@ -90,12 +89,15 @@ function fetch_winds()
 				var v=gete(fpid[i],'V');
 				if (''+weather[i][0]!='NaN' && weather[i][0]!='')
 				{
-			        w.value=parseInt(parseFloat(weather[i][0]));
+			        w.value=''+parseInt(parseFloat(weather[i][0]));
+			        while (w.value.length<3)
+			        {
+			        	w.value='0'+w.value;
+			        }
 			        v.value=parseInt(parseFloat(weather[i][1]));
         		}
 			}
-        	makedirty();
-        	do_save();
+			on_update_all();
 		}	
 	}
 	var params={};	
@@ -222,19 +224,28 @@ function update_fields(data)
 	{
 		var row=data.rows[i];
 		var id=row.id;
-		
-		var wca=row.wca;
-		
 		var wcae=gete(id,'WCA');
-		if (wca>0)
-			wcae.value='+'+wca.toFixed(0);
-		else
-			wcae.value=''+wca.toFixed(0);
-		
 		var gse=gete(id,'GS');
-		gse.value=row.gs.toFixed(0);
-		var ch=gete(id,'CH');
-		ch.value=row.ch.toFixed(0);
+		var che=gete(id,'CH');
+		
+		if (row.gs!=null && row.ch!=null && row.wca!=null)
+		{		
+			var wca=row.wca;
+			
+			if (wca>0)
+				wcae.value='+'+wca.toFixed(0);
+			else
+				wcae.value=''+wca.toFixed(0);
+			
+			gse.value=row.gs;
+			che.value=row.ch;
+		}
+		else
+		{
+			wcae.value="--";
+			gse.value="--";
+			che.value="--";
+		}
 		var time=gete(id,'Time');
 		time.value=row.timestr;
 		var clock=gete(id,'Clock');
@@ -298,7 +309,7 @@ function format_empty_landingrow(id,idx)
             '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="on_update_all()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
             '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
             '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
-            '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="on_update_all()" id="persons_'+id+'" value=""/></td></tr>'+
+            '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
         	'</table></td>';
 }
 function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)

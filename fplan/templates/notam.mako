@@ -74,7 +74,7 @@ ${line}<br/>
 %endfor
 </div>
 <div style="font-size:10px">
-Downloaded: <b>${downloaded.strftime("%Y%m%d %H%M")}</b> <b><u>
+Downloaded: <b>${downloaded.strftime("%Y%m%d %H%M")}Z</b> <b><u>
 <a href="${h.url_for(controller="notam",action="show_ctx",notam=notamupdate.appearnotam,line=notamupdate.appearline)}#notam">
 See original-&gt;
 </a></u></b>

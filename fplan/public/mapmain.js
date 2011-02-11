@@ -694,6 +694,7 @@ function hidepopup()
 
 lastrightclickx=0;
 lastrightclicky=0;
+lastrightclickwaypoint=-1;
 function on_rightclickmap(event)
 {
 	jgq.clear();
@@ -706,11 +707,23 @@ function on_rightclickmap(event)
 function rightclick_waypoint_tab(idx,event)
 {
 	var relxy=wps[idx];
-	as_if_rightclick(relxy[0],relxy[1],event);
+//	as_if_rightclick(relxy[0],relxy[1],event);
+	var cm=document.getElementById("mmenu");
+	document.getElementById('menu-move').style.display='block';
+	document.getElementById('menu-del').style.display='block';
+	document.getElementById("menu-insert").style.display='none';
+	cm.style.display="block";
+	popupvisible=1;	
+	cm.style.left=''+event.clientX+'px';
+	cm.style.top=''+event.clientY+'px';
+	lastrightclickwaypoint=idx;
+	lastrightclickx=relxy[0];
+	lastrightclicky=relxy[1];
 }
 
 function as_if_rightclick(relx,rely,event)
 {
+	lastrightclickwaypoint=-1;
 	if (waypointstate!='none')
 	{
 		waypointstate='none';
@@ -754,6 +767,7 @@ function as_if_rightclick(relx,rely,event)
 		provide_help('<ul><li>You have right-clicked on a waypoint. You can move or delete it.</li><li>Left click on a waypoint to get information about it.</li></ul>');
 		document.getElementById('menu-move').style.display='block';
 		document.getElementById('menu-del').style.display='block';
+		lastrightclickwaypoint=closest_i;
 		found=1;
 	}
 	if (!found)
@@ -1451,7 +1465,11 @@ function get_close_line(relx,rely)
 function move_waypoint()
 {
 	hidepopup();
-	var closest_i=get_close_waypoint(lastrightclickx,lastrightclicky);
+	
+	var closest_i=lastrightclickwaypoint;
+	if (closest_i==-1)
+		closest_i=get_close_waypoint(lastrightclickx,lastrightclicky);
+	
 	if (closest_i!=-1)
 	{
 		waypointstate='moving';
@@ -1479,7 +1497,10 @@ function remove_waypoint()
 {
 
 	hidepopup();
-	var closest_i=get_close_waypoint(lastrightclickx,lastrightclicky);	
+	var closest_i=lastrightclickwaypoint;
+	if (closest_i==-1)
+		closest_i=get_close_waypoint(lastrightclickx,lastrightclicky);
+	
 	if (closest_i!=-1)
 	{
 		var wpsout=[];

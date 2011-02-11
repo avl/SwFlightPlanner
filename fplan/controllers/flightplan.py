@@ -50,14 +50,14 @@ class FlightplanController(BaseController):
                 lat=-lat
             if ew in ['W','w']:
                 lon=-lon
-            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon]]]))                
+            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon],'Unknown Waypoint']]))                
 
         dec_match=re.match(r"\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)\s*",searchstr)
         if dec_match:
             latdec,londec=dec_match.groups()
             lat=float(latdec)
             lon=float(londec)
-            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon]]]))                
+            return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon],'Unknown Waypoint']]))                
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()
@@ -79,13 +79,13 @@ class FlightplanController(BaseController):
             if 'kind' in x:
                 return "%s (%s)"%(x['name'],x['kind'])
             return x.get('name','unknown item')
-        hits=[[extract_name(x),mapper.from_str(x['pos'])] for x in points[:15]]
+        
+        hits=[[extract_name(x),mapper.from_str(x['pos']),x.get('name','unknown item')] for x in points[:15]]
         ret=json.dumps(dict(ordinal=ordi,hits=hits))
         #print "returning json:",ret
         return ret
     
     def save(self):
-        time.sleep(1)
         #print "Saving tripname:",request.params
         trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==request.params['tripname'])).one()
@@ -182,8 +182,8 @@ class FlightplanController(BaseController):
             d=dict()
             d['id']=rt.a.id
             d['wca']=rt.wca
-            d['ch']=rt.ch
-            d['gs']=rt.gs
+            d['ch']="%03.0f"%(rt.ch,)
+            d['gs']="%.1f"%(rt.avg_gs,)
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
             d['clockstr']=rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else "--"
             rows.append(d)
@@ -357,15 +357,6 @@ class FlightplanController(BaseController):
                     raise AtsException(u"You need to enter the Date of Flight/Takeoff date!")
                 else:                    
                     extra_remarks.append(u"DOF/%s"%(dof,))            
-                if stay.departure_time:
-                    try:
-                        departure_time=parse_clock(stay.departure_time)
-                    except:
-                        AtsException(u"Departure time must be in format HH:MM (for instance, 10:30 for half-past ten, 23:00 for one hour before midnight!)")
-                else:
-                    departure_time=last_landing_time
-                    if not departure_time:
-                        raise AtsException(u"You need to enter a departure time! Remember to use UTC (Zulu-time)!")
                 if stay and stay.nr_persons:
                     nr_persons=stay.nr_persons
                 else:
@@ -440,7 +431,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 equipment='V',
                 transponder='C',
                 dep_ad=dep_ad,
-                eobt=lfvclockfmt(departure_time),
+                eobt=routes[0].depart_dt.strftime("%H%M"),
                 cruise_speed=format_cruise(tas),
                 level=format_alt(altitude),
                 route=("".join("DCT %s "%(w['symbolicpos'],) for w in wps[1:-1])),
@@ -455,7 +446,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 at['atsfplan']=atsfplan.strip()
                 #print "Adding atstrip:",atsfplan    
                 
-                last_landing_time=routes[-1].clock_hours
+                last_landing_time=routes[-1].arrive_dt.strftime("%H%M")
                 last_fuel_left=routes[-1].accum_fuel_burn
                 c.atstrips.append(at)    
             
@@ -470,6 +461,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
+        if not 'current_trip' in session:
+            return redirect_to(h.url_for(controller='mapview',action="index"))            
         trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
             Trip.trip==session['current_trip'])).all()
         if len(trips)!=1:
@@ -567,7 +560,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 dict(width=2,short='Dev',desc="Deviation (deg)",extra="(How much to the right of the magnetic north, the aircraft compass will be pointing, while travelling in the direction of the true track)"),
                 dict(width=3,short='CH',desc="Compass Heading (deg)",extra="(The heading that should be flown on the airplane compass to end up at the right place)"),
                 dict(width=3,short='D',desc="Distance (NM)",extra=""),
-                dict(width=3,short='GS',desc="Ground Speed (kt)",extra=""),
+                dict(width=3,short='GS',desc="Ground Speed (kt)",extra="(Average on leg, taking into account different speeds during climb and descent)"),
                 dict(width=5,short='Time',desc="Time (hours, minutes)",extra=""),
                 dict(width=5,short='Clock',desc="Time of Day (hours, minutes)",extra="The approximate time in UTC you will have finished the leg.")
                 ]
@@ -722,12 +715,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 c.reserve_endurance="Unknown"
         else:
             c.reserve_endurance="Unknown"
-        if len(c.route) and c.route[0].a.stay:
-            c.departure_time=c.route[0].a.stay.departure_time
-        else:
-            c.departure_time=None
-        c.departure=c.route[0].a.waypoint
-        c.arrival=c.route[-1].b.waypoint        
+        #c.departure=c.route[0].a.waypoint
+        #c.arrival=c.route[-1].b.waypoint        
 
     def get_freqs(self,route):
         for rt in route:
