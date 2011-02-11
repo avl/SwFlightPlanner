@@ -292,7 +292,6 @@ class FlightplanController(BaseController):
                         
                         
             c.atstrips=[]
-            last_landing_time=None
             last_fuel_left=None
             nr_persons=None
             for meta,routes in break_subtrips(c.route):
@@ -446,7 +445,6 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 at['atsfplan']=atsfplan.strip()
                 #print "Adding atstrip:",atsfplan    
                 
-                last_landing_time=routes[-1].arrive_dt.strftime("%H%M")
                 last_fuel_left=routes[-1].accum_fuel_burn
                 c.atstrips.append(at)    
             
@@ -715,8 +713,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 c.reserve_endurance="Unknown"
         else:
             c.reserve_endurance="Unknown"
-        #c.departure=c.route[0].a.waypoint
-        #c.arrival=c.route[-1].b.waypoint        
+        c.departure=c.route[0].a.waypoint
+        c.arrival=c.route[-1].b.waypoint        
 
     def get_freqs(self,route):
         for rt in route:
