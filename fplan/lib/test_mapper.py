@@ -1,5 +1,5 @@
 from fplan.lib.mapper import *
-
+import mapper
 
 
 def test_basic_latlon():
@@ -40,3 +40,23 @@ def test_parse_coord():
     assert from_str(c)[0]==59
     assert from_str(c)[1]==18
     
+def test_parse_all_alts():
+    def check(what,exp):
+        got=list(mapper.parse_all_alts(what))
+        if got != exp:
+            raise Exception("Error, expected: %s, got %s"%(exp,got))
+    check('1600 ft',[(1600,'msl')])
+    check('FL150',[(150,'fl')])
+    check('1400 ft GND',[(1400,'gnd')])
+    check('1400 GND',[(1400,'gnd')])
+    check('1300 ft AMSL',[(1300,'msl')])
+    check('1000 ft/300 m GND',[(1000,'gnd')])
+    check(' GND',[(0,'gnd')])
+    check('  GND',[(0,'gnd')])
+    check('asdfasdf GND',[(0,'gnd')])
+    check('1000 ft/300 m GND aksdjf GND',[(1000,'gnd'),(0,'gnd')])
+    check('1200 1500 GND 1000 ft/300 m GND aksdjf FL075',[(1200,'msl'),(1500,'gnd'),(1000,'gnd'),(75,'fl')])
+    
+    
+    
+        

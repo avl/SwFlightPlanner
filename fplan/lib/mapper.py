@@ -530,6 +530,32 @@ def parse_coord_str(s):
     return out
     
 class NotAnAltitude(Exception):pass
+
+def parse_all_alts(line):
+    e=ur"(?:\s*(\d+)\s*(?:ft)?\s*(?:/\s*\d+\s*m)?\s*(?:(msl)|(gnd)|)\s*)|(?:\s*fl\s*(\d{2,3})\s*)|(?:\s*(gnd)\s*)"
+    for tup in re.findall(e,line.lower()):
+        ft,msl,gnd,fl,justgnd=tup        
+        if fl:
+            yield (int(fl),'fl')
+        if ft:
+            if gnd:
+                yield (int(ft),'gnd')
+            else:
+                yield (int(ft),'msl')
+        if justgnd:
+            yield (0,'gnd')
+def altformat(num,what):
+    """format an element returned in the list by parse_all_alts
+    in canonical text-format"""        
+    if what=='fl':
+        return "FL%03d"%(num,)
+    elif what=='gnd':
+        if num==0: return "GND"
+        return "%d ft GND"%(num,)
+    elif what=='msl':
+        return "%d ft MSL"%(num,)
+    raise Exception("Unknown type")
+
 def parse_elev(elev):    
     if type(elev)==int: return float(elev)
     if type(elev)==float: return elev

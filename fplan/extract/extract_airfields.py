@@ -1,6 +1,6 @@
 #encoding=utf8
 from fetchdata import getxml
-from parse import Parser
+from parse import Parser,Item
 import re
 import sys
 from fplan.lib.mapper import parse_coord_str
@@ -13,8 +13,10 @@ from fplan.lib.get_terrain_elev import get_terrain_elev
 import math
 from itertools import izip
 import fplan.extract.rwy_constructor as rwy_constructor
+import md5    
+import codecs
     
-def extract_airfields(filtericao=None):
+def extract_airfields(filtericao=lambda x:True):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
     p=Parser("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
@@ -45,7 +47,7 @@ def extract_airfields(filtericao=None):
                 ad=dict(name=unicode(items[0].text).strip(),
                         icao=unicode(items[1].text).strip()                    
                         )
-                if filtericao and ad['icao']!=filtericao: continue
+                if not filtericao(ad): continue
                 if len(items)>=3:
                     #print "Coord?:",items[2].text
                     m=re.match(r".*(\d{6}N)\s*(\d{7}E).*",items[2].text)
@@ -250,7 +252,11 @@ def extract_airfields(filtericao=None):
                     commitem=matches[0]
                     #commitem,=page.get_by_regex("ATS\s+COMMUNICATION\s+FACILITIES")
                     curname=None
-                    for idx,item in enumerate(page.get_lines(page.get_partially_in_rect(0,commitem.y1,100,100))):
+                    
+                    callsign=page.get_by_regex_in_rect(ur"Call\s*sign",0,commitem.y1,100,commitem.y2+8)[0]
+                    
+                    
+                    for idx,item in enumerate(page.get_lines(page.get_partially_in_rect(callsign.x1-0.5,commitem.y1,100,100))):
                         if item.strip()=="":
                             curname=None
                         if re.match(".*RADIO\s+NAVIGATION\s+AND\s+LANDING\s+AIDS.*",item):
@@ -265,10 +271,9 @@ def extract_airfields(filtericao=None):
                             continue #Ignore emergency frequency, it is understood
                         if not who.strip():
                             if curname==None: continue
-                            freqs.append((curname,freq))
                         else:
                             curname=who
-                            freqs.append((who,freq))
+                        freqs.append((curname.strip().rstrip("/"),freq))
 
 
                                 
@@ -303,88 +308,57 @@ def extract_airfields(filtericao=None):
                             subspacelines.setdefault(lastname,[]).append(coords)
                         assert lastname
                     lastname=None
-                    altnum=0
+
                     print "Spaces:",subspacelines
                     print "ICAO",ad['icao']
-                    altlines=page.get_lines(page.get_partially_in_rect(vertitem.x2+1,vertitem.y1,100,airspaceclass.y1))
-                    print "Altlines:",altlines
-                    anonymous_alt=False
-                    for item in altlines:
-                        if item.strip()=="": continue
-                        print "Matchin alt <%s>"%(item,)
-                        m=re.match(r"(.*?)(?:(\d{3,5})\s*ft\s*.*(?:(GND)|(MSL))|\s*(GND)\s*|\s*(FL\s*\d{2,3}))",item)
-                        if not m:
-                            continue
-                        name,alt,agnd,amsl,gnd,fl=m.groups()
-                        print "Matched alt:",name,alt,agnd,amsl,gnd,fl
-                        if alt:
-                            if agnd:
-                                altitude="%s ft GND"%(alt,)
-                            else:
-                                altitude="%s ft"%(alt,)                                
-                        else:
-                            if gnd:
-                                altitude="GND"
-                            else:
-                                assert fl
-                                altitude=fl
-                                
-                        name=name.strip()
-                        if not name and altnum==0 and len(subspacelines)==1:
-                            name=subspacelines.keys()[0]                        
-                        if name:
-                            altnum=0
-                            lastname=name
-                            assert lastname
-                            subspacealts.setdefault(lastname,dict())['ceil']=altitude
-                            print "Ceiling for %s"%(lastname,)
-                        else:
-                            print "Altnum:",altnum
-                            if altnum==0:
-                                #no name even on first!
-                                assert not anonymous_alt #only one anonymous allow
-                                lastname="*"
-                                subspacealts.setdefault(lastname,dict())['ceil']=altitude
-                                print "Ceil for %s"%(lastname,)
-                            else:
-                                assert altnum==1
-                                assert lastname
-                                subspacealts.setdefault(lastname,dict())['floor']=altitude
-                                print "Floor for %s"%(lastname,)
-                        altnum+=1
+                    #altlines=page.get_lines(page.get_partially_in_rect(vertitem.x2+1,vertitem.y1,100,airspaceclass.y1-0.2))
+                    
+                    #print "Altlines:",altlines
+                    subspacealts=dict()
+                    subspacekeys=subspacelines.keys()
                         
-                    spaces=[]
-                    print "subspacealts:",subspacealts
+                    allaltlines=" ".join(page.get_lines(page.get_partially_in_rect(vertitem.x1+0.5,vertitem.y1+0.5,100,airspaceclass.y1-0.2)))
+                    single_vertlim=False
+                    totalts=list(mapper.parse_all_alts(allaltlines))
+                    print "totalts:",totalts 
+                    if len(totalts)==2:
+                        single_vertlim=True
                     
-                    print "\nSubspacelines:\n===========================\n%s"%(subspacelines,)
-                    if not '*' in subspacealts and len(subspacealts)!=len(subspacelines):
-                        m=re.match("TIA\s+(\d{3,5}\s*ft\s*/.*(?:(MSL)?|(GND)).*?)\s*TIZ\s+(\d{3,5}\s*ft\s*/.*(?:(MSL)?|(GND)).*?)\s*",altlines[0])
-                        def fmt(foot,msl,gnd):
-                            if gnd:
-                                return "%s"%(foot,)
-                            else:
-                                return "%s GND"%(foot,)
-                        if m:
-                            upper,amsl1,agnd1,middle,amsl2,agnd2=m.groups()                        
-                            subspacealts['TIZ']=dict(ceil=fmt(middle,amsl2,agnd2),floor="GND") 
-                            subspacealts['TIA']=dict(ceil=fmt(upper,amsl1,agnd1),floor=fmt(middle,amsl2,agnd2)) 
-                        m=re.match("CTR/TIZ\s+(\d{3,5}\s*ft\s*/.*(?:(MSL)?|(GND)).*?)\s*TIA\s+(\d{3,5}\s*ft\s*/.*(?:(MSL)?|(GND)).*?)\s*",altlines[0])
-                        if m:
-                            middle,amsl1,agnd1,upper,amsl2,agnd2=m.groups()                        
-                            subspacealts['CTR/TIZ']=dict(ceil=fmt(middle,amsl2,agnd2),floor="GND") 
-                            subspacealts['TIA']=dict(ceil=fmt(upper,amsl1,agnd1),floor=fmt(middle,amsl2,agnd2)) 
-                    
-                    
+                    for subspacename in subspacekeys:
+                        ceil=None
+                        floor=None
+                        subnames=[subspacename]
+                        if subspacename.split(" ")[-1].strip() in ["TIA","TIZ","CTR","CTR/TIZ"]:
+                            subnames.append(subspacename.split(" ")[-1].strip())
+                        print "Parsing alts for ",subspacename,subnames
+                        try:                        
+                            for nametry in subnames:
+                                if single_vertlim: #there's only one subspace, parse all of vertical limits field for this single one.
+                                    items=[vertitem]
+                                else:
+                                    items=page.get_by_regex_in_rect(nametry,vertitem.x2+1,vertitem.y1,100,airspaceclass.y1-0.2)
+                                for item in items: 
+                                    alts=[]
+                                    for line in page.get_lines(page.get_partially_in_rect(item.x1+0.5,item.y1+0.5,100,airspaceclass.y1-0.2)):
+                                        print "Parsing:",line
+                                        line=line.replace(nametry,"").lower().strip()
+                                        parsed=list(mapper.parse_all_alts(line))
+                                        if len(parsed):
+                                            alts.append(mapper.altformat(*parsed[0]))
+                                        if len(alts)==2: break
+                                    if alts:
+                                        print "alts:",alts
+                                        ceil,floor=alts
+                                        raise StopIteration
+                        except StopIteration:
+                            pass
+                        assert ceil and floor
+                        subspacealts[subspacename]=dict(ceil=ceil,floor=floor)             
+                        
+                    spaces=[]                                        
                     for spacename in subspacelines.keys():
                         altspacename=spacename
-                        if not spacename in subspacealts:
-                            if "*" in subspacealts:
-                                altspacename="*"                                
-                            elif spacename.split(" ")[-1].strip() in ["TIA","TIZ","CTR","CTR/TIZ"]:
-                                short=spacename.split(" ")[-1].strip()
-                                if short in subspacealts:
-                                   altspacename=short
-                                                    
+                        print "Altspacename: %s, subspacesalts: %s"%(altspacename,subspacealts)
                         space=dict(
                             name=spacename,
                             ceil=subspacealts[altspacename]['ceil'],
@@ -419,8 +393,8 @@ def extract_airfields(filtericao=None):
 
     #sys.exit(1)
 
-    if filtericao==None:            
-        for extra in extra_airfields.extra_airfields:
+    for extra in extra_airfields.extra_airfields:
+        if filtericao(extra):
             ads.append(extra)
     print
     print
@@ -429,32 +403,31 @@ def extract_airfields(filtericao=None):
         
     print "Num points:",len(points)
     
-    if filtericao==None:
-        origads=list(ads)    
-        for flygkartan_id,name,lat,lon,dummy in csv.reader(open("fplan/extract/flygkartan.csv"),delimiter=";"):
-            found=None
-            lat=float(lat)
-            lon=float(lon)
-            if type(name)==str:
-                name=unicode(name,'utf8')
-            mercf=mapper.latlon2merc((lat,lon),13)
-            for a in origads:
-                merca=mapper.latlon2merc(mapper.from_str(a['pos']),13)
-                dist=math.sqrt((merca[0]-mercf[0])**2+(merca[1]-mercf[1])**2)
-                if dist<120:
-                    found=a
-                    break
-            if found:
-                found['flygkartan_id']=flygkartan_id
-            else:
-                ads.append(
-                    dict(
-                        icao='ZZZZ',
-                        name=name,
-                        pos=mapper.to_str((lat,lon)),
-                        elev=int(get_terrain_elev((lat,lon))),
-                        flygkartan_id=flygkartan_id
-                    ))
+    origads=list(ads)    
+    for flygkartan_id,name,lat,lon,dummy in csv.reader(open("fplan/extract/flygkartan.csv"),delimiter=";"):
+        found=None
+        lat=float(lat)
+        lon=float(lon)
+        if type(name)==str:
+            name=unicode(name,'utf8')
+        mercf=mapper.latlon2merc((lat,lon),13)
+        for a in origads:
+            merca=mapper.latlon2merc(mapper.from_str(a['pos']),13)
+            dist=math.sqrt((merca[0]-mercf[0])**2+(merca[1]-mercf[1])**2)
+            if dist<120:
+                found=a
+                break
+        if found:
+            found['flygkartan_id']=flygkartan_id
+        else:
+            d=dict(
+                    icao='ZZZZ',
+                    name=name,
+                    pos=mapper.to_str((lat,lon)),
+                    elev=int(get_terrain_elev((lat,lon))),
+                    flygkartan_id=flygkartan_id)
+            if filtericao(d):
+                ads.append(d)
                     
     for ad in ads:     
         if ad['name'].count(u"Långtora"):            
@@ -465,6 +438,19 @@ def extract_airfields(filtericao=None):
         print "%s: %s - %s (%s ft) (%s)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'],ad.get('flygkartan_id','inte i flygkartan'))
         if 'spaces' in ad:
             print "   spaces: %s"%(ad['spaces'],)
+        
+    f=codecs.open("extract_airfields.regress.txt","w",'utf8')    
+    for ad in ads:
+        r=repr(ad)
+        d=md5.md5(r).hexdigest()
+        f.write("%s - %s - %s\n"%(ad['icao'],ad['name'],d))
+    f.close()
+    f=codecs.open("extract_airfields.regress-details.txt","w",'utf8')    
+    for ad in ads:
+        r=repr(ad)
+        f.write(u"%s - %s - %s\n"%(ad['icao'],ad['name'],r))
+    f.close()
+        
     return ads,points.values()
 
                 
@@ -474,9 +460,10 @@ def extract_airfields(filtericao=None):
     
             
 if __name__=='__main__':
-    icao=None
-    if len(sys.argv)==2:
-        icao=sys.argv[1]
-    extract_airfields(icao)
+    def filter_expr(ad):        
+        if len(sys.argv)==2:
+            return eval(sys.argv[1],dict(icao=ad['icao'],name=ad['name']))
+        return True
+    extract_airfields(filter_expr)
     
     
