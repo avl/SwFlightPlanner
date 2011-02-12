@@ -98,5 +98,6 @@
 96: Skriv på forumet!
 97: FIXAD Bättre prestanda när man trycker på "printable"; och även när man sparar flightplan overview. Är det calc_route_info som är seg? (det var en sleep som använts för att provocera fram concurrency-problem som låg kvar!)
 98: FIXAD: Kolla om notam "downloaded" stämpeln är UTC eller lokal tid! Gör tydligt att det är UTC (för det borde nog vara UTC). (It is UTC)
-
-  
+99: Should have a way to enter small comments that will be shown to users, like "We don't have the ceiling of this airspace!".
+100: How to force client javascript reload
+101: FIXAD: Lycksele TIA/TIZ parsing

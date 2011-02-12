@@ -7,7 +7,7 @@
 from xml.etree import ElementTree
 import fetchdata
 import re
-
+from itertools import repeat
 
 class Item(object):
     def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None,bold=False,italic=False):
@@ -53,6 +53,16 @@ class Page(object):
     def get_by_regex(self,regex):
         out=[]
         for item in self.items:
+            if re.match(regex,item.text):
+                out.append(item)
+        return out
+    def get_by_regex_in_rect(self,regex,x1,y1,x2,y2):
+        out=[]
+        for item in self.items:
+            if item.x2<x1: continue;
+            if item.x1>x2: continue;
+            if item.y2<y1: continue;
+            if item.y1>y2: continue;
             if re.match(regex,item.text):
                 out.append(item)
         return out
@@ -114,8 +124,10 @@ class Page(object):
                 continue
             new_linesize=abs(last.y1-item.y1)
             old=out[-1]
-            if new_linesize<fudge and is_right_order(old,item):                
-                out[-1]=ItemStr(out[-1]+" "+item.text.strip())
+            if new_linesize<fudge and is_right_order(old,item):
+                repcnt=max(int(item.x1-old.x2),1)  
+                expandedspaces="".join(repeat(" ",repcnt))
+                out[-1]=ItemStr(out[-1]+expandedspaces+item.text.strip())
                 out[-1].expandbb(old)
                 out[-1].expandbb(item)
             else:
