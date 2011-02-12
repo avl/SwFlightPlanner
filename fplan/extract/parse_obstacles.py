@@ -55,9 +55,9 @@ def parse_obstacles():
             if line.strip()=="": continue
             if line.startswith("AMDT"):
                 continue
-            if line.startswith("Area No Designation"):
+            if re.match("^Area\s*No\s*Designation.*",line):
                 continue
-            if line.startswith("ft ft Character"):
+            if re.match("^ft\s*ft\s*Character.*",line):
                 continue
             if line.strip()=="The LFV Group":
                 continue
