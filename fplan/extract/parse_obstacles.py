@@ -50,10 +50,13 @@ def parse_obstacles():
         in_rect=page.get_fully_in_rect(0,ay1,100,100)
         lines=page.get_lines(in_rect)
         for line in lines:
-            if line.strip()=="within radius 300 m.":
+            line=line.strip()
+            if line=="within radius 300 m.":
                 continue
-            if line.strip()=="": continue
+            if line=="": continue
             if line.startswith("AMDT"):
+                continue
+            if line.startswith("AIRAC AMDT"):
                 continue
             if re.match("^Area\s*No\s*Designation.*",line):
                 continue
