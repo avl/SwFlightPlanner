@@ -27,8 +27,8 @@ DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
 </tr>
 <tr>
 <td style="font-size:12px">Reserve:</td><td>${c.reserve_endurance}</td>
-<td style="font-size:12px">Sunrise:</td><td>${c.sunrise}<span style="font-size:10px">(at start)</span></td>
-<td style="font-size:12px">Sunset:</td><td>${c.sunset}<span style="font-size:10px">(earliest enroute)</span></td>
+<td style="font-size:12px">Sunrise (at start):</td><td>${c.sunrise}</td>
+<td style="font-size:12px">Sunset (earliest enroute):</td><td>${c.sunset}</td>
 </tr>
 </table>
 
@@ -41,10 +41,10 @@ DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
 </td></tr>
 %for rt,next_rt in h.izip(c.route,h.chain(c.route[1:],[None])):
 <tr>
-<td><span style="font-size:10px">CH:</span>${"%03.0f"%(rt.ch,)}</td>
+<td><span style="font-size:10px">CH:</span>${"%03.0f"%(rt.ch,)}°</td>
 <td><span style="font-size:10px">D:</span>${"%.0f"%(rt.d,)}<span style="font-size:10px">NM</span></td>
 <td><span style="font-size:10px">Obst-free alt.:</span>${"%.0f"%(rt.maxobstelev+500,)}<span style="font-size:10px">ft</span></td>
-<td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}<span style="font-size:10px">°</span></td>
+<td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}°</td>
 <td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
 <td><span style="font-size:10px">TAS:</span>${rt.tas}<span style="font-size:10px">kt</span></td>
 <td><span style="font-size:10px">Time:</span>${h.timefmt(rt.time_hours)}</td>

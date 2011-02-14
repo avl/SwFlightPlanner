@@ -105,4 +105,5 @@
 103: FIXED: Cached weather isn't invalidated (well it is, but only after several years).
 104: Om notam-db-loadern misslyckas med att trycka in notams i databasen, kör den ändå igen nästa gång, även om inget har hänt med textfilen (identisk?)?
 105: Fixa så att det funkar om piloten har whitespace i förnamn/efternamn (T.ex dubbelnamn eller intialer etc)
+106: Make printable flight-plan quicker!
 
