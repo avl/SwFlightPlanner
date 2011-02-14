@@ -47,7 +47,7 @@ def get_parsed_weather():
     global parsed_weather_cache
     if parsed_weather_cache:
         cache,when=parsed_weather_cache
-        if datetime.utcnow()-when<timedelta(60*15):
+        if datetime.utcnow()-when<timedelta(minutes=15):
             return cache
     fc=parse_llf_forecast.run('A')
     fc.update(parse_llf_forecast.run('B'))

@@ -79,26 +79,28 @@ function on_update(id,wcol)
 function fetch_winds()
 {
 	function weather_cb(req)
-	{	
-		if (req.responseText!='')
+	{
+		if (req.responseText=='')
 		{
-			weather=evalJSONRequest(req);
-			for(var i=0;i<weather.length;++i)
+		 	alert('Failed to fetch weather');
+			return;
+		}
+		weather=evalJSONRequest(req);
+		for(var i=0;i<weather.length;++i)
+		{
+			var w=gete(fpid[i],'W');
+			var v=gete(fpid[i],'V');
+			if (''+weather[i][0]!='NaN' && weather[i][0]!='')
 			{
-				var w=gete(fpid[i],'W');
-				var v=gete(fpid[i],'V');
-				if (''+weather[i][0]!='NaN' && weather[i][0]!='')
-				{
-			        w.value=''+parseInt(parseFloat(weather[i][0]));
-			        while (w.value.length<3)
-			        {
-			        	w.value='0'+w.value;
-			        }
-			        v.value=parseInt(parseFloat(weather[i][1]));
-        		}
-			}
-			on_update_all();
-		}	
+		        w.value=''+parseInt(parseFloat(weather[i][0]));
+		        while (w.value.length<3)
+		        {
+		        	w.value='0'+w.value;
+		        }
+		        v.value=parseInt(parseFloat(weather[i][1]));
+    		}
+		}
+		on_update_all();
 	}
 	var params={};	
 	var alts='';

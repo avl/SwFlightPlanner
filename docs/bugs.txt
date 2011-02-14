@@ -101,3 +101,6 @@
 99: Should have a way to enter small comments that will be shown to users, like "We don't have the ceiling of this airspace!".
 100: How to force client javascript reload
 101: FIXAD: Lycksele TIA/TIZ parsing
+102: Index i databasen, rensa NOTAM från databasen efter ett tag.
+103: FIXED: Cached weather isn't invalidated (well it is, but only after several years).
+

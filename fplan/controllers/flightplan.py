@@ -230,11 +230,13 @@ class FlightplanController(BaseController):
              #print "Fetching weather for %s,%s, %s"%(lat,lon,route.altitude)
              we=weather.get_weather(lat,lon)
              if we==None:
-                 ret.append(['',''])                 
+                 return ""; #Fail completely we don't have the weather here. We only succeed if we have weather for all parts of the journey.
              else:
                  wi=we.get_wind(altitude)
                  #print "Got winds:",wi
                  ret.append([wi['direction'],wi['knots']])
+        if len(ret)==0:
+            return "" #Fail, no weather
         jsonstr=json.dumps(ret)
         #print "returning json:",jsonstr
         return jsonstr
