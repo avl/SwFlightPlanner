@@ -196,15 +196,21 @@ def get_route(user,trip):
         #    begindelta*=ratio
         #    mid_alt=prev_alt+begindelta                    
         if enddist+begindist>rt.d:
-            factor=float(enddist+begindist)/float(rt.d)
-            beginrate*=factor
-            endrate*=factor
-            beginburn*=factor
-            endburn*=factor
-            #beginspeed/=factor
-            #endspeed/=factor
-            begindist/=factor
-            enddist/=factor
+            if rt.d>1e-3:
+                factor=float(enddist+begindist)/float(rt.d)
+                beginrate*=factor
+                endrate*=factor
+                beginburn*=factor
+                endburn*=factor
+                begindist/=factor
+                enddist/=factor
+            else:
+                beginrate=0
+                endrate=0
+                beginburn=0
+                endburn=0
+                begindist=0
+                enddist=0
             rt.performance="notok"
                     
         del begindelta
