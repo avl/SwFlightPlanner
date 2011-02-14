@@ -72,7 +72,9 @@ notamupdate_table = sa.Table('notamupdate',meta.metadata,
                         sa.Column('disappearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=True),
                         sa.ForeignKeyConstraint(
                             ['prevnotam', 'prevline'], 
-                            ['notamupdate.appearnotam', 'notamupdate.appearline'])
+                            ['notamupdate.appearnotam', 'notamupdate.appearline'],
+                            onupdate="CASCADE",ondelete="CASCADE"
+                            )
                         )
 
 
@@ -370,11 +372,11 @@ orm.mapper(Notam,notam_table,
         items=(orm.relation(NotamUpdate,
             order_by=notamupdate_table.columns.appearline,
             primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.appearnotam),
-            lazy=True)),
+            lazy=True,cascade="all, delete-orphan")),
         removeditems=(orm.relation(NotamUpdate,
             order_by=notamupdate_table.columns.appearline,
             primaryjoin=(notam_table.columns.ordinal==notamupdate_table.columns.disappearnotam),
-            lazy=True)),
+            lazy=True,cascade="all, delete-orphan")),
     )
 )
 

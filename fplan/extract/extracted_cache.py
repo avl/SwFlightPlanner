@@ -276,6 +276,7 @@ def run_update_iteration():
             time.sleep(2)
             print "Now deleteting old unregistered users"
             fplan.lib.remove_unused_users.run()
+            fplan.lib.delete_old_notams.run()
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
     except Exception,cause:
