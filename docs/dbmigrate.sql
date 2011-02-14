@@ -44,5 +44,11 @@ alter table "user" add column "lasttrip" varchar(50);
 #version 9:
 alter table "stay" add column "fueladjust" float default null;
 
+#version 10:
+ALTER TABLE notamupdate drop CONSTRAINT "notamupdate_prevnotam_fkey";
+ALTER TABLE notamupdate ADD CONSTRAINT "notamupdate_prevnotam_fkey" FOREIGN KEY (prevnotam, prevline) REFERENCES notamupdate(appearnotam, appearline) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+
 
 
