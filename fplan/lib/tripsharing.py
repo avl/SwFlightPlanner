@@ -14,12 +14,15 @@ def view_other(user,trip):
     session.save()
 def view_own(trip):
     session['current_trip']=trip
-    del session['tripuser']
+    if 'tripuser' in session:
+        del session['tripuser']
     session.save()
 def cancel():
     if sharing_active():
-        del session['current_trip']
-        del session['tripuser']
+        if 'current_trip' in session:
+            del session['current_trip']
+        if 'tripuser' in session:
+            del session['tripuser']
         session.save()
 def sharing_active():
     return 'tripuser' in session        
