@@ -58,12 +58,11 @@ function loadfplan()
 	];
 	%endif
 	
-	fpaddwaypoint(${wp.id},${cnt},'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(wp.altitude)|n}',stay);
+	fpaddwaypoint(${cnt},'${h.jsescape(wp.pos)|n}','${h.jsescape(wp.waypoint)|n}',rowdata,'${h.jsescape(wp.altitude)|n}',stay);
 
 %endfor
 
 	fpmain_init();
-    ///setInterval("if (dirty!=0) do_save()", 5*1000);
     var der='${h.jsescape(c.derived_data)|n}';
 
     update_fields(evalJSON(der));

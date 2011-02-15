@@ -50,7 +50,8 @@ Väntas inte förekomma under perioden.
 Isbildning
 Isbildning väntas under hela perioden i nordvästra, norra och södra 
 delen.
-
+
+
 </PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område B - Norra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:01 UTC 2010
  
 
@@ -97,7 +98,8 @@ FL100: 160/25-09.
 
 Lägsta QNH
 996 hPa.
-
+
+
 </PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område B - Nordvästra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
@@ -136,7 +138,8 @@ FL100: 100/20-12, efterhand 090/20-11.
 
 Lägsta QNH
 994 hPa.
-
+
+
 </PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område B - Södra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
@@ -183,7 +186,8 @@ FL100: 260/20-10, efterhand 240/15-09.
 
 Lägsta QNH
 996 hPa.
-
+
+
 </PRE></TD></TR></TABLE><P><TABLE width="420" border="0" cellpadding="2" cellspacing="2"><TR><TD ><span class="TabelLabel" >Information är aktuell<span></TD></TR><TR><TD>  </TD></TR><TR width="420"><TD bgcolor="#999999" class="TabelLabel" width="420">Område B - Sydöstra delen</TD></TR><TR width="420"><TD width="420"><PRE>Last updated Sat Jun 19 05:00:02 UTC 2010
  
 
@@ -220,7 +224,8 @@ FL100: 200/35-06, efterhand 190/30-06.
 
 Lägsta QNH
 997 hPa.
-
+
+
 </PRE></TD></TR></TABLE>
 </td>
 </tr>

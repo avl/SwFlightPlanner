@@ -97,7 +97,6 @@ def get_weather(lat,lon):
         fc=get_parsed_weather()
     except Exception,cause:
         print "Couldn't fetch weather: ",cause #there's no weather service at certain times.
-        #raise
         return None
     
     print "Reading weather from %s, %s"%(mainarea,part)

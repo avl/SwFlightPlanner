@@ -9,6 +9,7 @@ def parse_groundwinds(w):
         area,descr=line.split(':',1)
 def parse_area(a,cur_area):
     a=a.strip()
+    print "Area:",a
     letter,part=a.split(" ",1)
     assert letter.lower()==cur_area.lower()
     assert part.startswith("DEN ")
@@ -37,10 +38,11 @@ def parse_winds(w):
         if line=="": continue
         #print "Parsing wind str:",line
         altstr,windstr=line.split(':',1)
-        #print "Matching:'%s'"%windstr
-        hdg,knots,tempsign,temp=re.match(r"(\d{3})/(\d+)([+-])(\d+)",windstr.strip()).groups()
+        print "Matching:'%s'"%windstr
+        hdg,knots,tempsign,temp=re.match(r"(\d{3})/(\d+)([+-])(\d+).*",windstr.strip()).groups()
         assert hdg.isdigit()
         temp=int(temp)
+        print "hdg:",hdg,"knots:",knots
         if tempsign=='-':
             temp=-temp
         alt=wmap[altstr]
@@ -63,7 +65,7 @@ def run(cur_area):
         #print prog_str
         #print "===================="
         prog=re.match(ur""".*PROGNOS FÖR OMRÅDE ([^\n]*).*
-GÄLLANDE DEN (.*) MELLAN (.*) OCH (.*) UTC.*
+GÄLLANDE DEN(.*)MELLAN(.*)OCH(.*)UTC.*
 Turbulens
 (.*)
 Isbildning
@@ -76,10 +78,10 @@ Vind vid marken
 (.*)
 Vind och temperatur
 (.*)
-Lägsta QNH
-(.*) hPa.*
-"""
-            ,prog_str,re.DOTALL)       
+Lägsta\s*QNH
+(.*)hPa.*
+""".replace("\n","")
+            ,prog_str,re.DOTALL)
         if prog==None:
             print "No match for: "+prog_str
         keys=['area','date','t1','t2','turb','ice','weather','zerotherm','groundwind','wind','qnh']

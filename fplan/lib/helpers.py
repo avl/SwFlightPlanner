@@ -38,6 +38,8 @@ def short(x,l):
 def jsescape(s):
     return s.replace("'","\\'")
 def timefmt(h):
+    if h==None:
+        return "--"
     totmin=int(60*h)
     h=int(totmin//60)
     min_=totmin-h*60

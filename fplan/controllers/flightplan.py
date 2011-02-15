@@ -182,10 +182,10 @@ class FlightplanController(BaseController):
             d=dict()
             d['id']=rt.a.id
             d['wca']=rt.wca
-            d['ch']="%03.0f"%(rt.ch,)
-            d['gs']="%.1f"%(rt.avg_gs,)
+            d['ch']="%03.0f"%(rt.ch,) if rt.ch else None
+            d['gs']="%.1f"%(rt.avg_gs,) if rt.avg_gs>0 else None
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
-            d['clockstr']=rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else "--"
+            d['clockstr']=rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else "--:--"
             rows.append(d)
         if len(routes)>0:
             out['tottime']=timefmt(routes[-1].accum_time_hours) if routes[-1].accum_time_hours else "--"
@@ -285,7 +285,8 @@ class FlightplanController(BaseController):
                 T=0.0
                 for i,rt in enumerate(routes):
                     out.append(rt)
-                    T+=rt.time_hours
+                    if rt.time_hours:
+                        T+=rt.time_hours
                     if rt.b.stay or i==len(routes)-1:
                         if len(out):
                             yield dict(T=T),out
@@ -366,6 +367,8 @@ class FlightplanController(BaseController):
                 tas=routes[0].tas
                 altitude=routes[0].altitude
                 at['wps']=wps
+                if any(rt.time_hours==None for rt in routes):
+                    raise AtsException("TAS is less than headwind for some part of trip.")
                 enroute_time=sum(rt.time_hours for rt in routes)
 
                 fuel=last_fuel_left
@@ -562,7 +565,6 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 dict(width=3,short='D',desc="Distance (NM)",extra=""),
                 dict(width=3,short='GS',desc="Ground Speed (kt)",extra="(Average on leg, taking into account different speeds during climb and descent)"),
                 dict(width=5,short='Time',desc="Time (hours, minutes)",extra=""),
-                dict(width=5,short='Clock',desc="Time of Day (hours, minutes)",extra="The approximate time in UTC you will have finished the leg.")
                 ]
        
         c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
@@ -755,14 +757,18 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             poss=[mapper.from_str(c.route[0].a.pos)]
             poss+=[mapper.from_str(r.b.pos) for r in c.route]
             dta,dtb=[c.route[0].a.dt,c.route[-1].b.dt]
-            print "sunrise:",dta,dtb
-            fall,what=sunrise.earliestsunset([dta,dtb],poss)
-            if what!=None:
-                c.sunset=what
-            elif fall!=None:
-                c.sunset=fall.strftime("%H:%MZ")
-            else:
+            
+            if dtb==None:
                 c.sunset="unknown"
+            else:
+                print "sunrise:",dta,dtb
+                fall,what=sunrise.earliestsunset([dta,dtb],poss)
+                if what!=None:
+                    c.sunset=what
+                elif fall!=None:
+                    c.sunset=fall.strftime("%H:%MZ")
+                else:
+                    c.sunset="unknown"
             lat,lon=mapper.from_str(c.route[0].a.pos)
             c.sunrise=sunrise.sunrise_str(dta,lat,lon)
         return render('/printable.mako')

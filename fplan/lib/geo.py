@@ -37,6 +37,7 @@ def get_low_sun_near_route(rts):
     out=[]
     dt=None
     for idx,rt in enumerate(rts):
+        if rt.dt==None: continue
         #print "ord:",rt.a.ordering
         tottime=rt.dt-rt.startdt
         merca=rt.subposa
@@ -85,6 +86,8 @@ def get_terrain_near_route(rts,vertdist,interval=10):
     out=[]
     for idx,rt in enumerate(rts):
         #print "ord:",rt.a.ordering
+        if rt.dt==None:
+            continue
         merca=rt.subposa
         mercb=rt.subposb
         
@@ -154,6 +157,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
         itemv=Vertex(int(itemmerc[0]),int(itemmerc[1]))
         onenm=mapper.approx_scale(itemmerc,13,1.0)
         for rt in rts:
+            if rt.dt==None: continue
             #print "========================================="
             av=Vertex(int(rt.subposa[0]),int(rt.subposa[1]))
             bv=Vertex(int(rt.subposb[0]),int(rt.subposb[1]))

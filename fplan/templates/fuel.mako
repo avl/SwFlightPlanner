@@ -81,14 +81,14 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${route.what}</td>
 <td>${"%.1f"%(route.d,)}</td>
 <td>${"%.1f"%(route.total_d,)}</td>
-<td>${"%.0f"%(route.gs,)}</td>
-<td>${h.timefmt(route.time)}</td>
-<td>${h.timefmt(route.accum_time)}</td>
-<td>${"%.1f"%(route.fuel_burn,)}</td>
-<td>${"%.1f"%(route.accum_fuel_burn,)}</td>
-<td>${"%.0f"%(route.startalt+0.01,)}</td>
-<td>${"%.0f"%(route.endalt+0.01,)}</td>
-<td>${"%.0f"%(route.altrate+0.01,)}fpm</td>
+<td>${"%.0f"%(route.gs,) if route.gs else '--'}</td>
+<td>${h.timefmt(route.time) if route.time else '--'}</td>
+<td>${h.timefmt(route.accum_time) if route.accum_time else '--'}</td>
+<td>${"%.1f"%(route.fuel_burn,) if route.fuel_burn else '--'}</td>
+<td>${"%.1f"%(route.accum_fuel_burn,) if route.accum_fuel_burn else '--'}</td>
+<td>${"%.0f"%(route.startalt+0.01,) if route.startalt else '--'}</td>
+<td>${"%.0f"%(route.endalt+0.01,) if route.endalt else '--'}</td>
+<td>${"%.0ffpm"%(route.altrate+0.01,) if route.altrate else '--'}</td>
 </td>
 
 </tr>

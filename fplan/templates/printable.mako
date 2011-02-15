@@ -3,18 +3,24 @@
 %if min(r.accum_fuel_burn for r in c.route)<0:
 <span style="font-size:20px;color:#ff0000">
 DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
+</span><br/>
+%endif
+
+%if len(c.route)>=2 and min( ((next.depart_dt-prev.arrive_dt) if next.depart_dt and prev.arrive_dt else h.timedelta(seconds=1)) for prev,next in zip(c.route,c.route[1:]))<-h.timedelta(seconds=1):
+<span style="font-size:20px;color:#ff0000">
+DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!<br/>
 </span>
 %endif
 
-%if len(c.route)>=2 and min( (next.depart_dt-prev.arrive_dt) for prev,next in zip(c.route,c.route[1:]))<-h.timedelta(seconds=1):
+%if any(rt.time_hours==None for rt in c.route):  
 <span style="font-size:20px;color:#ff0000">
-DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
+EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 </span>
 %endif
 
 <table>
 <tr>
-<td style="font-size:12px">Date:</td><td>${c.route[0].depart_dt.strftime("%Y-%m-%d")}</td>
+<td style="font-size:12px">Date:</td><td>${c.route[0].depart_dt.strftime("%Y-%m-%d") if c.route[0].depart_dt else '--'}</td>
 %if c.ac and c.ac.aircraft:
 <td style="font-size:12px">Aircraft:</td><td> ${c.ac.aircraft}</td>
 %endif
@@ -22,7 +28,7 @@ DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
 <tr><td style="font-size:12px">Total time:</td><td>${h.timefmt(c.route[-1].accum_time_hours)}</td>
 <td style="font-size:12px">Total distance:</td><td>${"%.1f"%(c.route[-1].accum_dist,)}NM</td></tr>
 <tr><td style="font-size:12px">Initial fuel:</td><td>${c.startfuel}L</td>
-<td style="font-size:12px">Fuel needed:</td><td>${"%.1f"%(sum(r.fuel_burn for r in c.route),)}L</td>
+<td style="font-size:12px">Fuel needed:</td><td>${"%.1f"%(sum(r.fuel_burn for r in c.route if r.fuel_burn),)}L</td>
 <td style="font-size:12px">Number of fuel stops:</td><td>${sum(1 if (x.a.stay and (x.a.stay.fuel>0 or x.a.stay.fueladjust>0)) else 0 for x in c.route[1:])}</td>
 </tr>
 <tr>
@@ -35,7 +41,7 @@ DEPARTURE IS BEFORE ARRIVAL, FOR SOME WAYPOINTS!
 <table border="1" width="100%"> 
 <tr><td colspan="7" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
-<span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M")}
+<span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}
 <span style="font-size:10px">Fuel:</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
 <span style="font-size:10px">Terrain:</span>${"%.0f"%(c.route[0].startelev,)}<span style="font-size:10px">ft</span>
 </td></tr>
@@ -70,9 +76,9 @@ ${freq}
 
 <tr><td colspan="7" style="font-size:16px">
 <b>${rt.b.waypoint}</b>
-<span style="font-size:10px">ETA: </span>${rt.arrive_dt.strftime("%H:%M")} 
+<span style="font-size:10px">ETA: </span>${rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else '--'} 
 %if rt.b.stay and next_rt!=None:
-<span style="font-size:10px">Depart: </span>${next_rt.depart_dt.strftime("%H:%M")} 
+<span style="font-size:10px">Depart: </span>${next_rt.depart_dt.strftime("%H:%M") if next_rt.depart_dt else '--'} 
 %endif
 
 %if rt.b.stay==None: 

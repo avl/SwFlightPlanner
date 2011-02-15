@@ -314,8 +314,9 @@ function format_empty_landingrow(id,idx)
             '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
         	'</table></td>';
 }
-function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
+function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 {
+	var id=fpid[idx];
 	searchpopup=0;
 
 	
@@ -343,19 +344,34 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
     else 
         landheres='';
 
-	elem.innerHTML='<td colspan="'+fpcolnum+'">#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." readonly="1" type="text" name="name'+id+'" value="'+name+'"/>'+
+	if (idx==0)
+	{
+		clockstr="";
+	}
+	else
+	{
+		var previd=fpid[idx-1];
+		clockstr='<input readonly="1" id="fplanrow'+previd+'Clock" size="4" title="The time at which you arrive at this waypoint." type="text" name="row'+previd+'Clock" value=""/>';		
+	}
+	elem.innerHTML='<td colspan="'+(fpcolnum)+'">#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." readonly="1" type="text" name="name'+id+'" value="'+name+'"/>'+
+		clockstr+
 	    landheres+
 	    '</td>';
+	    
 
 	if (rowdata!=null && rowdata.length>0)
 	{
+	
+	
 		var elem=tab.insertRow(-1);
 		var s='';
 		for(var i=0;i<rowdata.length;++i)
 		{	
 			var ro='';
 			var wh=fpcolshort[i];
-			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA' || wh=='Clock')
+			if (wh=='Clock')
+				continue;
+			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA')
 			{  
 				ro='readonly="1"';
 			}
@@ -364,7 +380,7 @@ function fpaddwaypoint(id,idx,pos,name,rowdata,altitude,stay)
 				ro='onkeyup="on_update('+id+',\''+wh+'\')"  onchange="on_update('+id+',\''+wh+'\')"'; 
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+i+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+id+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
 		}
 		elem.innerHTML=s;
 		

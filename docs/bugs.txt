@@ -92,19 +92,19 @@
 90: FIXAD: Borde skapa ett forum
 91: Mer källförteckningar
 92: Varning om prestandaproblem i flightplan overview, t.ex cruisespeed < GS.
-93: stable: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
+93: FIXAD: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
 94: FIXAD: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!) (It was chrome that was confused when returning by back-button to a form without name-attributes for its fields)
-95: More testing needed!
+95: FIXAD: More testing needed!
 96: Skriv på forumet!
 97: FIXAD Bättre prestanda när man trycker på "printable"; och även när man sparar flightplan overview. Är det calc_route_info som är seg? (det var en sleep som använts för att provocera fram concurrency-problem som låg kvar!)
 98: FIXAD: Kolla om notam "downloaded" stämpeln är UTC eller lokal tid! Gör tydligt att det är UTC (för det borde nog vara UTC). (It is UTC)
 99: Should have a way to enter small comments that will be shown to users, like "We don't have the ceiling of this airspace!".
-100: How to force client javascript reload
+100: TRIAGED: How to force client javascript reload
 101: FIXAD: Lycksele TIA/TIZ parsing
-102: Index i databasen, rensa NOTAM från databasen efter ett tag.
+102: FIXAD: Index i databasen, rensa NOTAM från databasen efter ett tag.
 103: FIXED: Cached weather isn't invalidated (well it is, but only after several years).
 104: Om notam-db-loadern misslyckas med att trycka in notams i databasen, kör den ändå igen nästa gång, även om inget har hänt med textfilen (identisk?)?
-105: Fixa så att det funkar om piloten har whitespace i förnamn/efternamn (T.ex dubbelnamn eller intialer etc)
+105: FIXED: Fixa så att det funkar om piloten har whitespace i förnamn/efternamn (T.ex dubbelnamn eller intialer etc) (In fact, was never broken).
 106: Make printable flight-plan quicker!
-107: Overviewn borde visa "clock"-fältet tillsammans med waypointnamnet, inte som en del av legget!
-
+107: FIXED: Overviewen borde visa "clock"-fältet tillsammans med waypointnamnet, inte som en del av legget!
+108: The winds-download-function seems to round 15.0 to 14 and 25.0 to 24!
