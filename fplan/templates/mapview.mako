@@ -135,7 +135,7 @@ function loadmap()
 	sidebar.innerHTML=''+
 	'<div class="first" id="search-pane" onkeydown="return on_search_keydown(event)" size="15" onkeyup="on_search_keyup(event)">'+
 	'<form id="searchform" action="" onblur="remove_searchpopup()" >'+
-	'Search Destination:<br/><input style="background:#ffffc0" id="searchfield"  name="searchfield" type="text" value="" />'+
+	'Search Destination:<span id="searchprogtext" style="display:none">searching...</span> <br/><input style="background:#ffffc0" id="searchfield"  name="searchfield" type="text" value="" />'+
 	'<button onclick="mapsearch_add_to_route_button();return false;" style="font-size:10px">Add</button>'+	
 	'</form>'+
 	'</div>'+

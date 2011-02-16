@@ -3,6 +3,20 @@ dirty=0;
 in_prog=0;
 cache={};
 recursion=0;
+
+function set_calculating()
+{
+	var e=document.getElementById('progmessage');
+	e.innerHTML='Calculating...';
+	e.style.display='block';
+}
+function clear_calculating()
+{
+	var e=document.getElementById('progmessage');
+	e.innerHTML='';
+	e.style.display='none';
+}
+
 function choose_aircraft()
 {
     function chooseac()
@@ -145,6 +159,7 @@ function save_data(cont)
         return;
     }
     in_prog=1;
+    set_calculating();
 	function save_data_cb(req)
 	{	
 	    in_prog=0;
@@ -154,23 +169,25 @@ function save_data(cont)
 		    if (!dirty)
 		    {
                 var e=document.getElementById('printablelink');
-                e.innerHTML='<a href="'+printableurl+'"><u>Printable</u></a>';
+                e.innerHTML='<a id="actualprintable" href="'+printableurl+'"><u>Printable</u></a>';
                 var ret=evalJSONRequest(req);
                 update_fields(ret);		    
 			    if (cont!=null)
 			    {
-			    	cont();
+			    	cont();			    	
 				}		
 		    }
     		else
     		{
     			save_data(cont);
+		    	return;
     		}
 		}
 		else
 		{
 			alert('Error saving trip');
 		}
+		clear_calculating();
 	}
 	dirty=0;
 	var params={};

@@ -107,4 +107,5 @@
 105: FIXED: Fixa så att det funkar om piloten har whitespace i förnamn/efternamn (T.ex dubbelnamn eller intialer etc) (In fact, was never broken).
 106: Make printable flight-plan quicker!
 107: FIXED: Overviewen borde visa "clock"-fältet tillsammans med waypointnamnet, inte som en del av legget!
-108: The winds-download-function seems to round 15.0 to 14 and 25.0 to 24!
+108: FIXED: The winds-download-function seems to round 15.0 to 14 and 25.0 to 24! (or rather, I don't think it does. Consider, however, interpolation between directions - it's done using vectors!)
+109: Mer test behövs. Selenium?

@@ -109,7 +109,6 @@ def get_raw_weather_for_area(cur_area2):
     if host==dev_computer:    
         print "On devcomputer"       
         return open(os.path.join(os.getenv("SWFP_ROOT"),"MetInfo%s.asp"%(cur_area.upper(),))).read()
-    raise
     cd=weathercache.get(cur_area,None)
     if cd and (datetime.utcnow()-cd['time'])<timedelta(0,1800):
         return cd['data']        

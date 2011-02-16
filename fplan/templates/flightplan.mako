@@ -96,10 +96,13 @@ addLoadEvent(loadfplan);
 </div>
 
 
+<div id="progmessage" class="progress-popup">
+</div>
 
 <h1>
 ${c.tripname}
 </h1>
+
 %if c.flash:
 <div style="background:#ffb0b0">
 <b>${c.flash}</b><br/>
