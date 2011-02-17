@@ -153,6 +153,12 @@ function parsealt(what)
 
 function save_data(cont)
 {
+	if (num_rows<=1)
+	{
+		dirty=0;
+		if (cont!=null) cont();
+		return;		
+	}
     if (in_prog)
     {
     	//alert('too much work!');
@@ -238,6 +244,7 @@ function save_data(cont)
 
 function update_fields(data)
 {
+	if (num_rows<=1) return;
 	recursion=1;
 	for(var i=0;i<data.rows.length;++i)
 	{
