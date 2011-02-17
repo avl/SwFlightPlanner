@@ -18,6 +18,7 @@ from fplan.lib.bbtree import BBTree
 from pyshapemerge2d import Line,Vertex,Polygon,vvector
 from fplan.lib.bsptree import BspTree,BoundingBox
 import fplan.lib.remove_unused_users
+import fplan.lib.delete_old_notams
 import fplan.lib.mapper as mapper
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
