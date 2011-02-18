@@ -69,8 +69,10 @@ def notam_db_update_impl(html):
             cancelled=[]
             modified=[]
         #print "Latest issued:%s"%(latest.issued,)
-        notam=Notam(ordinal,datetime.utcnow(),latest.notamtext)
+        notam=Notam(ordinal,datetime.utcnow(),latest.notamtext)        
         meta.Session.add(notam)
+        meta.Session.flush()
+        print "Cur ordinal:",ordinal
         print "Inserting %d, modifying %d, cancelling %d"%(len(new),len(modified),len(cancelled))
         for cancobj in cancelled:
             #print "Cancelled NotamItem: %s (appearnotam: %d)"%(cancobj,cancobj.appearnotam)
@@ -85,7 +87,8 @@ def notam_db_update_impl(html):
                             appearline=newitem.appearline,
                             category=newitem.category,
                             text=newitem.text)
-            meta.Session.add(ni)
+            notam.items.append(ni)
+            #meta.Session.add(ni)
         for previtem,newitem in modified:
             #old,new
             origobj,=meta.Session.query(NotamUpdate).filter(sa.and_(
@@ -98,8 +101,8 @@ def notam_db_update_impl(html):
                             text=newitem.text)
             ni.prevnotam=origobj.appearnotam
             ni.prevline=origobj.appearline
-            
-            meta.Session.add(ni)
+            notam.items.append(ni)
+            #meta.Session.add(ni)
             
         meta.Session.flush()
 
