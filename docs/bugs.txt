@@ -111,3 +111,5 @@
 109: Mer test behövs. Selenium?
 110: Funkar db-rensningen av NOTAMS? Hur är det med notam-filer?
 111: I flightplanner overview borde man inte ha verktygsfältet till höger!
+112: Add some generic code to validate trip and user objects, rathan than doing it badly all over.
+

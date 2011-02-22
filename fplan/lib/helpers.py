@@ -11,6 +11,7 @@ import cgi
 from md5 import md5
 from pylons import request, response, session, tmpl_context as c
 from datetime import datetime,timedelta
+
 def md5str(anystr):
     if type(anystr)==unicode:
         return md5(anystr.encode('utf8')).hexdigest()
