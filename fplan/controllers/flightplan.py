@@ -61,20 +61,25 @@ class FlightplanController(BaseController):
 
         #print "Searching for ",searchstr
         searchstr=searchstr.lower()
-        points=[]
+        
+        apoints=[]
         for airp in get_airfields():
             if airp['name'].lower().count(searchstr) or \
                 airp['icao'].lower().count(searchstr):
                 d=dict(airp)
                 d['kind']='airport'
-                points.append(d)  
-                
+                apoints.append(d)  
+        spoints=[]        
         for sigpoint in get_sig_points():
             if sigpoint['name'].lower().count(searchstr):
-                points.append(sigpoint)
+                spoints.append(sigpoint)
+        def namekey(x):
+            return x['name']
+        points=list(sorted(apoints,key=namekey))
+        points.extend(sorted(spoints,key=namekey))
         if len(points)==0:
             return ""
-        points.sort(key=lambda x:x['name'])
+        #points.sort(key=lambda x:x['name'])
         def extract_name(x):
             if 'kind' in x:
                 return "%s (%s)"%(x['name'],x['kind'])
@@ -87,8 +92,11 @@ class FlightplanController(BaseController):
     
     def save(self):
         #print "Saving tripname:",request.params
-        trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
-            Trip.trip==request.params['tripname'])).one()
+        trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
+            Trip.trip==request.params['tripname'])).all()
+        if len(trips)==0:
+            return ""
+        trip,=trips
         userobj=meta.Session.query(User).filter(User.user==session['user']).one()
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),
