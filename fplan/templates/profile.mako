@@ -29,7 +29,7 @@ ${c.splash}
 
 <form method="POST" action="${h.url_for(controller="profile",action="save")}">
 %if c.initial:
-Choose a user name: <input type="text" name="username" value="" /><br/>
+Choose a user name: <input type="text" name="username" value="${c.user}" /><br/>
 %endif
 %if not c.initial:
 Change name: <input type="text" name="username" value="${c.user}" /><br/> 
