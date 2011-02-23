@@ -64,7 +64,7 @@ def load_recording(rec):
 	laststamp=None
 	numpoints=path['path']
 	le=len(numpoints)
-	cutoff=le
+	cutoff=le/2
 	for idx,(pos,stamp,altitude) in enumerate(path['path']):
 		lat,lon=mapper.merc2latlon(pos,17)
 		maxlat=max(maxlat,lat)
@@ -73,7 +73,8 @@ def load_recording(rec):
 		minlon=min(minlon,lon)
 		if laststamp==None or stamp-laststamp>cutoff or idx==le-1:
 			out.points.append(((lat,lon),altitude*0.3048,datetime.utcfromtimestamp(stamp/1000.0)))
-		laststamp=stamp
+			laststamp=stamp
+	print "Took %d points"%(len(out.points),)
 	out.bb1=(maxlat,minlon)
 	out.bb2=(minlat,maxlon)
 	out.dynamic_id=dynamic_id
