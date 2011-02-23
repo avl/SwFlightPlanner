@@ -18,12 +18,14 @@ class ProfileController(BaseController):
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         print "index as user:",user.user,user.isregistered
+        print request.params
         c.splash=request.params.get('splash','')
-        c.user=user.user
+        c.user=request.params.get('username',
+                    user.user if user.isregistered else '')
         c.password=''
         print "User realname:",user.realname
-        c.phonenr=user.phonenr
-        c.realname=user.realname
+        c.phonenr=request.params.get('phonenr',user.phonenr)
+        c.realname=request.params.get('realname',user.realname)
         c.initial=not user.isregistered
         c.notfastmap=not user.fastmap
         try:
@@ -36,9 +38,21 @@ class ProfileController(BaseController):
         user=meta.Session.query(User).filter(
                 User.user==session['user']).one()
         print "As user:",user.user
+        def retry(msg):
+            redirect_to(h.url_for(controller='profile',
+                                  action="index",
+                                  splash=msg,
+                                  username=request.params.get("username",''),
+                                  realname=request.params.get("realname",''),
+                                  phonenr=request.params.get("phonenr",'')
+                                ))
+            
         
         name_busy=False
         if request.params.get("username")!=session.get('user',None):
+            if request.params.get("username")=="":
+                retry("An empty username won't fly. Type at least one character!")
+            
             if meta.Session.query(User).filter(User.user==request.params.get("username")).count():
                 name_busy=True
             else:
@@ -49,7 +63,7 @@ class ProfileController(BaseController):
             if request.params["password1"]==request.params["password2"]:
                 user.password=md5str(request.params['password1'])
             else:
-                redirect_to(h.url_for(controller='profile',action="index",splash=u"Passwords do not match! Enter the same password twice."))
+                retry(u"Passwords do not match! Enter the same password twice.")
         user.isregistered=True
         if 'notfastmap' in request.params:
             user.fastmap=False
@@ -59,7 +73,7 @@ class ProfileController(BaseController):
         meta.Session.flush()
         meta.Session.commit();
         if name_busy:
-            redirect_to(h.url_for(controller='profile',action="index",splash=u"That username is already taken. Try some other name."))
+            retry(u"That username is already taken. Try some other name.")
             return 
         session['user']=user.user
         session.save()
