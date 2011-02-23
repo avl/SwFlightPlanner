@@ -89,6 +89,15 @@ def wait_visible(sel,what):
         time.sleep(0.1)
     else: self.fail("time out")
 
+class selconn:
+    def __enter__(self):
+        self.sel = create_sel()
+        self.sel.start()
+        self.sel.window_maximize()
+        sel.open("/")        
+    def __exit__(self):
+        self.sel.stop()
+        
 class temporary_trip:
     def __init__(self,temptrip):
         self.temptrip=temptrip

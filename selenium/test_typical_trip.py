@@ -3,10 +3,8 @@ import  time, re
 from helpers import *
 
 def test_typical_trip():
-    with temporary_trip("test_typical") as sel:
-        
-        
-        
+    with temporary_trip("test_typical") as sel:        
+                
         assert not sel.is_element_present("name=row_0_name")
         add_named_wp(sel,u"stockholm/västerås")
         assert sel.is_element_present("name=row_0_name")
