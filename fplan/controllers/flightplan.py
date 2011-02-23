@@ -582,6 +582,9 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.ac=None
         else:        
             c.ac=trip.acobj
+            if session.get('cur_aircraft',None)!=trip.acobj.aircraft:
+                session['cur_aircraft']=trip.acobj.aircraft
+                session.save()
             
         c.sharing=tripsharing.sharing_active()
         #print repr(c)
