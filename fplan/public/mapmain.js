@@ -1110,6 +1110,7 @@ function show_mapinfo(mercx,mercy)
     var params={};
 	params['lat']=latlon[0];
 	params['lon']=latlon[1];
+	params['zoom']=map_zoomlevel;
 	
 	var def=doSimpleXMLHttpRequest(mapinfourl,params);
 	def.addCallback(on_get_mapinfo);

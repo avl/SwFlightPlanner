@@ -61,7 +61,10 @@ class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
     
     def get_airspace(self):
-        zoomlevel=int(session.get('zoom',5))
+        try:
+            zoomlevel=int(request.params['zoom'])
+        except:
+            session.get('zoom',5)
         lat=float(request.params.get('lat'))
         lon=float(request.params.get('lon'))
         clickmerc=mapper.latlon2merc((lat,lon),zoomlevel)
