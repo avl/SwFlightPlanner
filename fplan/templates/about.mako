@@ -55,9 +55,13 @@ Long answer: <a href="#" onclick="document.getElementById('reliable').style.disp
 <p style="font-size:14px">
 The airspace data presented by this site is automatically parsed from the PDF-format AIP-documents published by LFV. This parsing process may very well go wrong, in which case the airspace definitions
 on the site will be wrong. I feel it is mostly correct, but comparison with an up-to-date map is advised. Also, note that I live in Stockholm, which means I am more likely to find problems with 
-airspace definitions near Stockholm. Testers from other parts of the country are most welcome.</p>
+airspace definitions near Stockholm. Testers from other parts of the country are most welcome.
+</p>
 <p>
 Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspaces, even those very close to or overlapping Swedish territory, are missing entirely. Yet another limitation is that only the coordinates of holding points are given, not how the holding pattern should be aligned with that point, or if it's a left-hand or right-hand pattern. Also, some holding points are missing. Entry/exit-points to CTRs are wrong for some airports. Always cross-check using the official VAC (Visual Approach Chart).
+</p>
+<p>
+TRA, "Temporary Reserved Airspace", are not present in this application. At time of writing (2011-02-26), these were all above FL095, where clearance is always needed anyway. 
 </p>
 <p style="font-size:14px">
 The software that runs this site has not been tested rigorously (this is an enthusiast project after all). I feel that it usually works as intended. However, as a professional software

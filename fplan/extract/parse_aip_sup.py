@@ -56,26 +56,37 @@ def extract_single_sup(full_url,sup,supname,opening_ours):
         #    s=" ".join(page.get_lines(page.get_partially_in_rect(holdingheading.x1,y1+0.4,100,y2-0.1)))
     return areas
 
-def parse_all_sups():
+def parse_all_sups(limiter=None):
     raw=get_raw_aip_sup_page()
     print "Got raw sup page, %d bytes"%(len(raw),)
     areas=[]
     opening_ours=set()
     for base,sup in re.findall(r"(http://.*?)(/AIP/AIP.*Sup/SUP_\d+_\d+.pdf)",raw):
-        print "Parsing",base,sup
+        #print "Parsing",base,sup
         if sup.count('33_10'):
             #No longer active
             continue
         
-        print "About to parse AIP SUP: <%s>"%(sup,)
+        #print "About to parse AIP SUP: <%s>"%(sup,)
         supname,=re.match(".*/(SUP_\d+_\d+.pdf)",sup).groups()
+        if limiter!=None and limiter(supname)==False:
+            continue
         areas.extend(extract_single_sup(base+sup,sup,supname,opening_ours))
-    assert len(opening_ours)==1
+    if not limiter:
+        assert len(opening_ours)==1
+    else:
+        if not opening_ours:
+            opening_ours=['unknown']
     
     return areas,list(opening_ours)[0]
     
 if __name__=='__main__':
-    areas,opening_hours=parse_all_sups()
+    def limiter(x):
+        if len(sys.argv)<=1: return True
+        if x.count(sys.argv[1]):
+            return True
+        return False
+    areas,opening_hours=parse_all_sups(limiter)
     f=open("aipsup-out.txt","w")
     for area in sorted(areas,key=lambda x:x['name']):
         t="%s: coords: %s "%(area['name'],"-".join(mapper.format_lfv(*mapper.from_str(c)) for c in area['points']))

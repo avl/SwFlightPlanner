@@ -144,7 +144,7 @@ def parse_coord_component(comp):
 
 def parse_lfv_format(lat,lon):    
     latdec,what=parse_coord_component(lat)
-    if what=='W':
+    if what=='S':
         latdec=-latdec
     if not what in 'NS': raise MapperBadFormat("Bad format(3): %s,%s"%(lat,lon))
     londec,what=parse_coord_component(lon)
@@ -473,14 +473,10 @@ def parse_area_segment(seg,prev,next):
         return create_circle(center,dist_nm)
 
     try:
-        assert seg.count(" ")%2==1
-        segs=seg.split(" ")
-        assert len(segs)%2==0
+        
         c=[]
-        for i in xrange(len(segs)/2):
-            p=" ".join(segs[2*i:2*i+2])
-            #print "P:",p
-            c.append(parsecoord(p))
+        for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg):        
+            c.append(parse_coords(lat,lon))
         #c=parsecoord(seg)
         return c
     except MapperBadFormat:
@@ -491,7 +487,7 @@ def parse_area_segment(seg,prev,next):
     uprint("Unparsed area segment: %s"%(seg,))
     return []
 
-def parse_coord_str(s):
+def parse_coord_str(s,filter_repeats=False):
     #borderspecs=[
     #    ]
     #uprint("Pre?")
@@ -527,7 +523,16 @@ def parse_coord_str(s):
         out.extend(pd)
     if len(out)<3:
         raise Exception("Too few items in coord-str: <%s>"%(s,))
-    return out
+    out2=[]
+    seen=set()
+    if filter_repeats:
+        for o in out:
+            if o in seen: continue
+            seen.add(o)
+            out2.append(o)
+    else:
+        out2=out
+    return out2
     
 class NotAnAltitude(Exception):pass
 

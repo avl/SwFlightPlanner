@@ -94,8 +94,13 @@ class selconn:
         self.sel = create_sel()
         self.sel.start()
         self.sel.window_maximize()
-        sel.open("/")        
-    def __exit__(self):
+        self.sel.open("/")        
+        return self.sel
+    def __exit__(self, type, value, traceback):
+        if type:
+            print type,value,traceback
+            print "Press enter to clean up"
+            raw_input()
         self.sel.stop()
         
 class temporary_trip:

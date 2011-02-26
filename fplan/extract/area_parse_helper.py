@@ -2,10 +2,14 @@ import re
 from fplan.lib.mapper import parse_coord_str
 
 def find_areas(page):
-    areastarts=sorted(page.get_by_regex(r".*?\d{4,6}[NS]\s*\d{5,7}[EW].*"),key=lambda x:(x.y1,x.x1))
+    areastarts=sorted(
+        list(page.get_by_regex(r".*?\d{4,6}[NS].*"))+
+        list(page.get_by_regex(r".*?\d{5,7}[EW].*"))
+        ,
+        key=lambda x:(x.y1,x.x1))
+    print "Found %d area-lines on page"%(len(areastarts),)
+    print areastarts
     if len(areastarts)==0: return
-    #print "Found %d area-lines on page"%(len(areastarts),)
-    #print areastarts
     idx=0
     cury=None
     while True:
@@ -13,8 +17,7 @@ def find_areas(page):
         process=[]
         miny=None
         maxy=None
-        while True:
-            if idx>=len(areastarts): break
+        while idx<len(areastarts):
             process.append(areastarts[idx])            
             cury=areastarts[idx].y1
 
@@ -29,25 +32,25 @@ def find_areas(page):
             idx+=1
             if idx<len(areastarts):
                 diff=areastarts[idx].y1-cury
-                assert diff>0.0
-                if firstdiff==None: firstdiff=diff
+                if diff!=0:
+                    if firstdiff==None: firstdiff=diff
                 #print "Diff:",diff
                 if diff>6.0: 
                     #print "Diff too big"
                     break
-                if diff>1.35*firstdiff: 
+                if firstdiff and diff>1.35*firstdiff: 
                     #print "bad spacing",diff,1.5*firstdiff
                     break
         #print "Determined that these belong to one area:",process
         if len(process):
             alltext="\n".join(page.get_lines(process))
             print "<%s>"%(alltext,)
-            anyarea=re.findall(r"((?:\d{4,6}[NS]\s+\d{5,7}[EW][^0-9]{0,3})+)",alltext,re.DOTALL|re.MULTILINE)
+            anyarea=re.findall(r"((?:\d{4,6}[NS]\s*\d{5,7}[EW][^0-9]{0,25})+)",alltext,re.DOTALL|re.MULTILINE)
             print "Matching:"
             print anyarea
             if not len(anyarea): continue
-            if len(re.findall(r"\d{4,6}[NS]\s+\d{5,7}[EW][^0-9]{0,3}",anyarea[0]))>=3:
-                coords=parse_coord_str(anyarea[0].strip())
+            if len(re.findall(r"\d{4,6}[NS]\s*\d{5,7}[EW][^0-9]{0,25}",anyarea[0]))>=3:
+                coords=parse_coord_str(anyarea[0].strip(),filter_repeats=True)
                 #print "AREA:"
                 #print coords
                 #print "===================================="
