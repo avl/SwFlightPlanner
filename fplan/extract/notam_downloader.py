@@ -2,7 +2,8 @@ from time import sleep
 import os
 import urllib2
 import random
-from datetime import datetime
+from datetime import datetime,timedelta
+import sys
 
 def download_notam():
     notamlist=[fname for fname in os.listdir("notams") if fname.isdigit() ]
@@ -34,16 +35,35 @@ def download_notam():
         ])
     
     outfile="notams/%08d"%(nextnotam,)
-    if lasttext!=text:        
-        f=open(outfile,"w")
-        f.write(text)
-        f.close()    
-        print "Downloaded notam (%d bytes) did differ from last stored (%d bytes)"%(len(text),len(lasttext))
-        ret=os.system("fplan/lib/notam_db_update.py %s 1"%(outfile,))
-        if ret:
-            raise Exception("notam_db_update failed: %s"%(ret,))
-    else:
-        print "Downloaded notam (%d bytes) did not differ from last stored"%(len(text,))
+    f=open(outfile,"w")
+    f.write(text)
+    f.close()    
+    print "Downloaded notam (%d bytes) did differ from last stored (%d bytes)"%(len(text),len(lasttext))
+    ret=os.system("fplan/lib/notam_db_update.py %s 1"%(outfile,))
+    if ret:
+        raise Exception("notam_db_update failed: %s"%(ret,))
+
+
+def clean_notam_files():
+    now=datetime.now()
+    too_old=[]
+    for fname in sorted(os.listdir("notams")):
+        if not fname.isdigit():
+            continue
+        path="notams/"+fname
+        stamp=datetime.fromtimestamp(os.path.getmtime(path))
+        age=now-stamp            
+        if age>timedelta(days=31):
+            too_old.append(path)
+            if len(too_old)>500:
+                break
+    if len(too_old)>=500:
+        if os.system("tar -cjf %s %s"%(too_old[0]+".tar.bz2"," ".join(too_old)))==0:
+            print "Zipped %d notam files"%(len(too_old),) 
+            for p in too_old:
+                os.unlink(p)
+        
+                                
 
 def download_notams():
     if not os.path.exists("notams"):
@@ -51,6 +71,7 @@ def download_notams():
     while True:
         try:
             download_notam()
+            clean_notam_files()
         except Exception,cause:
             print "download failed:",cause
             raise
@@ -60,5 +81,8 @@ def download_notams():
 
 
 if __name__=="__main__":
-    download_notams()
+    if len(sys.argv)>1 and sys.argv[1]=='clean':
+        clean_notam_files()
+    else:
+        download_notams()
     
