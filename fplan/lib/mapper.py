@@ -339,6 +339,7 @@ def create_circle(center,dist_nm):
     for o in out:
         out2.append(to_str(merc2latlon(o,zoom)))
     return out2
+
     
 def create_seg_sequence(prevpos,center,nextpos,dist_nm,direction):
     zoom=14

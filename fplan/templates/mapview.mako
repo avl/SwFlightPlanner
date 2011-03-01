@@ -56,6 +56,9 @@ function clip_mappos(mercx,mercy)
 
 function loadmap()
 {
+	document.getElementById('sidebar-a').style.width='276px';
+	document.getElementById('content').style.marginRight='282px';
+
     force_refresh_on_back_button('${h.url_for(controller="mapview",action="index")}','maprefresh');
 
 

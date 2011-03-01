@@ -23,7 +23,7 @@
 22: WON'T FIX: Borde göra något smart angående terrängvarningar nära flygplatser. Kanske skriva "inflygning 'si-och-så-flygplats' när man är lågt nära en airport?".
 23: FIXAD: Borde hitta koordinater för inpasseringspunkter och väntlägen!
 24: FIXAD: Varför finns Barkarby kvar? (SVAR: Den är kvar i AIP. Jag struntar i att ta bort den från programmet till den försvinner från AIP)
-25: Skapa selenium(?)-tester. Testa t.ex 0-längds rutter, vanliga fall, bad performance, no aircraft, etc etc...
+25: FIXAD: Skapa selenium(?)-tester. Testa t.ex 0-längds rutter, vanliga fall, bad performance, no aircraft, etc etc...
 26: FIXAD: Om man skrev in skräp i "Altitude"-fältet så pajade typ hela programmet. Nu valideras det i javascripten, sätts till 0 om inte validerande.
 27: WON'T FIX: Gör bättre validering av flightplan-sidan. Highlighta det fält som har fel i sig, med förklaring.
 28: FIXAD: CSV-export av luftrum? (/api/get_airspaces?csv=1)
@@ -90,16 +90,16 @@
 88: FIXAD: Det blir skumt när man zoomar med långsam uppkoppling.
 89: FIXAD: (var aldrig fel) Borde väl varna om bränslemängden <0 NÅGONSTANs på rutten?
 90: FIXAD: Borde skapa ett forum
-91: Mer källförteckningar
-92: Varning om prestandaproblem i flightplan overview, t.ex cruisespeed < GS.
+91: REJECTED: Mer källförteckningar (reject: vilka då isåfall?)
+92: FIXAD: Varning om prestandaproblem i flightplan overview, t.ex cruisespeed < GS.
 93: FIXAD: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
 94: FIXAD: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!) (It was chrome that was confused when returning by back-button to a form without name-attributes for its fields)
 95: FIXAD: More testing needed!
 96: Skriv på forumet!
 97: FIXAD Bättre prestanda när man trycker på "printable"; och även när man sparar flightplan overview. Är det calc_route_info som är seg? (det var en sleep som använts för att provocera fram concurrency-problem som låg kvar!)
 98: FIXAD: Kolla om notam "downloaded" stämpeln är UTC eller lokal tid! Gör tydligt att det är UTC (för det borde nog vara UTC). (It is UTC)
-99: Should have a way to enter small comments that will be shown to users, like "We don't have the ceiling of this airspace!".
-100: TRIAGED: How to force client javascript reload
+99: TRIAGED: Should have a way to enter small comments that will be shown to users, like "We don't have the ceiling of this airspace!".
+100: TRIAGED: How to force client javascript reload?
 101: FIXAD: Lycksele TIA/TIZ parsing
 102: FIXAD: Index i databasen, rensa NOTAM från databasen efter ett tag.
 103: FIXED: Cached weather isn't invalidated (well it is, but only after several years).
@@ -109,7 +109,9 @@
 107: FIXED: Overviewen borde visa "clock"-fältet tillsammans med waypointnamnet, inte som en del av legget!
 108: FIXED: The winds-download-function seems to round 15.0 to 14 and 25.0 to 24! (or rather, I don't think it does. Consider, however, interpolation between directions - it's done using vectors!)
 109: Mer test behövs. Selenium?
-110: Funkar db-rensningen av NOTAMS? Hur är det med notam-filer?
-111: I flightplanner overview borde man inte ha verktygsfältet till höger!
+110: FIXAD: Funkar db-rensningen av NOTAMS?
+111: FIXAD: I flightplanner overview borde man inte ha verktygsfältet till höger!
 112: Add some generic code to validate trip and user objects, rathan than doing it badly all over.
-113: Circular areas should be really circluar, not circular on a mercator map.
+113: Circular areas should be really circluar, not just circular on a mercator map.
+114: FIXED: AIP SUP areas must be made much more clear!
+115: FIXED: Vi borde ha rensning av NOTAM-filer!

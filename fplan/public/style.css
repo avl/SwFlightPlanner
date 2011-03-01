@@ -136,7 +136,7 @@ background-color:#cfcfff;
 
 #sidebar-a {
 	float: right;
-	width: 276px; /*This must be the same as the content margin-right*/
+	width: 0px; /*This must be the same as the content margin-right*/
 	margin-right: 2px;
 	margin-left: 2px;
 	overflow: auto;
@@ -160,7 +160,7 @@ background-color:#cfcfff;
 }
 #content {
 	background: #ffffff;	
-	margin-right: 282px; /*This must be the same as the sidebar-a width*/
+	margin-right: 0px; /*This must be the same as the sidebar-a width*/
 	bottom: 100%;
 	margin-left: 2px;
 	margin-bottom: 2px;
