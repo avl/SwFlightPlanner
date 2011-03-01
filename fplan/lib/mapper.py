@@ -320,25 +320,56 @@ def seg_angles(pa1,pa2,step,direction):
         if a<-math.pi: a+=2.0*math.pi
     yield pa2
      
+def rot_z(v,a):
+    x,y,dummy=v
+    tx=math.cos(a)*x-math.sin(a)*y
+    ty=math.sin(a)*x+math.cos(a)*y
+    return tx,ty,dummy
+def rot_x(v,a):
+    dummy,x,y=v
+    tx=math.cos(a)*x-math.sin(a)*y
+    ty=math.sin(a)*x+math.cos(a)*y
+    return dummy,tx,ty
+def rot_y(v,a):
+    x,dummy,y=v
+    tx=math.cos(a)*x-math.sin(a)*y
+    ty=math.sin(a)*x+math.cos(a)*y
+    return tx,dummy,ty
+def to_latlon(v):
+    x,y,z=v
+    lonrad=math.atan2(z,x)
+    d=math.sqrt(x**2+z**2)
+    latrad=math.atan2(y,d)
+    return latrad*(180.0/math.pi),lonrad*(180.0/math.pi)
+def from_latlon(latlon):
+    lat,lon=latlon
+    v=(100,0,0)
+    v=rot_z(v,lat/(180.0/math.pi))
+    v=rot_y(v,lon/(180.0/math.pi))
+    return v 
     
 def create_circle(center,dist_nm):
-    zoom=14
-    centermerc=latlon2merc(from_str(center),zoom)
-    radius_pixels=approx_scale(centermerc,zoom,dist_nm)
+    lat,lon=from_str(center)
     steps=dist_nm*math.pi*2/5.0
     if steps<16:
         steps=16
+    radius_radians=(math.pi*2)*float(dist_nm)/(60.0*360.0)
+    if radius_radians>0.99*math.pi/2.0:
+        raise Exception("Attempt to create a circle of radius "+dist_nm+" NM, which is too large for this program!")
     out=[]
     angles=list(seg_angles(0,2.0*math.pi,math.pi*2.0/steps,"cw"))
     for cnt,a in enumerate(angles):
         if cnt!=len(angles)-1:
-            x=math.cos(a)*radius_pixels
-            y=math.sin(a)*radius_pixels
-            out.append(plus((x,y),centermerc))
-    out2=[]
-    for o in out:
-        out2.append(to_str(merc2latlon(o,zoom)))
-    return out2
+            x=math.cos(radius_radians)            
+            z=-math.cos(a)*math.sin(radius_radians)
+            y=math.sin(a)*math.sin(radius_radians)
+            
+            v=(x,y,z)
+            v=rot_z(v,lat/(180.0/math.pi))
+            v=rot_y(v,lon/(180.0/math.pi))
+            curlat,curlon=to_latlon(v)
+            out.append(to_str((curlat,curlon)))
+    return out
 
     
 def create_seg_sequence(prevpos,center,nextpos,dist_nm,direction):
