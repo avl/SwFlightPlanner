@@ -186,6 +186,7 @@ class MaptileController(BaseController):
         my=int(request.params.get('mercy'))
         mx=int(request.params.get('mercx'))
         zoomlevel=int(request.params.get('zoom'))
+        #print request.params
         #print "dynid: ",request.params.get('dynamic_id','None')
         if 'showairspaces' in request.params and request.params['showairspaces']:
             variant="airspace"
@@ -226,13 +227,13 @@ class MaptileController(BaseController):
         
         
         if session.get('showarea','')!='':
-            print "Showarea rendering active"
+            #print "Showarea rendering active",zoomlevel
             wp=[]
-            print session.get('showarea','')
+            #print session.get('showarea','')
             for vert in mapper.parse_lfv_area(session.get('showarea')):
-                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),int(session['zoom']))
+                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),zoomlevel)
                 wp.append((mercx-mx,mercy-my))       
-            print "wp:",wp
+            #print "wp:",wp
             if len(wp)>0:           
                 ctx.new_path()
                 ctx.set_line_width(2.0)
@@ -292,7 +293,7 @@ class MaptileController(BaseController):
             wp=[]
             print session.get('showarea','')
             for vert in mapper.parse_lfv_area(session.get('showarea')):
-                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),int(session['zoom']))
+                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),zoomlevel)
                 wp.append((mercx-mx,mercy-my))       
             print "wp:",wp
             if len(wp)>0:           
