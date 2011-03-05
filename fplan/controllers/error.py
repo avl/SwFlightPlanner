@@ -6,7 +6,7 @@ from pylons.controllers.util import forward
 from pylons.middleware import error_document_template
 from webhelpers.html.builder import literal
 
-from fplan.lib.base import BaseController
+from fplan.lib.base import BaseController,render
 
 class ErrorController(BaseController):
 
@@ -19,16 +19,22 @@ class ErrorController(BaseController):
     ErrorDocuments middleware in your config/middleware.py file.
 
     """
-
     def document(self):
         """Render the error document"""
         resp = request.environ.get('pylons.original_response')
-        content = literal(resp.body) or cgi.escape(request.GET.get('message', ''))
-        page = error_document_template % \
-            dict(prefix=request.environ.get('SCRIPT_NAME', ''),
-                 code=cgi.escape(request.GET.get('code', str(resp.status_int))),
-                 message=content)
-        return page
+        if hasattr(resp,'status_int') and resp.status_int:
+            code=repr(resp.status_int)
+        else:
+            code=repr(request.GET.get('code', ''))
+            
+        msg=request.GET.get('message', '')
+        if msg and not code:
+            what=msg
+        elif not msg and code:
+            what="code: %s"%(code,)
+        else:
+            what=":".join(x for x in [code,msg] if x)
+        return render('/error.mako',extra_vars=dict(what=what))
 
     def img(self, id):
         """Serve Pylons' stock images"""

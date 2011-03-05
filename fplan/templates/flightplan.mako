@@ -182,8 +182,8 @@ Total time (enroute): <input id="tottime" type="text" readonly="1" value="" size
 <a href="${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}"><u>Printable</u></a><br/>
 </span>
 <h2>Download to GPS:</h2>
-Garmin <a href="${h.url_for(controller='flightplan',action='gpx',trip=c.tripname)}"><u>GPX Format</u></a>.<br/>
-<!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',trip=c.tripname)}">ITN Format</a>.<br/>-->
+Garmin <a href="${h.url_for(controller='flightplan',action='gpx',tripname=c.tripname)}"><u>GPX Format</u></a>.<br/>
+<!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',tripname=c.tripname)}">ITN Format</a>.<br/>-->
 
         
 </div>
