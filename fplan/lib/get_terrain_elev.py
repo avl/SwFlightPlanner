@@ -59,8 +59,9 @@ def get_terrain_elev_in_box_approx(latlon,nautmiles):
     #print "Getting terrain zoomlevel ",zoomlevel
     return get_terrain_elev_merc(merc,zoomlevel,(pixels,pixels))
     
-def get_terrain_elev(latlon):
-    zoomlevel=8
+def get_terrain_elev(latlon,zoomlevel=8):
+    if zoomlevel>=8: zoomlevel=8
+    if zoomlevel<=0: zoomlevel=0
     merc=mapper.latlon2merc(latlon,zoomlevel)
     ret=int(get_terrain_elev_merc(merc,zoomlevel))
     return ret
@@ -79,17 +80,32 @@ def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
             my=y&(~63)
             if mx!=tilex or my!=tiley:
                 raw,status=maptilereader.getmaptile('elev',zoomlevel,mx,my)
+                tilex=mx
+                tiley=my
                 if status.get('status','nok')!="ok":
                     return 9999
             dx=x-mx
             dy=y-my
             assert not (dx<0 or dy<0 or dx>=64 or dy>=64)
-            idx=2*(64*dy+dx)
-            rawheight=raw[idx:idx+2]
-            height=struct.unpack(">h",rawheight)[0]
-            #print "Adding",height
+            #for rownr in range(64):
+            #    row=[]
+            #    for colnr in range(64):
+            #        idx=4*(64*rownr+colnr)
+            #        rawheight=raw[idx:idx+2]
+            #        height=struct.unpack(">h",rawheight)[0]/100
+            #        row.append(chr(ord('0')+height%10))
+            #    print "#"+str(rownr)+": "+"".join(row)
+
+            idx=4*(64*dy+dx)
+            rawheight=raw[idx:idx+4]
+            #minheight=struct.unpack(">h",rawheight[0:2])[0]
+            maxheight=struct.unpack(">h",rawheight[2:4])[0]
+            #print "Minheight,maxheight",minheight,maxheight
+            height=maxheight
+            #print "Adding x,y %d,%d dx,dy %d,%d : h: %d"%(
+            #    x,y,dx,dy,height)
             heights.append(height)
-    #print "Returning",max(heights)
+    #print "Returning",(heights)
     return max(heights)
 
 if __name__=='__main__':

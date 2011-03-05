@@ -176,8 +176,8 @@ class MaptileController(BaseController):
         
        
 
-        terrelev=get_terrain_elev((lat,lon))
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %d ft</b>"%(spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev)
+        terrelev=get_terrain_elev((lat,lon),zoomlevel)
+        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft</b>"%(spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev)
 
     def get(self):
         # Return a rendered template
