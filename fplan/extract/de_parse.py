@@ -96,7 +96,8 @@ def parse_space(lines):
                      floor=elev(BASE),
                      ceiling=elev(TOPS),
                      freqs=freqs,
-                     points=points                   
+                     points=points,
+                     type=type_
                      ))            
     except StopIteration:
         pass
