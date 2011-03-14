@@ -75,6 +75,7 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2011-03-14: </b>Some support for Danish airspace. The data is old, however.<br/>
 <b>Updated 2011-02-14: </b>Fixed a bug that made wind-information be totally wrong. I know some of you noticed this, it should work better now.<br/>
 <b>Updated 2011-02-05: </b>Added a <a href="http://swflightplanner.se:8080/phpBB3"><b><u>message-board/forum</u></b></a> for discussion of the swflightplanner suite of applications.<br/>
 <b>Updated 2011-01-06: </b>Added links to AIP-information for the larger airports.<br/>

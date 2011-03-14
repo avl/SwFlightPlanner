@@ -22,6 +22,7 @@ import fplan.lib.delete_old_notams
 import fplan.lib.mapper as mapper
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
+from fplan.extract.de_parse import parse_denmark
 import pickle
 import os
 import shutil
@@ -150,6 +151,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     samename.append(point)
                     if not already:
                         sig_points.append(point)
+            if 1: #denmark
+                denmark=parse_denmark()
+                airspaces.extend(denmark['airspace'])
             if 1: #finland
                 airspaces.extend(fi_parse_tma())
                 sig_points_extend(fi_parse_sigpoints())
@@ -170,7 +174,6 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(parse_mountain_area())
                 
                 obstacles.extend(parse_obstacles())
-            
             #cities    
             sig_points.extend(extract_cities.get_cities())
             
