@@ -74,7 +74,7 @@ class MaptileController(BaseController):
         spaces="".join("<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
                 spaces,key=sort_airspace_key))
         if spaces=="":
-            spaces="Uncontrolled below FL095"
+            spaces="No airspace found"
             
         mapviewurl=h.url_for(controller="mapview",action="index")
         
@@ -186,6 +186,7 @@ class MaptileController(BaseController):
         my=int(request.params.get('mercy'))
         mx=int(request.params.get('mercx'))
         zoomlevel=int(request.params.get('zoom'))
+        #print request.params
         #print "dynid: ",request.params.get('dynamic_id','None')
         if 'showairspaces' in request.params and request.params['showairspaces']:
             variant="airspace"
@@ -226,13 +227,13 @@ class MaptileController(BaseController):
         
         
         if session.get('showarea','')!='':
-            print "Showarea rendering active"
+            #print "Showarea rendering active",zoomlevel
             wp=[]
-            print session.get('showarea','')
+            #print session.get('showarea','')
             for vert in mapper.parse_lfv_area(session.get('showarea')):
-                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),int(session['zoom']))
+                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),zoomlevel)
                 wp.append((mercx-mx,mercy-my))       
-            print "wp:",wp
+            #print "wp:",wp
             if len(wp)>0:           
                 ctx.new_path()
                 ctx.set_line_width(2.0)
@@ -263,6 +264,11 @@ class MaptileController(BaseController):
                     ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
                     ctx.stroke()
                     
+                #ctx.set_source(cairo.SolidPattern(1.0,0.7,0.7,1.0))                            
+                #for idx,w in enumerate(wp):
+                #    ctx.move_to(*w)
+                #    ctx.show_text("#%d"%(idx,))
+                    
         if session.get('showtrack',None)!=None:                
             print "Showtrack rendering active"
             track=session.get('showtrack')
@@ -292,7 +298,7 @@ class MaptileController(BaseController):
             wp=[]
             print session.get('showarea','')
             for vert in mapper.parse_lfv_area(session.get('showarea')):
-                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),int(session['zoom']))
+                mercx,mercy=mapper.latlon2merc(mapper.from_str(vert),zoomlevel)
                 wp.append((mercx-mx,mercy-my))       
             print "wp:",wp
             if len(wp)>0:           

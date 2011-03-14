@@ -35,6 +35,8 @@ def getrawurl(relpath,country="se"):
         durl="http://www.lfv.se"+fixed
     elif country=="fi":
         durl="http://ais.fi"+fixed
+    elif country=="ee":
+        durl="http://aip.eans.ee"+fixed
     elif country=="no":
         durl="http://www.ippc.no"+fixed
     else:
@@ -76,7 +78,7 @@ def getxml(relpath,country="se"):
             try:
                 return open(cachenamexml).read()
             except:
-                pdfdata=open(os.path.join(os.getenv("SWFP_DATADIR","/lfv/www.lfv.se"+relpath))).read()
+                pdfdata=open(cachenamepdf).read()
         else:
             raise
     if not os.path.exists(tmppath):

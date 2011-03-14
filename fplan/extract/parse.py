@@ -105,7 +105,7 @@ class Page(object):
         return out
     def get_lines(self,items,fudge=0.25,meta=None):
         si=sorted(items,key=lambda x:x.x1)
-        si=sorted(si,key=lambda x:x.y1)
+        si=sorted(si,key=lambda x:x.y2)
         last=None
         out=[]
         linesize=None
@@ -122,19 +122,35 @@ class Page(object):
                 out[-1].expandbb(item)
                 last=item
                 continue
-            new_linesize=abs(last.y1-item.y1)
+            ystep=abs(last.y2-item.y2)
+            print "\n**Last: %s, cur: %s"%(last,item)
             old=out[-1]
-            if new_linesize<fudge and is_right_order(old,item):
+            same_line=True
+            if linesize==None:
+                if ystep<fudge:
+                    same_line=True
+                else:
+                    same_line=False
+            else:
+                ldiff=abs(ystep-linesize)
+                print "New linesize:",ystep,"linesize:",linesize
+                print "ldiff:",ldiff,"linesize:",ystep
+                if ldiff<fudge:
+                    same_line=True
+            
+            if same_line and is_right_order(old,item):
                 repcnt=max(int(item.x1-old.x2),1)  
                 expandedspaces="".join(repeat(" ",repcnt))
                 out[-1]=ItemStr(out[-1]+expandedspaces+item.text.strip())
                 out[-1].expandbb(old)
                 out[-1].expandbb(item)
             else:
+                print "Not same line: ",last,item
                 if linesize==None:
-                    linesize=new_linesize
+                    assert ystep>0
+                    linesize=ystep
                 else:
-                    if new_linesize>1.75*linesize:
+                    if ystep>1.75*linesize:
                         assert len(out)>0
                         out.append(ItemStr(""))
                         out[-1].x1=min(out[-2].x1,item.x1)

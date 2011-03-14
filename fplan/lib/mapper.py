@@ -17,6 +17,8 @@ def unmerc(y):
         
 def latlon2merc(pos,zoomlevel):
     lat,lon=pos
+    if lat<-85 or lat>85:
+        print "lat,lon:",lat,lon
     assert lat>=-85 and lat<=85
     assert lon>=-180 and lon<=180
     factor=(2.0**(zoomlevel))
@@ -207,8 +209,14 @@ def parse_lfv_area(area,allow_decimal_format=True):
         yield parse_lfv_format(lat.strip(),lon.strip())
         found=True
     if not found and allow_decimal_format:
-        for lat,lon in re.findall(r"([-+]?\d{1,3}\.?\d*)\s*,\s*([-+]?\d{1,3}\.?\d*)",area):
-            yield "%.10f,%.10f"%(float(lat),float(lon))
+        for lat,lon in re.findall(r"([-+]?\d{1,12}\.?\d*)\s*,\s*([-+]?\d{1,12}\.?\d*)",area):
+            if float(lat)>1000 or float(lon)>1000:
+                merc=(float(lat),float(lon))
+                lat,lon=merc2latlon(merc,13)
+                print lat,lon
+                yield "%.10f,%.10f"%(float(lat),float(lon))
+            else:
+                yield "%.10f,%.10f"%(float(lat),float(lon))
         
                 
    
@@ -422,24 +430,46 @@ def parse_dist(s):
         dval=dval/1852.0
     return dval
 
-
-def parse_area_segment(seg,prev,next):
+border_follower=None
+def parse_area_segment(seg,prev,next,context=None):
+    global border_follower
     #uprint("Parsing <%s>"%(seg,))
     for borderspec in [
-        "Swedish/Danish border northward to (.*)",
-        "Swedish/Norwegian border northward to (.*)"
+        ur".*/further along the state border to the point (\d+N\s*\d+E)\s*",
+        ur".*/further along the territory dividing line 592818N between Estonia and Russia to the point 0280236E"
         ]:
         border=re.match(borderspec,seg)
         if border:
+            from fplan.extract.border_follower import follow_along
+            border_follower=follow_along
+            assert context!=None
+            prevc=parsecoord(prev)
+            nextc=parsecoord(border.groups()[0])
+            return ["%f,%f"%(lat,lon) for lat,lon in border_follower(context,from_str(prevc),from_str(nextc))]
             
-            if prev.strip()=="671311N 0162302E":
-                return [parsecoord(x) for x in "671627N 0161903E - 673139N 0161704E - 673201N 0162439E - 673900N 0163343E".split(" - ")]            
-            okprev=set(["560158N 0123925E","682121N 0195516E"])
-            if not prev.strip() in okprev:
-                uprint(prev)
-                raise Exception("Border spec not supported fully yet: %s"%(borderspec,))            
-            lat,lon=border.groups()[0].strip().split(" ")
-            return [parsecoord(border.groups()[0])]
+        
+    for borderspec in [
+        "Swedish/Danish border [a-z]{1,15}ward to (.*)",
+        "Swedish/Norwegian border [a-z]{1,15}ward to (.*)",
+        "Swedish/Finnish border [a-z]{1,15}ward to (.*)" 
+        ]:
+        border=re.match(borderspec,seg)
+        if border:
+            assert context==None or context=="sweden"
+            if border_follower==None:
+                from fplan.extract.border_follower import follow_along
+                border_follower=follow_along
+            #if prev.strip()=="671311N 0162302E":
+            #    return [parsecoord(x) for x in "671627N 0161903E - 673139N 0161704E - 673201N 0162439E - 673900N 0163343E".split(" - ")]            
+            #okprev=set(["560158N 0123925E","682121N 0195516E"])
+            #if not prev.strip() in okprev:
+            #    uprint(prev)    
+            #    raise Exception("Border spec not supported fully yet: %s"%(borderspec,))            
+            prevc=parsecoord(prev)
+            nextc=parsecoord(border.groups()[0])
+            return ["%f,%f"%(lat,lon) for lat,lon in border_follower('sweden',from_str(prevc),from_str(nextc))]
+            #lat,lon=border.groups()[0].strip().split(" ")
+            #return [parsecoord(border.groups()[0])]
     arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
     if arc:
         centerstr,radius=arc.groups()
@@ -507,8 +537,13 @@ def parse_area_segment(seg,prev,next):
     try:
         
         c=[]
-        for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg):        
-            c.append(parse_coords(lat,lon))
+        mat=re.match(r"\s*(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])\s*",seg)
+        if not mat:
+            print "Got:",seg
+            raise Exception("Couldn't parse %s an area segment!"%(seg,))
+        lat,lon=mat.groups()
+        #for lat,lon in matches:        
+        c.append(parse_coords(lat,lon))
         #c=parsecoord(seg)
         return c
     except MapperBadFormat:
@@ -519,7 +554,7 @@ def parse_area_segment(seg,prev,next):
     uprint("Unparsed area segment: %s"%(seg,))
     return []
 
-def parse_coord_str(s,filter_repeats=False):
+def parse_coord_str(s,filter_repeats=False,context=None):
     #borderspecs=[
     #    ]
     #uprint("Pre?")
@@ -528,7 +563,7 @@ def parse_coord_str(s,filter_repeats=False):
     s=s.replace(u"–","-")
     s=s.replace(u"counter-clock","counterclock")
     s=s.replace(u"clock-wise","clockwise")
-    itemstemp=s.strip().split("-")
+    itemstemp=re.split(ur"[^\w]-[^\w]",s.strip())
     items=[]
     for item in itemstemp:
         if re.match(ur"-?pisteeseen\s*/\s*to the point",item.strip()): continue
@@ -550,7 +585,7 @@ def parse_coord_str(s,filter_repeats=False):
         #        pstr=pstr.replace(spec,"")
         #        break                
         if pstr.strip()=="": continue
-        pd=parse_area_segment(pstr,prev,next)
+        pd=parse_area_segment(pstr,prev,next,context=context)
         #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
         out.extend(pd)
     if len(out)<3:
@@ -613,4 +648,4 @@ def parse_elev(elev):
     if not elev.isdigit():
         raise NotAnAltitude(repr(elev))    
     return int(elev)
-    
+
