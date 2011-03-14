@@ -74,7 +74,7 @@ class MaptileController(BaseController):
         spaces="".join("<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
                 spaces,key=sort_airspace_key))
         if spaces=="":
-            spaces="Uncontrolled below FL095"
+            spaces="No airspace found"
             
         mapviewurl=h.url_for(controller="mapview",action="index")
         
@@ -263,6 +263,11 @@ class MaptileController(BaseController):
                     ctx.fill_preserve()
                     ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
                     ctx.stroke()
+                    
+                #ctx.set_source(cairo.SolidPattern(1.0,0.7,0.7,1.0))                            
+                #for idx,w in enumerate(wp):
+                #    ctx.move_to(*w)
+                #    ctx.show_text("#%d"%(idx,))
                     
         if session.get('showtrack',None)!=None:                
             print "Showtrack rendering active"

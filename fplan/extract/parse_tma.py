@@ -3,6 +3,7 @@
 import parse
 import re
 import fplan.lib.mapper as mapper
+from fplan.lib.poly_cleaner import clean_up_polygon
 import sys,os
 import math
 
@@ -182,9 +183,13 @@ def parse_page(parser,pagenr,kind="TMA"):
         pa['ceiling']=ceiling
         print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
         print pa
-        pa['points']=list(parse_coord_str(" ".join(arealines[:last_coord_idx])))
+        areacoords=" ".join(arealines[:last_coord_idx])
+        pa['points']=parse_coord_str(areacoords)
+        
+        
         vs=[]
         for p in pa['points']:
+            print "from_str:",repr(p)
             x,y=mapper.latlon2merc(mapper.from_str(p),13)
             vs.append(Vertex(int(x),int(y)))
 
@@ -204,7 +209,25 @@ def parse_page(parser,pagenr,kind="TMA"):
         #print repr(freqs)
         pa['freqs']=freqs
         
-        out.append(pa)
+        for cleaned in clean_up_polygon(list(pa['points'])):
+            d=dict(pa)
+            #print "cleaned",cleaned
+            for tup in cleaned:
+                assert type(tup)==str
+                latlon=mapper.from_str(tup)
+                lat,lon=latlon
+                assert lat>=-85 and lat<=85
+            d['points']=cleaned
+            #print cleaned
+            print "name:",d['name']
+            print "cleaned points:",d['points']
+            print "from:",areacoords
+            #raise Exception()
+            out.append(d)
+        if pa['name'].lower().count("esrange"):
+            print "Exit esrange"
+            sys.exit(1)
+                    
     return out
 def pretty(pa):
     uprint("\n\nName: %s"%(pa['name'].encode('utf8'),))
