@@ -154,6 +154,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             if 1: #denmark
                 denmark=parse_denmark()
                 airspaces.extend(denmark['airspace'])
+                airfields.extend(denmark['airfields'])
             if 1: #finland
                 airspaces.extend(fi_parse_tma())
                 sig_points_extend(fi_parse_sigpoints())
