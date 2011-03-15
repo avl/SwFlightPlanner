@@ -111,7 +111,11 @@
 109: Mer test behövs. Selenium?
 110: FIXAD: Funkar db-rensningen av NOTAMS?
 111: FIXAD: I flightplanner overview borde man inte ha verktygsfältet till höger!
-112: Add some generic code to validate trip and user objects, rathan than doing it badly all over.
-113: Circular areas should be really circluar, not just circular on a mercator map.
+112: Add some generic code to validate trip and user objects, rather than doing it badly all over.
+113: FIXED: Circular areas should be really circluar, not just circular on a mercator map.
 114: FIXED: AIP SUP areas must be made much more clear!
 115: FIXED: Vi borde ha rensning av NOTAM-filer!
+116: Add real good logging.
+117: FIXED: Finish the generic code to validate trip and user-objects. Also, add better error page handling. Google how to do it!
+118: Add Selenium-tests simulating web-spiders and other robots.
+119: Add Selenium-tests for the trip-sharing-function.

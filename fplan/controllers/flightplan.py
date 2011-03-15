@@ -90,19 +90,31 @@ class FlightplanController(BaseController):
         #print "returning json:",ret
         return ret
     
+    def validate(self,exception=True,tripname=None):
+        try:
+            if tripname==None:
+                tripname=session['current_trip']
+            c.trip=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
+                Trip.trip==tripname)).one()
+            c.userobj=meta.Session.query(User).filter(User.user==session['user']).one()
+        except Exception,cause:
+            log.warning("Access flightplan without session or trip: %s"%(cause,))
+            if exception:
+                return False
+            else:
+                raise
+        return True
+            
     def save(self):
         #print "Saving tripname:",request.params
-        trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
-            Trip.trip==request.params['tripname'])).all()
-        if len(trips)==0:
+        if not self.validate(exception=False,tripname=request.params.get('tripname',False)):
             return ""
-        trip,=trips
-        userobj=meta.Session.query(User).filter(User.user==session['user']).one()
+        
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),
-             Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordering).all()
+             Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all()
         #print "REquest:",request.params
-        userobj.realname=request.params.get('realname',userobj.realname)
+        c.userobj.realname=request.params.get('realname',c.userobj.realname)
                             
         for idx,way in enumerate(waypoints):
             dof_s="date_of_flight_%d"%(way.id,)
@@ -113,7 +125,7 @@ class FlightplanController(BaseController):
                 #possibly add new stay
                 if not way.stay:
                     #print "Adding stay: ord/id",way.ordering,way.id
-                    way.stay=Stay(tripuser(),trip.trip,way.id)
+                    way.stay=Stay(tripuser(),c.trip.trip,way.id)
                 if re.match(ur"\d{2,4}-?\d{2}\-?\d{2}",request.params.get(dof_s,'')):
                     way.stay.date_of_flight=request.params.get(dof_s,'')
                 else:
@@ -149,7 +161,7 @@ class FlightplanController(BaseController):
             #print "Found waypoint #%d"%(idx,)    
             route=meta.Session.query(Route).filter(sa.and_(
                 Route.user==tripuser(),
-                Route.trip==request.params['tripname'],
+                Route.trip==c.trip.trip,
                 Route.waypoint1==way.id,
                 )).one()
             for col,att in [
@@ -176,12 +188,12 @@ class FlightplanController(BaseController):
         if not tripsharing.sharing_active():
             acname=request.params.get('aircraft','').strip()
             if acname!="":
-                trip.aircraft=acname
+                c.trip.aircraft=acname
             
         meta.Session.flush()
         meta.Session.commit()
         
-        return self.get_json_routeinfo(get_route(tripuser(),trip.trip)[1])
+        return self.get_json_routeinfo(get_route(tripuser(),c.trip.trip)[1])
     def get_json_routeinfo(self,routes):
         out=dict()
         rows=[]
@@ -256,18 +268,14 @@ class FlightplanController(BaseController):
         # Return a rendered template
         #return render('/flightplan.mako')
         # or, return a response
-        tripname=session.get('current_trip',None)
-        if 'trip' in request.params:
-            tripname=request.params['trip']
-        if not tripname:
-            return u"Internal error. Missing trip-name."
-            
+        if not self.validate(tripname=request.params.get('tripname',None),exception=False):
+            return "Internal error. Missing trip-name or user-session."
+                    
         waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==tripuser(),Waypoint.trip==tripname)).order_by(Waypoint.ordering).all())
+             Waypoint.user==tripuser(),Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all())
         if len(waypoints)==0:
             return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
         c.waypoints=[]
-        c.trip=tripname
         for wp in waypoints:                    
             lat,lon=mapper.from_str(wp.pos)
             c.waypoints.append(dict(
@@ -469,22 +477,10 @@ C/%(commander)s %(phonenr)s)"""%(dict(
 
 
     def index(self):
-        # Return a rendered template
-        #return render('/flightplan.mako')
-        # or, return a response
-        if not 'current_trip' in session:
-            return redirect_to(h.url_for(controller='mapview',action="index"))            
-        trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
-            Trip.trip==session['current_trip'])).all()
-        if len(trips)!=1:
-            return redirect_to(h.url_for(controller='mapview',action="index"))            
-        
-        userobj=meta.Session.query(User).filter(User.user==session['user']).one()
-        
+        self.validate()
         c.flash=request.params.get('flash',None)
-        trip,=trips
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==tripuser(),Waypoint.trip==trip.trip)).order_by(Waypoint.ordering).all())
+             Waypoint.user==tripuser(),Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all())
         
         if len(c.waypoints):        
             wp0=c.waypoints[0]
@@ -492,20 +488,16 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 c.stay=wp0.stay
             else:
                 #print "No 'Stay', adding"
-                c.stay=Stay(trip.user,trip.trip,wp0.id)
+                c.stay=Stay(c.trip.user,c.trip.trip,wp0.id)
                 meta.Session.add(c.stay)
                 meta.Session.flush()
                 meta.Session.commit()
         else:
             c.stay=None
                 
-        c.realname=userobj.realname
+        c.realname=c.userobj.realname
         
-        #c.totdist=0.0
-        #for a,b in zip(c.waypoints[:-1],c.waypoints[1:]):     
-        #    bear,dist=mapper.bearing_and_distance(a.pos,b.pos)
-        #    c.totdist+=dist
-        dummy,routes=get_route(tripuser(),trip.trip)
+        dummy,routes=get_route(tripuser(),c.trip.trip)
         c.derived_data=self.get_json_routeinfo(routes)
          
         c.totdist=0.0
@@ -578,18 +570,19 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
                  Aircraft.user==session['user'])).all()
 
-        if trip.acobj==None:
+        if c.trip.acobj==None:
             c.ac=None
         else:        
-            c.ac=trip.acobj
-            if session.get('cur_aircraft',None)!=trip.acobj.aircraft:
-                session['cur_aircraft']=trip.acobj.aircraft
+            c.ac=c.trip.acobj
+            if session.get('cur_aircraft',None)!=c.trip.acobj.aircraft:
+                session['cur_aircraft']=c.trip.acobj.aircraft
                 session.save()
             
         c.sharing=tripsharing.sharing_active()
         #print repr(c)
         return render('/flightplan.mako')
     def select_aircraft(self):
+        self.validate()
         if not tripsharing.sharing_active():  
             tripobj=meta.Session.query(Trip).filter(sa.and_(
                 Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
