@@ -286,6 +286,7 @@ def scalarprod(x,y):
 def parsecoord(seg):
     latlon=seg.strip().split(" ")
     if len(latlon)!=2:
+        print latlon
         raise MapperBadFormat()
     lat,lon=latlon
     coord=parse_coords(lat.strip(),lon.strip())
@@ -433,12 +434,14 @@ def parse_dist(s):
 border_follower=None
 def parse_area_segment(seg,prev,next,context=None):
     global border_follower
-    #uprint("Parsing <%s>"%(seg,))
+    
+    uprint("Parsing <%s>"%(seg,))
     for borderspec in [
         ur".*/further along the state border to the point (\d+N\s*\d+E)\s*",
-        ur".*/further along the territory dividing line 592818N between Estonia and Russia to the point 0280236E"
+        ur".*/further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*"
         ]:
         border=re.match(borderspec,seg)
+        print "Match to ",borderspec,border!=None
         if border:
             from fplan.extract.border_follower import follow_along
             border_follower=follow_along

@@ -105,13 +105,13 @@ class Page(object):
         return out
     def get_lines(self,items,fudge=0.25,meta=None):
         si=sorted(items,key=lambda x:x.x1)
-        si=sorted(si,key=lambda x:x.y2)
+        si=sorted(si,key=lambda x:x.y1)
         last=None
         out=[]
         linesize=None
         
         def is_right_order(old,item):
-            if old.x2>item.x1+5.0:
+            if old.x2>item.x1+7.0:
                 print "Wrong order: %s - %s"%((old.x1,old.y1,old.x2,old.y2,old),item)
                 return False
             return True
@@ -122,7 +122,7 @@ class Page(object):
                 out[-1].expandbb(item)
                 last=item
                 continue
-            ystep=abs(last.y2-item.y2)
+            ystep=abs(last.y1-item.y1)
             print "\n**Last: %s, cur: %s"%(last,item)
             old=out[-1]
             same_line=True
@@ -137,8 +137,11 @@ class Page(object):
                 print "ldiff:",ldiff,"linesize:",ystep
                 if ldiff<fudge:
                     same_line=True
-            
-            if same_line and is_right_order(old,item):
+            if same_line and not is_right_order(old,item):
+                if old.x2<item.x1+1.0:
+                    #TODO: MAke clearer: First calculate lines locations, then assign content to them!
+                    
+            elif same_line and is_right_order(old,item):
                 repcnt=max(int(item.x1-old.x2),1)  
                 expandedspaces="".join(repeat(" ",repcnt))
                 out[-1]=ItemStr(out[-1]+expandedspaces+item.text.strip())
