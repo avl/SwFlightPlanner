@@ -70,7 +70,7 @@ class SplashController(BaseController):
         if len(users)==1:
             user=users[0]
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5str(request.params['password']),user.password)
-            if user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key):
+            if user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key) or user.password==request.params['password']:
                 session['user']=users[0].user
                 if 'current_trip' in session:
                     del session['current_trip']
