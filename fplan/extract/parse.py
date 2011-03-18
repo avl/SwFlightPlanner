@@ -103,13 +103,75 @@ class Page(object):
         if ysort:
             out.sort(key=lambda x:x.y1)        
         return out
-    def get_lines(self,items,fudge=0.25,meta=None):
+    def get_lines(self,items,fudge=0.40,meta=None):
         si=sorted(items,key=lambda x:x.x1)
         si=sorted(si,key=lambda x:x.y1)
+        if len(si)<=0:
+            return []
+        if len(si)==1:
+            ret=ItemStr(si[0].text.strip())
+            ret.expandbb(si[0])
+            return [ret]        
+        last=si[0]
+        cand=[[]]
+        linesize=None
+        for item in si:
+            delta=item.y1-last.y1
+            if delta<fudge:
+                cand[-1].append(item)
+            else:
+                cand.append([item])
+                if last:
+                    if linesize: 
+                        linesize=min(linesize,delta)
+                    else:
+                        linesize=delta
+            last=item
+            
+        out=[]
+        lastline=None
+        for c in cand:
+            print "  Cand: %s"%(c,),"linesize:",linesize
+            last=None
+            for item in sorted(c,key=lambda x:x.x1):
+                
+                if lastline:
+                    delta=item.y1-lastline.y2
+                    print "delta",delta
+                    if linesize and delta>linesize*1.5 and len(out)>0:
+                        out.append(ItemStr(""))
+                        out[-1].x1=min(out[-2].x1,item.x1)
+                        out[-1].x2=max(out[-2].x2,item.x2)
+                        out[-1].y1=out[-2].y2
+                        out[-1].y2=item.y1
+                        print "Inserted newline",out[-1]
+                lastline=item
+                if last==None:
+                    out.append(ItemStr(item.text.strip()))
+                    out[-1].expandbb(item)
+                else:                                                                                        
+                    if item.x1>last.x2-3:
+                        repcnt=max(int(item.x1-last.x2),1)  
+                        expandedspaces="".join(repeat(" ",repcnt))
+                        out[-1]=ItemStr(out[-1]+expandedspaces+item.text.strip())
+                        out[-1].expandbb(last)
+                        out[-1].expandbb(item)
+                    else:
+                        out.append(ItemStr(item.text.strip()))
+                        out[-1].expandbb(item)
+                last=item
+        return out                
+        
+            
+            
+            
         last=None
         out=[]
         linesize=None
         
+        
+        
+"""        
         def is_right_order(old,item):
             if old.x2>item.x1+7.0:
                 print "Wrong order: %s - %s"%((old.x1,old.y1,old.x2,old.y2,old),item)
@@ -165,7 +227,8 @@ class Page(object):
                 out[-1].expandbb(item)
             last=item
         return out
-        
+"""
+
 class Parser(object):
     def load_xml(self,path,loadhook=None,country="se"):
         raw=fetchdata.getxml(path,country=country)

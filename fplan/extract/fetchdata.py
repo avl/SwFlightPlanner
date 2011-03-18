@@ -10,6 +10,9 @@ tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
 
 caching_enabled=True #True for debug, set to false by background updater
 
+def is_devcomp():
+    return host==dev_computer
+
 def get_filedate(path):
     return datetime.fromtimestamp(os.path.getmtime(path))
 

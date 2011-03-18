@@ -284,6 +284,7 @@ def scalarprod(x,y):
 
 
 def parsecoord(seg):
+    print "Parsecoord for <%s>"%(seg,)
     latlon=seg.strip().split(" ")
     if len(latlon)!=2:
         print latlon
@@ -435,21 +436,29 @@ border_follower=None
 def parse_area_segment(seg,prev,next,context=None):
     global border_follower
     
-    uprint("Parsing <%s>"%(seg,))
+    #uprint("Parsing <%s>"%(seg,))
     for borderspec in [
-        ur".*/further along the state border to the point (\d+N\s*\d+E)\s*",
-        ur".*/further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*"
+        ur"()(.*)/\s*further along the state border to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
+        ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)"
         ]:
         border=re.match(borderspec,seg)
-        print "Match to ",borderspec,border!=None
+        ##print "Input string: ",seg,border!=None
+        #print "  Matching against: <%s>"%(borderspec,)
         if border:
+            #print "  * MATCH!"
             from fplan.extract.border_follower import follow_along
             border_follower=follow_along
             assert context!=None
+            prevcand,ignored,next=border.groups()
+            assert not re.findall(ur"\d+[NS]\s*\d+[EW]", ignored)
+            if prevcand: prev=prevcand
             prevc=parsecoord(prev)
-            nextc=parsecoord(border.groups()[0])
+            nextc=parsecoord(next)
             return ["%f,%f"%(lat,lon) for lat,lon in border_follower(context,from_str(prevc),from_str(nextc))]
-            
+        else:
+            pass#print "  -no match"
         
     for borderspec in [
         "Swedish/Danish border [a-z]{1,15}ward to (.*)",
@@ -540,20 +549,21 @@ def parse_area_segment(seg,prev,next,context=None):
     try:
         
         c=[]
-        mat=re.match(r"\s*(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])\s*",seg)
+        mat=re.match(r"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg)
         if not mat:
             print "Got:",seg
             raise Exception("Couldn't parse %s an area segment!"%(seg,))
-        lat,lon=mat.groups()
-        #for lat,lon in matches:        
-        c.append(parse_coords(lat,lon))
+        for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg):
+            #for lat,lon in matches:        
+            c.append(parse_coords(lat,lon))
+            print "parsed",seg,"as latlon"
         #c=parsecoord(seg)
         return c
     except MapperBadFormat:
-        uprint("Couldn't parse <%s> as a plain coord"%(seg,))
+        raise Exception("Couldn't parse <%s> as a plain coord"%(seg,))
         #raise
         pass #continue processing
-
+    raise Exception("Unparsed area segment: <%s>"%(seg,))
     uprint("Unparsed area segment: %s"%(seg,))
     return []
 
@@ -566,7 +576,7 @@ def parse_coord_str(s,filter_repeats=False,context=None):
     s=s.replace(u"–","-")
     s=s.replace(u"counter-clock","counterclock")
     s=s.replace(u"clock-wise","clockwise")
-    itemstemp=re.split(ur"[^\w]-[^\w]",s.strip())
+    itemstemp=s.split("-") #re.split(ur" - ",s.strip())
     items=[]
     for item in itemstemp:
         if re.match(ur"-?pisteeseen\s*/\s*to the point",item.strip()): continue
@@ -576,8 +586,10 @@ def parse_coord_str(s,filter_repeats=False,context=None):
     for idx,pstr2 in enumerate(items):
         prev=None
         next=None
-        if idx!=0:
-            prev=items[idx-1]
+        if len(out)>0:
+            prevlat,prevlon=from_str(out[-1])
+            prev=format_lfv(prevlat,prevlon)    
+
         if idx!=len(items)-1:
             next=items[idx+1]
         pstr=pstr2.strip()
@@ -586,7 +598,7 @@ def parse_coord_str(s,filter_repeats=False,context=None):
         #for spec in borderspecs:
         #    if pstr.count(spec):
         #        pstr=pstr.replace(spec,"")
-        #        break                
+        #        break   
         if pstr.strip()=="": continue
         pd=parse_area_segment(pstr,prev,next,context=context)
         #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))

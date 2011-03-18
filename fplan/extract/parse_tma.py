@@ -224,9 +224,9 @@ def parse_page(parser,pagenr,kind="TMA"):
             print "from:",areacoords
             #raise Exception()
             out.append(d)
-        if pa['name'].lower().count("esrange"):
-            print "Exit esrange"
-            sys.exit(1)
+        #if pa['name'].lower().count("esrange"):
+        #    print "Exit esrange"
+        #    sys.exit(1)
                     
     return out
 def pretty(pa):

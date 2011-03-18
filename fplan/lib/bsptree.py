@@ -31,7 +31,7 @@ class BspTree(object):
             self.val=val
         def __repr__(self):
             return "Item(%s,%s)"%(self.vec,self.val)
-    def getall(self):
+    def getall(self):        
         if self.pivot==None:
             assert self.a==None and self.b==None
             return []
@@ -46,6 +46,9 @@ class BspTree(object):
     def __init__(self,points,startaxis=0,rec=0):
         #print "BspTtree",rec,id(self)
         self.pivot=None
+        if len(points)==0:
+            self.pivot=None
+            return
         assert len(points)>0
         #if len(points)<=0: return
 
@@ -103,6 +106,7 @@ class BspTree(object):
         return self.find_item_dominating_impl(box,curbox)
 
     def find_item_dominating_impl(self,box,curbox):
+        if self.pivot==None: return None #no items
         if not curbox.covers(box):
             return None
         left=curbox
@@ -181,6 +185,7 @@ class BspTree(object):
                     pass#Log.i("fplan","Ignoring upper subtree of pivot "+pivotvec);                                        
         return    
     def findall_in_bb(self,b):
+        if self.pivot==None: return []  #no items
         items=[]
         self.findall(b.x1,b.y1,b.x2,b.y2,items)
         return items

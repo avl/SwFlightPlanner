@@ -9,7 +9,7 @@ from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.fi_extract_airfields import fi_parse_airfields
 from fplan.extract.fi_extract_small_airfields import fi_parse_small_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
-from fplan.extract.fetchdata import get_filedate
+from fplan.extract.fetchdata import get_filedate,is_devcomp
 import fplan.extract.extract_cities as extract_cities
 from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
@@ -23,6 +23,10 @@ import fplan.lib.mapper as mapper
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 from fplan.extract.de_parse import parse_denmark
+
+from fplan.extract.ee_parse_tma import ee_parse_tma
+from fplan.extract.ee_parse_restrictions import ee_parse_restrictions
+
 import pickle
 import os
 import shutil
@@ -46,7 +50,7 @@ def gen_bsptree_lookup(data):
              'sig_points']
     for look in lookup_points:
         items=data.get(look,None)
-        if items:
+        if True:
             bspitems=[BspTree.Item(
                     mapper.latlon2merc(mapper.from_str(item['pos']),13),item) for
                     item in items]
@@ -151,11 +155,15 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     samename.append(point)
                     if not already:
                         sig_points.append(point)
-            if 1: #denmark
+            if not is_devcomp() or True: #estonia
+                airspaces.extend(ee_parse_restrictions())
+                airspaces.extend(ee_parse_tma())
+                
+            if not is_devcomp() or False: #denmark
                 denmark=parse_denmark()
                 airspaces.extend(denmark['airspace'])
                 airfields.extend(denmark['airfields'])
-            if 1: #finland
+            if not is_devcomp() or True: #finland
                 airspaces.extend(fi_parse_tma())
                 sig_points_extend(fi_parse_sigpoints())
                 obstacles.extend(fi_parse_obstacles())
@@ -165,7 +173,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(fi_parse_restrictions())
                 airfields.extend(fi_airfields)
                 airfields.extend(fi_parse_small_airfields())
-            if 1: #sweden
+            if not is_devcomp() or False: #sweden
                 se_airfields,se_points=extract_airfields()
                 sig_points_extend(se_points)
                 airfields.extend(se_airfields)
@@ -190,7 +198,11 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         pa['freqs']=space.get('freqs',"")
                         airspaces.append(pa)
             
-            sup_areas,sup_hours=parse_all_sups()
+            if not is_devcomp() or False: #sweden
+                sup_areas,sup_hours=parse_all_sups()
+            else:
+                sup_areas=[]
+                sup_hours=[]
             aipdata=dict(
                 downloaded=datetime.utcnow(),
                 airspaces=airspaces,
@@ -285,7 +297,7 @@ def run_update_iteration():
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
     except Exception,cause:
-        print "aipdata-update, Exception:",cause
+        print "aipdata-update, Exception:",repr(cause)
         raise
 
     

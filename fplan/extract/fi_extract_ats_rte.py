@@ -9,7 +9,7 @@ import md5
 import math
 
 predef={
-("L24","0679ab4cea290636ac02b4ec4d3035d8") : ( 10,"FL 65","FL 95","""VIBEP
+("L24","a7aa3d5a9cccda04a40cbb11e3b7b89e") : ( 10,"FL 65","FL 95","""VIBEP
 602733N 0241439E
 R MAROM
 602652N 0240237E
@@ -85,7 +85,7 @@ R RUSOX
 
     """),
 
-("P854","de13b5724612b6ae4e72fd94c17b5e4c") : ( 10,"FL 65","FL 95","""
+("P854","2027f7fb8462b68ae0b6404608d459d2") : ( 10,"FL 65","FL 95","""
     612436N 0233440E
     VELUN
     610656N 0235800E
@@ -97,7 +97,7 @@ R RUSOX
     VOR/DME (HEL)
     602016N 0245713E
     """),
-("P739","e592bf8dbca98fa5849590baf42b375c") : ( 10,"FL 65","FL 95","""
+("P739","2df013e2b8e40189dd4d75dfe600520c") : ( 10,"FL 65","FL 95","""
 DOBAN FIR BDRY
 594758N 0242709E
 FL 285
@@ -132,7 +132,7 @@ R ODEXA
 
     """),
 
-("Q1","5a497170c51cdd6015a4c99cf8c5df5e") : ( 10,"FL 65","FL 95","""
+("Q1","827bc626a6514c2bd573969e66a5be17") : ( 10,"FL 65","FL 95","""
 ODEXA
 602016N 0245713E
 26.5
@@ -225,7 +225,7 @@ FL 95 - FL 65: D
 R AMEDU
 602849N 0233644E
     """),
-("Z210","dea085535cbeb1c68a6809cbb34bf414") : ( 10,"FL 65","FL 95","""
+("Z210","fe1eae1b7d31689b0f7985beb8fda6bb") : ( 10,"FL 65","FL 95","""
 TINOS FIR BDRY
 694730N 0261340E
 FL 285
