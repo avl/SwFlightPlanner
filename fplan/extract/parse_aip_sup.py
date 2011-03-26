@@ -28,12 +28,13 @@ def extract_single_sup(full_url,sup,supname,opening_ours):
     for pagenr in xrange(p.get_num_pages()):            
         page=p.parse_page_to_items(pagenr)
         #print page.get_all_items()
-        for item in page.get_by_regex("HOURS OF OPERATION"):
+        for item in page.get_by_regex(".*HOURS OF OPERATION.*"):
             lines=page.get_lines(page.get_partially_in_rect(0,item.y1-2,100,item.y2+2))
             found=False
             for line in lines:
-                if re.match(ur"SUP\s*\d+/\d{4}\.?\s+HOURS OF OPERATION\s*$",line):
+                if re.match(ur".*SUP\s*\d+/\d{4}\.?\s+HOURS OF OPERATION\s*$",line):
                     opening_ours.add(p.get_url())
+                    print "Found hours:",opening_ours
             
             
         for areaname,coords,meta in find_areas(page):
@@ -72,7 +73,10 @@ def parse_all_sups(limiter=None):
         if limiter!=None and limiter(supname)==False:
             continue
         areas.extend(extract_single_sup(base+sup,sup,supname,opening_ours))
+    if "http://www.lfv.se/AIP/AIP%20Sup/SUP_52_10.pdf" in opening_ours:
+        opening_ours.remove("http://www.lfv.se/AIP/AIP%20Sup/SUP_52_10.pdf")
     if not limiter:
+        print "Opening hours:",opening_ours
         assert len(opening_ours)==1
     else:
         if not opening_ours:
@@ -86,12 +90,14 @@ if __name__=='__main__':
         if x.count(sys.argv[1]):
             return True
         return False
+    if len(sys.argv)<=1:
+        limiter=None
     areas,opening_hours=parse_all_sups(limiter)
     f=open("aipsup-out.txt","w")
     for area in sorted(areas,key=lambda x:x['name']):
         t="%s: coords: %s "%(area['name'],"-".join(mapper.format_lfv(*mapper.from_str(c)) for c in area['points']))
         print t
-        f.write(t+"\n")
+        f.write(repr(t)+"\n")
     print "Opening_hours url:",opening_hours
     f.write("Hours:"+opening_hours)
     f.close()
