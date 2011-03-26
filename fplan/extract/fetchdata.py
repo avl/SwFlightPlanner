@@ -40,11 +40,35 @@ def getrawurl(relpath,country="se"):
     else:
         raise Exception("Unknown country:"+country)
     return durl
+
+
+
+
 def getrawdata(relpath,country="se"):
     durl=getrawurl(relpath,country)
     print "Downloading url: "+durl
     data=urlopen(durl).read()
     print "Got %d bytes"%(len(data),)
+    return data
+
+def getdata(relpath,country="se"):
+    nowdate=datetime.now()
+    if not os.path.exists(tmppath):
+        os.makedirs(tmppath)
+    cachename=os.path.join(tmppath,stripname(relpath))    
+    if caching_enabled and os.path.exists(cachenamexml):
+        cacheddate=get_filedate(cachenamexml)
+        print "cachedate:",cacheddate,"nowdate:",nowdate
+        age=nowdate-cacheddate
+        print "cache-age:",age
+        maxcacheage=7200
+        if host==dev_computer:
+            maxcacheage=4*7*24*3600
+        if age<timedelta(0,maxcacheage):
+            print "Returning cached %s"%(relpath,)
+            return open(cachenamexml).read()
+    data=getrawdata(relpath,country=country)
+    open(cachename,"w").write(data)
     return data
     
 def getxml(relpath,country="se"):
@@ -101,7 +125,8 @@ def get_raw_aip_sup_page():
         return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()
         
 weathercache=dict()
-weatherlookup=dict(A="http://www.lfv.se/MetInfo.asp?TextFile=llf.esms-day.txt&TextFile=llf.esms-tot.txt&TextFile=llf.esms-n.txt&TextFile=llf.esms-se.txt&TextFile=llf.esms-sw.txt&Subtitle=Omr%e5de%A0A%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0A%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0A%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0A%A0-%A0S%F6dra%A0Sverige&Frequency=60",
+weatherlookup=dict(
+       A="http://www.lfv.se/MetInfo.asp?TextFile=llf.esms-day.txt&TextFile=llf.esms-tot.txt&TextFile=llf.esms-n.txt&TextFile=llf.esms-se.txt&TextFile=llf.esms-sw.txt&Subtitle=Omr%e5de%A0A%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0A%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0A%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0A%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0A%A0-%A0S%F6dra%A0Sverige&Frequency=60",
        B="http://www.lfv.se/MetInfo.asp?TextFile=llf.essa-day.txt&TextFile=llf.essa-tot.txt&TextFile=llf.essa-n.txt&TextFile=llf.essa-nw.txt&TextFile=llf.essa-s.txt&TextFile=llf.essa-se.txt&Subtitle=Omr%e5de%A0B%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0B%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0B%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0Nordv%e4stra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0S%F6dra%A0delen&Subtitle=Omr%e5de%A0B%A0-%A0Syd%F6stra%A0delen&T=Omr%e5de%A0B%A0-%A0Mellersta%A0Sverige&Frequency=60",
        C="http://www.lfv.se/MetInfo.asp?TextFile=llf.esnn-day.txt&TextFile=llf.esnn-tot.txt&TextFile=llf.esnn-n.txt&TextFile=llf.esnn-mid.txt&TextFile=llf.esnn-se.txt&TextFile=llf.esnn-sw.txt&Subtitle=Omr%e5de%A0C%A0-%A0Prelimin%e4r%A0prognos%A0f%F6r%A0morgondagen&Subtitle=Omr%e5de%A0C%A0-%A0%F6versikt&Subtitle=Omr%e5de%A0C%A0-%A0Norra%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Mellersta%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Syd%F6stra%A0delen&Subtitle=Omr%e5de%A0C%A0-%A0Sydv%e4stra%A0delen&T=Omr%e5de%A0C%A0-%A0Norra%A0Sverige&Frequency=60")
 def get_raw_weather_for_area(cur_area2):
