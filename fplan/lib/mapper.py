@@ -647,7 +647,6 @@ def altformat(num,what):
 def parse_elev(elev):    
     if type(elev)==int: return float(elev)
     if type(elev)==float: return elev
-   
     if not isinstance(elev,basestring):
         raise NotAnAltitude(repr(elev))
     elev=elev.strip()
@@ -659,6 +658,7 @@ def parse_elev(elev):
     if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft alt"): elev=elev[:-6].strip()
     if elev.lower().endswith("ftalt"):  elev=elev[:-5].strip()
+    if elev=="-": return 99999
     if elev.lower()=="unl": return 99999
     if elev.lower()=="sfc": return 0 #TODO: Lookup using elevation map
     if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using an elevation map!!
