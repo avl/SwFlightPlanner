@@ -37,6 +37,7 @@ def get_path(cachedir,zoomlevel,x1,y1):
     return os.path.join(get_dirpath(cachedir,zoomlevel,x1,y1),str(x1)+".png")
     
 typecolormap=dict(
+    FIR=((0.0,0.0,0.0,0.0),(0.0,0.0,1.0,0.75)),
     TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
     RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
     CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),

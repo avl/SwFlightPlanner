@@ -131,20 +131,20 @@ class Page(object):
         out=[]
         lastline=None
         for c in cand:
-            print "  Cand: %s"%(c,),"linesize:",linesize
+            #print "  Cand: %s"%(c,),"linesize:",linesize
             last=None
             for item in sorted(c,key=lambda x:x.x1):
                 
                 if lastline:
                     delta=item.y1-lastline.y2
-                    print "delta",delta
+                    #print "delta",delta
                     if linesize and delta>linesize*1.5 and len(out)>0:
                         out.append(ItemStr(""))
                         out[-1].x1=min(out[-2].x1,item.x1)
                         out[-1].x2=max(out[-2].x2,item.x2)
                         out[-1].y1=out[-2].y2
                         out[-1].y2=item.y1
-                        print "Inserted newline",out[-1]
+                        #print "Inserted newline",out[-1]
                 lastline=item
                 if last==None:
                     out.append(ItemStr(item.text.strip()))

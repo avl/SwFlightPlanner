@@ -61,8 +61,9 @@ def getdata(relpath,country="se"):
     if not os.path.exists(tmppath):
         os.makedirs(tmppath)
     cachename=os.path.join(tmppath,stripname(relpath))    
-    if caching_enabled and os.path.exists(cachenamexml):
-        cacheddate=get_filedate(cachenamexml)
+    print "Checking if cached version exists:",cachename
+    if caching_enabled and os.path.exists(cachename):
+        cacheddate=get_filedate(cachename)
         print "cachedate:",cacheddate,"nowdate:",nowdate
         age=nowdate-cacheddate
         print "cache-age:",age
@@ -71,10 +72,10 @@ def getdata(relpath,country="se"):
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
             print "Returning cached %s"%(relpath,)
-            return open(cachenamexml).read()
+            return open(cachename).read(),cacheddate
     data=getrawdata(relpath,country=country)
     open(cachename,"w").write(data)
-    return data
+    return data,nowdate
     
 def getxml(relpath,country="se"):
     print "getxml:"+relpath

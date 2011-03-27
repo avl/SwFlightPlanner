@@ -424,7 +424,7 @@ def uprint(*ss):
             out.append(repr(s))
     print " ".join(out)
 def parse_dist(s):
-    #uprint("In:%s"%s)
+    uprint("In:%s"%s)
     val,nautical,meters=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m))\b\s*",s).groups()
     dval=float(val)
     assert nautical!=None or meters!=None
@@ -439,11 +439,12 @@ def parse_area_segment(seg,prev,next,context=None):
     #uprint("Parsing <%s>"%(seg,))
     for borderspec in [
         ur"()(.*)/\s*further along the state border to the point (\d+N\s*\d+E)\s*",
+        ur"()()Along the common \w+\s*/\s*\w+ (?:state boundary|existing administrative boundary) to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
         ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)"
         ]:
-        border=re.match(borderspec,seg)
+        border=re.match(borderspec,seg,re.IGNORECASE)
         ##print "Input string: ",seg,border!=None
         #print "  Matching against: <%s>"%(borderspec,)
         if border:
@@ -489,7 +490,7 @@ def parse_area_segment(seg,prev,next,context=None):
         nextposraw=None
         direction="cw"
     if not arc:
-        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*? NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
+        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
         #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)
         #if arc:
         #    print "midArc:",arc,arc.groups()
@@ -549,11 +550,11 @@ def parse_area_segment(seg,prev,next,context=None):
     try:
         
         c=[]
-        mat=re.match(r"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg)
+        mat=re.match(ur"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg,re.UNICODE)
         if not mat:
-            print "Got:",seg
-            raise Exception("Couldn't parse %s an area segment!"%(seg,))
-        for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg):
+            uprint("Got: <%s>"%(repr(seg),))
+            raise Exception("Couldn't parse <%s> as an area segment!"%(seg,))
+        for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg,re.UNICODE):
             #for lat,lon in matches:        
             c.append(parse_coords(lat,lon))
             print "parsed",seg,"as latlon"
@@ -653,9 +654,11 @@ def parse_elev(elev):
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
     if elev.lower().endswith("ft msl"): elev=elev[:-6].strip()
-    if elev.lower().endswith("ft amsl"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft amsl"):elev=elev[:-6].strip()
     if elev.lower().endswith("ft gnd"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft alt"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ftalt"):  elev=elev[:-5].strip()
     if elev.lower()=="unl": return 99999
     if elev.lower()=="sfc": return 0 #TODO: Lookup using elevation map
     if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using an elevation map!!

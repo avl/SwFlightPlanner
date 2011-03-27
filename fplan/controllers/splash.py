@@ -33,8 +33,8 @@ class SplashController(BaseController):
             m=re.search(r"msie\s+(\d+)\.(\d+)",ua)
             if m:
                 major,minor=m.groups()
-                if int(major)>=8:
-                    c.browserwarningheader=u"You are running Internet Explorer 8+"
+                if int(major)>=9:
+                    c.browserwarningheader=u"You are running Internet Explorer 9+"
                     c.browserwarning=u"This is not recommended, although it might work."+\
                         u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
                         u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";

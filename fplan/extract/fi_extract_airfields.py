@@ -85,9 +85,11 @@ def fi_parse_airfield(icao=None):
         for item in page.get_by_regex("ATS AIRSPACE"):
             lines=iter(page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100)))
             spaces=[]
+            line=lines.next()
             while True:
-                line=lines.next()
-                #print "Read line:",line
+                while line.strip()=="":
+                    line=lines.next()
+                print "Read line:",line
                 if line.count("Vertical limits"):
                     break                            
                 m=re.match(ur".*?/\s+Designation and lateral limits\s*(.*\b(?:CTR|FIZ)\b.*?)\s*:?\s*$",line)
@@ -101,19 +103,25 @@ def fi_parse_airfield(icao=None):
                 coords=[]
                 while True:
                     line=lines.next()
-                    #print "Further:",line
+                    print "Further:",line                        
+                    
                     if line.count("Vertical limits"):
+                        print "Breaking"
                         break                            
                     if not re.search(ur"[\d ]+N\s*[\d ]+E",line) and  \
-                        not re.search(ur"circle|cent[red]{1,5}|pitkin|point",line):
+                        not re.search(ur"circle|cent[red]{1,5}|pitkin|point|equal\s*to",line):
+                        print "Breaking"
                         break
                     coords.append(line)
                     
                 areaspec="".join(coords)
+                
                 def fixup(m):
                     lat,lon=m.groups()
                     return lat.replace(" ","")+" "+lon.replace(" ","")
                 areaspec=re.sub(ur"([\d ]+N)\s*([\d ]+E)",fixup,areaspec)
+                
+                areaspec=re.sub(ur"\(.*/\s*equal\s*to\s*Malmi\s*CTR\s*lateral\s*limits\)","",areaspec)
                 #print "Fixed areaspec",areaspec
                 #if icao=="EFKS":
                 #    areaspec=areaspec.replace("6615 28N","661528N")

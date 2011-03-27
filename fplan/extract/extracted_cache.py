@@ -25,6 +25,7 @@ from datetime import datetime,timedelta
 from fplan.extract.de_parse import parse_denmark
 
 from fplan.extract.ee_parse_tma import ee_parse_tma
+from fplan.extract.ev_parse_tma import ev_parse_tma
 from fplan.extract.ee_parse_restrictions import ee_parse_restrictions
 
 import pickle
@@ -158,8 +159,11 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             if not is_devcomp() or True: #estonia
                 airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ee_parse_tma())
+            if not is_devcomp() or True: #latvia
+                #airspaces.extend(ee_parse_restrictions())
+                airspaces.extend(ev_parse_tma())
                 
-            if not is_devcomp() or False: #denmark
+            if not is_devcomp() or True: #denmark
                 denmark=parse_denmark()
                 airspaces.extend(denmark['airspace'])
                 airfields.extend(denmark['airfields'])
@@ -173,7 +177,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(fi_parse_restrictions())
                 airfields.extend(fi_airfields)
                 airfields.extend(fi_parse_small_airfields())
-            if not is_devcomp() or False: #sweden
+            if not is_devcomp() or True: #sweden
                 se_airfields,se_points=extract_airfields()
                 sig_points_extend(se_points)
                 airfields.extend(se_airfields)

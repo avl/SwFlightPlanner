@@ -108,7 +108,7 @@ def parse_space(lines):
                     continue
                 if isnext('CLOCKWISE'):
                     radius,center,dest=re.match(ur"CLOCKWISE RADIUS=(\d+\.?\d*) CENTRE=(\d+N \d+E) TO=(\d+N \d+E)",getline()).groups()
-                    area.append(ur"clockwise) along an arc with radius %s centred on %s to the point %s"%(radius,center,dest))
+                    area.append(ur"clockwise along an arc with radius %s NM centred on %s to the point %s"%(radius,center,dest))
                     continue
                 if isnext('CIRCLE'):
                     l=getline()
