@@ -26,7 +26,9 @@ from fplan.extract.de_parse import parse_denmark
 
 from fplan.extract.ee_parse_tma import ee_parse_tma
 from fplan.extract.ev_parse_tma import ev_parse_tma,ev_parse_r,ev_parse_obst
+from fplan.extract.ev_parse_airfields import ev_parse_airfields
 from fplan.extract.ee_parse_restrictions import ee_parse_restrictions
+from fplan.extract.ey_parse_tma import ey_parse_tma
 
 import pickle
 import os
@@ -52,9 +54,14 @@ def gen_bsptree_lookup(data):
     for look in lookup_points:
         items=data.get(look,None)
         if True:
-            bspitems=[BspTree.Item(
-                    mapper.latlon2merc(mapper.from_str(item['pos']),13),item) for
-                    item in items]
+            bspitems=[]
+            for item in items:
+                try:
+                    bspitems.append(BspTree.Item(                                           
+                        mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
+                except:
+                    print item
+                    raise
             #print "Items for bsptree",items
             bsp=BspTree(bspitems)   
             #assert len(bsp.getall())==len(items)
@@ -156,6 +163,8 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     samename.append(point)
                     if not already:
                         sig_points.append(point)
+            if not is_devcomp() or True: #lithuania
+                airspaces.extend(ey_parse_tma())
             if not is_devcomp() or True: #estonia
                 airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ee_parse_tma())
@@ -164,6 +173,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(ev_parse_tma())
                 airspaces.extend(ev_parse_r())
                 obstacles.extend(ev_parse_obst())
+                evads,evspaces=ev_parse_airfields()
+                airspaces.extend(evspaces)
+                airfields.extend(evads)
                 
             if not is_devcomp() or True: #denmark
                 denmark=parse_denmark()

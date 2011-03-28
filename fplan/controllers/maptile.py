@@ -71,7 +71,7 @@ class MaptileController(BaseController):
         out=[]
         spaces=get_airspaces(lat,lon)
         print "Spaces:",spaces
-        spaces="".join("<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+        spaces=u"".join(u"<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
                 spaces,key=sort_airspace_key))
         if spaces=="":
             spaces="No airspace found"
@@ -134,6 +134,7 @@ class MaptileController(BaseController):
         if len(fields):
             airports.append("<b>Airfield:</b><ul>")
             for airp in fields:
+                print "clicked on ",airp
                 linksstr=""
                 links=[]
                 if 'flygkartan_id' in airp:

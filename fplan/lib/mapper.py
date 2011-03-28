@@ -285,11 +285,11 @@ def scalarprod(x,y):
 
 def parsecoord(seg):
     print "Parsecoord for <%s>"%(seg,)
-    latlon=seg.strip().split(" ")
-    if len(latlon)!=2:
-        print latlon
+    m=re.match(ur"\s*([\d\.]+[NS])\s*([\d\.]+[EW])\s*",seg)
+    if not m:
+        print seg
         raise MapperBadFormat()
-    lat,lon=latlon
+    lat,lon=m.groups()
     coord=parse_coords(lat.strip(),lon.strip())
     return coord
 
@@ -439,7 +439,7 @@ def parse_area_segment(seg,prev,next,context=None):
     #uprint("Parsing <%s>"%(seg,))
     for borderspec in [
         ur"()(.*)/\s*further along the state border to the point (\d+N\s*\d+E)\s*",
-        ur"()()Along the common \w+\s*/\s*\w+ (?:state boundary|existing administrative boundary) to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
+        ur"()()Along\s*the\s*common\s*\w+\s*/\s*\w+ (?:state\s*boundary|existing administrative boundary)\s*to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
         ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)"
@@ -483,12 +483,26 @@ def parse_area_segment(seg,prev,next,context=None):
             return ["%f,%f"%(lat,lon) for lat,lon in border_follower('sweden',from_str(prevc),from_str(nextc))]
             #lat,lon=border.groups()[0].strip().split(" ")
             #return [parsecoord(border.groups()[0])]
-    arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)
+    arc=re.match(r"\s*clockwise along an arc cent[red]{1,5} on (.*) and with radius (.*)",seg)  
     if arc:
         centerstr,radius=arc.groups()
         prevposraw=None
         nextposraw=None
         direction="cw"
+    if not arc:
+        arc=re.match(r"\s*([\d\.]+N\s*[\d\.]+E)?\s*then\s*a?\s*(clockwise)?\s*arc,?\s*radius\s*(\d+\.?\d*\s*NM)\s*centered\s*(?:at|on)\s*([\d\.]+N\s*[\d\.]+E)\s*(?:\(?\w{3,5}\s*DVOR\)?\s*till)?\s*",seg,re.UNICODE|re.IGNORECASE)  
+        if arc:
+            prevposraw,clockwise,radius,centerstr=arc.groups()
+            nextposraw=None
+            assert clockwise=='clockwise' or clockwise==None
+            direction="cw"
+    if not arc:
+        arc=re.match(ur"then\s*according\s*to\s*arc\s*of\s*(\d+\s*NM)\s*from\s*(\d+N\s*\d+E)\s*to\s*(\d+N \d+E)",seg,re.UNICODE|re.IGNORECASE)  
+        if arc:
+            radius,centerstr,nextposraw=arc.groups()
+            prevposraw=None
+            direction="cw"
+        
     if not arc:
         arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
         #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)

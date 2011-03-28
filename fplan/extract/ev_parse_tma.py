@@ -4,25 +4,7 @@ import lxml.html
 import fplan.lib.mapper as mapper
 import re
 from fplan.lib.poly_cleaner import clean_up_polygon
-
-def alltextlist(x):
-    if x.text:
-        s=[x.text]
-    else:
-        s=[]
-    for child in x.getchildren():
-        if child.tag.lower() in ['p','br']:
-            s.append("\n")
-        childitems=alltextlist(child)
-        s.extend(childitems)
-        if child.tag.lower()=="p":
-            s.append("\n")
-    if x.tail:    
-        s.append(x.tail)
-    return s
-def alltext(x):
-    l=alltextlist(x)
-    return (" ".join(l)).strip()
+from fplan.extract.html_helper import alltext 
 
 def ev_parse_obst():
     url="/EV-ENR-5.4-en-GB.html"
@@ -96,7 +78,8 @@ def ev_parse_x(url):
                 altcand.append(altc.strip())
             floor,ceiling=[x.strip() for x in " ".join(altcand).split("/")]
             mapper.parse_elev(ceiling)            
-            mapper.parse_elev(floor)
+            if mapper.parse_elev(floor)>9500:
+                continue
             
             freqs=[]
             coords=mapper.parse_coord_str(" ".join(lines[1:]),context='latvia')

@@ -43,6 +43,7 @@ typecolormap=dict(
     CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
     R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
     CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
+    TIZ=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
     notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
     aip_sup=((1.0,0.25,0.25,0.07),(1.0,0.25,0.25,0.9)),
     mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
@@ -138,7 +139,11 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
                 ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)
-            areacol,solidcol=get_airspace_color(space['type'])
+            try:
+                areacol,solidcol=get_airspace_color(space['type'])
+            except:
+                print space
+                raise   
                         
             ctx.close_path()   
             ctx.set_source(cairo.SolidPattern(*areacol))

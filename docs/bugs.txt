@@ -123,4 +123,5 @@
 121: Decide if new-style get_lines can be made to work for legacy. Preferrable if it can.
 122: Check if split("-") is acceptable...
 123: Not using daily downloaded data for Estonia and Latvia.
+124: Need Estonian and Latvian CTRs!
  
