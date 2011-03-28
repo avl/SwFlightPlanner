@@ -30,7 +30,9 @@ import unicodedata
 import time
 
 def strip_accents(s):
-   return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+   if type(s)==str:
+      return s
+   return ''.join((c for c in unicodedata.normalize('NFKD', s))).encode('ASCII','ignore')
 
 class AtsException(Exception): pass
 import random
@@ -60,18 +62,17 @@ class FlightplanController(BaseController):
             return json.dumps(dict(ordinal=ordi,hits=[['Unknown Waypoint',[lat,lon],'Unknown Waypoint']]))                
 
         #print "Searching for ",searchstr
-        searchstr=searchstr.lower()
-        
+        searchstr=strip_accents(searchstr).lower()
         apoints=[]
         for airp in get_airfields():
-            if airp['name'].lower().count(searchstr) or \
+            if strip_accents(airp['name']).lower().count(searchstr) or \
                 airp['icao'].lower().count(searchstr):
                 d=dict(airp)
                 d['kind']='airport'
                 apoints.append(d)  
         spoints=[]        
         for sigpoint in get_sig_points():
-            if sigpoint['name'].lower().count(searchstr):
+            if strip_accents(sigpoint['name']).lower().count(searchstr):
                 spoints.append(sigpoint)
         def namekey(x):
             return x['name']
