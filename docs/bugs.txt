@@ -124,4 +124,5 @@
 122: Check if split("-") is acceptable...
 123: Not using daily downloaded data for Estonia and Latvia.
 124: Need Estonian and Latvian CTRs!
+125: Skulle vara najs med extra hög kart-upplösning runt flygplatser, med docking-charts.
  

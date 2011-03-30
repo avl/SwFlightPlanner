@@ -4,6 +4,7 @@ from parse import Item
 import re
 import fplan.lib.mapper as mapper
 from itertools import izip,chain
+from datetime import datetime
 
 def ee_parse_restrictions():
     spaces=[]
@@ -90,6 +91,19 @@ def ee_parse_restrictions():
                 space['freqs']=[]
                 spaces.append(space)
                 
+
+
+    spaces.append(dict(
+        name="EE TSA 1",
+        ceiling="UNL",
+        floor="5000 FT GND",
+        points=mapper.parse_coord_str(u""" 
+            594500N 0255000E – 594500N 0261800E – 
+            592100N 0265800E – 591200N 0261200E – 
+            591600N 0255400E – 594500N 0255000E"""),
+        type="TSA",
+        date=datetime(2011,03,25),
+        freqs=[]))
 
     return spaces
     

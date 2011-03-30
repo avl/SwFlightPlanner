@@ -40,6 +40,8 @@ def getrawurl(relpath,country="se"):
         durl="http://ais.fi"+fixed
     elif country=="ee":
         durl="http://aip.eans.ee"+fixed
+    elif country=="pl":
+        durl="http://localhost"+fixed #TODO; Add something reasonsable here
     elif country=="no":
         durl="http://www.ippc.no"+fixed
     else:
@@ -56,6 +58,8 @@ def getrawdata(relpath,country="se"):
     print "Got %d bytes"%(len(data),)
     return data
 
+def getcachename(relpath,datatype):
+    return os.path.join(tmppath,stripname(relpath)+datatype)
 def getdata(relpath,country="se"):
     nowdate=datetime.now()
     if not os.path.exists(tmppath):

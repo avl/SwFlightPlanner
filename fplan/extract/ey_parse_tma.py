@@ -7,7 +7,7 @@ from fplan.lib.poly_cleaner import clean_up_polygon
 def ey_parse_tma():
     out=[]
     
-    def emit(name,coordstr,limits,freqs,date=datetime(2011,03,25)):
+    def emit(name,coordstr,limits,freqs=[],date=datetime(2011,03,25)):
         ceiling,floor=limits.split("/")
         def compact(m):
             return "".join(m.groups())
@@ -15,6 +15,9 @@ def ey_parse_tma():
         coordstr=re.sub(ur"NM from KNA to ","NM from 545740N 0240519E to",coordstr)
         print coordstr
         tpoints=mapper.parse_coord_str(coordstr,context='lithuania')
+        f1=mapper.parse_elev(floor)
+        c1=mapper.parse_elev(ceiling)
+        assert c1>f1
         for points in clean_up_polygon(tpoints):
             out.append(
                 dict(
@@ -165,8 +168,87 @@ boundary to 54 07 04N 024 46 24E - 54 41 43N
          """
          )
         
+    
+    
+    #R:    
         
-        
+
+    emit(name=u"EY TSA 1 (KYVIŠKĖS)",
+         limits="4000 FT MSL/1700 FT MSL",
+         coordstr=u"""
+54 44 41N 025 31 23E - 54 43 09N 025 38 08E -
+54 37 59N 025 41 53E - 54 35 16N 025 32 09E -
+54 37 03N 025 26 03E - 54 44 41N 025 31 23E         
+         """
+         )
+
+    emit(name=u"EY TSA 2 (ALEKSOTAS)",
+         limits="4000 FT MSL/1200 FT MSL",
+         coordstr=u"""
+54 53 17N 023 45 47E - 54 53 45N 023 53 35E -
+54 52 51N 023 57 25E - 54 49 55N 023 56 51E -
+54 48 47N 023 54 15E - 54 48 42N 023 49 28E -
+54 49 50N 023 46 09E - 54 53 17N 023 45 47E
+         """                  
+         )
+    
+    emit(name=u"EY TSA 5 (MIL)",
+         limits="FL130/1500 FT MSL",
+         coordstr=u"""
+56 11 05N 023 54 13E - 55 41 43N 024 05 49E -
+55 29 20N 023 26 56E - 55 54 05N 022 46 11E -
+56 16 11N 023 03 46E - 56 11 05N 023 54 13E
+         """                  
+         )
+    
+    emit(name=u"EY TSA 6 (POCIŪNAI)",
+         limits="FL150/FL65",
+         coordstr=u"""
+54 41 04N 023 52 02E - 54 42 39N 024 00 43E -
+54 42 10N 024 13 28E - 54 37 23N 024 14 01E -
+54 35 34N 024 09 26E - 54 33 53N 023 55 11E -
+54 41 04N 023 52 02E
+         """                  
+         )
+    
+    emit(name=u"KARTENA",
+         limits="FL65/GND",
+         coordstr=u"""
+55 55 12N 021 28 17E - 56 00 00N 021 42 17E -
+56 00 00N 022 06 57E - 55 44 02N 022 09 05E -
+55 35 09N 021 48 06E - 55 43 06N 021 28 42E -
+55 55 12N 021 28 17E
+         """                  
+         )
+    
+    emit(name=u"PALUKNYS",
+         limits="FL65/GND",
+         coordstr=u"""
+54 29 14N 024 54 44E -54 27 57N 024 58 51E -
+54 16 51N 025 11 44E - 54 08 42N 024 45 26E -
+54 24 44N 024 35 38E - 54 29 14N 024 54 44E
+         """                  
+         )
+    
+    emit(name=u"ŠEDUVA",
+         limits="FL65/GND",
+         coordstr=u"""
+55 45 12N 023 46 22E -55 53 36N 023 52 54E -
+55 44 37N 024 10 30E - 55 33 23N 024 05 50E -
+55 38 34N 023 55 50E - 55 45 12N 023 46 22E
+         """                  
+         )
+    
+    if 0:      
+        emit(name=u"",
+         limits="",
+         coordstr=u"""
+
+         """                  
+         )
+    
+    
+    
         
     return out
 

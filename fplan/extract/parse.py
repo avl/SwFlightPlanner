@@ -41,6 +41,17 @@ class ItemStr(unicode):
             self.y1=min(item.y1,self.y1)
             self.x2=max(item.x2,self.x2)
             self.y2=max(item.y2,self.y2)
+    def expandbb(self,item_x1,item_y1,item_x2,item_y2):
+        if not hasattr(self,'x1'):
+            self.x1=item_x1
+            self.y1=item_y1
+            self.x2=item_x2
+            self.y2=item_y2
+        else:
+            self.x1=min(item_x1,self.x1)
+            self.y1=min(item_y1,self.y1)
+            self.x2=max(item_x2,self.x2)
+            self.y2=max(item_y2,self.y2)
 
 class Page(object):
     def __init__(self,items):
@@ -53,6 +64,7 @@ class Page(object):
     def get_by_regex(self,regex):
         out=[]
         for item in self.items:
+            #print "Candidate",item
             if re.match(regex,item.text):
                 out.append(item)
         return out
@@ -138,7 +150,7 @@ class Page(object):
                 if lastline:
                     delta=item.y1-lastline.y2
                     #print "delta",delta
-                    if linesize and delta>linesize*1.5 and len(out)>0:
+                    if (delta>1.5*(lastline.y2-lastline.y1) or (linesize and delta>linesize*1.5)) and len(out)>0:
                         out.append(ItemStr(""))
                         out[-1].x1=min(out[-2].x1,item.x1)
                         out[-1].x2=max(out[-2].x2,item.x2)

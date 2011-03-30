@@ -29,6 +29,7 @@ from fplan.extract.ev_parse_tma import ev_parse_tma,ev_parse_r,ev_parse_obst
 from fplan.extract.ev_parse_airfields import ev_parse_airfields
 from fplan.extract.ee_parse_restrictions import ee_parse_restrictions
 from fplan.extract.ey_parse_tma import ey_parse_tma
+from fplan.extract.ep_parse_restrict import ep_parse_tra
 
 import pickle
 import os
@@ -163,6 +164,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     samename.append(point)
                     if not already:
                         sig_points.append(point)
+                
+            if not is_devcomp() or True: #poland
+                airspaces.extend(ep_parse_tra())
             if not is_devcomp() or True: #lithuania
                 airspaces.extend(ey_parse_tma())
             if not is_devcomp() or True: #estonia

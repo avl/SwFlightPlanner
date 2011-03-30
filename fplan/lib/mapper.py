@@ -425,26 +425,29 @@ def uprint(*ss):
     print " ".join(out)
 def parse_dist(s):
     uprint("In:%s"%s)
-    val,nautical,meters=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m))\b\s*",s).groups()
+    val,nautical,meters,km=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m)|(km))\b\s*",s).groups()
     dval=float(val)
-    assert nautical!=None or meters!=None
+    assert nautical!=None or meters!=None or km!=None
     if meters:
         dval=dval/1852.0
+    elif km:
+        dval=dval/1.852
     return dval
 
 border_follower=None
 def parse_area_segment(seg,prev,next,context=None):
     global border_follower
     
-    #uprint("Parsing <%s>"%(seg,))
+    uprint("Parsing <%s>"%(seg,))
     for borderspec in [
-        ur"()(.*)/\s*further along the state border to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/\s*further\s*(?:clockwise)?\s*along the state border to the point\s*(\d+N\s*\d+E)\s*",
         ur"()()Along\s*the\s*common\s*\w+\s*/\s*\w+ (?:state\s*boundary|existing administrative boundary)\s*to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
-        ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)"
+        ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)",
+        ur"()(.*)/then along the boundary of\s*territorial waters to:?\s*(\d+N\s*\d+E)"
         ]:
-        border=re.match(borderspec,seg,re.IGNORECASE)
+        border=re.match(borderspec,seg,re.IGNORECASE|re.UNICODE)
         ##print "Input string: ",seg,border!=None
         #print "  Matching against: <%s>"%(borderspec,)
         if border:
@@ -502,6 +505,14 @@ def parse_area_segment(seg,prev,next,context=None):
             radius,centerstr,nextposraw=arc.groups()
             prevposraw=None
             direction="cw"
+    if not arc:
+        arc=re.match(ur".*from this point the arc of circle of\s*(\d+\.?\d*\s*km) radius centred at point:\s*(\d+N\s*\d+E)",seg)
+        if arc:
+            radius,centerstr=arc.groups()
+            nextposraw=None
+            prevposraw=None
+            direction="cw"
+            
         
     if not arc:
         arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
@@ -551,7 +562,7 @@ def parse_area_segment(seg,prev,next,context=None):
         #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
         segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
         return segseq
-    circ=re.match( ur".*A circle,?\s*(?:with)? radius ([\d\.]+\s*(?:NM|m))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on\s*(\d+N)\s*(\d+E).*",seg)
+    circ=re.match( ur".*circle,?\s*(?:with|of)?\s*radius\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on:?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
     if circ:
         radius,lat,lon=circ.groups()
         assert prev==None and next==None        
@@ -591,10 +602,11 @@ def parse_coord_str(s,filter_repeats=False,context=None):
     s=s.replace(u"–","-")
     s=s.replace(u"counter-clock","counterclock")
     s=s.replace(u"clock-wise","clockwise")
+    s=re.sub(ur"-\s*pisteeseen\s*/\s*to the point"," - ",s)
     itemstemp=s.split("-") #re.split(ur" - ",s.strip())
     items=[]
-    for item in itemstemp:
-        if re.match(ur"-?pisteeseen\s*/\s*to the point",item.strip()): continue
+    for item in itemstemp:            
+        if item.strip()=="": continue
         #item=item.replace(u"-pisteeseen /  to the point","-")
         items.append(item)
     out=[]

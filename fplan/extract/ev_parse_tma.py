@@ -5,6 +5,7 @@ import fplan.lib.mapper as mapper
 import re
 from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext 
+from datetime import datetime
 
 def ev_parse_obst():
     url="/EV-ENR-5.4-en-GB.html"
@@ -39,6 +40,18 @@ def ev_parse_r():
     out.extend(ev_parse_x(url="/EV-ENR-5.2-en-GB.html"))
     out.extend(ev_parse_x(url="/EV-ENR-5.3-en-GB.html"))
     out.extend(ev_parse_x(url="/EV-ENR-5.5-en-GB.html"))
+    out.append(dict(
+        name="EV TSA 3",
+        ceiling="UNL",
+        floor="2500 FT MSL",
+        points=mapper.parse_coord_str(""" 
+            562516N 0255014E - 562235N 0262848E - 555641N 0264151E - 554801N 0261838E - 555715N 0260245E - 560636N 0254632E - 562516N 0255014E 
+            """),
+        type="TSA",
+        date=datetime(2011,03,25),
+        freqs=[]))
+    
+    
     return out
 def ev_parse_x(url):
     out=[]

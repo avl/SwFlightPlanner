@@ -7,6 +7,41 @@ from itertools import izip
 
 def fi_parse_restrictions():
     spaces=[]
+    
+    p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_5_2_EN.pdf",lambda x: x,country='fi')
+    for pagenr in xrange(p.get_num_pages()):
+        page=p.parse_page_to_items(pagenr)
+        headings=list(page.get_by_regex(ur"EF T[RS]A \d+"))+[None]        
+        for tra,next in izip(headings,headings[1:]):
+            y1=tra.y2+0.1
+            if next:
+                y2=next.y1-0.1
+            else:
+                y2=100
+                
+            o=[]
+            for line in page.get_lines(page.get_partially_in_rect(
+                                            0,y1,100,y2)):
+                line=line.strip()
+                if line.endswith("clock-"):
+                    line=line.rstrip("-")
+                line=line.replace("to the point  -","to the point ")
+                print "Eval",line
+                if line=="":break
+                o.append(line)
+            print "AREA:<","".join(o),">"
+            kind,number=re.match("EF (T[RS]A) (\d+)",tra.text).groups()            
+            
+            spaces.append(dict(
+                name="EF %s %s"%(kind,number),
+                points=mapper.parse_coord_str("".join(o),context="finland"),
+                ceiling="UNL",
+                floor="GND",
+                type="TSA",
+                freqs=[]
+                    ))
+
+        
     p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_5_1_EN.pdf",lambda x: x,country='fi')
     for pagenr in xrange(p.get_num_pages()):        
         page=p.parse_page_to_items(pagenr)
