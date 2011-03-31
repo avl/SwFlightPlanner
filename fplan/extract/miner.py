@@ -40,12 +40,12 @@ def intersect_line(box,x0,y0,x1):
     for x in subs[:idx]:
         a.add(x)
     b=LTTextBoxHorizontal()
+    for x in subs[idx:]:
+        b.add(x)
     
     a.text = ''.join( obj.text for obj in a if isinstance(obj, LTTextLine) )
     b.text = ''.join( obj.text for obj in b if isinstance(obj, LTTextLine) )
     
-    for x in subs[idx:]:
-        b.add(x)
     return [a,b]
     
     
@@ -54,6 +54,7 @@ def cutup_textboxes(stream):
     boxes=[]
     for item in stream:
         if type(item)==LTTextBoxHorizontal:
+            #print "Encountered:",item.text
             boxes.append(item)
         
     while True:
@@ -68,14 +69,18 @@ def cutup_textboxes(stream):
             break
         except Continue:
             continue
-    return list(sorted(boxes,key=lambda box:-box.y0))
+    ret=list(sorted(boxes,key=lambda box:-box.y0))
+    #for i in ret:
+    #    print ": ",i
+    #sys.exit()
+    return ret
         
 def testparse():
     return parse('/home/anders/saker/avl_fplan_world/precious_aip/poland/Poland_EP_ENR_2_1_en.pdf')
 
-def parse(path,country):
+def parse(path,country,usecache=True):
     mined=fetchdata.getcachename(path,'mined')
-    if os.path.exists(mined):
+    if os.path.exists(mined) and usecache:
         cacheddate=fetchdata.get_filedate(mined)
         print "Cached version exists, date:",mined,cacheddate
         if datetime.now()-cacheddate<timedelta(0,3600):
@@ -84,7 +89,7 @@ def parse(path,country):
                 return pickle.load(open(mined))
             except Exception,cause:
                 print "Couldn't unpickle cached parsed version",cause
-        print "Re-parsing"
+    print "Re-parsing"
     
     data,date=getdata(path,country="se")    
     fp=StringIO(data)    
@@ -113,7 +118,7 @@ def parse(path,country):
         interpreter.process_page(page)
         
     # Set parameters for analysis.
-    laparams = LAParams()
+    laparams = LAParams()#line_margin=0.75
     # Create a PDF page aggregator object.
     device = PDFPageAggregator(rsrcmgr, laparams=laparams)
     interpreter = PDFPageInterpreter(rsrcmgr, device)
@@ -123,6 +128,7 @@ def parse(path,country):
     
     for idx,page in enumerate(doc.get_pages()):
         interpreter.process_page(page)
+        #if idx!=1: continue
         # receive the LTPage object for the page.
         layout = device.get_result()
         page_x1=page_y1=-1e30
@@ -140,7 +146,7 @@ def parse(path,country):
             x0,y0,x1,y1=inp
             a=norm(x0,y0)
             b=norm(x1,y1)
-            ret=a[0],a[1],b[0],b[1]
+            ret=a[0],b[1],b[0],a[1]
             #print "normalized(%s) -> %s"%(inp,ret)
             return ret
                     
@@ -154,10 +160,10 @@ def parse(path,country):
         #print list(layout)
         cutup=cutup_textboxes(layout)
         items=[]
-        for cut in cutup:
-            for box in cut:
-                item=Item(box.text,*normalize(box.x0,box.y0,box.x1,box.y1))
-                items.append(item)
+        for box in cutup:
+            #for box in cut:
+            item=Item(box.text,*normalize(box.x0,box.y0,box.x1,box.y1))
+            items.append(item)
         pages.append(Page(items))
     
     ret=(pages,date)

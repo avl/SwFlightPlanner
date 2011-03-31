@@ -8,6 +8,7 @@ from xml.etree import ElementTree
 import fetchdata
 import re
 from itertools import repeat
+from copy import copy
 
 class Item(object):
     def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None,bold=False,italic=False):
@@ -41,7 +42,7 @@ class ItemStr(unicode):
             self.y1=min(item.y1,self.y1)
             self.x2=max(item.x2,self.x2)
             self.y2=max(item.y2,self.y2)
-    def expandbb(self,item_x1,item_y1,item_x2,item_y2):
+    def expandbb2(self,item_x1,item_y1,item_x2,item_y2):
         if not hasattr(self,'x1'):
             self.x1=item_x1
             self.y1=item_y1
@@ -61,21 +62,25 @@ class Page(object):
         for item in self.items:
             cnt+=item.text.count(str)
         return cnt
-    def get_by_regex(self,regex):
+    def get_by_regex(self,regex,flags=0):
         out=[]
         for item in self.items:
-            #print "Candidate",item
-            if re.match(regex,item.text):
+            if re.match(regex,item.text,flags):
                 out.append(item)
         return out
-    def get_by_regex_in_rect(self,regex,x1,y1,x2,y2):
+    def get_by_regex_in_rect(self,regex,x1,y1,x2,y2,flags=0):
         out=[]
+        #print "Question:",x1,y1,x2,y2
         for item in self.items:
+            ##if item.text.count("FREQUENCY"):
+            #    print "- Candidate:",item
             if item.x2<x1: continue;
             if item.x1>x2: continue;
             if item.y2<y1: continue;
             if item.y1>y2: continue;
-            if re.match(regex,item.text):
+            #if item.text.count("FREQUENCY"):
+            #    print "*  Candidate:",item 
+            if re.match(regex,item.text,flags):
                 out.append(item)
         return out
     def get_all_items(self):
@@ -115,6 +120,31 @@ class Page(object):
         if ysort:
             out.sort(key=lambda x:x.y1)        
         return out
+    
+    def get_lines2(self,items,fudge=0.40,meta=None):
+        """
+        Return a number of lines from a set of input text items,
+        each possibly containing its own newline-characters.
+        side-effect:Strips newlines out of input text-items
+        """
+        outitems=[]
+        for item in items:
+            item=copy(item)
+            item.text=item.text.strip()
+            if item.text.count("\n"):
+                stride=(item.y2-item.y1)/float(item.text.count("\n"))
+                assert stride>0.01
+                cury=item.y1
+                for line in item.text.split("\n"):
+                    tmp=copy(item)
+                    tmp.text=line
+                    tmp.y1=cury
+                    tmp.y2=cury+stride*0.99
+                    cury+=stride
+                    outitems.append(tmp)                
+            else:
+                outitems.append(item)
+        return self.get_lines(outitems,fudge=fudge,meta=meta)
     def get_lines(self,items,fudge=0.40,meta=None):
         si=sorted(items,key=lambda x:x.x1)
         si=sorted(si,key=lambda x:x.y1)
