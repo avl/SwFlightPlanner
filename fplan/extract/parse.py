@@ -70,15 +70,15 @@ class Page(object):
         return out
     def get_by_regex_in_rect(self,regex,x1,y1,x2,y2,flags=0):
         out=[]
-        #print "Question:",x1,y1,x2,y2
+        #print "Question:",x1,y1,x2,y2,repr(regex)
         for item in self.items:
-            ##if item.text.count("FREQUENCY"):
+            #if item.text.count("AD"):
             #    print "- Candidate:",item
             if item.x2<x1: continue;
             if item.x1>x2: continue;
             if item.y2<y1: continue;
             if item.y1>y2: continue;
-            #if item.text.count("FREQUENCY"):
+            #if item.text.count("AD"):
             #    print "*  Candidate:",item 
             if re.match(regex,item.text,flags):
                 out.append(item)

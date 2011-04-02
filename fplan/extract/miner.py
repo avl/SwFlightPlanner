@@ -1,7 +1,7 @@
 from pdfminer.pdfparser import PDFParser, PDFDocument
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfdevice import PDFDevice
-from pdfminer.layout import LAParams,LTItem,LTRect,LTTextLineHorizontal,LTTextBoxHorizontal,LTTextLine,LTPolygon
+from pdfminer.layout import LAParams,LTItem,LTRect,LTTextLineHorizontal,LTTextBoxHorizontal,LTTextLine,LTPolygon,LTFigure,LTLine
 from pdfminer.converter import PDFPageAggregator
 from parse import ItemStr,Page,Item
 from StringIO import StringIO
@@ -21,6 +21,11 @@ def get_vertical_lines(stream):
             continue
         if type(item)==LTPolygon:
             #TODO: SUpport this?
+            continue
+        if type(item)==LTFigure:
+            #TODO: SUpport this?
+            continue
+        if type(item)==LTLine:
             continue
         raise Exception("Unknown type:%s"%(item,))
         
@@ -78,12 +83,12 @@ def cutup_textboxes(stream):
 def testparse():
     return parse('/home/anders/saker/avl_fplan_world/precious_aip/poland/Poland_EP_ENR_2_1_en.pdf')
 
-def parse(path,country,usecache=True):
+def parse(path,country,maxcacheage=7200,usecache=True):
     mined=fetchdata.getcachename(path,'mined')
     if os.path.exists(mined) and usecache:
         cacheddate=fetchdata.get_filedate(mined)
         print "Cached version exists, date:",mined,cacheddate
-        if datetime.now()-cacheddate<timedelta(0,3600):
+        if datetime.now()-cacheddate<timedelta(0,60000):
             print "Using cache"
             try:
                 return pickle.load(open(mined))
@@ -91,7 +96,7 @@ def parse(path,country,usecache=True):
                 print "Couldn't unpickle cached parsed version",cause
     print "Re-parsing"
     
-    data,date=getdata(path,country="se")    
+    data,date=getdata(path,country=country,maxcacheage=maxcacheage)    
     fp=StringIO(data)    
     # Open a PDF file.
     # fp = open(path, 'rb')
@@ -161,8 +166,13 @@ def parse(path,country,usecache=True):
         cutup=cutup_textboxes(layout)
         items=[]
         for box in cutup:
-            #for box in cut:
+            subs=[]
+            for sub in box:
+                x=Item(sub.text,*normalize(sub.x0,sub.y0,sub.x1,sub.y1))
+                x.subs='issub'
+                subs.append(x)
             item=Item(box.text,*normalize(box.x0,box.y0,box.x1,box.y1))
+            item.subs=subs
             items.append(item)
         pages.append(Page(items))
     

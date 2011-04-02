@@ -31,7 +31,7 @@ def update_unithread(zoomlevel=13):
         newsize=os.stat(newpath)[stat.ST_SIZE]
             
             
-        if newsize<oldsize*0.7:
+        if newsize<oldsize*0.5:
             raise Exception("Infeasible size of newly generated map data: %s. Size = %d, old size: %d"%(newpath,newsize,oldsize))
         print "Move %s (%d) -> %s (%d)"%(newpath,newsize,destpath,oldsize)
         if os.system("mv -v %s %s"%(newpath,destpath)):

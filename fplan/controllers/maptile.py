@@ -41,7 +41,8 @@ def format_freqs(freqitems):
             " ".join(freqout)))
     
     return "".join(["<br/>&nbsp;&nbsp;%s"%(o,) for o in out])
-def parse_elev_for_sort_purposes(elev):    
+def parse_elev_for_sort_purposes(elev):
+    #print "elev",elev    
     elev=elev.lower()
     if elev=="gnd":
         return 0
@@ -265,7 +266,7 @@ class MaptileController(BaseController):
                     ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,1))
                     ctx.stroke()
                     
-                ctx.set_source(cairo.SolidPattern(1.0,0.7,0.7,1.0))                            
+                ctx.set_source(cairo.SolidPattern(0.0,0.0,0.0,1.0))                            
                 for idx,w in enumerate(wp):
                     ctx.move_to(*w)
                     ctx.show_text("#%d"%(idx,))

@@ -435,12 +435,30 @@ def parse_dist(s):
     return dval
 
 border_follower=None
-def parse_area_segment(seg,prev,next,context=None):
+def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     global border_follower
     
-    uprint("Parsing <%s>"%(seg,))
+    #uprint("Parsing <%s>"%(seg,))
+    
+    for firspec in [
+        ur"(.*)/then\s*(?:northbound)?\s*along\s*the\s*(?:\w{4})?\s*FIR\s*boundary\s*to\s*the\s*point\s*(\d+N\s*\d+E)"
+        ]:
+        firm=re.match(firspec,seg,re.IGNORECASE|re.UNICODE)
+        if firm:
+            #print "  * MATCH!"
+            if not border_follower:
+                from fplan.extract.border_follower import follow_along
+                border_follower=follow_along
+            assert fir_context!=None
+            ignored,next=firm.groups()
+            assert not re.findall(ur"\d+[NS]\s*\d+[EW]", ignored)
+            prevc=parsecoord(prev)
+            nextc=parsecoord(next)
+                        
+            return ["%f,%f"%(lat,lon) for lat,lon in border_follower(fir_context,from_str(prevc),from_str(nextc))]
+    
     for borderspec in [
-        ur"()(.*)/\s*further\s*(?:clockwise)?\s*along the state border to the point\s*(\d+N\s*\d+E)\s*",
+        ur"()(.*)/\s*further\s*(?:clockwise)?\s*along the state border to the point\s*([\d.]+N\s*[\d.]+E)\s*",
         ur"()()Along\s*the\s*common\s*\w+\s*/\s*\w+ (?:state\s*boundary|existing administrative boundary)\s*to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
@@ -460,7 +478,12 @@ def parse_area_segment(seg,prev,next,context=None):
             if prevcand: prev=prevcand
             prevc=parsecoord(prev)
             nextc=parsecoord(next)
-            return ["%f,%f"%(lat,lon) for lat,lon in border_follower(context,from_str(prevc),from_str(nextc))]
+            
+            longwayround=False
+            if ignored.count("<hack_longway_around_border>"):
+                longwayround=True
+            
+            return ["%f,%f"%(lat,lon) for lat,lon in border_follower(context,from_str(prevc),from_str(nextc),longwayround=longwayround)]
         else:
             pass#print "  -no match"
         
@@ -506,7 +529,9 @@ def parse_area_segment(seg,prev,next,context=None):
             prevposraw=None
             direction="cw"
     if not arc:
-        arc=re.match(ur".*from this point the arc of circle of\s*(\d+\.?\d*\s*km) radius centred at point:\s*(\d+N\s*\d+E)",seg)
+        def s(x):
+            return x.replace(" ","\\s*")
+        arc=re.match(s(ur".*?(?:/from this point the|/then) arc (?:of circle)? ?of (\d+\.?\d*\s*km) radius centred at points?:? (\d+N \d+E)"),seg)
         if arc:
             radius,centerstr=arc.groups()
             nextposraw=None
@@ -582,7 +607,7 @@ def parse_area_segment(seg,prev,next,context=None):
         for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg,re.UNICODE):
             #for lat,lon in matches:        
             c.append(parse_coords(lat,lon))
-            print "parsed",seg,"as latlon"
+            #print "parsed",seg,"as latlon"
         #c=parsecoord(seg)
         return c
     except MapperBadFormat:
@@ -593,7 +618,7 @@ def parse_area_segment(seg,prev,next,context=None):
     uprint("Unparsed area segment: %s"%(seg,))
     return []
 
-def parse_coord_str(s,filter_repeats=False,context=None):
+def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
     #borderspecs=[
     #    ]
     #uprint("Pre?")
@@ -627,7 +652,7 @@ def parse_coord_str(s,filter_repeats=False,context=None):
         #        pstr=pstr.replace(spec,"")
         #        break   
         if pstr.strip()=="": continue
-        pd=parse_area_segment(pstr,prev,next,context=context)
+        pd=parse_area_segment(pstr,prev,next,context=context,fir_context=fir_context)
         #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
         out.extend(pd)
     if len(out)<3:

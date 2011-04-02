@@ -30,6 +30,7 @@ from fplan.extract.ev_parse_airfields import ev_parse_airfields
 from fplan.extract.ee_parse_restrictions import ee_parse_restrictions
 from fplan.extract.ey_parse_tma import ey_parse_tma
 from fplan.extract.ep_parse_restrict import ep_parse_tra
+from fplan.extract.ep_parse_airfields import ep_parse_airfields
 
 import pickle
 import os
@@ -166,13 +167,16 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         sig_points.append(point)
                 
             if not is_devcomp() or True: #poland
+                ads,spaces=ep_parse_airfields()
+                airfields.extend(ads)
+                airspaces.extend(spaces)
                 airspaces.extend(ep_parse_tra())
-            if not is_devcomp() or True: #lithuania
+            if not is_devcomp() or 0: #lithuania
                 airspaces.extend(ey_parse_tma())
-            if not is_devcomp() or True: #estonia
+            if not is_devcomp() or 0: #estonia
                 airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ee_parse_tma())
-            if not is_devcomp() or True: #latvia
+            if not is_devcomp() or 0: #latvia
                 #airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ev_parse_tma())
                 airspaces.extend(ev_parse_r())
@@ -181,11 +185,11 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            if not is_devcomp() or True: #denmark
+            if not is_devcomp() or 0: #denmark
                 denmark=parse_denmark()
                 airspaces.extend(denmark['airspace'])
                 airfields.extend(denmark['airfields'])
-            if not is_devcomp() or True: #finland
+            if not is_devcomp() or 0: #finland
                 airspaces.extend(fi_parse_tma())
                 sig_points_extend(fi_parse_sigpoints())
                 obstacles.extend(fi_parse_obstacles())
@@ -195,7 +199,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(fi_parse_restrictions())
                 airfields.extend(fi_airfields)
                 airfields.extend(fi_parse_small_airfields())
-            if not is_devcomp() or True: #sweden
+            if not is_devcomp() or 0: #sweden
                 se_airfields,se_points=extract_airfields()
                 sig_points_extend(se_points)
                 airfields.extend(se_airfields)

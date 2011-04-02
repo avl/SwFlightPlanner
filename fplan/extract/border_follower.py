@@ -92,16 +92,19 @@ def circle(part,startpos,idx1,idx2,endpos,dir):
         
     return out,totdist
     
-def follow_along(country,start,end):
+def follow_along(context,start,end,longwayround=False):
     out=[]
-    for merc in follow_along13(country,
+    for merc in follow_along13(context,
             mapper.latlon2merc(start,13),
-            mapper.latlon2merc(end,13)):
+            mapper.latlon2merc(end,13),longwayround=longwayround):
         out.append( mapper.merc2latlon(merc,13) )
     return out
 
-def follow_along13(country,start,end):
-    borders=get_borders(country)
+def follow_along13(context,start,end,longwayround=False):
+    if type(context)==list:
+        borders=[[mapper.latlon2merc(mapper.from_str(x),13) for x in points] for points in context]
+    else:
+        borders=get_borders(context)
     print "start,end",start,end
     part1,idx1,pos1=find_closest(borders,start)
     part2,idx2,pos2=find_closest(borders,end)
@@ -114,9 +117,15 @@ def follow_along13(country,start,end):
     res1,dist1=circle(borders[part],pos1,idx1,idx2,pos2,-1)
     res2,dist2=circle(borders[part],pos1,idx1,idx2,pos2,1)
     if dist1<dist2:
-        ret=res1
+        if longwayround:
+            ret=res2
+        else:
+            ret=res1
     else:
-        ret=res2        
+        if longwayround:
+            ret=res1
+        else:
+            ret=res2        
     return [start]+ret+[end]
 
 if __name__=='__main__':

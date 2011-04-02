@@ -4,6 +4,7 @@ from datetime import datetime,timedelta
 import socket
 host=socket.gethostname()
 from urllib2 import urlopen
+import mechanize
 
 dev_computer=os.getenv('SWFP_DEVCOMP')
 tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
@@ -44,23 +45,60 @@ def getrawurl(relpath,country="se"):
         durl="http://localhost"+fixed #TODO; Add something reasonsable here
     elif country=="no":
         durl="http://www.ippc.no"+fixed
+    elif country=="ek":
+        durl="http://www.slv.dk"+fixed
+        print "Fetching:",durl
+    elif country=="ep":        
+        durl="http://www.ais.pansa.pl"+fixed
     else:
         raise Exception("Unknown country:"+country)
     return durl
 
+
+mbrowse=None
+def polish_download(url):
+    global mbrowse    
+    def mopen(url):
+        print "Actually downloading data from polish AIP server"
+        data=mbrowse.open_novisit(url).read()
+        #print data
+        if len(data)<1000:
+            print data
+            raise Exception("Suspiciously small data file (%d) bytes - is this right?"%(len(data),))
+        return data
+    if mbrowse:
+        try:
+            return mopen(url)
+        except Exception,cause:
+            print cause
+            print "Trying a new browser"
+    mbrowse=mechanize.Browser()
+    print "Logging on to Polish AIP server"
+    mbrowse.addheaders = [('user-agent', '   Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.3) Gecko/20100423 Ubuntu/10.04 (lucid) Firefox/3.6.3'),
+                     ("Accept-Language", "en-us,en")]    
+    mbrowse.open("http://www.ais.pansa.pl/aip/login.php")
+    mbrowse.select_form(nr=0)
+    username,password=open("polish_aip_login.txt").read().split(",")
+    mbrowse['login']=username
+    mbrowse['password']=password
+    mbrowse.submit()
+    return mopen(url)
 
 
 
 def getrawdata(relpath,country="se"):
     durl=getrawurl(relpath,country)
     print "Downloading url: "+durl
-    data=urlopen(durl).read()
+    if country=='ep':
+        data=polish_download(durl)
+    else:
+        data=urlopen(durl).read()
     print "Got %d bytes"%(len(data),)
     return data
 
 def getcachename(relpath,datatype):
     return os.path.join(tmppath,stripname(relpath)+datatype)
-def getdata(relpath,country="se"):
+def getdata(relpath,country="se",maxcacheage=7200):
     nowdate=datetime.now()
     if not os.path.exists(tmppath):
         os.makedirs(tmppath)
@@ -71,7 +109,6 @@ def getdata(relpath,country="se"):
         print "cachedate:",cacheddate,"nowdate:",nowdate
         age=nowdate-cacheddate
         print "cache-age:",age
-        maxcacheage=7200
         if host==dev_computer:
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
@@ -81,7 +118,7 @@ def getdata(relpath,country="se"):
     open(cachename,"w").write(data)
     return data,nowdate
     
-def getxml(relpath,country="se"):
+def getxml(relpath,country="se",maxcacheage=7200):
     print "getxml:"+relpath
     assert relpath.startswith("/")
     if not os.path.exists(tmppath):
@@ -95,7 +132,7 @@ def getxml(relpath,country="se"):
         print "cachedat:",cacheddate,"nowdate:",nowdate
         age=nowdate-cacheddate
         print "cache-age:",age
-        maxcacheage=7200
+        
         if host==dev_computer:
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
