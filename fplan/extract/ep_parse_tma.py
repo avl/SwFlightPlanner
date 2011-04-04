@@ -8,9 +8,12 @@ import md5
 def fixup(s):
     def fixer(m):
         return "".join(m.groups())
-    return re.sub(ur"(\d{2,3})°(\d{2})[’'](\d{2}\.?\d*)[”\"']{1,2}([NSEW])",fixer,s)
+    return re.sub(ur"(\d{2,3})°(\d{2})[’'](\d{2}\.?\d*)[”\"'’]{1,2}([NSEW])",fixer,s)
     
 def parsealt(astr):
+    astr=astr.strip()
+    if astr=="GND":
+        return "GND"
     fl,meter,feet=re.match(ur"(?:FL\s*(\d+)\s*C?|(?:(\d+)\s*m)?\s*(?:\(?\s*(\d+)\s*ft\s*\)?)?\s*(?:AMSL)?)",astr).groups()
     if fl:
         return "FL%03d"%(int(fl))
@@ -81,7 +84,9 @@ def ep_parse_tma():
                          name="WARSZAWA FIR",
                          floor="GND",
                          ceiling="-",
-                         freqs=[]
+                         freqs=[],
+                         type="FIR",
+                         date=date
                          ))
                 continue
 
@@ -93,6 +98,7 @@ def ep_parse_tma():
             else:
                 lines=[]
                 for s in reversed(page.get_lines2(areas)):
+                    if s.y1>=desig.y1: break
                     if re.match("\d+ \w{3} 2[01]\d{2}",s):
                         break
                     if re.match(ur"\s*AIP\s*POLAND\s*",s):
@@ -101,31 +107,31 @@ def ep_parse_tma():
                     if s.count("Responsibility boundary within SECTOR"):
                         lines=[] #not real area name
                         break
-                    m=re.match("\d+\.?\d*\s*([\w\s]+)\s*$",s,re.UNICODE)
+                    m=re.match(".*\d+\.?\d*\s*([\w\s()]+)\s*$",s,re.UNICODE)
                     if m:
-                        lines.append(m.groups()[0])
+                        print "matched name",s,"as: <%s>"%(m.groups())
+                        lines=[m.groups()[0]]
                         break
                     lines.append(s.strip())
                     
                 if len(lines)==0:
                     pass
-                    print "Continuation of area:",area
+                    #print "Continuation of area:",area
                 else:
                     area=" ".join(lines)
-                    #print "areastr:",area 
-            print "Parsing area",area            
+                    print "areastr:",area 
+            
+            print "Parsing area\n-------------------------------------------------\n\n",area            
             uwagis=page.get_by_regex_in_rect(ur".*UWAGI/REMARKS.*",
                             0,desig.y2+1,100,100,re.DOTALL)
+            y2=100
             if len(uwagis):
-                y2=uwagis[0].y1-0.1
-                print "uwagi-start",y2
-            else:
-                if next:
-                    y2=next.y1
-                    print "next.y1",next.y1
-                else:
-                    y2=100
-                    print "end of page",100
+                #print "Uwagi y1:",uwagis[0].y1
+                y2=min(uwagis[0].y1-0.1,y2)
+            if next:
+                y2=min(next.y1,y2)
+                #print "next.y1",next.y1
+            #print "End of desig",y2
             #print desig
             units=page.get_by_regex_in_rect(ur".*UNIT PROVIDING.*",
                                 desig.x2,desig.y1,100,desig.y2,re.DOTALL)
@@ -155,22 +161,64 @@ def ep_parse_tma():
             #last_curfreq=None
             #out=[]
             
+            if re.match(ur".*ATS\s*SERVICES\s*DELEGATION.*",area):
+                break
+            
             raws=[]
+            found_x1=None
             for sub in desigs:
+                #print "\n\n-> y2",y2," cur sub:",sub.y1
+                if sub.y1>=y2:
+                    break
                 wholerow=page.get_lines2(page.get_partially_in_rect(0,sub.y1+0.25,100,sub.y2-0.25))
                 wholerowstr=" ".join(wholerow)
-                print "Parse:<%s>"%(sub,)
+                #print "Parse:<%s>"%(wholerowstr,)
                 if re.match(ur".*\d+\.\d+\s+[\w\s*]+CONTROL\s*AREA\s*$",wholerowstr,re.UNICODE):
-                    continue
+                    break
+                if re.match(ur".*\d+\s+ATS\s*SERVICES\s*DELEGATION.*",wholerowstr,re.UNICODE):
+                    break
+                
                 if wholerowstr.count("UWAGI/REMARKS"):
                     continue
                 if wholerowstr.count("1) Advisory service is not provided."):
                     continue
                 
+                if found_x1==None:
+                    found_x1=sub.x1
+                    #print "First x1:",found_x1
+                else:
+                    #print "Next x1",sub.x1
+                    if abs(found_x1-sub.x1)>1:
+                        #print "Too bigg diff."
+                        break
+                
                 curvert=page.get_lines2(page.get_partially_in_rect(vertlim.x1+1.0,sub.y1+0.25,vertlim.x2-1,sub.y2-0.25))
                 curunit=page.get_lines2(page.get_partially_in_rect(unit.x1+0.5,sub.y1+0.25,unit.x2-0.5,sub.y2-0.25))
                 curfreq=page.get_lines2(page.get_partially_in_rect(freq.x1+0.5,sub.y1+0.25,freq.x2-0.5,sub.y2-0.25))
-                
+                freqs=[]
+                if len(curfreq):
+                    tail=curfreq[-1]
+                    assert re.match(ur"(?:PL|EN|,|\s)+",tail)
+                    freqlines=[]
+                    for freqstr in curfreq[:-1]:
+                        freqline=[float(x.replace(",",".")) for x in re.findall(ur"\d{3}[\.,]\d{3}",freqstr)]
+                        if freqline:
+                            freqlines.append(freqline)
+                    for tnr,freqline in enumerate(freqlines):
+                        unit=curunit[tnr]
+                        splat=unit.split(None,2)
+                        serviceshort=splat[0]
+                        name=splat[1].capitalize()
+                        service=dict(
+                            FIS="Information",
+                            TWR="Tower",
+                            APP="Approach",
+                            ACC="Control")[serviceshort]
+                        for tfreq in freqline:
+                            freqs.append((name+' '+service,tfreq))
+                    
+                    print freqs
+                    
                 desigtext=sub.text
                 desigtext=fixup(desigtext).strip()
                 if desigtext=="": continue
@@ -190,15 +238,16 @@ def ep_parse_tma():
                 #   area,desigtext.replace("\n","\\n"),curunit,curfreq,curvert)
                 coords=[]
                 lines=desigtext.split("\n")
-                subname=lines[0].strip()
+                subname=None
                 foundheader=False
                 if len(curvert)==0:
                     #this is continuation of a previous item
                     foundheader=True
                 if area.count("RMZ"):
                     foundheader=True #it doesn't have a header
-                for line in lines[1:]:
-                    print "fh:",foundheader,"Parsed single line:",repr(line)
+                #print "Foundheader,",foundheader
+                for line in lines:
+                    #print "fh:",foundheader,"Parsed single line:",repr(line)
                     line=line.strip()
                     if not line: continue
                     if line.endswith("points:"):
@@ -208,12 +257,16 @@ def ep_parse_tma():
                         if line.endswith("E"):
                             line+=" - "
                         coords.append(line)
+                    else:
+                        if line.count("SEKTOR"):
+                            subname=lines[0].strip()
+                        
                 raw=" ".join(coords)
                 def s(x):
                     return x.replace(" ",ur"\s*")
                 #raw=re.sub(s(ur"Linia łącząca następujące punkty : / The line joining the following points :? "),               #           "",raw)
                 
-                print "raw area:<%s>"%(repr(raw),)
+                #print "raw area:<%s>"%(repr(raw),)
                 
                 
                 points=mapper.parse_coord_str(raw,context="poland",fir_context=fir_context)
@@ -227,14 +280,23 @@ def ep_parse_tma():
                     #print "Raw curvert:",repr(curvert)
                     ceiling,floor=[parsealt(x.strip()) for x in curvert]
                     
-                    name=area+" "+subname
+                    if subname:
+                        name=(area+" "+subname).strip()
+                    else:
+                        name=area.strip()
+                    name=name.replace(u"SEKTOR/SECTOR","SECTOR")
+                    name=name.replace(u'“','')
+                    name=name.replace(u'”','')
+                    name=name.replace(u'"','')
                     spaces.append(                            
                         dict(
                              points=points,
+                             date=date,
+                             type="TMA",
                              name=name,
                              floor=floor,
                              ceiling=ceiling,
-                             freqs=[]
+                             freqs=freqs
                              ))
                 #last_curfreq=curfreq
                 #delta=0
@@ -243,7 +305,7 @@ def ep_parse_tma():
                 #assert (len(curvert)==0) == (len(curunit)==0) == (len(curfreq)==0)
                 #if len(curvert)==0:
                 #    if delta<2:
-                #        out[-1][0].text=out[-1][0].text.strip()+"\n"+desig.text.strip()
+    return spaces#        out[-1][0].text=out[-1][0].text.strip()+"\n"+desig.text.strip()
                 #        out[-1][0].y2=desig.y2
                 
                     
@@ -260,6 +322,11 @@ def ep_parse_tma():
     
     
 if __name__=='__main__':
-    ep_parse_tma()
+    for tma in ep_parse_tma():
+        print "Name: ",tma['name']
+        print "  points:",len(tma['points'])
+        print "  floor: ",tma['floor']
+        print "  ceiling: ",tma['ceiling']
+        print "  freqs: ",tma['freqs']
     
     

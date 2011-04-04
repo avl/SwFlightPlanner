@@ -64,7 +64,10 @@ class Page(object):
         return cnt
     def get_by_regex(self,regex,flags=0):
         out=[]
+        #print "get_by_regex",len(self.items)
         for item in self.items:
+            #if item.text.count("EEKA"):
+            #print "cand",item.text
             if re.match(regex,item.text,flags):
                 out.append(item)
         return out

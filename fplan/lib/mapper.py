@@ -463,7 +463,8 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
         ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
         ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)",
-        ur"()(.*)/then along the boundary of\s*territorial waters to:?\s*(\d+N\s*\d+E)"
+        ur"()(.*)/then along the boundary of\s*territorial waters to:?\s*(\d+N\s*\d+E)",
+        ur"()(.*)\s*/\s*then along the \w+/\w+ state boundary to\s*(\d+N\s*\d+E)",
         ]:
         border=re.match(borderspec,seg,re.IGNORECASE|re.UNICODE)
         ##print "Input string: ",seg,border!=None
@@ -587,7 +588,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
         segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
         return segseq
-    circ=re.match( ur".*circle,?\s*(?:with|of)?\s*radius\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*on:?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
+    circ=re.match( ur".*circle,?\s*(?:with|of)?\s*radius\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
     if circ:
         radius,lat,lon=circ.groups()
         assert prev==None and next==None        

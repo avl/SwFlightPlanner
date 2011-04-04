@@ -32,6 +32,7 @@ def ep_parse_airfield(icao):
                            country='ep',usecache=True)
     print "parsing ",icao,date
     points=None
+    ctrname=None
     freqs=[]
     for nr,page in enumerate(pages):        
         if nr==0:
@@ -137,16 +138,17 @@ def ep_parse_airfield(icao):
                 print "entity,lang",repr((entity,lang))
                 if lang=="PL": continue
                 assert lang=="EN"
-                name,freq=re.match(ur"(.*?)\s*\((\d{3}\.\d{3})\s*MHz\)",entity).groups()
+                servname,freq=re.match(ur"(.*?)\s*\((\d{3}\.\d{3})\s*MHz\)",entity).groups()
                 if freq=="121.500":
                     continue
-                freqs.append((name,float(freq)))
+                freqs.append((servname,float(freq)))
                 
                 
             
             for desig in page.get_partially_in_rect(
                             0,desighdr.y2+0.5,desighdr.x2,enditem_y1-1):
                 print "desig:",repr(desig.subs)
+                
                 for sub in desig.subs:
                     if last:
                         delta=sub.y1-last.y2
@@ -159,7 +161,7 @@ def ep_parse_airfield(icao):
                         if text.strip()=="1":
                             continue
                         if not seenreal and text.endswith("CTR"):
-                            ctrname=text
+                            ctrname=text.split("/")[-1].strip()
                             continue
                         if not seenreal and re.match(ur".*The\s*line\s*joining.*",text):
                             continue
@@ -179,10 +181,10 @@ def ep_parse_airfield(icao):
             points=mapper.parse_coord_str(coordstr)
             assert ceiling
             assert floor
-            raise "fix name, name is wrong, name variable is multi-used"
+            assert ctrname
             spaces.append(
                 dict(
-                     name=name,
+                     name=ctrname,
                      points=points,
                      type="CTR",
                      ceiling=ceiling,

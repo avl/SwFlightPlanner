@@ -88,7 +88,7 @@ def parse(path,country,maxcacheage=7200,usecache=True):
     if os.path.exists(mined) and usecache:
         cacheddate=fetchdata.get_filedate(mined)
         print "Cached version exists, date:",mined,cacheddate
-        if datetime.now()-cacheddate<timedelta(0,60000):
+        if datetime.now()-cacheddate<timedelta(0,86400*3):
             print "Using cache"
             try:
                 return pickle.load(open(mined))

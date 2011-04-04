@@ -137,6 +137,17 @@ def parse_page(parser,pagenr):
             type_="CTA"
         else:
             type_="TMA"
+            
+        if re.match(ur"\s*TALLINN\s*TMA\s*1\s*",name):
+            out.append(dict(
+                name="TALLIN TMA 2",
+                floor='1700 ft MSL',
+                ceiling='3500 ft MSL',
+                freqs=freqs,
+                type='TMA',
+                points=mapper.parse_coord_str("""                
+                A circle with radius 20 NM centred on 592448N 0244957E
+                """)))
         
         out.append(dict(
             floor=floor,
