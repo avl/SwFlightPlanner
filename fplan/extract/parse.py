@@ -103,7 +103,7 @@ class Page(object):
         if ysort:
             out.sort(key=lambda x:x.y1)        
         return out
-    def get_lines(self,items,fudge=0.25,meta=None):
+    def get_lines(self,items,fudge=0.25,meta=None,order_fudge=5):
         si=sorted(items,key=lambda x:x.x1)
         si=sorted(si,key=lambda x:x.y1)
         last=None
@@ -111,7 +111,7 @@ class Page(object):
         linesize=None
         
         def is_right_order(old,item):
-            if old.x2>item.x1+5.0:
+            if old.x2>item.x1+order_fudge:
                 print "Wrong order: %s - %s"%((old.x1,old.y1,old.x2,old.y2,old),item)
                 return False
             return True
