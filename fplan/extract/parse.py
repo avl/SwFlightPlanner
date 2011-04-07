@@ -148,7 +148,8 @@ class Page(object):
             else:
                 outitems.append(item)
         return self.get_lines(outitems,fudge=fudge,meta=meta)
-    def get_lines(self,items,fudge=0.40,meta=None):
+
+    def get_lines(self,items,fudge=0.25,meta=None,order_fudge=5):
         si=sorted(items,key=lambda x:x.x1)
         si=sorted(si,key=lambda x:x.y1)
         if len(si)<=0:
@@ -215,64 +216,6 @@ class Page(object):
         linesize=None
         
         
-        
-"""        
-        def is_right_order(old,item):
-            if old.x2>item.x1+7.0:
-                print "Wrong order: %s - %s"%((old.x1,old.y1,old.x2,old.y2,old),item)
-                return False
-            return True
-            #assert old.x2<item.x1
-        for item in si:
-            if last==None:
-                out.append(ItemStr(item.text.strip()))
-                out[-1].expandbb(item)
-                last=item
-                continue
-            ystep=abs(last.y1-item.y1)
-            print "\n**Last: %s, cur: %s"%(last,item)
-            old=out[-1]
-            same_line=True
-            if linesize==None:
-                if ystep<fudge:
-                    same_line=True
-                else:
-                    same_line=False
-            else:
-                ldiff=abs(ystep-linesize)
-                print "New linesize:",ystep,"linesize:",linesize
-                print "ldiff:",ldiff,"linesize:",ystep
-                if ldiff<fudge:
-                    same_line=True
-            if same_line and not is_right_order(old,item):
-                if old.x2<item.x1+1.0:
-                    #TODO: MAke clearer: First calculate lines locations, then assign content to them!
-                    
-            elif same_line and is_right_order(old,item):
-                repcnt=max(int(item.x1-old.x2),1)  
-                expandedspaces="".join(repeat(" ",repcnt))
-                out[-1]=ItemStr(out[-1]+expandedspaces+item.text.strip())
-                out[-1].expandbb(old)
-                out[-1].expandbb(item)
-            else:
-                print "Not same line: ",last,item
-                if linesize==None:
-                    assert ystep>0
-                    linesize=ystep
-                else:
-                    if ystep>1.75*linesize:
-                        assert len(out)>0
-                        out.append(ItemStr(""))
-                        out[-1].x1=min(out[-2].x1,item.x1)
-                        out[-1].x2=max(out[-2].x2,item.x2)
-                        out[-1].y1=out[-2].y2
-                        out[-1].y2=item.y1
-                        
-                out.append(ItemStr(item.text.strip()))
-                out[-1].expandbb(item)
-            last=item
-        return out
-"""
 
 class Parser(object):
     def load_xml(self,path,loadhook=None,country="se"):

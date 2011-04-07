@@ -80,6 +80,7 @@ def parse_page(parser,pagenr,kind="TMA"):
         if item.text==None or item.text.strip()=="": continue
         if item.text.strip().startswith("AMDT"): continue
         if item.text.strip().startswith("The LFV Group"): continue
+        if item.text.strip().startswith("AIRAC"): continue        
         if kind=="R" and not is_r_or_danger_area_name(item.text.strip()):
             continue
         if item.y1>avg_heading_y+1 and item.x1<12 and not item.text in ["Name",'None',"LFV"]:

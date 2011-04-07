@@ -48,7 +48,7 @@ def parse_obstacles():
         ay1=items[0].y1
         ay2=100        
         in_rect=page.get_fully_in_rect(0,ay1,100,100)
-        lines=page.get_lines(in_rect)
+        lines=page.get_lines(in_rect,order_fudge=20)
         for line in lines:
             line=line.strip()
             if line=="within radius 300 m.":
