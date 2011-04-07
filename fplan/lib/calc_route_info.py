@@ -173,17 +173,19 @@ def get_route(user,trip):
             if prev_alt==None: prev_alt=alt1
         else:                        
             if prev_alt==None or idx==0:
-                prev_alt=get_pos_elev(mapper.from_str(rt.a.pos))                            
+                prev_alt=float(get_pos_elev(mapper.from_str(rt.a.pos)))                            
             alt1=prev_alt
         if rt.b.stay:
             alt2=float(get_pos_elev(mapper.from_str(rt.b.pos)))
         else:            
             alt2=mid_alt
             if idx==numroutes-1:
-                alt2=get_pos_elev(mapper.from_str(rt.b.pos))
+                alt2=float(get_pos_elev(mapper.from_str(rt.b.pos)))
                 
         rt.performance="ok"
         begindelta=mid_alt-prev_alt
+        print "alt2:",alt2,"mid_alt:",mid_alt
+        print "alt2:",type(alt2),"mid_alt:",type(mid_alt)
         enddelta=alt2-mid_alt
         
         begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)

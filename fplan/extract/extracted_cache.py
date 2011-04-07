@@ -82,7 +82,7 @@ def gen_bsptree_lookup(data):
     del bsp
     
     
-    lookup_spaces=['airspaces']
+    lookup_spaces=['airspaces','firs']
     for look in lookup_spaces:
         spaces=data.get(look,None)
         if spaces:
@@ -169,7 +169,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     if not already:
                         sig_points.append(point)
                 
-            a=True
+            a=False
             if not is_devcomp() or True: #poland
                 ads,spaces=ep_parse_airfields()
                 airfields.extend(ads)
@@ -240,10 +240,14 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             else:
                 sup_areas=[]
                 sup_hours=[]
+                
+            firs=[space for space in airspaces if space['type']=='FIR']
+            regular_airspaces=[space for space in airspaces if space['type']!='FIR']
             aipdata=dict(
                 downloaded=datetime.utcnow(),
-                airspaces=airspaces,
+                airspaces=regular_airspaces,
                 obstacles=obstacles,
+                firs=firs,
                 airfields=airfields,
                 sig_points=sig_points,
                 aip_sup_areas=sup_areas,
@@ -270,6 +274,16 @@ def get_airspaces_in_bb(bb):
     get_aipdata()
     for item in aipdatalookup['airspaces'].overlapping(bb):
         yield item.payload #tuple of (Polygon,Airspace-dict)
+
+def get_firs_in_bb(bb):
+    get_aipdata()
+    if not "firs" in aipdatalookup: return
+    for item in aipdatalookup['firs'].overlapping(bb):
+        yield item.payload #tuple of (Polygon,Airspace-dict)
+
+def get_firs(bb):
+    get_aipdata()
+    return aipdata.get('firs',[])
 
 def get_aip_sup_areas():
     aipdata=get_aipdata()

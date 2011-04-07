@@ -9,6 +9,7 @@ import math
 from fplan.lib.mapper import parse_coord_str,uprint
 from pyshapemerge2d import Polygon,Vertex,vvector
 import fplan.extract.border_follower
+from datetime import datetime
 
 def parse_page(parser,pagenr):   
     page=parser.parse_page_to_items(pagenr)
@@ -174,6 +175,36 @@ def ee_parse_tma():
     for pagenr in xrange(1,p.get_num_pages()): 
         parsed=parse_page(p,pagenr)#pagenr)
         res.extend(parsed)
+                    
+                    
+    res.append(dict(
+        name="TALLIN FIR",
+        floor='GND',
+        ceiling='-',
+        freqs=[],
+        type='FIR',
+        date=datetime(2011,03,25),
+        points=mapper.parse_coord_str("""                
+        592818N 0280236E -
+        Along the common Estonian/X state boundary to 573100N 0272000E -
+        Along the common Estonian/X state boundary to 575300N 0242200E -
+        575228N 0242124E-
+        575502N 0241540E-575357N 0241234E-
+        575357N 0233604E-574658N 0233855E-
+        574011N 0233456E-573538N 0232422E-
+        573511N 0231051E-574208N 0225957E-
+        574650N 0225428E-575627N 0224227E-
+        575539N 0223501E-574645N 0220836E-
+        574458N 0215458E-574547N 0215034E-
+        574712N 0214300E-575124N 0213848E-
+        575342N 0213648E-580700N 0212900E-
+        582448N 0203834E-590000N 0210000E-
+        595300N 0245100E-595430N 0252000E-
+        595300N 0255200E-595200N 0255830E-
+        593642N 0273812E-592818N 0280236E
+        """,context='estonia')))
+
+                    
     for pa in res:
         pretty(pa)
     return res

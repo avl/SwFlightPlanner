@@ -71,6 +71,10 @@ and always ask yourself if the data presented by the program is reasonable.
 <p>
 A further limitation is that the weather data is only valid for Sweden. Pressing the "fetch winds" button may give strange results for Finland or Norway.
 </p>
+<p>
+Swflightplanner does calculate times for crossing FIR boundaries, but this routine
+only works if you cross at most one FIR-boundary per leg.
+</p>
 </div>
 <br/>
 <br/>

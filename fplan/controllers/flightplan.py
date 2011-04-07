@@ -331,9 +331,22 @@ class FlightplanController(BaseController):
                 dest_ad_name=waypoints[-1].waypoint
                 dest_ad_coords=mapper.format_lfv_ats(*mapper.from_str(waypoints[-1].pos))
                 extra_remarks=[]
+                lastwppos=None
                 for i,wp in enumerate(waypoints):
                     at['T']=meta['T']
-                    lat,lon=mapper.from_str(wp.pos)         
+                    lat,lon=mapper.from_str(wp.pos)
+                    if lastwppos:
+                        curpos=(lat,lon)
+                        crossing=airspace.get_fir_crossing(lastwppos,curpos)                        
+                        if crossing:
+                            fir,enterpos=crossing    
+                            wps.append(dict(name="Enter FIR: %s"%(fir['name']),
+                                       airport=None,
+                                       symbolicpos=mapper.format_lfv_ats(*enterpos),
+                                       exactpos=mapper.format_lfv(*enterpos)
+                                       ))
+                        
+                    lastwppos=(lat,lon)         
                     symbolicpos=None
                     airport=None
                     if i==0 or i==len(waypoints)-1:
@@ -357,7 +370,7 @@ class FlightplanController(BaseController):
                     if symbolicpos==None:
                         symbolicpos=mapper.format_lfv_ats(lat,lon)
                     wps.append(dict(
-                        name=wp.waypoint,
+                        name="DCT "+wp.waypoint,
                         airport=airport,
                         symbolicpos=symbolicpos,                
                         exactpos=mapper.format_lfv(lat,lon)

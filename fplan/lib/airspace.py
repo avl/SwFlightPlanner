@@ -67,6 +67,8 @@ def get_notampoints(lat,lon,zoomlevel):
                 if d<=(radius)**2:
                    yield item
 
+
+
 def get_notampoints_on_line(latlon1,latlon2,dist_nm):
     zoomlevel=13
     distmax=mapper.approx_scale(mapper.latlon2merc(latlon1,zoomlevel),zoomlevel,dist_nm)
@@ -116,6 +118,8 @@ def get_polygons_around(lat,lon,polys):
         else:
             pass#print "Is NOT inside"
     return insides
+
+
 def get_polygons_around2(lat,lon,polyspaces):
     """for Polygon,Space-pairs"""
     zoomlevel=13
@@ -130,6 +134,7 @@ def get_polygons_around2(lat,lon,polyspaces):
         else:
             pass#print "Is NOT inside"
     return insides
+
 
 def get_polygons_on_line(latlon1,latlon2,polys):
     zoomlevel=13
@@ -161,6 +166,30 @@ def get_airspaces(lat,lon):
     bb0=BoundingBox(px,py,px,py)
     spaces=get_polygons_around2(lat,lon,cache.get_airspaces_in_bb(bb0))
     return spaces
+
+def get_fir_crossing(latlon1,latlon2):
+    """
+    Returns tuple of: 
+     * airspace-dict
+     * latlon of crossing
+    """
+    px1,py1=mapper.latlon2merc(latlon1,13)
+    px2,py2=mapper.latlon2merc(latlon2,13)
+    bb0=BoundingBox(px1,py1,px2,py2)
+    line=Line(Vertex(int(px1),int(py1)),Vertex(int(px2),int(py2)))
+    for poly,space in cache.get_firs_in_bb(bb0):
+        a=poly.is_inside(Vertex(int(px1),int(py1)))
+        b=poly.is_inside(Vertex(int(px2),int(py2)))
+        print "Considering space %s, starting: %s, ending: %s"%(
+                space['name'],a,b)
+        
+        if b and not a: 
+            cross=list(poly.first_entrance(line))
+            if cross:
+                outlatlon=(cross[0].get_x(),cross[0].get_y())
+                return space,mapper.merc2latlon(outlatlon,13)
+    return None
+        
 
 def get_aip_sup_areas(lat,lon):
     spaces=get_polygons_around(lat,lon,cache.get_aip_sup_areas())

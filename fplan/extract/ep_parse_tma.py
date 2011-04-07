@@ -8,7 +8,7 @@ import md5
 def fixup(s):
     def fixer(m):
         return "".join(m.groups())
-    return re.sub(ur"(\d{2,3})°(\d{2})[’'](\d{2}\.?\d*)[”\"'’]{1,2}([NSEW])",fixer,s)
+    return re.sub(ur"(\d{2,3})°(\d{2})[’'′](\d{2}\.?\d*)[”\"'’″]{1,2}([NSEW])",fixer,s)
     
 def parsealt(astr):
     astr=astr.strip()

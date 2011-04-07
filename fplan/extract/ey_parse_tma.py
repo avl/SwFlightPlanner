@@ -7,7 +7,7 @@ from fplan.lib.poly_cleaner import clean_up_polygon
 def ey_parse_tma():
     out=[]
     
-    def emit(name,coordstr,limits,freqs=[],date=datetime(2011,03,25)):
+    def emit(name,coordstr,limits,type="TMA",freqs=[],date=datetime(2011,03,25)):
         ceiling,floor=limits.split("/")
         def compact(m):
             return "".join(m.groups())
@@ -17,7 +17,8 @@ def ey_parse_tma():
         tpoints=mapper.parse_coord_str(coordstr,context='lithuania')
         f1=mapper.parse_elev(floor)
         c1=mapper.parse_elev(ceiling)
-        assert c1>f1
+        #if c1!='-':
+        #    assert c1>f1
         for points in clean_up_polygon(tpoints):
             out.append(
                 dict(
@@ -26,9 +27,30 @@ def ey_parse_tma():
                      ceiling=ceiling,
                      freqs=freqs,
                      points=points,
-                     type="TMA"
+                     type=type
                      )
             )
+    emit(name=u"Vilnius FIR",
+         limits="-/GND",
+         freqs=[],
+         type="FIR",         
+         coordstr=u"""
+56 20 43N 018 30 23E - 56 04 00N 020 40 00E -
+56 04 09N 021 03 52E - 
+Along the common Lithuanian/X state boundary to
+55 40 50N 026 37 50E - 
+Along the common Lithuanian/X state boundary to
+53 57 23N 023 30 54E - 
+Along the common Lithuanian/X state boundary to 
+54 21 48N 022 47 31E - 
+Along the common Lithuanian/X state boundary to
+55 17 41N 021 17 29E -
+55 17 00N 020 57 00E - 56 05 43N 018 01 07E - 56 20 43N 018 30 23E         
+         """)
+
+    """
+"""
+
     emit(name=u"KAUNAS TMA A",
          limits="FL95/1200 FT MSL",
          freqs=[('Kaunas Approach',124.200)],         

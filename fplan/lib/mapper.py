@@ -710,10 +710,10 @@ def parse_elev(elev):
     if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft alt"): elev=elev[:-6].strip()
     if elev.lower().endswith("ftalt"):  elev=elev[:-5].strip()
-    if elev=="-": return 99999
-    if elev.lower()=="unl": return 99999
-    if elev.lower()=="sfc": return 0 #TODO: Lookup using elevation map
-    if elev.lower()=="gnd": return 0 #TODO:We should lookup GND height using an elevation map!!
+    if elev=="-": return 99999.0
+    if elev.lower()=="unl": return 99999.0
+    if elev.lower()=="sfc": return 0.0 #TODO: Lookup using elevation map
+    if elev.lower()=="gnd": return 0.0 #TODO:We should lookup GND height using an elevation map!!
     elev=elev.replace(" ","")
     if not elev.isdigit():
         raise NotAnAltitude(repr(elev))    

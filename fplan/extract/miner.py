@@ -10,6 +10,7 @@ import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 import os
 import pickle
+from fplan.extract.fetchdata import is_devcomp
 
 def get_vertical_lines(stream):
     for item in stream:
@@ -88,7 +89,7 @@ def parse(path,country,maxcacheage=7200,usecache=True):
     if os.path.exists(mined) and usecache:
         cacheddate=fetchdata.get_filedate(mined)
         print "Cached version exists, date:",mined,cacheddate
-        if datetime.now()-cacheddate<timedelta(0,86400*3):
+        if is_devcomp() or datetime.now()-cacheddate<timedelta(0,86400*3):
             print "Using cache"
             try:
                 return pickle.load(open(mined))

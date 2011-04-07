@@ -8,6 +8,10 @@ from datetime import datetime
 import fplan.extract.miner as miner
 import sys
 from ep_parse_tma import fixup
+import lxml
+import lxml.html
+from fplan.extract.html_helper import alltext,alltexts
+import fplan.extract.fetchdata as fetchdata
 
 def extract_ft(alt):
     m=re.match(ur".*\((\d+ FT)\)\s*",alt,re.IGNORECASE)
@@ -204,7 +208,49 @@ def ep_parse_airfield(icao):
         elev=elev,
         ),spaces
             
-    
+def ep_parse_wikipedia_airports(url):
+    parser=lxml.html.HTMLParser()
+    data,date=fetchdata.getdata(url,country="wikipedia")
+    parser.feed(data)
+    tree=parser.close()
+    res=[]
+    for table in tree.xpath("//table"):
+        for nr,row in enumerate(table.xpath(".//tr")):
+            cols=list([alltext(x) for x in row.xpath(".//td")])
+            print "#",nr,": ",cols
+            if nr==0:                
+                if len(cols)==0 or cols[0].strip()!="Airport":
+                    break
+                assert cols[3].strip()=="ICAO"
+                assert cols[4].strip()=="Purpose"
+                assert cols[5].strip().count("El")
+                assert cols[9].strip()=="Coordinates"
+            else:
+                purpose=cols[4].strip()
+                if purpose.count("Unused"):continue
+                if purpose.count("Closed"):continue
+                if purpose.count("Liquidated"): continue
+                if purpose=="Military": continue #Just military
+                icao=cols[3].strip()
+                if icao=="": icao="ZZZZ"
+                name=cols[0].strip()
+                #print "lats:",row.xpath(".//span[@class='latitude']")
+                lat,=alltexts(row.xpath(".//span[@class='latitude']"))
+                lon,=alltexts(row.xpath(".//span[@class='longitude']"))
+                coords=fixup(lat.strip()+" "+lon.strip())
+                elevft=float(cols[5].strip())
+                res.append(dict(
+                                pos=mapper.parsecoord(coords),
+                                name=name,
+                                elev=elevft/0.3048,
+                                icao=icao,
+                                date=date,
+                                url=url
+                                ))
+                
+                
+            
+    return res
     
 def ep_parse_airfields(filtericao=None):
     pages,date=miner.parse("/aip/openp.php?id=EP_AD_1_en",
@@ -219,14 +265,31 @@ def ep_parse_airfields(filtericao=None):
                 for icao in re.findall(ur"\b(EP[A-Z]{2})\b",icaoitem.text):                        
                     assert len(icao)==4
                     icaos.append(icao)
+        
     ads=[]
+    tempads=[]
+    tempads.extend(ep_parse_wikipedia_airports(
+            "/wiki/Airports_in_Poland_with_unpaved_runways"))
+    tempads.extend(ep_parse_wikipedia_airports(
+            "/wiki/Airports_in_Poland_with_paved_runways"))
+        
+    seen=set()
+    
     allspaces=[]
     for icao in icaos:
         assert len(icao)==4 and icao.isupper()
         if filtericao==None or filtericao==icao:
             ad,spaces=ep_parse_airfield(icao)
             ads.append(ad)
+            seen.add(ad['icao'])
             allspaces.extend(spaces)
+            
+    for ad in tempads:
+        if ad['icao']!='ZZZZ' and ad['icao'] in seen:
+            continue
+        seen.add(ad['icao'])
+        ads.append(ad)
+            
     return ads,allspaces
 
 if __name__=='__main__':

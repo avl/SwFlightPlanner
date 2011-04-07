@@ -50,10 +50,34 @@ def getrawurl(relpath,country="se"):
         print "Fetching:",durl
     elif country=="ep":        
         durl="http://www.ais.pansa.pl"+fixed
+    elif country=="wikipedia":
+        durl="http://en.wikipedia.org"+fixed
     else:
         raise Exception("Unknown country:"+country)
     return durl
+    
+    
+    
 
+def wiki_download(url):
+    mbrowse=mechanize.Browser()
+    mbrowse.addheaders = [('user-agent', '   Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.3) Gecko/20100423 Ubuntu/10.04 (lucid) Firefox/3.6.3'),
+                     ("Accept-Language", "en-us,en")]    
+    
+    data=mbrowse.open_novisit(url).read()
+    return data
+def denmark_download(url):
+    mbrowse=mechanize.Browser()
+    mbrowse.addheaders = [('user-agent', '   Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.3) Gecko/20100423 Ubuntu/10.04 (lucid) Firefox/3.6.3'),
+                     ("Accept-Language", "en-us,en")]    
+
+    mbrowse.open("http://www.slv.dk/Dokumenter/dsweb/")
+    clickseq=[
+              "Luftfartsinformation (AIS)",
+              "AIP Danmark"              
+              ""]
+    raise "Danish downloads not implemented yet"
+    
 
 mbrowse=None
 def polish_download(url):
@@ -91,6 +115,10 @@ def getrawdata(relpath,country="se"):
     print "Downloading url: "+durl
     if country=='ep':
         data=polish_download(durl)
+    elif country=="wikipedia":
+        data=wiki_download(durl)
+    elif country=="ek":
+        data=denmark_download(durl)
     else:
         data=urlopen(durl).read()
     print "Got %d bytes"%(len(data),)

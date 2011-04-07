@@ -2,14 +2,18 @@ import re
 import fplan.lib.mapper as mapper
 from fplan.lib.get_terrain_elev import get_terrain_elev
 import csv
-
+def coding(x):
+    try:
+        return unicode(x,'utf8')
+    except:
+        return unicode(x,'latin1')
 def parse_airspace():
     spaces=[]
     for input in [
         "fplan/extract/denmark.airspace",
         "fplan/extract/denmark.danger.airspace",
         ]:
-        lines=[unicode(x,'latin1') for x in list(open(input)) if 
+        lines=[coding(x) for x in list(open(input)) if 
                not x.startswith("#") and
                not x.startswith("FIR boundary")           
                ]
@@ -90,7 +94,7 @@ def parse_space(lines):
                 TITLE=get("TITLE")
                 name=" ".join([TITLE.strip(),SUBTYPE])+" [2010]"
                 for radio in [RADIO]+notes:
-                    radioname,freq=re.match("(.*?)\s*(\d{3}\.\d{3}\s*(?:and)?)+",radio).groups()
+                    radioname,freq=re.match(ur"(.*?)\s*(\d{3}\.\d{3}\s*(?:and)?)+",radio).groups()
                     fr=re.findall(ur"\d{3}\.\d{3}",freq)
                     for f in fr:
                         if float(f)<200.0:
@@ -157,7 +161,7 @@ def parse_airfields():
     out=[]
     for item in csv.reader(open("fplan/extract/denmark.airfields.csv")):
         print item
-        icao,empty,ICAO,name,d1,d2,pos,elev,owner,phone,d4,d5=item
+        icao,empty,ICAO,name,d1,d2,pos,elev,owner,phone,d4,d5,webside=item
         if not pos[-1] in ['E','W']:
             pos=pos+"E"
         print "ICAO:",icao
@@ -172,7 +176,7 @@ def parse_airfields():
             icao=ICAO,
             name=name,
             pos=mapper.to_str((lat,lon)),
-            elev=float(elev))
+            elev=int(elev))
         out.append(ad)
     return out
 def parse_denmark():

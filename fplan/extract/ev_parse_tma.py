@@ -6,6 +6,8 @@ import re
 from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext 
 from datetime import datetime
+def s(r):
+    return r.replace(" ","\s*")
 
 def ev_parse_obst():
     url="/EV-ENR-5.4-en-GB.html"
@@ -40,16 +42,6 @@ def ev_parse_r():
     out.extend(ev_parse_x(url="/EV-ENR-5.2-en-GB.html"))
     out.extend(ev_parse_x(url="/EV-ENR-5.3-en-GB.html"))
     out.extend(ev_parse_x(url="/EV-ENR-5.5-en-GB.html"))
-    out.append(dict(
-        name="EV TSA 3",
-        ceiling="UNL",
-        floor="2500 FT MSL",
-        points=mapper.parse_coord_str(""" 
-            562516N 0255014E - 562235N 0262848E - 555641N 0264151E - 554801N 0261838E - 555715N 0260245E - 560636N 0254632E - 562516N 0255014E 
-            """),
-        type="TSA",
-        date=datetime(2011,03,25),
-        freqs=[]))
     
     
     return out
@@ -77,25 +69,37 @@ def ev_parse_x(url):
         assert alltext(alt).lower().count("limit")
         for row in rows[1:]:
             cols=list(row.xpath(".//td"))
-            if len(cols)!=3: continue
-            name,alt,remark=cols
+            if len(cols)<2: continue
+            name,alt=cols[:2]
             lines=[x.strip() for x in alltext(name).split("\n") if x.strip()]
             if len(lines)==0: continue
             assert len(lines)
             spacename=lines[0].strip()
             print spacename            
-            assert spacename[:3] in ["EVR","EVP","TSA","TRA"]
+            if spacename.strip()=="SKRIVERI":
+                continue
+            assert spacename[:3] in ["EVR","EVP","TSA","TRA"] or \
+                spacename.endswith("ATZ") or \
+                spacename.endswith("ATZ (MILITARY)")
+                
             altcand=[]
             for altc in alltext(alt).split("\n"):
                 if altc.count("Real-time"): continue
                 altcand.append(altc.strip())
-            floor,ceiling=[x.strip() for x in " ".join(altcand).split("/")]
-            mapper.parse_elev(ceiling)            
-            if mapper.parse_elev(floor)>9500:
+            ceiling,floor=[x.strip() for x in " ".join(altcand).split("/")]
+            mapper.parse_elev(ceiling)
+            ifloor=mapper.parse_elev(floor)
+            iceiling=mapper.parse_elev(ceiling)            
+            if ifloor>9500 and iceiling>9500:
                 continue
+            assert ifloor<iceiling
             
             freqs=[]
-            coords=mapper.parse_coord_str(" ".join(lines[1:]),context='latvia')
+            raw=" ".join(lines[1:])
+            raw=re.sub(s(ur"Area bounded by lines successively joining the following points:"),"",raw)
+            print "Raw:",raw            
+            
+            coords=mapper.parse_coord_str(raw,context='latvia')
             for cleaned in clean_up_polygon(coords):
                 out.append(dict(
                         name=spacename,
@@ -191,8 +195,11 @@ def ev_parse_tma():
                 if coord.endswith(u"E") or coord.endswith("W"):
                     coord=coord+" -"
                 coords.append(coord)
-                    
-            coords=mapper.parse_coord_str(" ".join(coords),context='latvia')
+                
+            raw=" ".join(coords)
+            raw=re.sub(s(ur"Area bounded by lines successively joining the following points:"),"",raw)
+            print "Raw:",raw            
+            coords=mapper.parse_coord_str(raw,context='latvia')
             for cleaned in clean_up_polygon(coords):
                 out.append(dict(
                         name=spacename,
@@ -210,21 +217,21 @@ def ev_parse_tma():
 
 
 if __name__=='__main__':
-    for obst in ev_parse_obst():
-        print "obst:",obst
     for space in ev_parse_r():
         print "name:",space['name']
         print "  floor:",space['floor']
         print "  ceiling:",space['ceiling']
         print "  coords:",space['points']
+    for obst in ev_parse_obst():
+        print "obst:",obst
     for space in ev_parse_tma():
         print "name:",space['name']
         print "  floor:",space['floor']
         print "  ceiling:",space['ceiling']
         print "  coords:",space['points']
         print "  freqs:",space['freqs']
+            
         
     
-
 
     

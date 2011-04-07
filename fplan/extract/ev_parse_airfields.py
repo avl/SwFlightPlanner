@@ -94,6 +94,13 @@ def ev_parse_airfields():
             date=datetime(2011,03,25),
             url=url
                       ))
+    ads.append(dict(
+        icao="EVRS",
+        name="Spilve",
+        elev=5,
+        date=datetime(2011,04,05),
+        pos=mapper.parsecoord("565931N 240428E")
+               ))
     return ads,spaces
 
 
