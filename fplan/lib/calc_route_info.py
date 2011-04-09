@@ -361,6 +361,7 @@ def get_route(user,trip):
             out.performance=rt.performance
             out.tt=rt.tt
             out.d=0
+            out.time=0
             out.relstartd=0
             out.subposa=merca
             out.subposb=mercb
@@ -441,7 +442,7 @@ def get_route(user,trip):
             else:
                 rt.time_hours=None                          
                         
-                    
+        rt.subs=sub     
         rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
         rt.accum_time_hours=accum_time
         rt.accum_dist=tot_dist

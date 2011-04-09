@@ -315,6 +315,8 @@ class FlightplanController(BaseController):
             last_fuel_left=None
             nr_persons=None
             for meta,routes in break_subtrips(c.route):
+                fir_whenposname=[]
+                accum_time=0
                 #print "broke ruote",meta
                 if len(routes)==0: continue
                 at=dict()
@@ -336,16 +338,22 @@ class FlightplanController(BaseController):
                     at['T']=meta['T']
                     lat,lon=mapper.from_str(wp.pos)
                     if lastwppos:
+                        assert i>=1
                         curpos=(lat,lon)
-                        crossing=airspace.get_fir_crossing(lastwppos,curpos)                        
-                        if crossing:
-                            fir,enterpos=crossing    
-                            wps.append(dict(name="Enter FIR: %s"%(fir['name']),
-                                       airport=None,
-                                       symbolicpos=mapper.format_lfv_ats(*enterpos),
-                                       exactpos=mapper.format_lfv(*enterpos)
-                                       ))
-                        
+                        crossing1=airspace.get_fir_crossing(lastwppos,curpos)                        
+                        for sub in routes[i-1].subs:
+                            if crossing1:
+                                posa,posb=mapper.merc2latlon(sub.subposa,13),\
+                                            mapper.merc2latlon(sub.subposb,13)
+                                crossing=airspace.get_fir_crossing(posa,posb)
+                                if crossing:
+                                    fir,enterpos=crossing
+                                    bearing,along=mapper.bearing_and_distance(posa,posb)
+                                    if sub.gs>1e-6:
+                                        curtime=accum_time+along/sub.gs
+                                        fir_whenposname.append((curtime,enterpos,fir['name']))
+                            accum_time+=sub.time
+                    
                     lastwppos=(lat,lon)         
                     symbolicpos=None
                     airport=None
@@ -370,11 +378,14 @@ class FlightplanController(BaseController):
                     if symbolicpos==None:
                         symbolicpos=mapper.format_lfv_ats(lat,lon)
                     wps.append(dict(
-                        name="DCT "+wp.waypoint,
+                        name=wp.waypoint,
                         airport=airport,
-                        symbolicpos=symbolicpos,                
+                        symbolicpos="DCT "+symbolicpos,                
                         exactpos=mapper.format_lfv(lat,lon)
                         ))
+                for when,pos,fir in fir_whenposname:
+                    hour,minute=divmod(int(60*when),60)
+                    extra_remarks.append("EET/%s%02d%02d"%(fir,hour,minute))
                 if dep_ad=="ZZZZ":
                     extra_remarks.append(u"DEP/%s %s"%(dep_ad_coords,strip_accents(dep_ad_name.upper())))
                 if dest_ad=="ZZZZ":
@@ -436,6 +447,7 @@ class FlightplanController(BaseController):
                         return "A%03d"%(ialt,)
                     except:
                         raise AtsException("Bad altitude specification for some leg: <%s>"%(alt))
+                fir_whenposname.sort()
                 dummy=u"""
     FPL-SEVLI-VG
     -ULAC/L-V/C
@@ -451,7 +463,7 @@ class FlightplanController(BaseController):
 (FPL-%(acreg)s-%(flight_rules)s%(type_of_flight)s
 -%(actype)s/%(turbulence_category)s-%(equipment)s/%(transponder)s
 -%(dep_ad)s%(eobt)s
--%(cruise_speed)s%(level)s %(route)sDCT
+-%(cruise_speed)s%(level)s %(route)s DCT
 -%(dest_ad)s%(ete)s 
 -%(extra_remarks)s
 -E/%(endurance)s P/%(nr_passengers)s
@@ -468,7 +480,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 eobt=routes[0].depart_dt.strftime("%H%M"),
                 cruise_speed=format_cruise(tas),
                 level=format_alt(altitude),
-                route=("".join("DCT %s "%(w['symbolicpos'],) for w in wps[1:-1])),
+                route=(" ".join("%s"%(w['symbolicpos'],) for w in wps[1:-1])),
                 dest_ad=dest_ad,
                 ete=lfvclockfmt(enroute_time),
                 extra_remarks=" ".join(extra_remarks),
