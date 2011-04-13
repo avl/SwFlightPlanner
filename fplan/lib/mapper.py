@@ -591,6 +591,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     circ=re.match( ur".*circle,?\s*(?:with|of)?\s*radius\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
     if circ:
         radius,lat,lon=circ.groups()
+        print "PRev:",prev,"Next:",next
         assert prev==None and next==None        
         #uprint("Parsed circle:%s : %s"%(circ,circ.groups()))
         dist_nm=parse_dist(radius)

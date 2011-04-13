@@ -6,6 +6,7 @@ import fplan.lib.mapper as mapper
 from fplan.lib.poly_cleaner import clean_up_polygon
 import sys,os
 import math
+from datetime import datetime
 
 from fplan.lib.mapper import parse_coord_str,uprint
 from pyshapemerge2d import Polygon,Vertex,vvector
@@ -269,8 +270,36 @@ def parse_all_tma():
     for pagenr in xrange(5,p.get_num_pages()): 
         parsed=parse_page(p,pagenr,"TMA")#pagenr)
         res.extend(parsed)
-    #for pa in res:
-    #    pretty(pa)
+        
+    res.append(dict(
+        name="SWEDEN FIR",
+        icao="ESAA",
+        floor='GND',
+        ceiling='-',
+        freqs=[],
+        type='FIR',
+        date=datetime(2011,4,9),
+        points=mapper.parse_coord_str("""
+690336N 0203255E - 
+Along the common X/Y state boundary to 653148N 0240824E -
+644100N 0225500E - 633700N 0213000E -
+632830N 0204000E - 631000N 0201000E -
+614000N 0193000E - 610000N 0191905E -
+601803N 0190756E - 601130N 0190512E -
+593346N 0195859E - 591524N 0203239E -
+590000N 0210000E - 573410N 0200900E -
+570000N 0195000E - 555100N 0173300E -
+545500N 0155200E - 545500N 0150807E -
+clockwise along an arc centred on 550404N 0144448E and with radius 16.2 NM -
+545500N 0142127E - 545500N 0125100E -
+552012N 0123827E - Along the common X/Y state boundary to 561253N 0122205E -
+583000N 0103000E - 584540N 0103532E -
+585332N 0103820E - Along the common X/Y state boundary to 690336N 0203255E
+                                        
+""",context="sweden")))
+        
+    for pa in res:
+        pretty(pa)
     return res
 
 def parse_r_areas():

@@ -63,8 +63,24 @@ ${at['atsfplan']}
 ${" - ".join([w['exactpos'] for w in at['wps']])}
 </span
 </div>
+
+
+<h2>Summary of Airspaces flown</h2>
+<p>Number of spaces: ${len(at['spacesummary'])}</p>
+<table>
+<tr>
+<th>Name</th><th>Floor</th><th>Ceiling</th>
+</tr>
+%for name,floor,ceiling in sorted(at['spacesummary']):
+<tr>
+<td>${name}</td><td>${floor}</td><td>${ceiling}</td>
+</tr>
+%endfor
+</table>
+
 %endfor
 
-
 </div>
+
+
 

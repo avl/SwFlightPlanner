@@ -23,12 +23,13 @@ def ey_parse_airfield(icao):
         page=p.parse_page_to_items(nr)
         if nr==0:
             #[–-]
-            nameregex=ur"\s*%s(.+)"%(icao,)
-            print "Nameregex",nameregex
-            
-            nameitem=page.get_by_regex(nameregex,re.UNICODE)[0]
+            nameregex=ur"\s*%s\s*[–-]\s*(.*?)\s*$"%(icao,)
+            print "Nameregex",nameregex            
+            nameitem=page.get_by_regex(nameregex,re.UNICODE)[0]            
             name,=re.match(nameregex,nameitem.text,re.UNICODE).groups()
-            
+            name=name.replace("Tarptautinis","International")
+            #print repr(name)
+            #sys.exit(1)
             coordhdg,=page.get_by_regex(ur".*ARP\s*koordinat.s.*",re.DOTALL)
             coord=page.get_partially_in_rect(
                             coordhdg.x2+4,coordhdg.y1+0.1,100,coordhdg.y2-0.1)[0]

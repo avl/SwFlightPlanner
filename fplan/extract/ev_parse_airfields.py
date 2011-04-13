@@ -11,6 +11,7 @@ from datetime import datetime
 def ev_parse_airfields():
     ads=[]
     spaces=[]
+    seen=set()
     for icao in ["EVRA",
                 "EVLA",
                 "EVTA",
@@ -25,6 +26,7 @@ def ev_parse_airfields():
         ctrarea=None
         ctr=None
         ctralt=None
+        ctrname=None
         adnametag,=tree.xpath("//p[@class='ADName']")
         adnamestr=alltext(adnametag)
         print adnamestr
@@ -59,7 +61,9 @@ def ev_parse_airfields():
                     lines=cols[2].split("\n")
                     ctr=True
                     print "Got lateral limits",lines[0]
-                    ctrname,type_=re.match(ur"([\w\s])+(CTR|TIZ)",lines[0]).groups()
+                    ctrname,type_=re.match(ur"^([\w\s]+)(CTR|TIZ)",lines[0]).groups()
+                    assert ctrname.strip()
+                    ctrname=ctrname.strip()+" "+type_
                     ctrarea=" ".join(lines[1:])
                 #print ".",cols[1],"."
                 if not ctralt and re.match(ur".*Vertical\s*limits.*",cols[1],re.UNICODE):
@@ -77,6 +81,8 @@ def ev_parse_airfields():
         assert type_
         assert elev
         assert name                                        
+        assert not ctrname in seen
+        seen.add(ctrname)
         ads.append(dict(
             icao=icao,
             name=name,
@@ -92,7 +98,7 @@ def ev_parse_airfields():
             floor=floor,
             freqs=freqs,
             date=datetime(2011,03,25),
-            url=url
+            url=url            
                       ))
     ads.append(dict(
         icao="EVRS",

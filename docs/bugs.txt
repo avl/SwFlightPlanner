@@ -119,11 +119,14 @@
 117: FIXED: Finish the generic code to validate trip and user-objects. Also, add better error page handling. Google how to do it!
 118: Add Selenium-tests simulating web-spiders and other robots.
 119: Add Selenium-tests for the trip-sharing-function.
-120: Circle-function seems broken for Tartu TMA (among others)
-121: Decide if new-style get_lines can be made to work for legacy. Preferrable if it can.
+120: FIXED: Circle-function seems broken for Tartu TMA (among others)
+121: FIXED: Decide if new-style get_lines can be made to work for legacy. Preferrable if it can.
 122: Check if split("-") is acceptable...
 123: Not using daily downloaded data for Estonia and Latvia.
 124: Need Estonian and Latvian CTRs!
 125: Skulle vara najs med extra hög kart-upplösning runt flygplatser, med docking-charts.
-126: Finish "Entrance of FIR" code for estland-branch.
+126: FIXED: Finish "Entrance of FIR" code for estland-branch.
+127: NOTAMs för baltikum och polen.
+128: Kartan borde uppdateras med notam-info för nummer/namn-givna R-områden och D-områden och liknande.
+
  

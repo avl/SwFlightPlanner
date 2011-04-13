@@ -179,6 +179,7 @@ def ee_parse_tma():
                     
     res.append(dict(
         name="TALLIN FIR",
+        icao="EETT",
         floor='GND',
         ceiling='-',
         freqs=[],

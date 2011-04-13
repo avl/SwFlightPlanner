@@ -11,7 +11,7 @@ import cairo
 from fplan.lib.base import BaseController, render
 from fplan.lib.tilegen_worker import generate_big_tile
 from fplan.lib import maptilereader
-from fplan.lib.airspace import get_airspaces,get_obstacles,get_airfields,get_sigpoints,get_notam_areas,get_notampoints,get_aip_sup_areas
+from fplan.lib.airspace import get_firs,get_airspaces,get_obstacles,get_airfields,get_sigpoints,get_notam_areas,get_notampoints,get_aip_sup_areas
 log = logging.getLogger(__name__)
 from fplan.lib.parse_gpx import parse_gpx,get_stats
 from fplan.lib.get_terrain_elev import get_terrain_elev
@@ -162,8 +162,11 @@ class MaptileController(BaseController):
                     for rwy in airp['runways']:
                         for end in rwy['ends']:
                             rwys.append(end['thr'])
-                if len(rwys):
+                if len(rwys):                    
                     rwys=["<br/><b> Runways</b>: "]+rwys
+                
+                
+                
                 airports.append(u"<li><b>%s</b> - %s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],linksstr," ".join(rwys)))
             airports.append("</ul>")
         
@@ -175,11 +178,15 @@ class MaptileController(BaseController):
                 sigpoints.append(u"<li><b>%s</b>(%s)</li>"%(sigp['name'],sigp.get('kind','unknown point')))
             sigpoints.append("</ul>")
        
-        
-       
 
+        firs=[]        
+        for fir in get_firs((lat,lon)):
+            firs.append("%s (%s)"%(fir['name'],fir['icao']))        
+        if not firs:
+            firs.append("Unknown")
+            
         terrelev=get_terrain_elev((lat,lon),zoomlevel)
-        return "<b>Airspace:</b><ul>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft</b>"%(spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev)
+        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft</b>"%(", ".join(firs),spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev)
 
     def get(self):
         # Return a rendered template

@@ -85,6 +85,10 @@ def ee_parse_restrictions():
                 print "vertspec:",vertspec
                 assert len(vertspec)==2
                 ceiling,floor=vertspec
+                
+                if mapper.parse_elev(floor)>=9500 and mapper.parse_elev(ceiling)>=9500:
+                    continue
+                
                 space['ceiling']=ceiling
                 space['floor']=floor
                 space['type']='R'

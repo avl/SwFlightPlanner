@@ -158,16 +158,22 @@ class Page(object):
             ret=ItemStr(si[0].text.strip())
             ret.expandbb(si[0])
             return [ret]        
-        last=si[0]
+        last=None
         cand=[[]]
         linesize=None
+        #pre-splitting items into line-groups.
+        #Every line-group can later be split into
+        #multiple lines, but is never joined
+        #with another line group 
         for item in si:
-            delta=item.y1-last.y1
-            if delta<fudge:
+            if last==None:
                 cand[-1].append(item)
             else:
-                cand.append([item])
-                if last:
+                delta=item.y1-last.y1
+                if delta<fudge:
+                    cand[-1].append(item)
+                else:
+                    cand.append([item])
                     if linesize: 
                         linesize=min(linesize,delta)
                     else:
@@ -180,12 +186,15 @@ class Page(object):
             #print "  Cand: %s"%(c,),"linesize:",linesize
             last=None
             for item in sorted(c,key=lambda x:x.x1):
-                
+                print "Processing<",item,">"
                 if lastline:
                     delta=item.y1-lastline.y2
-                    #print "delta",delta
-                    if (delta>1.5*(lastline.y2-lastline.y1) or (linesize and delta>linesize*1.5)) and len(out)>0:
+                    print "delta",delta,"linesize:",linesize
+                    spacing_too_big1=delta>1.0*(lastline.y2-lastline.y1)
+                    spacing_too_big2=delta>1.0*(item.y2-item.y1)
+                    if  (spacing_too_big1 or spacing_too_big2) and len(out)>0:
                         out.append(ItemStr(""))
+                        print "Newline, since spacing_too_big:",spacing_too_big1,spacing_too_big2
                         out[-1].x1=min(out[-2].x1,item.x1)
                         out[-1].x2=max(out[-2].x2,item.x2)
                         out[-1].y1=out[-2].y2
@@ -193,16 +202,24 @@ class Page(object):
                         #print "Inserted newline",out[-1]
                 lastline=item
                 if last==None:
+                    #this is certainly the start of a new line,
+                    #as determined by the line pre-splitting
                     out.append(ItemStr(item.text.strip()))
                     out[-1].expandbb(item)
-                else:                                                                                        
+                else:           
+                    #we're inside a line-group. Perhaps we
+                    #should join up with the last line, or, if order
+                    #is too wrong, as some kind of robustness/mitigation
+                    #strategy, create a new line for text that overlaps.                                                                             
                     if item.x1>last.x2-3:
-                        repcnt=max(int(item.x1-last.x2),1)  
+                        #Order is right, join the two candidates to the same line.
+                        repcnt=max(int(item.x1-last.x2),1)
                         expandedspaces="".join(repeat(" ",repcnt))
                         out[-1]=ItemStr(out[-1]+expandedspaces+item.text.strip())
                         out[-1].expandbb(last)
                         out[-1].expandbb(item)
                     else:
+                        #Order is wrong, emit a new line.
                         out.append(ItemStr(item.text.strip()))
                         out[-1].expandbb(item)
                 last=item

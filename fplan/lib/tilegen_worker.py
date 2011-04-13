@@ -7,12 +7,13 @@ import Pyro.core
 import Image
 import cairo
 import numpy
-from fplan.extract.extracted_cache import get_airspaces,get_obstacles,get_airfields,get_sig_points,get_aip_sup_areas
+from fplan.extract.extracted_cache import get_firs,get_airspaces,get_obstacles,get_airfields,get_sig_points,get_aip_sup_areas
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
 import socket
 import maptilereader
+from itertools import izip,chain
 #have_mapnik=True
 
 #If changing this - also change 'meta=x' in tilegen_planner .
@@ -37,7 +38,7 @@ def get_path(cachedir,zoomlevel,x1,y1):
     return os.path.join(get_dirpath(cachedir,zoomlevel,x1,y1),str(x1)+".png")
     
 typecolormap=dict(
-    FIR=((0.0,0.0,0.0,0.0),(0.0,0.0,1.0,0.75)),
+    FIR=((0.0,0.0,0.0,0.0),(0.0,0.0,0.0,1.0)),
     TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
     RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
     CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
@@ -135,7 +136,9 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
     if tma:
         def tolocal(merc):
             return (merc[0]-x1,merc[1]-y1)
-        for space in get_airspaces()+get_notam_objs_cached()['areas']+get_aip_sup_areas():        
+        for space in chain(
+                get_airspaces(),get_notam_objs_cached()['areas'],
+                get_aip_sup_areas(),get_firs()):        
             
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)

@@ -6,7 +6,7 @@ import re
 import fplan.lib.mapper as mapper
 import sys,os
 import math
-
+from datetime import datetime
 from fplan.lib.mapper import parse_coord_str,uprint
 from pyshapemerge2d import Polygon,Vertex,vvector
 
@@ -105,12 +105,12 @@ def parse_page(parser,pagenr):
         areaspec=[]
         #print "Rect: ",0,cury,minx+35,100
         y1=cury
-        lines=page.get_lines(page.get_partially_in_rect(0,cury,minx+35,100))
+        lines=page.get_lines(page.get_partially_in_rect(0,cury,minx+35,100),order_fudge=10)
         for idx,line in enumerate(lines):
             if re.search(ur"FL \d+",line) or line.count("FT MSL"): 
                 vertidx=idx
                 break            
-            #print "Line:",line.encode('utf8')
+            print "Line:",line.encode('utf8')
             if line.strip()=="":
                 vertidx=idx
                 break
@@ -210,6 +210,30 @@ def fi_parse_tma():
         parsed=parse_page(p,pagenr)#pagenr)
         res.extend(parsed)
         #break
+    res.append(dict(
+        name="FINLAND FIR",
+        icao="EFIN",
+        floor='GND',
+        ceiling='-',
+        freqs=[],
+        type='FIR',
+        date=datetime(2011,4,9),
+        points=mapper.parse_coord_str("""                                   
+    601130N 0190512E - 601803N 0190756E -
+610000N 0191905E - 614000N 0193000E -
+631000N 0201000E - 632830N 0204000E -
+633700N 0213000E - 644100N 0225500E -
+653148N 0240824E -
+Along the common X/Y state boundary to 690336N 0203255E -
+Along the common X/Y state boundary to 690307N 0285545E -
+Along the common X/Y state boundary to 601201N 0271735E - 
+600800N 0263300E -
+595830N 0260642E - 595300N 0255200E -
+595430N 0252000E - 595300N 0245100E -
+590000N 0210000E - 591524N 0203239E -
+593346N 0195859E - 601130N 0190512E
+""",context="finland")))
+        
     for pa in res:
         pretty(pa)
     return res
@@ -221,6 +245,7 @@ def fi_parse_r_areas():
     for pagenr in xrange(2,p.get_num_pages()): 
         parsed=parse_page(p,pagenr,"R")
         res.extend(parsed)
+
     #for pa in res:
     #    pretty(pa)
     return res

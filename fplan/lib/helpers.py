@@ -72,7 +72,9 @@ def foldable_links(htmlid,urls):
     Links:<br/>
     <ul>
     """%dict(id=htmlid)]
-    for url,desc in urls:        
+    
+    for url,desc in urls:
+        if not url: continue            
         out.append("<li><u><a href=\"%s\">%s</a></u></li>"%(cgi.escape(url),cgi.escape(desc)))
     out.append("</ul></div></div>")
     return "\n".join(out)

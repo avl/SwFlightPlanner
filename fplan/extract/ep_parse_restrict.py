@@ -79,7 +79,7 @@ def ep_parse_tra():
             coordstr2=fix_coords("".join(o)).rstrip().rstrip("-")
             print "COordstr:",coordstr2
             spaces.append(dict(
-                name="EF %s %s"%(kind,name),
+                name="EP %s %s"%(kind,name),
                 points=mapper.parse_coord_str(coordstr2,context="poland"),
                 ceiling=ceiling,
                 floor=floor,

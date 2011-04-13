@@ -7,7 +7,7 @@ from fplan.lib.poly_cleaner import clean_up_polygon
 def ey_parse_tma():
     out=[]
     
-    def emit(name,coordstr,limits,type="TMA",freqs=[],date=datetime(2011,03,25)):
+    def emit(name,coordstr,limits,type="TMA",freqs=[],date=datetime(2011,03,25),icao=None):
         ceiling,floor=limits.split("/")
         def compact(m):
             return "".join(m.groups())
@@ -17,8 +17,8 @@ def ey_parse_tma():
         tpoints=mapper.parse_coord_str(coordstr,context='lithuania')
         f1=mapper.parse_elev(floor)
         c1=mapper.parse_elev(ceiling)
-        #if c1!='-':
-        #    assert c1>f1
+        if c1!='-':
+            assert c1>f1
         for points in clean_up_polygon(tpoints):
             out.append(
                 dict(
@@ -30,10 +30,13 @@ def ey_parse_tma():
                      type=type
                      )
             )
+            if icao:
+                out[-1]['icao']=icao
     emit(name=u"Vilnius FIR",
          limits="-/GND",
          freqs=[],
-         type="FIR",         
+         type="FIR",       
+         icao='EYVL',  
          coordstr=u"""
 56 20 43N 018 30 23E - 56 04 00N 020 40 00E -
 56 04 09N 021 03 52E - 

@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 import fplan.lib.mapper as mapper
 import routes.util as h
 from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obstacles
-from fplan.lib.airspace import get_notam_areas_on_line,get_notampoints_on_line
+from fplan.lib.airspace import get_notam_areas_on_line,get_notampoints_on_line,get_any_space_on_line
 import json
 import re
 import fplan.lib.weather as weather
@@ -315,6 +315,8 @@ class FlightplanController(BaseController):
             last_fuel_left=None
             nr_persons=None
             for meta,routes in break_subtrips(c.route):
+                print "===============New subtrip..............."
+                spaces=set()                
                 fir_whenposname=[]
                 accum_time=0
                 #print "broke ruote",meta
@@ -335,6 +337,7 @@ class FlightplanController(BaseController):
                 extra_remarks=[]
                 lastwppos=None
                 for i,wp in enumerate(waypoints):
+                    print "Subtrip:",i,wp.waypoint
                     at['T']=meta['T']
                     lat,lon=mapper.from_str(wp.pos)
                     if lastwppos:
@@ -348,15 +351,21 @@ class FlightplanController(BaseController):
                                 crossing=airspace.get_fir_crossing(posa,posb)
                                 if crossing:
                                     fir,enterpos=crossing
-                                    bearing,along=mapper.bearing_and_distance(posa,posb)
+                                    bearing,along=mapper.bearing_and_distance(posa,enterpos)
                                     if sub.gs>1e-6:
                                         curtime=accum_time+along/sub.gs
-                                        fir_whenposname.append((curtime,enterpos,fir['name']))
+                                        fir_whenposname.append((curtime,enterpos,fir['icao']))
                             accum_time+=sub.time
+                            
+                        for space in get_any_space_on_line(lastwppos,curpos):
+                            spaces.add((space['name'],space.get('floor',"<Unknown>"),space.get('ceiling',"<Unknown>")))
                     
                     lastwppos=(lat,lon)         
                     symbolicpos=None
                     airport=None
+                    
+                    
+                    
                     if i==0 or i==len(waypoints)-1:
                         for ad in airspace.get_airfields(lat,lon,11):
                             if not ad['icao'].upper() in ['ZZZZ','ESVF']:
@@ -395,7 +404,9 @@ class FlightplanController(BaseController):
                     if len(dof)==8 and dof.startswith("20"):
                         dof=dof[2:]
                 else:
-                    dof=""                        
+                    dof=""
+                    
+                                        
                 if len(dof)!=6:
                     raise AtsException(u"You need to enter the Date of Flight/Takeoff date!")
                 else:                    
@@ -491,7 +502,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 phonenr=c.user.phonenr if c.user.phonenr else ""))
                 at['atsfplan']=atsfplan.strip()
                 #print "Adding atstrip:",atsfplan    
-                
+                at['spacesummary']=spaces
                 last_fuel_left=routes[-1].accum_fuel_burn
                 c.atstrips.append(at)    
             

@@ -137,7 +137,7 @@ def parse_space(lines):
             ceiling=elev(TOPS)
             floorint=mapper.parse_elev(floor)
             ceilint=mapper.parse_elev(ceiling)
-            if floorint>9500:
+            if floorint>=9500 and ceilint>=9500:
                 continue
             out.append(
                 dict(

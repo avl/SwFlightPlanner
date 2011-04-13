@@ -9,7 +9,7 @@ import md5
 import math
 
 predef={
-("L24","a7aa3d5a9cccda04a40cbb11e3b7b89e") : ( 10,"FL 65","FL 95","""VIBEP
+("L24","0679ab4cea290636ac02b4ec4d3035d8") : ( 10,"FL 65","FL 95","""VIBEP
 602733N 0241439E
 R MAROM
 602652N 0240237E

@@ -82,6 +82,7 @@ def ep_parse_tma():
                     dict(
                          points=fir,
                          name="WARSZAWA FIR",
+                         icao="EPWW",
                          floor="GND",
                          ceiling="-",
                          freqs=[],
@@ -277,8 +278,15 @@ def ep_parse_tma():
                     assert len(curfreq)==0
                     lastspace['points'].extend(points)
                 else:                    
-                    #print "Raw curvert:",repr(curvert)
-                    ceiling,floor=[parsealt(x.strip()) for x in curvert]
+                    curvert_out=[]
+                    for cur in curvert:
+                        cur=cur.strip()
+                        if cur.endswith("C"):
+                            cur=cur[:-1].strip()
+                        if not cur:continue
+                        curvert_out.append(cur)
+                    print "Raw curvert_out:",repr(curvert_out)
+                    ceiling,floor=[parsealt(x) for x in curvert_out]
                     
                     if subname:
                         name=(area+" "+subname).strip()

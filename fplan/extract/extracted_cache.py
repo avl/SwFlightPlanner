@@ -26,11 +26,14 @@ from fplan.extract.de_parse import parse_denmark
 
 from fplan.extract.ee_parse_tma import ee_parse_tma
 from fplan.extract.ee_parse_airfields import ee_parse_airfields
+from fplan.extract.ee_parse_sigpoints import ee_parse_sigpoints
 from fplan.extract.ev_parse_tma import ev_parse_tma,ev_parse_r,ev_parse_obst
+from fplan.extract.ev_parse_sigpoints import ev_parse_sigpoints
 from fplan.extract.ev_parse_airfields import ev_parse_airfields
 from fplan.extract.ee_parse_restrictions import ee_parse_restrictions
 from fplan.extract.ey_parse_tma import ey_parse_tma
 from fplan.extract.ey_parse_airfields import ey_parse_airfields
+from fplan.extract.ey_parse_sigpoints import ey_parse_sigpoints
 from fplan.extract.ep_parse_restrict import ep_parse_tra
 from fplan.extract.ep_parse_tma import ep_parse_tma
 from fplan.extract.ep_parse_airfields import ep_parse_airfields
@@ -169,34 +172,37 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     if not already:
                         sig_points.append(point)
                 
-            a=False
-            if not is_devcomp() or True: #poland
+            a=True
+            if not is_devcomp() or 0: #poland
                 ads,spaces=ep_parse_airfields()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
                 airspaces.extend(ep_parse_tma())
                 airspaces.extend(ep_parse_tra())
-            if not is_devcomp() or a: #lithuania
+            if not is_devcomp() or 0: #lithuania
                 ads,spaces=ey_parse_airfields()
                 airspaces.extend(spaces)
                 airfields.extend(ads)
+                sig_points.extend(ey_parse_sigpoints())
                 airspaces.extend(ey_parse_tma())
-            if not is_devcomp() or a: #estonia
+            if not is_devcomp() or 0: #estonia
                 ads,spaces=ee_parse_airfields()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
+                sig_points.extend(ee_parse_sigpoints())
                 airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ee_parse_tma())
-            if not is_devcomp() or a: #latvia
+            if not is_devcomp() or 0: #latvia
                 #airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ev_parse_tma())
                 airspaces.extend(ev_parse_r())
                 obstacles.extend(ev_parse_obst())
                 evads,evspaces=ev_parse_airfields()
+                sig_points.extend(ev_parse_sigpoints())
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            if not is_devcomp() or a: #denmark
+            if not is_devcomp() or 0: #denmark
                 denmark=parse_denmark()
                 airspaces.extend(denmark['airspace'])
                 airfields.extend(denmark['airfields'])
@@ -281,7 +287,7 @@ def get_firs_in_bb(bb):
     for item in aipdatalookup['firs'].overlapping(bb):
         yield item.payload #tuple of (Polygon,Airspace-dict)
 
-def get_firs(bb):
+def get_firs():
     get_aipdata()
     return aipdata.get('firs',[])
 

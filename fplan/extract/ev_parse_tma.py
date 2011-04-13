@@ -90,7 +90,7 @@ def ev_parse_x(url):
             mapper.parse_elev(ceiling)
             ifloor=mapper.parse_elev(floor)
             iceiling=mapper.parse_elev(ceiling)            
-            if ifloor>9500 and iceiling>9500:
+            if ifloor>=9500 and iceiling>=9500:
                 continue
             assert ifloor<iceiling
             
@@ -122,6 +122,7 @@ def ev_parse_tma():
     data,date=fetchdata.getdata(url)
     parser.feed(data)
     tree=parser.close()
+    
     got_fir=False
     for table in tree.xpath("//table"):
         #print "Table with %d children"%(len(table.getchildren()),)
@@ -137,14 +138,23 @@ def ev_parse_tma():
         assert idx==0
         #for idx,col in enumerate(cols):
         #    print "Col %d, %s"%(idx,alltext(col)[:10])
-        name,unit,callsign,freq,remark=cols
-        assert alltext(name).lower().count("name")
-        assert alltext(unit).lower().count("unit")
-        assert re.match(ur"call\s*sign",alltext(callsign).lower())
+        nameh,unith,callsignh,freqh,remarkh=cols
+        assert alltext(nameh).lower().count("name")
+        assert alltext(unith).lower().count("unit")
+        assert re.match(ur"call\s*sign",alltext(callsignh).lower())
+        lastcols=None
         for row in rows[1:]:
             cols=list(row.xpath(".//td"))
-            if len(cols)!=5: continue
-            name,unit,callsign,freq,remark=cols
+            if len(cols)==5: 
+                name,unit,callsign,freq,remark=cols
+                lastcols=cols
+            else:
+                if lastcols:
+                    unit,callsign,freq,remark=lastcols[1:]
+                    name=cols[0]
+                else:
+                    continue
+                
             lines=[x.strip() for x in alltext(name).split("\n") if x.strip()]
             if len(lines)==0: continue
             spacename=lines[0].strip()
@@ -191,7 +201,8 @@ def ev_parse_tma():
             #verify that we got actual altitudes:
             coords=[]
             for coord in tcoords:
-                coord=coord.strip()
+                coord=coord.strip().replace("(counter-)","").replace(
+                    "(RIGA DVOR - RIA)","")
                 if coord.endswith(u"E") or coord.endswith("W"):
                     coord=coord+" -"
                 coords.append(coord)
@@ -210,20 +221,22 @@ def ev_parse_tma():
                         url=url,
                         date=date,
                         ceiling=ceiling))
-                
+                if type_=='FIR':
+                    out[-1]['icao']="EVRR"
     
     return out
 
 
 
 if __name__=='__main__':
-    for space in ev_parse_r():
-        print "name:",space['name']
-        print "  floor:",space['floor']
-        print "  ceiling:",space['ceiling']
-        print "  coords:",space['points']
-    for obst in ev_parse_obst():
-        print "obst:",obst
+    if 0:
+        for space in ev_parse_r():
+            print "name:",space['name']
+            print "  floor:",space['floor']
+            print "  ceiling:",space['ceiling']
+            print "  coords:",space['points']
+        for obst in ev_parse_obst():
+            print "obst:",obst
     for space in ev_parse_tma():
         print "name:",space['name']
         print "  floor:",space['floor']
