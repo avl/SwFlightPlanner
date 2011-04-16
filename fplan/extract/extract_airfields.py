@@ -212,10 +212,12 @@ def extract_airfields(filtericao=lambda x:True):
                 for item in page.get_by_regex(".*\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*.*"):
                     uprint("Physical char on page")
                     lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
+                    seen_end_rwy_text=False
                     for line,nextline in izip(lines,lines[1:]+[None]):
                         uprint("MAtching: <%s>"%(line,))
                         if re.match(ur"AD\s+2.13",line): break
                         if line.count("Slope of"): break
+                        if line.count("END RWY:"): seen_end_rwy_text=True
                         m=re.match(ur".*(\d{6}\.\d+)[\s\(\)\*]*(N).*",line)
                         if not m:continue
                         m2=re.match(ur".*(\d{6,7}\.\d+)\s*[\s\(\)\*]*(E).*",nextline)                            
@@ -231,13 +233,16 @@ def extract_airfields(filtericao=lambda x:True):
                         rwy=None
                         for rwytxt in rwytxts:
                             #uprint("lat,lon:%s,%s"%(lat,lon))
-                            #uprint("rwytext:",rwytxt)
+                            uprint("rwytext:",rwytxt)
                             m=re.match(ur"\s*(\d{2}[LRCM]?)\b.*",rwytxt)
                             if m:
                                 assert rwy==None
                                 rwy=m.groups()[0]
+                        if rwy==None and seen_end_rwy_text:
+                            continue
                         already=False
                         assert rwy!=None
+                        seen_end_rwy_text=False
                         for thr in thrs:
                             if thr['thr']==rwy:
                                 raise Exception("Same runway twice on airfield:"+icao)

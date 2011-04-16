@@ -211,7 +211,7 @@ class Page(object):
                     #should join up with the last line, or, if order
                     #is too wrong, as some kind of robustness/mitigation
                     #strategy, create a new line for text that overlaps.                                                                             
-                    if item.x1>last.x2-3:
+                    if item.x1>last.x2-order_fudge:
                         #Order is right, join the two candidates to the same line.
                         repcnt=max(int(item.x1-last.x2),1)
                         expandedspaces="".join(repeat(" ",repcnt))
