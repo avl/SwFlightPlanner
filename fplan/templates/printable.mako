@@ -39,7 +39,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 </table>
 
 <table border="1" width="100%"> 
-<tr><td colspan="7" style="font-size:16px">
+<tr><td colspan="8" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
 <span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}
 <span style="font-size:10px">Fuel:</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
@@ -54,16 +54,17 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
 <td><span style="font-size:10px">TAS:</span>${rt.tas}<span style="font-size:10px">kt</span></td>
 <td><span style="font-size:10px">Time:</span>${h.timefmt(rt.time_hours)}</td>
+<td><span style="font-size:10px">Total time:</span>${h.timefmt(rt.accum_time_hours)}</td>
 </tr>
 
 %if len(rt.notampoints)>0:
 <tr style="font-size:11px">
-<td colspan="7">There ${"are" if len(rt.notampoints)>1 else "is"} ${len(rt.notampoints)} NOTAM${"s" if len(rt.notampoints)>1 else ""} for this leg.</td>
+<td colspan="8">There ${"are" if len(rt.notampoints)>1 else "is"} ${len(rt.notampoints)} NOTAM${"s" if len(rt.notampoints)>1 else ""} for this leg.</td>
 </tr>
 %endif
 %if len(rt.freqset)>0:
 <tr style="font-size:11px">
-<td colspan="7">
+<td colspan="8">
 %for name,freqs in sorted(rt.freqset.items()):
 <b>${name}</b>
 %for freq in freqs:
@@ -74,7 +75,7 @@ ${freq}
 </tr>
 %endif
 
-<tr><td colspan="7" style="font-size:16px">
+<tr><td colspan="8" style="font-size:16px">
 <b>${rt.b.waypoint}</b>
 <span style="font-size:10px">ETA: </span>${rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else '--'} 
 %if rt.b.stay and next_rt!=None:

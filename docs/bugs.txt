@@ -128,5 +128,5 @@
 126: FIXED: Finish "Entrance of FIR" code for estland-branch.
 127: NOTAMs för baltikum och polen.
 128: Kartan borde uppdateras med notam-info för nummer/namn-givna R-områden och D-områden och liknande.
+129: Verify notam geo search better. 
 
- 

@@ -16,6 +16,7 @@ def get_notam_objs(kind=None):
     areas=[]
     for u in notamupdates:
         text=u.text.strip()
+
         if text.count("W52355N0234942E"):
             text=text.replace("W52355N0234942E","652355N0234942E")
         coordgroups=[]
@@ -30,6 +31,33 @@ def get_notam_objs(kind=None):
             else:
                 if len(coordgroups)==0: coordgroups=[""]
                 coordgroups[-1]+=line+"\n"
+
+        if (kind==None or kind=="notamarea"):
+            for radius,unit,lat,lon in chain(
+                re.findall(r"RADIUS\s*(?:OF)?\s*(\d+)\s*(NM|M)\s*(?:CENT[ERD]+|FR?O?M)?\s*(?:ON)?\s*(?:AT)?\s*(\d+[NS])\s*(\d+[EW])",text),
+                re.findall(r"(\d+)\s*(NM|M)\s*RADIUS\s*(?:CENT[ERD]+)?\s*(?:ON|AT|FROM)?\s*(\d+[NS])\s*(\d+[EW])",text)
+                ):
+                try:
+                    radius=float(radius)
+                    if unit=="M":
+                        radius=radius/1852.0
+                    else:
+                        assert unit=="NM"
+                    centre=mapper.parse_coords(lat,lon)
+                    coords=mapper.create_circle(centre,radius)
+                        #print "Circle:",text
+                        #print dict(radius=radius,lat=lat,lon=lon)
+                    areas.append(dict(
+                            points=coords,
+                            kind="notamarea",
+                            name=text,
+                            type="notamarea",
+                            notam_ordinal=u.appearnotam,
+                            notam_line=u.appearline,
+                            notam=text))
+                except Exception,cause:
+                    print "Invalid notam coords: %s,%s"%(lat,lon)
+                    raise
                     
         for coordgroup in coordgroups:        
             try:
@@ -38,34 +66,8 @@ def get_notam_objs(kind=None):
                 print "Parsing,",coordgroup
                 print "Exception parsing lfv area from notam:%s"%(cause,)
                 coords=[]
-            if len(coords)==0: continue
-            if (kind==None or kind=="notamarea"):
-                for radius,unit,lat,lon in chain(
-                            re.findall(r"RADIUS\s*(?:OF)?\s*(\d+)\s*(NM|M)\s*(?:CENT[ERD]+|FR?O?M)?\s*(?:ON)?\s*(?:AT)?\s*(\d+[NS])\s*(\d+[EW])",text),
-                            re.findall(r"(\d+)\s*(NM|M)\s*RADIUS\s*(?:CENT[ERD]+|FR?O?M)?\s*(?:ON)?\s*(\d+[NS])\s*(\d+[EW])",text)
-                            ):
-                    try:
-                        radius=float(radius)
-                        if unit=="M":
-                            radius=radius/1852.0
-                        else:
-                            assert unit=="NM"
-                        centre=mapper.parse_coords(lat,lon)
-                        coords=mapper.create_circle(centre,radius)
-                        #print "Circle:",text
-                        #print dict(radius=radius,lat=lat,lon=lon)
-                        areas.append(dict(
-                            points=coords,
-                            kind="notamarea",
-                            name=text,
-                            type="notamarea",
-                            notam_ordinal=u.appearnotam,
-                            notam_line=u.appearline,
-                            notam=text))
-                    except Exception,cause:
-                        print "Invalid notam coords: %s,%s"%(lat,lon)
-                        raise
             
+            if len(coords)==0: continue
             if text.count("OBST") and (kind==None or kind=="obstacle"):
                 elevs=re.findall(r"ELEV\s*(\d+)\s*FT",text)
                 elevs=[int(x) for x in elevs if x.isdigit()]
