@@ -115,3 +115,6 @@
 113: Circular areas should be really circluar, not just circular on a mercator map.
 114: FIXED: AIP SUP areas must be made much more clear!
 115: FIXED: Vi borde ha rensning av NOTAM-filer!
+
+
+116: Verify notam geo search better. 
