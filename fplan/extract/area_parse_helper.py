@@ -45,11 +45,11 @@ def find_areas(page):
         if len(process):
             alltext="\n".join(page.get_lines(process))
             print "<%s>"%(alltext,)
-            anyarea=re.findall(r"((?:\d{4,6}[NS]\s*\d{5,7}[EW][^0-9]{0,25})+)",alltext,re.DOTALL|re.MULTILINE)
+            anyarea=re.findall(r"((?:\d{4,6}[NS]\s*\d{5,7}[EW])+)",alltext,re.DOTALL|re.MULTILINE)
             print "Matching:"
             print anyarea
             if not len(anyarea): continue
-            if len(re.findall(r"\d{4,6}[NS]\s*\d{5,7}[EW][^0-9]{0,25}",anyarea[0]))>=3:
+            if len(re.findall(r"\d{4,6}[NS]\s*\d{5,7}[EW]",anyarea[0]))>=3:
                 coords=parse_coord_str(anyarea[0].strip(),filter_repeats=True)
                 #print "AREA:"
                 #print coords
