@@ -121,13 +121,15 @@ class temporary_trip:
             delete_cur_trip(self.sel)
         print "prev trip:",prevtrip
         add_trip(self.sel,self.temptrip)
-        
-        assert get_cur_trip(self.sel)==self.temptrip
+        actcurtrip=get_cur_trip(self.sel)
+        print "Actual curtrip:",actcurtrip
+        assert actcurtrip==self.temptrip
         return self.sel
     def __exit__(self, type, value, traceback):
         self.sel.open("/mapview/index")
         self.sel.wait_for_page_to_load("10000")
         aftertrip=get_cur_trip(self.sel)
+        print "__exit__ traceback:",traceback
         print "trip after:",aftertrip,"expected:",self.temptrip
         assert aftertrip==self.temptrip
         delete_cur_trip(self.sel)    
