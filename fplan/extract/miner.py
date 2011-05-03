@@ -1,7 +1,7 @@
 from pdfminer.pdfparser import PDFParser, PDFDocument
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfdevice import PDFDevice
-from pdfminer.layout import LAParams,LTItem,LTRect,LTTextLineHorizontal,LTTextBoxHorizontal,LTTextLine,LTPolygon,LTFigure,LTLine
+from pdfminer.layout import LAParams,LTItem,LTRect,LTTextLineHorizontal,LTTextBoxHorizontal,LTTextLine,LTFigure,LTLine
 from pdfminer.converter import PDFPageAggregator
 from parse import ItemStr,Page,Item
 from StringIO import StringIO
@@ -20,9 +20,9 @@ def get_vertical_lines(stream):
             yield item.x0,item.y0,item.x1
             yield item.x0,item.y1,item.x1
             continue
-        if type(item)==LTPolygon:
-            #TODO: SUpport this?
-            continue
+        #if type(item)==LTPolygon:
+        #    #TODO: SUpport this?
+        #    continue
         if type(item)==LTFigure:
             #TODO: SUpport this?
             continue

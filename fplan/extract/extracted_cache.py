@@ -173,26 +173,26 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         sig_points.append(point)
                 
             a=True
-            if not is_devcomp() or 0: #poland
+            if 0: #poland
                 ads,spaces=ep_parse_airfields()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
                 airspaces.extend(ep_parse_tma())
                 airspaces.extend(ep_parse_tra())
-            if not is_devcomp() or 0: #lithuania
+            if 0: #lithuania
                 ads,spaces=ey_parse_airfields()
                 airspaces.extend(spaces)
                 airfields.extend(ads)
                 sig_points.extend(ey_parse_sigpoints())
                 airspaces.extend(ey_parse_tma())
-            if not is_devcomp() or 0: #estonia
+            if 0: #estonia
                 ads,spaces=ee_parse_airfields()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
                 sig_points.extend(ee_parse_sigpoints())
                 airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ee_parse_tma())
-            if not is_devcomp() or 0: #latvia
+            if 0: #latvia
                 #airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ev_parse_tma())
                 airspaces.extend(ev_parse_r())
