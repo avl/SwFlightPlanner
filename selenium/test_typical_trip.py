@@ -19,9 +19,14 @@ def test_typical_trip():
             sel.type("aircraft", "SE-TST")
             sel.click("save_button")
             sel.wait_for_page_to_load("10000")        
+        
 
-        sel.click("link=Flightplan")
+        sel.click("link=Flightplan")        
         sel.wait_for_page_to_load("10000")
+        sel.select("change_aircraft","SE-TST")
+        sel.click("save")
+        sel.wait_for_page_to_load("10000")
+        
         sel.type("date_of_flight_100", "2011-02-22")
         sel.type("departure_time_100", "09:00")
         sel.type("fuel_100", "70")
@@ -38,6 +43,8 @@ def test_typical_trip():
         assert abs(int(arrive_min)-24)<=2
         fuel=float(fuel)
         expected_fuel=70-25.4
+        print "Fuel: %f, expected: %f"%(fuel,expected_fuel)
+        #time.sleep(5)
         assert abs(fuel-expected_fuel)<=0.5
         sel.open("/flightplan/index")
         sel.wait_for_page_to_load("10000")

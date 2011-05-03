@@ -1,6 +1,7 @@
 #encoding=utf8
 import  time, re
 from helpers import *
+import time
 
 def test_aircraftmanage():
     with temporary_trip("test_typical") as sel:
@@ -14,10 +15,12 @@ def test_aircraftmanage():
                     
         sel.click("add_button")
         sel.wait_for_page_to_load("10000")
-        sel.type("aircraft", "SE-TST")
+        sel.type("aircraft", "SE-TS2")
         sel.click("save_button")
         sel.wait_for_page_to_load("10000")        
-        sel.select("change_aircraft","SE-TST")
+        sel.select("change_aircraft","SE-TS2")
         sel.click("del_button")
-        sel.wait_for_page_to_load("10000")        
-        assert 0==len(list(sel.get_select_options("change_aircraft")))
+        sel.wait_for_page_to_load("10000")
+        if sel.is_element_present("name=change_aircraft"):
+            assert 0==len(list(sel.get_select_options("change_aircraft")))
+        
