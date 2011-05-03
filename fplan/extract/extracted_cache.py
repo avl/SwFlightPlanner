@@ -202,7 +202,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            if not is_devcomp() or 0: #denmark
+            if not is_devcomp() or a: #denmark
                 denmark=parse_denmark()
                 airspaces.extend(denmark['airspace'])
                 airfields.extend(denmark['airfields'])
