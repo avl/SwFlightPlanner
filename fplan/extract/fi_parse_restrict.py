@@ -68,8 +68,8 @@ def fi_parse_restrictions():
             print "areaspec:",areaspec
             space['points']=mapper.parse_coord_str("".join(areaspec))
             vertitems=page.get_partially_in_rect(cur.x1+55,cur.y1+0.05,cur.x1+70,y2+1.5)
-            vertspec=page.get_lines(vertitems)
-            print vertitems
+            vertspec=[x.strip() for x in page.get_lines(vertitems) if x.strip()]
+            print repr(vertspec)
             assert len(vertspec)==2
             ceiling,floor=vertspec
             space['ceiling']=ceiling
