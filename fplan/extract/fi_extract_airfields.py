@@ -15,7 +15,9 @@ def fi_parse_airfield(icao=None):
     #https://ais.fi/ais/eaip/pdf/aerodromes/EF_AD_2_EFET_EN.pdf
     #https://ais.fi/ais/eaip/aipcharts/efet/EF_AD_2_EFET_VAC.pdf
     #vacp=parse.Parser("/ais/eaip/aipcharts/%s/EF_AD_2_%s_VAC.pdf"%(icao.lower(),icao),lambda x: x,country="fi")
-    p=parse.Parser("/ais/eaip/pdf/aerodromes/EF_AD_2_%s_EN.pdf"%(icao,),lambda x: x,country="fi")
+    def remove_italics(x):
+        return x.replace("<i>","").replace("</i>","")
+    p=parse.Parser("/ais/eaip/pdf/aerodromes/EF_AD_2_%s_EN.pdf"%(icao,),remove_italics,country="fi")
 
 
     #The following doesn't actually work, since finnish VAC are bitmaps!!! :-(
