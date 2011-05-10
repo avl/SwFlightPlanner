@@ -334,7 +334,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         pa['freqs']=space.get('freqs',"")
                         airspaces.append(pa)
             
-            if not is_devcomp() or False: #sweden
+            if not is_devcomp() or True: #sweden
                 sup_areas,sup_hours=parse_all_sups()
             else:
                 sup_areas=[]
