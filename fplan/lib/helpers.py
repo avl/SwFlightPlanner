@@ -64,6 +64,10 @@ def utcdatetime2stamp(d):
     if check-d!=timedelta(0):
         raise Exception("Unexpected internal error converting times")
     return stamp
+def utcdatetime2stamp_inexact(d):
+    delta=d-datetime(1970,1,1)
+    stamp=int(delta.days*86400+delta.seconds)    
+    return stamp
 
 def foldable_links(htmlid,urls):    
     out=["""<div id="%(id)s" class="foldable"><div>

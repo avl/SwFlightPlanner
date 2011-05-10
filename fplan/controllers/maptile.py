@@ -18,7 +18,7 @@ from fplan.lib.get_terrain_elev import get_terrain_elev
 from pyshapemerge2d import Vector,Line,Vertex
 from itertools import izip,chain
 import routes.util as h
-
+from datetime import datetime,timedelta
 
 
 def format_freqs(freqitems):
@@ -72,7 +72,17 @@ class MaptileController(BaseController):
         out=[]
         spaces=get_airspaces(lat,lon)
         print "Spaces:",spaces
-        spaces=u"".join(u"<li><b>%s</b>: %s - %s%s</li>"%(space['name'],space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+        def anydate(s):
+            if not 'date' in s: return ""
+            d=s['date']
+            age=datetime.utcnow()-d            
+            if age>timedelta(367):
+                return "<span style=\"font-size:10px\">[%d]</span>"%(d.year,)
+            if age>timedelta(2):                
+                return "<span style=\"font-size:10px\">[%d%02d%02d]</span>"%(
+                        d.year,d.month,d.day)
+            return ""
+        spaces=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
                 spaces,key=sort_airspace_key))
         if spaces=="":
             spaces="No airspace found"

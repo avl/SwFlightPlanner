@@ -1,6 +1,7 @@
 import re
 import fplan.lib.mapper as mapper
 from fplan.lib.get_terrain_elev import get_terrain_elev
+from datetime import datetime
 import csv
 def coding(x):
     try:
@@ -77,9 +78,9 @@ def parse_space(lines):
                     TITLE=None
                 CLASS=SUBTYPE=RADIO=None
                 if TYPE=="DANGER":
-                    name="D-"+REF+" [2010]"
+                    name="D-"+REF
                 else:
-                    name=REF+" [2010]"
+                    name=REF
                 type_=translate[TYPE]
             else:
                 if not SUBTYPE:
@@ -92,7 +93,7 @@ def parse_space(lines):
                 while isnext("NOTES"):
                     notes.append(get("NOTES"))
                 TITLE=get("TITLE")
-                name=" ".join([TITLE.strip(),SUBTYPE])+" [2010]"
+                name=" ".join([TITLE.strip(),SUBTYPE])
                 for radio in [RADIO]+notes:
                     radioname,freq=re.match(ur"(.*?)\s*(\d{3}\.\d{3}\s*(?:and)?)+",radio).groups()
                     fr=re.findall(ur"\d{3}\.\d{3}",freq)
@@ -146,7 +147,8 @@ def parse_space(lines):
                      ceiling=ceiling,
                      freqs=freqs,
                      points=points,
-                     type=type_
+                     type=type_,
+                     date=datetime(2010,1,1)
                      ))            
     except StopIteration:
         pass
@@ -176,6 +178,7 @@ def parse_airfields():
             icao=ICAO,
             name=name,
             pos=mapper.to_str((lat,lon)),
+            date=datetime(2010,1,1),
             elev=int(elev))
         out.append(ad)
     return out

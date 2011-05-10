@@ -20,10 +20,11 @@ from fplan.lib.bsptree import BspTree,BoundingBox
 import fplan.lib.remove_unused_users
 import fplan.lib.delete_old_notams
 import fplan.lib.mapper as mapper
+from fplan.lib.helpers import utcdatetime2stamp_inexact
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 from fplan.extract.de_parse import parse_denmark
-
+import json
 from fplan.extract.ee_parse_tma import ee_parse_tma
 from fplan.extract.ee_parse_airfields import ee_parse_airfields
 from fplan.extract.ee_parse_sigpoints import ee_parse_sigpoints
@@ -202,30 +203,122 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            if not is_devcomp() or a: #denmark
-                denmark=parse_denmark()
-                airspaces.extend(denmark['airspace'])
-                airfields.extend(denmark['airfields'])
+            class SpaceLoader():
+                def parse_denmark(self):
+                    if not is_devcomp() or a: #denmark
+                        denmark=parse_denmark()
+                        return dict(airspaces=denmark['airspace'],
+                                    airfields=denmark['airfields'])
+                def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
+                def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
+                def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())
+                def fi_parse_ats_rte(self):"Finnish ATS Routes";return dict(airspaces=fi_parse_ats_rte())
+                def fi_parse_parse_airfields(self):
+                    "Finnish major airfields"
+                    fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
+                    return dict(airfields=airfields,airspaces=fi_spaces)
+                def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
+                def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
+
+                def se_parse_airfields(self):
+                    "Swedish Major airports"
+                    se_airfields,se_points=extract_airfields()
+                    return dict(airfields=se_airfields,sig_points=se_points)
+                def se_parse_sigpoints(self):"Swedish significant points";return dict(sig_points=parse_sig_points())
+                def se_parse_tma(self):
+                    "Swedish TMA"
+                    return dict(airspaces=parse_all_tma())
+                def se_parse_r(self):"Swedish R/D-areas";return dict(airspaces=parse_r_areas())
+                def se_parse_mountain(self):"Swedish mountain area";return dict(airspaces=parse_mountain_area())
+                def se_parse_obstacles(self):"Swedish obstacles";return dict(obstacles=parse_obstacles())
+               
+            
+            def run_space_loader(loader):
+                if not os.path.exists("data/aipdata"):
+                    os.makedirs("data/aipdata")                
+                report=dict()
+                for method in [x for x in dir(loader) if not x.startswith("_")]:
+                    filename=os.path.join("data/aipdata",method+".pickle")
+                    result="Unknown"
+                    msg=None
+                    try:
+                        m=getattr(loader,method)                        
+                        d=m()
+                        temp=open(filename+".temp","w")
+                        pickle.dump(d,temp)
+                        temp.close()
+                        os.rename(
+                            filename+".temp",
+                            filename)                            
+                        result="Loaded new"
+                    except Exception,cause:
+                        msg=repr(cause)
+                        try:
+                            d=pickle.load(open(filename))
+                            result="Used backup"
+                        except:
+                            d=dict()
+                            result="Backup restore failed"
+                    report[method]=dict(method=method,what=m.__doc__,result=result,msg=msg,date=
+                                        utcdatetime2stamp_inexact(datetime.utcnow()))
+                    now=datetime.utcnow()
+                    for k,v in d.items():
+                        for x in v:
+                            if not 'date' in x:
+                                x['date']=now
+                            else:
+                                if x['date']>now:
+                                    x['date']=now
+                        if k=="airspaces":
+                            #print "Method:",method,v
+                            #for av in v:
+                                #print
+                                #print
+                                #print av
+                                #assert 'type' in av
+                            airspaces.extend(v)
+                        elif k=="airfields":
+                            airfields.extend(v)
+                        elif k=="sig_points":
+                            sig_points.extend(v)
+                        elif k=="obstacles":
+                            obstacles.extend(v)
+                        else:
+                            raise Exception("Bad return value from SpaceLoader:%s"%((k,v),))
+                    
+                f=open("data/aipdata/result.json","w")
+                json.dump(report,f)
+                f.close()
+            
+            run_space_loader(SpaceLoader())
+             
+            """
             if not is_devcomp() or a: #finland
-                airspaces.extend(fi_parse_tma())
+                airspaces_extend(fi_parse_tma())
                 sig_points_extend(fi_parse_sigpoints())
-                obstacles.extend(fi_parse_obstacles())
-                airspaces.extend(fi_parse_ats_rte())
+                obstacles_extend(fi_parse_obstacles())
+                airspaces_extend(fi_parse_ats_rte())
                 fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
-                airspaces.extend(fi_spaces)
-                airspaces.extend(fi_parse_restrictions())
-                airfields.extend(fi_airfields)
-                airfields.extend(fi_parse_small_airfields())
+                airspaces_extend(fi_spaces)
+                airspaces_extend(fi_parse_restrictions())
+                airfields_extend(fi_airfields)
+                airfields_extend(fi_parse_small_airfields())
+            
+            """
+            
+            """
             if not is_devcomp() or a: #sweden
+                
                 se_airfields,se_points=extract_airfields()
                 sig_points_extend(se_points)
-                airfields.extend(se_airfields)
+                airfields_extend(se_airfields)
                 sig_points_extend(parse_sig_points())
-                airspaces.extend(parse_all_tma())
-                airspaces.extend(parse_r_areas())
-                airspaces.extend(parse_mountain_area())
+                airspaces_extend(parse_all_tma())
+                airspaces_extend(parse_r_areas())
+                airspaces_extend(parse_mountain_area())
                 
-                obstacles.extend(parse_obstacles())
+                obstacles_extend(parse_obstacles())
+            """
             #cities    
             sig_points.extend(extract_cities.get_cities())
             
