@@ -199,15 +199,16 @@ def extract_airfields(filtericao=lambda x:True):
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
                 uprint("Looking on page %d"%(pagenr,))
-                for item in page.get_by_regex(".*OPERATIONAL HOURS.*"):
-                    lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
-                    for line in lines:
-                        things=["ATS","Fuelling","Operating"]
-                        if not line.count("AIP SUP"): continue
-                        for thing in things:
-                            if line.count(thing):
-                                ad['aipsup']=True
-                    
+                if 0: #opening hours are no longer stored in a separate document for any airports. No need to detect which any more (since none are).
+                    for item in page.get_by_regex(".*OPERATIONAL HOURS.*"):
+                        lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
+                        for line in lines:
+                            things=["ATS","Fuelling","Operating"]
+                            if not line.count("AIP SUP"): continue
+                            for thing in things:
+                                if line.count(thing):
+                                    ad['aipsup']=True
+                        
                     
                 for item in page.get_by_regex(".*\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*.*"):
                     uprint("Physical char on page")

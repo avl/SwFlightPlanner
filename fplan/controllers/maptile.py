@@ -158,7 +158,8 @@ class MaptileController(BaseController):
                     links.append((airp['aipvacurl'],
                       'AIP Visual Approach Chart'))
                     
-                if 'aipsup' in airp:
+                if False and 'aipsup' in airp:
+                    #Using AIP SUP for opening hours has stopped.
                     links.append((
                         extracted_cache.get_se_aip_sup_hours_url(),
                         "AIP SUP Opening Hours"))

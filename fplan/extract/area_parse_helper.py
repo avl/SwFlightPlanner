@@ -49,11 +49,11 @@ def find_areas(page):
             print "Matching:"
             print anyarea
             if not len(anyarea): continue
-            if len(re.findall(r"\d{4,6}[NS]\s*\d{5,7}[EW]",anyarea[0]))>=3:
-                coords=parse_coord_str(anyarea[0].strip(),filter_repeats=True)
-                #print "AREA:"
-                #print coords
-                #print "===================================="
+            if len(anyarea)>=3:
+                coords=parse_coord_str(" - ".join(anyarea),filter_repeats=True)
+                print "AREA:"
+                print coords
+                print "===================================="
                 coordfontsize=process[0].fontsize
                 areaname=None
                 for item in reversed(sorted(page.get_partially_in_rect(0,0,100,process[0].y1),key=lambda x:(x.y1,x.x1))):
