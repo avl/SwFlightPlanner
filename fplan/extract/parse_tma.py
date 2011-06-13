@@ -81,6 +81,8 @@ def parse_page(parser,pagenr,kind="TMA"):
         if item.text==None or item.text.strip()=="": continue
         if item.text.strip().startswith("AMDT"): continue
         if item.text.strip().startswith("The LFV Group"): continue
+        if re.match(ur"\s*LFV\s*AIRAC\s*AMDT\s*\d+/\d+\s*",item.text): continue
+        if item.text.strip()=="LFV": continue
         if item.text.strip().startswith("AIRAC"): continue        
         if kind=="R" and not is_r_or_danger_area_name(item.text.strip()):
             continue
@@ -150,6 +152,9 @@ def parse_page(parser,pagenr,kind="TMA"):
             if arealines[idx].lower().startswith("danger area"):
                 last_coord_idx=idx
                 break
+            if arealines[idx].strip()=="LFV":
+                last_coord_idx=idx
+                break
         if last_coord_idx==None:
             last_coord_idx=len(arealines)
         #print "ARealines:",arealines
@@ -163,8 +168,8 @@ def parse_page(parser,pagenr,kind="TMA"):
             #print "Object with no vertical limits: %s"%(repr(d['name']),)
             continue
         
-        #print "Vertlim: ",vertlim
-        heightst=re.findall(r"(FL\s*\d{3})|(\d+\s*ft (?:\s*/\s*\d+\s*.\s*GND)?)|(GND)|(UNL)",vertlim)
+        print "Vertlim: ",vertlim
+        heightst=re.findall(r"(FL\s*\d{3})|(\d+\s*ft\s*(?:\s*/\s*\d+\s*.\s*GND)?)|(GND)|(UNL)",vertlim)
         heights=[]
         for fl,ht,gnd,unl in heightst:
             if fl:
@@ -175,7 +180,7 @@ def parse_page(parser,pagenr,kind="TMA"):
                 heights.append(gnd.strip())
             if unl:
                 heights.append(unl.strip())
-        #print "heights for ",d['name'],":",repr(heights)
+        print "heights for ",d['name'],":",repr(heights)
         assert len(heights)==2
         ceiling=heights[0].strip()
         floor=heights[1].strip()
