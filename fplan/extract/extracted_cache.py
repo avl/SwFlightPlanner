@@ -446,6 +446,7 @@ def run_update_iteration():
             fplan.lib.delete_old_notams.run()
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
+            os.system("nice python fplan/lib/tilegen_unithread.py 9")
     except Exception,cause:
         print "aipdata-update, Exception:",repr(cause)
         raise
@@ -466,7 +467,7 @@ if __name__=='__main__':
         single_force=True
     while True:
         run_update_iteration()
-        time.sleep(3600)
+        time.sleep(1800)
 
 
 
