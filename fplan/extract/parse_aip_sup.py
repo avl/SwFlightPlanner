@@ -75,12 +75,8 @@ def parse_all_sups(limiter=None):
         areas.extend(extract_single_sup(base+sup,sup,supname,opening_ours))
     if "http://www.lfv.se/AIP/AIP%20Sup/SUP_52_10.pdf" in opening_ours:
         opening_ours.remove("http://www.lfv.se/AIP/AIP%20Sup/SUP_52_10.pdf")
-    if not limiter:
-        print "Opening hours:",opening_ours
-        assert len(opening_ours)==1
-    else:
-        if not opening_ours:
-            opening_ours=['unknown']
+    if not opening_ours:
+        opening_ours=['unknown']
     
     return areas,list(opening_ours)[0]
     
