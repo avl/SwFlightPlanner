@@ -15,8 +15,9 @@ def run_unithread(target_path,tma,zoomlevel=13):
     
 def update_unithread(zoomlevel=13):
     if os.path.exists(os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/")):
-        if os.system("rm -rfv "+os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/level*")):
-            raise Exception("Couldn't clear dir")
+        if len([x for x in os.listdir(os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/")) if x.startswith("level")]):
+            if os.system("rm -rfv "+os.path.join(os.getenv("SWFP_DATADIR"),"intermediate/level*")):
+                raise Exception("Couldn't clear dir")
     else:
         if os.system("mkdir -pv "+os.path.join(os.getenv("SWFP_DATADIR"),"intermediate")):
             raise Exception("Couldn't create dir")

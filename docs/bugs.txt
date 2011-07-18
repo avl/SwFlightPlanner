@@ -130,3 +130,4 @@
 128: Kartan borde uppdateras med notam-info för nummer/namn-givna R-områden och D-områden och liknande.
 129: Verify notam geo search better. 
 130: Entry point Ostra Harg is parsed wrong for ESSL/Saab (linköping)
+131: Honestly, the obstacles screen should describe location of obstacles in more logical way
