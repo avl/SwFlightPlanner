@@ -49,6 +49,8 @@ def get_mtime():
     global last_mtime
     if datetime.utcnow()-last_mtime_check>timedelta(0,60):
         path=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/airspace/level5") #used to detect if map has been updated
+        if not os.path.exists(path):
+            return 0
         mtime=os.stat(path)[stat.ST_MTIME]
         last_mtime=mtime
         last_mtime_check=datetime.utcnow()

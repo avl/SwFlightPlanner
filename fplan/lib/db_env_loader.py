@@ -13,7 +13,7 @@ def ensure_loaded():
         assert not loading
         loading=True  
         try:
-            conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
+            conf = appconfig('config:%s'%(os.path.join(os.getenv("SWFP_ROOT"),"development.ini"),))    
             load_environment(conf.global_conf, conf.local_conf)
         except:
             loading=False

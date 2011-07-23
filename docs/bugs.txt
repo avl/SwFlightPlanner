@@ -131,3 +131,20 @@
 129: Verify notam geo search better. 
 130: Entry point Ostra Harg is parsed wrong for ESSL/Saab (linköping)
 131: Honestly, the obstacles screen should describe location of obstacles in more logical way
+132: Add a "Add waypoint by coordinate"-screen.
+133: Make it more obvious that there you can have multiple routes.
+134: Add a "reset wind" button.
+135: Create a way to scribble notes on legs (like radio-freq, opening hours, etc).
+
+136:
+  return func(**args)
+File '/home/anders/saker/fplan/fplan/controllers/notam.py', line 86 in show_ctx
+  Notam.ordinal==int(request.params['notam'])).one()
+File '/usr/lib/pymodules/python2.6/sqlalchemy/orm/query.py', line 1326 in one
+  raise orm_exc.NoResultFound("No row was found for one()")
+NoResultFound: No row was found for one()
+
+137: Make use of HTML location tracking, to show planners position on map.
+138: Why doesn't panning always work in chrome?
+139: It should be possible to use up/down-arrows in flight plan, to move to row above/below.
+140: / are not allowed DEST-name in ATS-plan - should be changed to _ or something.

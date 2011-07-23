@@ -129,6 +129,18 @@ function fetch_winds()
 	var def=doSimpleXMLHttpRequest(fetchweatherurl,params);
 	def.addCallback(weather_cb);
 }
+function reset_winds()
+{
+    for(var i=0;i<num_rows-1;++i)
+    {
+	var w=gete(fpid[i],'W');
+	var v=gete(fpid[i],'V');
+	w.value='0';
+	v.value='0';
+    }
+    on_update_all();
+    return true;
+}
 
 function parsealt(what)
 {

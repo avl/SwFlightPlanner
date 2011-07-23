@@ -13,20 +13,20 @@ fetchweatherurl='${h.url_for(controller="flightplan",action="weather")}';
 saveurl='${h.url_for(controller="flightplan",action="save")}';
 fetchacurl='${h.url_for(controller="flightplan",action="fetchac")}';
 printableurl='${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}';
-fpcolnum=${len(c.cols)};
+fpcolnum=${str(len(c.cols))};
 fpcolshort=[];
 fpcoldesc=[];
 fpcolextra=[];
 fpcolwidth=[];
 %if c.stay:
-firstwaypointid=${c.stay.waypoint_id};
+firstwaypointid=${str(c.stay.waypoint_id)};
 %endif
 %if not c.stay:
 firstwaypointid=null;
 %endif
 
 fpid=[];
-num_rows=${len(c.waypoints)};
+num_rows=${str(len(c.waypoints))};
 function loadfplan()
 {
     force_refresh_on_back_button('${h.url_for(controller="flightplan",action="index")}');
@@ -54,7 +54,7 @@ function loadfplan()
 	stay=[
 	    '${h.jsescape(wp.stay.date_of_flight)|n}','${h.jsescape(wp.stay.departure_time)|n}',
 	    '${wp.stay.fuelstr()}',
-	    ${wp.stay.nr_persons if wp.stay.nr_persons else "''"}
+	    '${str(int(wp.stay.nr_persons)) if wp.stay.nr_persons else ""|n}'
 	];
 	%endif
 	
@@ -167,6 +167,7 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 </tr>
 </table>
 <button title="Fetch wind-information from the low-level forecast provided by LFV" onclick="fetch_winds();return false;">Fetch Wind Information</button>
+<button title="Reset wind-information - set all wind to 0." onclick="reset_winds();return false;">Reset Wind</button>
 
 %if False and len(c.all_aircraft):
 <button onclick="fetch_acparams();return false;">Fetch Values from Aircraft</button>

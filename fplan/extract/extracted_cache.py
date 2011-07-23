@@ -89,7 +89,7 @@ def gen_bsptree_lookup(data):
     lookup_spaces=['airspaces','firs']
     for look in lookup_spaces:
         spaces=data.get(look,None)
-        if spaces:
+        if spaces!=None:
             bbitems=[]
             zoomlevel=13
             for space in spaces:
@@ -203,7 +203,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            class SpaceLoader():
+            class SpaceLoader(object):                
                 def parse_denmark(self):
                     if not is_devcomp() or a: #denmark
                         denmark=parse_denmark()
@@ -334,11 +334,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         pa['freqs']=space.get('freqs',"")
                         airspaces.append(pa)
             
-            if not is_devcomp() or True: #sweden
-                sup_areas,sup_hours=parse_all_sups()
-            else:
-                sup_areas=[]
-                sup_hours=[]
+            sup_areas,sup_hours=parse_all_sups()
                 
             firs=[space for space in airspaces if space['type']=='FIR']
             regular_airspaces=[space for space in airspaces if space['type']!='FIR']

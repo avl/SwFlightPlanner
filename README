@@ -1,8 +1,10 @@
 swflightplanner.se
 
-Hello! You're viewing the source code of the http://swflightplanner.se website.
+Hello! You're viewing the source code of the http://swflightplanner.se 
+web-application.
 
-This guide covers installing and starting the application.
+This guide covers configuring and starting the application. For installing it,
+including all dependencies, see the file docs/install.txt.
 
 NOTE! This app was never made with ease of distribution in mind. Setting
 up a working version of the program will take a few hours, and it is 
@@ -61,6 +63,13 @@ layout:
 Map files
 The files to put in ./tiles/plain/ and ./tiles/airspace can be generated
 from openstreetmap data. To do this, follow the guide in docs/install.txt
+
+Database schema
+You need to set up the database with the required tables. The pylons
+paster-command can be used to do this:
+
+paster setup-app development.ini
+
 
 Running
 The following environment variables need to be set:
