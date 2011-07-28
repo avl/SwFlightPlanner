@@ -113,6 +113,10 @@ class temporary_trip:
         self.sel.window_maximize()
     
         login(self.sel)
+        
+        self.sel.open("/mapview/index")
+        self.sel.wait_for_page_to_load("10000")
+        
         if self.temptrip in list_other_trips(self.sel):
             open_trip(self.sel,self.temptrip)
             delete_cur_trip(self.sel)
@@ -127,14 +131,5 @@ class temporary_trip:
         return self.sel
     def __exit__(self, type, value, traceback):
         if not traceback:
-            self.sel.open("/mapview/index")
-            self.sel.wait_for_page_to_load("10000")
-            aftertrip=get_cur_trip(self.sel)
-            print "__exit__ traceback:",traceback,str(traceback)
-            print "trip after:",aftertrip,"expected:",self.temptrip
-            assert aftertrip==self.temptrip
-            delete_cur_trip(self.sel)    
-            assert not self.temptrip in list_other_trips(self.sel)
-            assert get_cur_trip(self.sel)!=self.temptrip
             self.sel.stop()
             
