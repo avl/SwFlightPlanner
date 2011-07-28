@@ -44,6 +44,8 @@ class SplashController(BaseController):
                     u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
                     u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";
         return render('/splash.mako')
+    def surefail(self):
+        raise Exception("THis failed.")
     def logout(self):
         del session['user']
         if 'current_trip' in session:
