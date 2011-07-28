@@ -79,7 +79,8 @@ class SplashController(BaseController):
                 redirect_to(h.url_for(controller='mapview',action="index"))
             else:
                 print "Bad password!"
-                user.password=md5str(request.params['password'])                
+                user.password=md5str(request.params['password'])     
+                log.warn("Bad password: <%s> <%s>"%(user.user,request.params['password']))           
                 redirect_to(h.url_for(controller='splash',action="index",explanation="Wrong password"))
         else:
             redirect_to(h.url_for(controller='splash',action="index",explanation="No such user"))
