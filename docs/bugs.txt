@@ -115,18 +115,18 @@
 113: FIXED: Circular areas should be really circluar, not just circular on a mercator map.
 114: FIXED: AIP SUP areas must be made much more clear!
 115: FIXED: Vi borde ha rensning av NOTAM-filer!
-116: Add real good logging.
+116: FIXED, SORT OF: Add real good logging.
 117: FIXED: Finish the generic code to validate trip and user-objects. Also, add better error page handling. Google how to do it!
 118: Add Selenium-tests simulating web-spiders and other robots.
 119: Add Selenium-tests for the trip-sharing-function.
 120: FIXED: Circle-function seems broken for Tartu TMA (among others)
 121: FIXED: Decide if new-style get_lines can be made to work for legacy. Preferrable if it can.
-122: Check if split("-") is acceptable...
-123: Not using daily downloaded data for Estonia and Latvia.
-124: Need Estonian and Latvian CTRs!
-125: Skulle vara najs med extra hög kart-upplösning runt flygplatser, med docking-charts.
+122: DON'T UNDERSTAND: Check if split("-") is acceptable...
+123: WONTFIX: Not using daily downloaded data for Estonia and Latvia.
+124: WONTFIX: Need Estonian and Latvian CTRs!
+125: TRIAGED: Skulle vara najs med extra hög kart-upplösning runt flygplatser, med docking-charts.
 126: FIXED: Finish "Entrance of FIR" code for estland-branch.
-127: NOTAMs för baltikum och polen.
+127: WONTFIX: NOTAMs för baltikum och polen.
 128: Kartan borde uppdateras med notam-info för nummer/namn-givna R-områden och D-områden och liknande.
 129: Verify notam geo search better. 
 130: Entry point Ostra Harg is parsed wrong for ESSL/Saab (linköping)
@@ -148,3 +148,10 @@ NoResultFound: No row was found for one()
 138: Why doesn't panning always work in chrome?
 139: It should be possible to use up/down-arrows in flight plan, to move to row above/below.
 140: / are not allowed DEST-name in ATS-plan - should be changed to _ or something.
+141: Printable flightplan has trip-name as parameter, but actually seems to require session variable "current_trip" set as well. Not pretty :-)
+142: Verkar som att gpstrack-variabeln kan bli en tom sträng efter att gpx-import misslyckats. Detta gör att visning sedan misslyckas. Se till att gpstrack alltid blir None eller en giltig track.
+143: Clear session completely when logging out, and when logging in!
+144: Om man resizar fönstret så blir koordinaterna längst ner i statusfältet fel!!!
+145: Borde backupa allt userdata på sajten.
+146: Ta in frekvenser och ban-nummer från AD-översikten.
+

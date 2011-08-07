@@ -11,6 +11,7 @@ from fplan.extract.extracted_cache import get_aip_download_time
 from fplan.lib.base import BaseController, render
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.maptilereader import get_mtime
+from fplan.lib.forgot import forgot_password
 import re
 import os
 
@@ -68,11 +69,19 @@ class SplashController(BaseController):
     def login(self):
         users=meta.Session.query(User).filter(sa.and_(
                 User.user==request.params['username'])
-                ).all()
+                ).all()    
         if len(users)==1:
             user=users[0]
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5str(request.params['password']),user.password)
-            if user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key) or user.password==request.params['password']:
+            
+            print request.params
+            if request.params['login']=='Forgot Password':
+                if forgot_password(user.user):
+                    redirect_to(h.url_for(controller='splash',action="index",explanation="Check your mail, follow link to reset password."))
+                else:
+                    redirect_to(h.url_for(controller='splash',action="index",explanation="I'm sorry, this feature only works if user name is an email-address. The simplest way forward is to just create a new user! Or you can contact the admin of this site."))
+                    
+            elif user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key) or user.password==request.params['password']:
                 session['user']=users[0].user
                 if 'current_trip' in session:
                     del session['current_trip']
