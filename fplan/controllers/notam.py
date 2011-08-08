@@ -82,9 +82,11 @@ class NotamController(BaseController):
         print "Start rendering mako"
         return render('/notam.mako')
     def show_ctx(self):
-        notam=meta.Session.query(Notam).filter(
-             Notam.ordinal==int(request.params['notam'])).one()
-        
+        notams=meta.Session.query(Notam).filter(
+             Notam.ordinal==int(request.params['notam'])).all()
+        if len(notams)==0:
+            return redirect_to(h.url_for(controller='notam',action="index"))
+        notam,=notams
         c.backlink=request.params.get('backlink',
             h.url_for(controller="notam",action="index"))
         

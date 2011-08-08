@@ -442,13 +442,14 @@ def run_update_iteration():
             fplan.lib.delete_old_notams.run()
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
-            os.system("nice python fplan/lib/tilegen_unithread.py 9")
+            pass # No longer constantly re-rendering #os.system("nice python fplan/lib/tilegen_unithread.py 9")
     except Exception,cause:
         print "aipdata-update, Exception:",repr(cause)
         raise
 
     
 if __name__=='__main__':
+
     from sqlalchemy import engine_from_config
     from paste.deploy import appconfig
     from fplan.config.environment import load_environment

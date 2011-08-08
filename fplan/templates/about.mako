@@ -45,7 +45,7 @@ Chrome is free and is easy to download and install: <a href="http://www.google.c
 <br/>
 
 <h2>What does it cost?</h2>
-swflightplanner.se is free for any use. It is open source, and the source code can be found at git://github.com/avl/shapemerge2d.git (use the open source tool git to download). I will keep this server running as long as bandwidth-costs do not become excessive.   
+swflightplanner.se is free for any use. It is open source, and the source code can be found at git://github.com/avl/SwFlightPlanner.git (use the open source tool git to download). I will keep this server running as long as bandwidth-costs do not become excessive.   
 <br/>
 <br/>
 <h2>Is this site reliable?</h2>

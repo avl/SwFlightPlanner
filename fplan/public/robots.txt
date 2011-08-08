@@ -1,3 +1,8 @@
 User-agent: *
-Disallow: /mapview
+Disallow: /mapview/
 Disallow: /splash/login
+Disallow: /api/
+Disallow: /notam/
+Disallow: /profile/
+Disallow: /maptile/
+Disallow: /recordings/
