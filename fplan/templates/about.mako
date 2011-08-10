@@ -75,6 +75,10 @@ A further limitation is that the weather data is only valid for Sweden. Pressing
 Swflightplanner does calculate times for crossing FIR boundaries, but this routine
 only works if you cross at most one FIR-boundary per leg.
 </p>
+<p>
+Geomagnetic database only contains information up to year 2015. Any trips planned after this will
+use geomagnetic information valid for 2015.
+</p>
 </div>
 <br/>
 <br/>
@@ -89,7 +93,8 @@ word swflightplanner did not give any hits on google. Sw stands for Sweden. I am
 <br/>
 <br/>
 <h2>Where does the data come from?</h2>
-The airspace data (which only covers Sweden and Finland) and NOTAMs (which only cover Sweden) are from LFV and Finavia. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.<br/>
+The airspace data (which only covers Sweden and Finland) and NOTAMs (which only cover Sweden) are from LFV and Finavia. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.
+Magnetic variation/declination data is from "The World Magnetic Model" by National Geophysical Data Center.<br/>
 
 The airspace data was last downloaded from LFV/Finavia at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
 The maps were last updated with this airspace data ${c.mapupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. 

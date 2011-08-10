@@ -154,4 +154,6 @@ NoResultFound: No row was found for one()
 144: Om man resizar fönstret så blir koordinaterna längst ner i statusfältet fel!!!
 145: Borde backupa allt userdata på sajten.
 146: Ta in frekvenser och ban-nummer från AD-översikten.
+147: Warn if climb fuel consumption is entered as lower than cruise!
+148: Automatically fill in variation information (available from http://www.ngdc.noaa.gov/geomag/WMM/wmm_wdownload.shtml)
 

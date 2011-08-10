@@ -3,7 +3,6 @@
 
 <script src="/MochiKit.js" type="text/javascript"></script>
 <script src="/fpmain.js" type="text/javascript"></script>
-<script src="/lib.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 

@@ -52,7 +52,7 @@ Or
 <div>
 Existing users:<br />
 <form method="post" action="${h.url_for(controller="splash",action="login")}">
-Username:<input name="username" title="Your username, which could be your email address or anything else depending on what you chose when registering." type="text" value="" /><br />
+Username:<input name="username" title="Your username, which could be your email address or some arbitrary name: it's what you chose when registering." type="text" value="" /><br />
 Password:<input name="password" title="The password you entered when you registered this user." type="password" value="" /><br />
 %if c.expl:
 <div style="background:#ffc0c0">

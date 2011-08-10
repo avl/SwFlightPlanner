@@ -42,11 +42,8 @@ class BaseController(WSGIController):
                     return
             raise Exception("Couldn't generate temporary user name")
         if len(users)==1:
-            users[0].lastlogin=datetime.utcnow()
             if session.get('isreg',False)!=users[0].isregistered:
                 session['isreg']=users[0].isregistered
-            meta.Session.flush()
-            meta.Session.commit()
             
     def __call__(self, environ, start_response):
         """Invoke the Controller"""

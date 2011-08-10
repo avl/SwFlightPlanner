@@ -170,7 +170,6 @@ class FlightplanController(BaseController):
                 ('V','windvel'),
                 ('TAS','tas'),
                 ('Alt','altitude'),
-                ('Var','variation'),
                 ('Dev','deviation')
                 ]:
                                                 
@@ -549,14 +548,17 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             route=wp2route.get((a.id,b.id),None)
             
             if route:                
-                if what in ['TT','D']:
+                if what in ['TT','D','Var']:
                     bear,dist=route.tt,route.d #mapper.bearing_and_distance(a.pos,b.pos)
                     #print "Bear,dist:",bear,dist
                     if what=='TT':
                         return "%03.0f"%(bear,)
                     elif what=='D':
                         return "%.1f"%(dist,)
-                if what in ['W','V','Var','Alt','TAS','Dev']:
+                    elif what=='Var':
+                        var=route.variation
+                        return "%+.0f"%(round(var),)
+                if what in ['W','V','Alt','TAS','Dev']:
                     #routes=list(meta.Session.query(Route).filter(sa.and_(
                     #    Route.user==tripuser(),Route.trip==session['current_trip'],
                     #    Route.waypoint1==a.id,Route.waypoint2==b.id)).all())
@@ -564,8 +566,6 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                         return "%03.0f"%(route.winddir)
                     elif what=='V':
                         return "%.0f"%(route.windvel)
-                    elif what=='Var':
-                        return "%.0f"%(route.variation) if route.variation!=None else ''
                     elif what=='Alt':
                         try:
                             #print "Parsing elev:",route.altitude
@@ -596,7 +596,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 dict(width=3,short='TAS',desc="True Air Speed (kt)",extra="(the speed of the aircraft in relation to the air around it)"),
                 dict(width=3,short='TT',desc="True Track (deg)",extra="(the true direction the aircraft is flying, relative to ground)"),
                 dict(width=3,short='WCA',desc="Wind correction angle (deg)",extra=" (the compensation due to wind needed to stay on the True Track. Negative means you have to aim left, positive to aim right)"),
-                dict(width=2,short='Var',desc="Variation (deg)",extra="(How much to the right of the true north pole, the compass is pointing. Negative numbers means the compass points to the left of the true north pole)"),
+                dict(width=2,short='Var',desc="Variation (deg)",extra="(How much to the right of the true north pole, the compass is pointing. Negative numbers means the compass points to the left of the true north)"),
                 dict(width=2,short='Dev',desc="Deviation (deg)",extra="(How much to the right of the magnetic north, the aircraft compass will be pointing, while travelling in the direction of the true track)"),
                 dict(width=3,short='CH',desc="Compass Heading (deg)",extra="(The heading that should be flown on the airplane compass to end up at the right place)"),
                 dict(width=3,short='D',desc="Distance (NM)",extra=""),
@@ -696,25 +696,39 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         for idx,items in byidsorted:
             cur=[]
             for item in items:
-                along_nm=item['dist_from_a']
-                fromwhat=item['a'].waypoint                
+                dist_from_a=item['dist_from_a']
+                dist_from_b=item['dist_from_b']
+                if abs(dist_from_a)<0.5:
+                    descr="Near %s"%(item['a'].waypoint,)
+                elif abs(dist_from_b)<0.5:
+                    descr="Near %s"%(item['b'].waypoint,)
+                elif dist_from_a<dist_from_b:
+                    descr="%.0fNM %s of %s"%(dist_from_a,item['dir_from_a'],item['a'].waypoint)
+                else:
+                    descr="%.0fNM %s of %s"%(dist_from_b,item['dir_from_b'],item['b'].waypoint)
+                
+                    
                 ident=(item['name'],item['pos'],item.get('elev',None))
                 best=bestdupe[ident]
                 if not (best is item): continue
+                
+                
                 #if ident in seen: continue
                 #seen.add(ident)
                 cur.append(dict(
-                    along_nm=along_nm,
-                    dir_from_a=item['dir_from_a'],
-                    fromwhat=fromwhat,
+                    routepointdescr=descr,
+                    #dir_from_a=item['dir_from_a'],
+                    #fromwhat=fromwhat,
                     kind=item.get('kind',None),
                     bearing=item.get('bearing',None),
+                    along_nm=dist_from_a,                    
                     dist=item['dist'],
                     name=item['name'],
                     closestalt=item['closestalt'],
                     elev=item.get('elev',None)))
                 cur[-1]['color']=classify(cur[-1])
             out.append((items[0]['a'].waypoint,sorted(cur,key=lambda x:x['along_nm'])))
+
         
         c.items=out
         return render('/obstacles.mako')

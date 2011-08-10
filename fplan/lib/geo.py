@@ -24,9 +24,9 @@ dirs=["N",
 def describe_dir(tt):
     tt=tt%360.0
     if tt<0: tt+=360.0
-    r=int(tt*(16.0/360.0)+1.0/32.0)
+    r=int(tt*(16.0/360.0)+1.0/2.0)
     if r<0: r=0
-    if r>15: r=15
+    if r>15: r=0
     return dirs[r]
 def seconds(td):
     return td.days*86400.0+td.seconds+td.microseconds/1e6
@@ -71,7 +71,9 @@ def get_low_sun_near_route(rts):
                         closestalt=None,
                         kind='lowsun',
                         dist_from_a=mapper.bearing_and_distance(mapper.from_str(rt.a.pos),latlon)[1],
+                        dist_from_b=mapper.bearing_and_distance(mapper.from_str(rt.b.pos),latlon)[1],
                         dir_from_a=describe_dir(rt.tt),
+                        dir_from_b=describe_dir((rt.tt+180.0)%360.0),
                         a=rt.a,
                         b=rt.b,
                         id=rt.a.id))
@@ -119,11 +121,23 @@ def get_terrain_near_route(rts,vertdist,interval=10):
             latlon=mapper.merc2latlon(merc,13)
             elev=get_terrain_elev_in_box_approx(latlon,2*minstep)
             
+            
+            dist_from_a=mapper.bearing_and_distance(mapper.from_str(rt.a.pos),latlon)[1]
+            dist_from_b=rt.d-dist_from_a
+            if dist_from_b<0: dist_from_b=0
+            
+                
+                
+            
+            
             #if isfirstorlast and (along_nm<2.5 or along_nm>d-2.5):
             #    along_nm+=minstep
             #    continue
                
-            if alt-elev<vertdist:
+            if (alt-elev<vertdist and
+                not (rt.a.stay and dist_from_a<5) and
+                not ((rt.b.stay or idx==l-1) and dist_from_b<5) ):
+
                 #print "idx",idx,"ord:",rt.a.ordering
                 #print "Terrain warning: ",dict(a=rt.a.waypoint,b=rt.b.waypoint,kind=rt.legpart,startalt=rt.startalt,endalt=rt.endalt,along=alongf,end=end)
                 out.append(dict(
@@ -135,8 +149,10 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                     bearing=0,
                     closestalt=alt,
                     kind='terrain',
-                    dist_from_a=mapper.bearing_and_distance(mapper.from_str(rt.a.pos),latlon)[1],
+                    dist_from_a=dist_from_a,
                     dir_from_a=describe_dir(rt.tt),
+                    dist_from_b=dist_from_b,
+                    dir_from_b=describe_dir((rt.tt+180.0)%360.0),
                     a=rt.a,
                     b=rt.b,
                     id=rt.a.id))
@@ -194,7 +210,9 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 #print "Yielding."
                 d['name']=d['kind']+': ' +d['name']
                 d['dist_from_a']=alongnm_a
+                d['dist_from_b']=rt.d-alongnm_a
                 d['dir_from_a']=describe_dir(rt.tt)
+                d['dir_from_b']=describe_dir((rt.tt+180.0)%360.0)
                 d['dist']=actualdist
                 d['bearing']=bear
                 d['elevf']=itemalt

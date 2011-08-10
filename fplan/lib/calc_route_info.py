@@ -7,6 +7,7 @@ from fplan.lib.get_terrain_elev import get_terrain_elev
 from fplan.extract.extracted_cache import get_airfields
 from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
+from fplan.lib.geomag import calc_declination
 from datetime import datetime,timedelta
 from copy import copy
 from time import time
@@ -77,6 +78,7 @@ def get_route(user,trip):
         prev.nextrt=next
     for rt in routes:
         #print "D-calc: %s -> %s"%(rt.a.waypoint,rt.b.waypoint)
+        
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
         #print "Got D:",D
         rt.d=D
@@ -460,7 +462,18 @@ def get_route(user,trip):
             
     if len(routes):
         last=routes[-1]
-        last.b.dt=accum_dt        
+        last.b.dt=accum_dt
+        
+    for rt in routes: 
+        rt.variation=0
+        if rt.depart_dt==None or rt.arrive_dt==None: 
+            continue
+        startvar=calc_declination(mapper.from_str(rt.a.pos),rt.depart_dt,rt.subs[0].startalt)
+        endvar=calc_declination(mapper.from_str(rt.b.pos),rt.arrive_dt,rt.subs[-1].endalt)
+        if startvar!=None and endvar!=None:
+            rt.variation=0.5*(startvar+endvar)
+            
+                
     print "Elapsed ms",1000.0*(time()-start)
     return res,routes
 

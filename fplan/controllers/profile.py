@@ -8,7 +8,6 @@ from fplan.lib.base import BaseController, render
 import routes.util as h
 from fplan.lib.helpers import md5str
 
-from fplan.extract.extracted_cache import get_aip_download_time
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +18,7 @@ class ProfileController(BaseController):
                 User.user==session['user']).one()
         print "index as user:",user.user,user.isregistered
         print request.params
+        c.changepass=request.params.get('changepass','')
         c.splash=request.params.get('splash','')
         c.user=request.params.get('username',
                     user.user if user.isregistered else '')
@@ -28,10 +28,6 @@ class ProfileController(BaseController):
         c.realname=request.params.get('realname',user.realname)
         c.initial=not user.isregistered
         c.notfastmap=not user.fastmap
-        try:
-            c.aipupdate=get_aip_download_time()
-        except Exception,cause:
-            c.aipupdate=None
         return render('/profile.mako')
     def save(self):
         print "in save:",request.params

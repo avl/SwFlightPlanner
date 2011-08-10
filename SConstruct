@@ -16,6 +16,7 @@ coreenv.Append(CCFLAGS='-O2')
 coreenv.SharedLibrary('_fplanquick.so', [
 	swig_env.SharedObject("fplanquick/fplanquick.i"),        
     "fplanquick/colorize_heightmap.cpp",
-    "fplanquick/flightpath.cpp",
+	"fplanquick/flightpath.cpp",
+	"fplanquick/Magnetic2010/geomag.cpp",
     ])
     

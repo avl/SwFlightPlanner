@@ -31,6 +31,12 @@ function navigate_to(where)
 </tr>
 
 %for waypoint,items in c.items:
+%if False:
+<tr><td>
+<h2>${waypoint}</h2>
+</td>
+</tr>
+%endif
 
 %for item in items:
 <tr
@@ -39,12 +45,7 @@ style="background-color:${item['color']}"
 %endif
 >
 <td>
-%if item['along_nm']<0.1:
-Near ${waypoint}
-%endif
-%if not (item['along_nm']<0.1):
-${"%.0f"%(item['along_nm'],)}nm ${item['dir_from_a']} ${waypoint}
-%endif
+${item['routepointdescr']}
 </td>
 <td>
 %if item['dist']<0.1:

@@ -407,7 +407,7 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 			var wh=fpcolshort[i];
 			if (wh=='Clock')
 				continue;
-			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA')
+			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA' || wh=='Var')
 			{  
 				ro='readonly="1"';
 			}

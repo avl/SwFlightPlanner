@@ -1,3 +1,4 @@
+# coding=utf-8
 import logging
 import re
 from pylons import request, response, session, tmpl_context as c
@@ -19,6 +20,7 @@ from pyshapemerge2d import Vector,Line,Vertex
 from itertools import izip,chain
 import routes.util as h
 from datetime import datetime,timedelta
+import fplan.lib.geomag as geomag
 
 
 def format_freqs(freqitems):
@@ -62,6 +64,7 @@ class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
     
     def get_airspace(self):
+        utcnow=datetime.utcnow()
         try:
             zoomlevel=int(request.params['zoom'])
         except:
@@ -75,7 +78,7 @@ class MaptileController(BaseController):
         def anydate(s):
             if not 'date' in s: return ""
             d=s['date']
-            age=datetime.utcnow()-d            
+            age=utcnow-d            
             if age>timedelta(367):
                 return "<span style=\"font-size:10px\">[%d]</span>"%(d.year,)
             if age>timedelta(2):                
@@ -88,9 +91,11 @@ class MaptileController(BaseController):
             spaces="No airspace found"
             
         mapviewurl=h.url_for(controller="mapview",action="index")
+
         
         notamlist=chain(get_notam_areas(lat,lon),get_notampoints(lat,lon,zoomlevel))
         notams=dict([(n['notam'].strip(),(n['notam_ordinal'],n['notam_line']) ) for n in notamlist])
+
         
         notamareas="".join("<li>%s <b><u><a href=\"javascript:navigate_to('%s#notam')\">Link</a></u></b></li>"%(
             text,h.url_for(controller="notam",action="show_ctx",backlink=mapviewurl,notam=notam,line=line)) for text,(notam,line) in notams.items())
@@ -196,8 +201,14 @@ class MaptileController(BaseController):
         if not firs:
             firs.append("Unknown")
             
+        variation='?'
         terrelev=get_terrain_elev((lat,lon),zoomlevel)
-        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft</b>"%(", ".join(firs),spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev)
+        try:
+            varf=geomag.calc_declination((lat,lon),utcnow,(terrelev+1000))
+            variation=u"%+.1f°"%(varf,)
+        except:
+            pass
+        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft, Var: %s</b>"%(", ".join(firs),spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev,variation)
 
     def get(self):
         # Return a rendered template
