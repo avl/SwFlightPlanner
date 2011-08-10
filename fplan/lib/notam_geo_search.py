@@ -33,9 +33,11 @@ def get_notam_objs(kind=None):
                 coordgroups[-1]+=line+"\n"
 
         if (kind==None or kind=="notamarea"):
+            
             for radius,unit,lat,lon in chain(
                 re.findall(r"RADIUS\s*(?:OF)?\s*(\d+)\s*(NM|M)\s*(?:CENT[ERD]+|FR?O?M)?\s*(?:ON)?\s*(?:AT)?\s*(\d+[NS])\s*(\d+[EW])",text),
-                re.findall(r"(\d+)\s*(NM|M)\s*RADIUS\s*(?:CENT[ERD]+)?\s*(?:ON|AT|FROM)?\s*(\d+[NS])\s*(\d+[EW])",text)
+                re.findall(r"(\d+)\s*(NM|M)\s*RADIUS\s*(?:CENT[ERD]+)?\s*(?:ON|AT|FROM)?\s*(\d+[NS])\s*(\d+[EW])",text),
+                re.findall(r"(\d+)\s*(NM|M)\s*RADIUS.*?[^0-9](\d+[NS])\s*(\d+[EW])",text,re.DOTALL)
                 ):
                 try:
                     radius=float(radius)
@@ -45,8 +47,6 @@ def get_notam_objs(kind=None):
                         assert unit=="NM"
                     centre=mapper.parse_coords(lat,lon)
                     coords=mapper.create_circle(centre,radius)
-                        #print "Circle:",text
-                        #print dict(radius=radius,lat=lat,lon=lon)
                     areas.append(dict(
                             points=coords,
                             kind="notamarea",
@@ -57,7 +57,9 @@ def get_notam_objs(kind=None):
                             notam=text))
                 except Exception,cause:
                     print "Invalid notam coords: %s,%s"%(lat,lon)
-                    raise
+                    
+                    
+                    
                     
         for coordgroup in coordgroups:        
             try:
