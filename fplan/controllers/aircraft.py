@@ -10,8 +10,18 @@ import os
 
 log = logging.getLogger(__name__)
 
-class AircraftController(BaseController):
+advprops=[
+                    'adv_climb_rate',                        
+                    'adv_climb_burn',                        
+                    'adv_climb_speed',                        
+                    'adv_cruise_burn',                        
+                    'adv_cruise_speed',                        
+                    'adv_descent_rate',                        
+                    'adv_descent_burn',                        
+                    'adv_descent_speed'                                                 
+                     ]
 
+class AircraftController(BaseController):
     def index(self,bad_values=dict(),orig=None):
         cur_acname=session.get('cur_aircraft',None)
         print "Cur aircraft:",cur_acname
@@ -22,10 +32,32 @@ class AircraftController(BaseController):
                  Aircraft.aircraft==cur_acname)).all()
             if len(cac)==1:
                 c.ac=cac[0]
+        if c.ac and c.ac.advanced_model:
+            for prop in advprops:
+                val=getattr(c.ac,prop)
+                if val==None:
+                    val=[]
+                    l=0
+                else:
+                    val=list(val)
+                    l=len(val)
+                val.extend([0 for x in xrange(10-l)])
+                setattr(c.ac,prop,tuple(val))
         
                 
-        c.msgerror=lambda x:bad_values.get(x,'')
-        c.fmterror=lambda x:'style="background:#ff8080;' if bad_values.get(x,None) else ''
+        def get_msgerror(x):
+            msgs=set()
+            for alt in xrange(0,10000,1000):
+                print "Get",(x,alt),"from",bad_values
+                msg=bad_values.get((x,alt),None)
+                print "Out",msg
+                if msg:
+                    msgs.add(msg)
+            print "Fetching msgerror for",x,"from",bad_values
+            return ", ".join(msgs)
+                
+        c.msgerror=get_msgerror
+        c.fmterror=lambda x,alt=0:'style="background:#ff8080;' if bad_values.get((x,alt),None) else ''
         
         c.newly_added=False
         if request.params.get('flash','')=='new':
@@ -52,22 +84,51 @@ class AircraftController(BaseController):
         cac=meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'],
             Aircraft.aircraft==acname)).all()
+                    
         print "Num matching craft:",len(cac)
         bad_values=dict()
         if len(cac)==1:
-            ac,=cac            
-            for name,value in request.params.items():            
-                if name=='orig_aircraft': continue
-                if hasattr(ac,name):
+            ac,=cac
+            if 'advanced_model' in request.params:
+                ac.advanced_model=True
+                allvalues=dict()
+                for prop in advprops:
+                    allvalues[prop]=[0 for x in xrange(10)]
+                for name,value in request.params.items():
+                    print "Processing",name            
+                    if name in ('orig_aircraft','advanced_model'): continue
                     if name in ['aircraft','atstype','markings']:
                         setattr(ac,name,value)
                     else:
-                        try:
-                            fvalue=float(value)
-                        except:
-                            bad_values[name]=u'Must be a decimal number, like 42.3, not "%s"'%(value,)
-                            continue
-                        setattr(ac,name,fvalue)
+                        if name.count("_"):
+                            prop,alt=name.rsplit("_",1)
+                            if hasattr(ac,prop):
+                                alt=int(alt)
+                                altidx=alt/1000
+                                try:
+                                    fvalue=float(value)
+                                except:
+                                    print "Bad:",value
+                                    bad_values[(prop,alt)]=u'Must be a decimal number.'
+                                    continue
+                                allvalues[prop][altidx]=fvalue
+                for prop in advprops:
+                    setattr(ac,prop,tuple(allvalues[prop]))
+                
+            else:            
+                ac.advanced_model=False
+                for name,value in request.params.items():            
+                    if name in ('orig_aircraft','advanced_model'): continue
+                    if hasattr(ac,name):
+                        if name in ['aircraft','atstype','markings']:
+                            setattr(ac,name,value)
+                        else:
+                            try:
+                                fvalue=float(value)
+                            except:
+                                bad_values[(name,0)]=u'Must be a decimal number, like 42.3, not "%s"'%(value,)
+                                continue
+                            setattr(ac,name,fvalue)
             session['cur_aircraft']=request.params['aircraft']
             session.save()                  
         print "Returning from do_save"
@@ -82,8 +143,11 @@ class AircraftController(BaseController):
         print "aircraft.save idx=",self.idx,request.params,"pid:",os.getpid()
         if 'orig_aircraft' in request.params:
             bad=self.do_save()
+            print "Bad:",bad
             if bad:
                 return self.index(bad,orig=request.params['orig_aircraft'])
+
+
             
         if request.params.get('del_button',False):
             print "del button"

@@ -3,6 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from datetime import datetime,timedelta
 from fplan.model import meta
+from sqlalchemy.dialects import postgresql
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
@@ -110,7 +111,17 @@ aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('climb_burn',Float(),primary_key=False,nullable=False,default=22),                        
                         sa.Column('descent_speed',Float(),primary_key=False,nullable=False,default=85),                        
                         sa.Column('descent_rate',Float(),primary_key=False,nullable=False,default=750),                        
-                        sa.Column('descent_burn',Float(),primary_key=False,nullable=False,default=10)                      
+                        sa.Column('descent_burn',Float(),primary_key=False,nullable=False,default=10),
+                        sa.Column("advanced_model",Boolean(),nullable=False,default=False),
+                        sa.Column('adv_prop_efficiency',Float(),primary_key=False,nullable=False,default=60),
+                        sa.Column('adv_climb_rate',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_climb_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_climb_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_cruise_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_cruise_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_descent_rate',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_descent_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_descent_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default="")                        
                         )
 
 trip_table = sa.Table("trip",meta.metadata,

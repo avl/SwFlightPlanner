@@ -11,7 +11,7 @@ import cgi
 from md5 import md5
 from pylons import request, response, session, tmpl_context as c
 from datetime import datetime,timedelta
-
+import math
 def md5str(anystr):
     if type(anystr)==unicode:
         return md5(anystr.encode('utf8')).hexdigest()
@@ -95,3 +95,9 @@ def parse_clock(s):
         return float(s[0:2])
     raise Exception("Bad clock string:"+s)
 
+def calc_air_density(altitude):
+    return 1.22521 * ((288.15+-0.0065*(altitude*0.3048))/(288.15))**((-1*9.80665*0.0289644/( 8.31432 *-0.0065))-1.0)
+def calc_tas(cas,alt):
+    return cas*math.sqrt(1.22521/calc_air_density(alt))
+def calc_cas(tas,alt):
+    return tas/math.sqrt(1.22521/calc_air_density(alt))

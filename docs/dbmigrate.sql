@@ -48,6 +48,18 @@ alter table "stay" add column "fueladjust" float default null;
 ALTER TABLE notamupdate drop CONSTRAINT "notamupdate_prevnotam_fkey";
 ALTER TABLE notamupdate ADD CONSTRAINT "notamupdate_prevnotam_fkey" FOREIGN KEY (prevnotam, prevline) REFERENCES notamupdate(appearnotam, appearline) ON UPDATE CASCADE ON DELETE SET NULL;
 
+#version 11:
+alter table "aircraft" add column "advanced_model" boolean not null default 'false';
+alter table "aircraft" add column "adv_prop_efficiency" float not null default '0.6';
+alter table "aircraft" add column "adv_climb_rate" float[];
+alter table "aircraft" add column "adv_climb_burn" float[];
+alter table "aircraft" add column "adv_climb_speed" float[];
+alter table "aircraft" add column "adv_cruise_burn" float[];
+alter table "aircraft" add column "adv_cruise_speed" float[];
+alter table "aircraft" add column "adv_descent_rate" float[];
+alter table "aircraft" add column "adv_descent_burn" float[];
+alter table "aircraft" add column "adv_descent_speed" float[];
+
 
 
 

@@ -48,10 +48,90 @@ def wind_computer(winddir,windvel,tt,tas):
 class TechRoute(object):
     pass
     
+def from_feet(x): return x*0.3048
+def to_feet(x): return x/0.3048
+def from_nm(x): return x*1852.0
+    
+def cap_mid_alt(alt1,mid_alt,alt2,d,climb_ratio,descent_ratio):
+    alt1=from_feet(alt1)
+    alt2=from_feet(alt2)
+    mid_alt=from_feet(mid_alt)
+    d=from_nm(d)
+    if alt1<=mid_alt and mid_alt<=alt2: return to_feet(mid_alt)
+    #print "climb ratio",climb_ratio,"descent_ratio",descent_ratio
+    if mid_alt>alt1:
+        # y = k*x + m = climb_ratio*x + alt1
+        # y = k*x + m = descent_ratio*(d-x) + alt2
+        # climb_ratio*x + alt1 = descent_ratio*(d-x) + alt2
+        # climb_ratio*x + alt1 = descent_ratio*d-descent_ratio*x + alt2
+        # climb_ratio*x + descent_ratio*x = descent_ratio*d + alt2 - alt1
+        # (climb_ratio + descent_ratio)*x = descent_ratio*d + alt2 - alt1
+        # x = (descent_ratio*d + alt2 - alt1)/(climb_ratio + descent_ratio)
+        meetpoint=(descent_ratio*d + alt2 - alt1)/float(climb_ratio + descent_ratio)
+        if meetpoint<0:
+            assert meetpoint>-1e-3
+            meetpoint=0                
+        if meetpoint>d:
+            assert meetpoint<1.00001*d
+            meetpoint=d                      
+        newmid=climb_ratio*meetpoint+alt1
+        return to_feet(min(newmid,mid_alt))
+    else:
+        # y = k*x + m = alt1-descent_ratio*x 
+        # y = k*x + m = alt2-climb_ratio*(d-x) 
+        # alt1-descent_ratio*x = alt2-climb_ratio*(d-x)
+        # x*(-descent_ratio-climb_ratio) = alt2 - alt1-climb_ratio*d
+        # x = (alt2 - alt1-climb_ratio*d) / (-descent_ratio-climb_ratio) 
+        meetpoint = (alt2 - alt1-climb_ratio*d) / (-descent_ratio-climb_ratio)
+        #print "meet",meetpoint
+        if meetpoint<0:
+            assert meetpoint>-1e-3
+            meetpoint=0                
+        if meetpoint>d:
+            assert meetpoint<1.00001*d
+            meetpoint=d                      
+        newmid=alt1-descent_ratio*meetpoint
+        return to_feet(max(newmid,mid_alt))
+        
+def cap_mid_alt_if_required(alt1,mid_alt,alt2,d,rt,ac):
+    result=cap_mid_alt(alt1,mid_alt,alt2,d,rt.climb_ratio,rt.descent_ratio)
+    d=abs(result-mid_alt)
+    if d>1.0:
+        return result,True
+    return result,False
+    
+def max_climb_feet(start_alt,dist_nm,rt,ac):
+    if ac.advanced_performance_model:
+        return start_alt+10000 #TODO
+    else:
+        climb_nm=dist_nm*rt.climb_ratio
+        return start_alt+climb_nm*1852.0/0.3048
+    
+    
+def max_descent_feet(start_alt,dist_nm,rt,ac):
+    if ac.advanced_performance_model:
+        return start_alt-10000 #TODO
+    else:
+        descent_nm=dist_nm*rt.descent_ratio
+        return start_alt-descent_nm*1852.0/0.3048
+
+def max_revdescent_feet(end_alt,dist_nm,rt,ac):
+    if ac.advanced_performance_model:
+        return end_alt+10000 #TODO
+    else:
+        climb_nm=dist_nm*rt.descent_ratio
+        return end_alt+climb_nm*1852.0/0.3048
+def max_revclimb_feet(end_alt,dist_nm,rt,ac):
+    if ac.advanced_performance_model:
+        return end_alt-10000 #TODO
+    else:
+        descent_nm=dist_nm*rt.climb_ratio
+        return end_alt-descent_nm*1852.0/0.3048        
+        
+
     
 class DummyAircraft(object):pass
 def get_route(user,trip):
-    #print "Getting ",user,trip
     start=time()
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==user,Trip.trip==trip)).one()
@@ -73,16 +153,11 @@ def get_route(user,trip):
         rt.a=a
         rt.b=b        
         routes.append(rt)
+    
     for prev,next in zip(routes[:-1],routes[1:]):
         next.prevrt=prev
         prev.nextrt=next
-    for rt in routes:
-        #print "D-calc: %s -> %s"%(rt.a.waypoint,rt.b.waypoint)
-        
-        rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
-        #print "Got D:",D
-        rt.d=D
-
+    
     #print "Looking for ac:",tripobj.aircraft
     acs=meta.Session.query(Aircraft).filter(sa.and_(
         Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).all()
@@ -90,6 +165,7 @@ def get_route(user,trip):
         ac,=acs
     else:    
         ac=DummyAircraft()
+        ac.advanced_performance_model=False
         ac.cruise_speed=75
         ac.cruise_burn=0
         ac.climb_speed=60
@@ -98,6 +174,55 @@ def get_route(user,trip):
         ac.descent_rate=500
         ac.climb_burn=0
         ac.descent_burn=0
+
+    ac.advanced_performance_model=False
+    
+
+        
+    for rt in routes:
+        rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
+        rt.d=D
+
+
+        if not ac.advanced_performance_model:
+            rt.climb_gs,rt.climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
+            rt.descent_gs,rt.descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
+            rt.cruise_gs,rt.cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+            
+            climb_speed_ms=rt.climb_gs*1.852/3.6
+            climb_rate_ms=(ac.climb_rate/60.0)*0.3048
+            rt.climb_ratio=climb_rate_ms/climb_speed_ms
+            descent_speed_ms=rt.descent_gs*1.852/3.6
+            descent_rate_ms=(ac.descent_rate/60.0)*0.3048
+            rt.descent_ratio=descent_rate_ms/descent_speed_ms
+        
+
+
+
+        
+    
+            
+    
+    cone_min=None
+    cone_max=None
+    cone_start=None
+    cone_dist=None
+    for idx,rt in enumerate(reversed(routes)):
+        if rt.b.stay:
+            cone_start=cone_min=cone_max=float(get_pos_elev(mapper.from_str(rt.b.pos)))
+            cone_dist=0.0
+        elif cone_min==None:
+            cone_start=cone_min=cone_max=float(get_pos_elev(mapper.from_str(rt.b.pos)))
+            cone_dist=0.0
+        else:
+            cone_max=max_revdescent_feet(cone_start,cone_dist,rt,ac)
+            cone_min=max_revclimb_feet(cone_start,cone_dist,rt,ac)        
+        rt.cone_min=cone_min
+        rt.cone_max=cone_max
+        cone_dist+=rt.d
+
+
+        
         
     def calc_midburn(tas):
         if tas>ac.cruise_speed:
@@ -116,9 +241,11 @@ def get_route(user,trip):
     prev_alt=None    
     numroutes=len(routes)
     for idx,rt in enumerate(routes):
+        
+
+        
         if rt.a.stay:
             stay=rt.a.stay
-            #print "Stay A:",stay.departure_time
             if stay.fuel!=None:
                 accum_fuel=stay.fuel
             else:
@@ -139,32 +266,14 @@ def get_route(user,trip):
                     accum_dt=accum_dt.replace(
                             hour=0,minute=0,second=0,microsecond=0)+\
                             timedelta(0,3600*tempclock)
-                    #print "accum dt:",accum_dt
                 except Exception,cause:
                     print "Couldn't parse departure time %s"%(stay.departure_time)
                     pass
                 
-        rt.a.dt=copy(accum_dt)
-        climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.climb_speed)
-        descent_gs,descent_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,ac.descent_speed)
-
-        #print "idx: %d, prev_alt=%s"%(idx,prev_alt)
-        def alt_change_dist(delta):
-            if delta==0: return 0,cruise_gs,ac.cruise_burn,'',0
-            if delta>0:
-                t=(delta/float(max(1e-3,ac.climb_rate)))/60.0
-                return t*climb_gs,climb_gs,ac.climb_burn,'climb',ac.climb_rate
-            if delta<0:
-                t=(-delta/float(max(1e-3,ac.descent_rate)))/60.0
-                return t*descent_gs,descent_gs,ac.descent_burn,'descent',-ac.descent_rate
-            assert 0
-
-
-        if not rt.tas:
-            rt.tas=ac.cruise_speed
-            
-        cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+                
+                
         
+        rt.a.dt=copy(accum_dt)
 
         try:
             mid_alt=mapper.parse_elev(rt.altitude)
@@ -183,46 +292,92 @@ def get_route(user,trip):
             alt2=mid_alt
             if idx==numroutes-1:
                 alt2=float(get_pos_elev(mapper.from_str(rt.b.pos)))
-                
-        rt.performance="ok"
-        begindelta=mid_alt-prev_alt
-        print "alt2:",alt2,"mid_alt:",mid_alt
-        print "alt2:",type(alt2),"mid_alt:",type(mid_alt)
-        enddelta=alt2-mid_alt
+            if alt2>rt.cone_max: alt2=rt.cone_max
+            if alt2<rt.cone_min: alt2=rt.cone_min
+            if alt2>alt1:
+                alt2=min(alt2,max_climb_feet(alt1,rt.d,rt,ac))
+            elif alt2<alt1:
+                alt2=max(alt2,max_descent_feet(alt1,rt.d,rt,ac))
         
-        begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
-        enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
+        mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,rt,ac)
+        
+        
 
-        #if begindist>rt.d:
-        #    ratio=rt.d/float(begindist)
-        #    begindist=rt.d
-        #    rt.performance="notok"
-        #    begindelta*=ratio
-        #    mid_alt=prev_alt+begindelta                    
-        if enddist+begindist>rt.d:
-            if rt.d>1e-3:
-                factor=float(enddist+begindist)/float(rt.d)
-                beginrate*=factor
-                endrate*=factor
-                beginburn*=factor
-                endburn*=factor
-                begindist/=factor
-                enddist/=factor
-            else:
-                beginrate=0
-                endrate=0
-                beginburn=0
-                endburn=0
-                begindist=0
-                enddist=0
-            rt.performance="notok"
+        if ac.advanced_performance_model:
+            speed,alt_rate,mid_burn=calculate_speed_and_climb(ac,alt1,mid_alt)
+        else:
+    
+            #print "idx: %d, prev_alt=%s"%(idx,prev_alt)
+            def alt_change_dist(delta):
+                """
+                Given a delta in feet, calculate
+                how many NM are required to achieve this change.
+                """
+                if ac.advanced_performance_model:
+                    pass
+                else:
+                    if delta==0: return 0,rt.cruise_gs,ac.cruise_burn,'',0                
+                    if delta>0:
+                        t=(delta/float(max(1e-3,ac.climb_rate)))/60.0
+                        return t*rt.climb_gs,rt.climb_gs,ac.climb_burn,'climb',ac.climb_rate
+                    if delta<0:
+                        t=(-delta/float(max(1e-3,ac.descent_rate)))/60.0
+                        return t*rt.descent_gs,rt.descent_gs,ac.descent_burn,'descent',-ac.descent_rate
+                    assert 0
+    
+    
+    
+            if not rt.tas:
+                rt.tas=ac.cruise_speed
+                
+            
+    
                     
-        del begindelta
-        del enddelta
+            if not was_capped:
+                rt.performance="ok"
+            else:
+                rt.performance="notok"
+            begindelta=mid_alt-prev_alt
+            enddelta=alt2-mid_alt
+            
+            
+            
+            begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(begindelta)
+            enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(enddelta)
+    
+            #if begindist>rt.d:
+            #    ratio=rt.d/float(begindist)
+            #    begindist=rt.d
+            #    rt.performance="notok"
+            #    begindelta*=ratio
+            #    mid_alt=prev_alt+begindelta                    
+            print "begindist",begindist,"enddist",enddist,"d",rt.d
+            if enddist+begindist>rt.d:
+                if rt.d>1e-3:
+                    overcommit=(enddist+begindist)/rt.d
+                    if overcommit<1.0001:
+                        begindist/=overcommit
+                        enddist/=overcommit
+                    else:
+                        beginspeed=0 #make the route impossible, to flag error
+                        rt.performance="notok"
+                else:
+                    beginrate=0
+                    endrate=0
+                    beginburn=0
+                    endburn=0
+                    begindist=0
+                    enddist=0
+                    rt.performance="notok"
+                        
+            del begindelta
+            del enddelta
+        rt.mid_alt=mid_alt
         del mid_alt        
         del alt1
         del alt2
-            
+        
+        
             
         if beginspeed<1e-3:
             begintime=None
@@ -234,10 +389,10 @@ def get_route(user,trip):
             endtime=enddist/endspeed
         middist=rt.d-(begindist+enddist)
         #print "Mid-dist: %f, Mid-cruise: %f"%(middist,cruise_gs)
-        if cruise_gs<1e-3:
+        if rt.cruise_gs<1e-3:
             midtime=None
         else:
-            midtime=(rt.d-(begindist+enddist))/cruise_gs
+            midtime=(rt.d-(begindist+enddist))/rt.cruise_gs
         #print "d: %f, Begintime: %s midtime: %s endtime: %s"%(rt.d,begintime,midtime,endtime)
     
         merca=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
@@ -369,8 +524,6 @@ def get_route(user,trip):
             out.subposb=mercb
             out.startalt=prev_alt
             out.endalt=prev_alt
-            if prev_alt!=rt.altitude:
-                out.performance="notok"
             out.accum_time=accum_time
             #out.clock_hours=accum_clock%24
             out.startdt=accum_dt
@@ -400,19 +553,18 @@ def get_route(user,trip):
                 
             if out.what=="climb":
                 out.tas=ac.climb_speed
-                out.gs=climb_gs
-                out.wca=climb_wca
+                out.gs=rt.climb_gs
+                out.wca=rt.climb_wca
             elif out.what=="descent":
                 out.tas=ac.descent_speed
-                out.gs=descent_gs
-                out.wca=descent_wca
+                out.gs=rt.descent_gs
+                out.wca=rt.descent_wca
             else:
                 out.tas=rt.tas
-                out.gs=cruise_gs
-                out.wca=cruise_wca
+                out.gs=rt.cruise_gs
+                out.wca=rt.cruise_wca
             tot_dist+=out.d
             out.total_d=tot_dist
-            out.ch=(out.tt+out.wca-val(rt.variation)-val(rt.deviation))%360.0
             out.a=rt.a
             out.b=rt.b
             out.id1=rt.waypoint1
@@ -428,7 +580,6 @@ def get_route(user,trip):
         
         rt.gs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
         
-        print "Times:",begintime,midtime,endtime
         if begintime==None or midtime==None or endtime==None:
             rt.avg_gs=None
             rt.fuel_burn=None
@@ -437,7 +588,7 @@ def get_route(user,trip):
             if (begintime+midtime+endtime)>1e-3:
                 rt.avg_gs=rt.d/(begintime+midtime+endtime)
             else:
-                rt.avg_gs=cruise_gs
+                rt.avg_gs=rt.cruise_gs
             rt.fuel_burn=begintime*beginburn+midtime*ac.cruise_burn+endtime*endburn
             if rt.gs>1e-3:
                 rt.time_hours=begintime+midtime+endtime;
@@ -445,7 +596,6 @@ def get_route(user,trip):
                 rt.time_hours=None                          
                         
         rt.subs=sub     
-        rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
         rt.accum_time_hours=accum_time
         rt.accum_dist=tot_dist
         rt.accum_fuel_burn=accum_fuel
@@ -472,9 +622,13 @@ def get_route(user,trip):
         endvar=calc_declination(mapper.from_str(rt.b.pos),rt.arrive_dt,rt.subs[-1].endalt)
         if startvar!=None and endvar!=None:
             rt.variation=0.5*(startvar+endvar)
+        rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
+        for sub in rt.subs:
+            sub.ch=(sub.tt+sub.wca-val(rt.variation)-val(rt.deviation))%360.0
+
             
                 
-    print "Elapsed ms",1000.0*(time()-start)
+    #print "Elapsed ms",1000.0*(time()-start)
     return res,routes
 
 def test_route_info():

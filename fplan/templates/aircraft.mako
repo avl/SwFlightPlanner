@@ -69,6 +69,8 @@ ${ac.aircraft}
     <input type="text" name="atstype" value="${c.ac.atstype}" />(Type-designator as used in ATS-flight plans)</td>
 </tr>
 </tr>
+
+%if not c.ac.advanced_model:
 <tr>
 <td>Cruise speed:</td><td><input ${c.fmterror('cruise_speed')|n} type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt ${c.msgerror('cruise_speed')}</td>
 </tr>
@@ -93,6 +95,7 @@ ${ac.aircraft}
 <tr>
 <td>Descent fuel burn:</td><td><input ${c.fmterror('descent_burn')|n} type="text" name="descent_burn" value="${c.ac.descent_burn}" />L/h ${c.msgerror('descent_burn')}</td>
 </tr>
+%endif
 
 <tr>
 <td>Aircraft Color and Markings :</td><td>
@@ -106,11 +109,43 @@ The following abbreviations are allowed:
 <tr>
 
 </table>
-%endif        
+%endif
+
+%if c.ac.advanced_model:
+<table>
+<tr>
+<td title="Density Altitude in Feet">Density Alt:</td>
+%for alt in xrange(0,10000,1000):
+<td title="This column should contain the performance of the aircraft at an altitude of ${alt} feet.">${alt}'</td>
+%endfor
+<td></td>
+</tr>
+
+%for descr,name in [("Cruise Speed (kt)","adv_cruise_speed")]:
+<tr>
+<td>${descr}:</td>
+%for alt in xrange(0,10000,1000):
+<td><input ${c.fmterror(name,alt)|n} type="text" name="${name}_${alt}" size="4" value="${getattr(c.ac,name)[alt/1000]}" /></td>
+%endfor
+<td>${c.msgerror(name)}</td>
+</tr>
+%endfor
+
+</table>
+The above values must be valid in the standard atmosphere.
+%endif
+
+
+        
 <input type="hidden" id="navigate_to" name="navigate_to" value="" />
+<input type="checkbox" name="advanced_model" ${'checked="1"' if c.ac.advanced_model else ''|n} /> Used advanced performance model instead (choose this, then save).
+
+<br/>
+
 %if len(c.all_aircraft):
 <input type="submit" name="save_button" value="Save"/>
 %endif
+
 
 
 </form>
