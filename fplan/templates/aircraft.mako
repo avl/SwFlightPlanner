@@ -121,18 +121,29 @@ The following abbreviations are allowed:
 <td></td>
 </tr>
 
-%for descr,name in [("Cruise Speed (kt)","adv_cruise_speed")]:
+%for descr,name in c.adv_props:
 <tr>
 <td>${descr}:</td>
 %for alt in xrange(0,10000,1000):
-<td><input ${c.fmterror(name,alt)|n} type="text" name="${name}_${alt}" size="4" value="${getattr(c.ac,name)[alt/1000]}" /></td>
+<td><input ${c.fmterror(name,alt)|n} type="text" name="${name}_${alt}" size="4" value="${c.getval(name,alt)}" /></td>
 %endfor
 <td>${c.msgerror(name)}</td>
 </tr>
 %endfor
 
 </table>
-The above values must be valid in the standard atmosphere.
+The above values must be valid in the standard atmosphere.<br/>
+<div id="add_from_text" style="display:none">
+<b>Copy-paste your aircraft data in below. The data must be just decimal numbers,<br/>
+8 rows (corresponding to the rows above) in 10 columns (one for each altitude 0 to 9000 feet).<br/>
+It is possible to paste directly from OpenOffice Calc (Excel should also work).<br/>
+</b>
+<textarea name="add_from_text" rows="8" cols="120">
+</textarea>
+</div>
+<u><a href="#" id="add_from_text_link" onclick="document.getElementById('add_from_text').style.display='block';document.getElementById('add_from_text_link').style.display='none';return false;">Import values from text-file</a>
+</u><br/>
+
 %endif
 
 
