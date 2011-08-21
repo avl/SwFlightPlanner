@@ -59,12 +59,12 @@ class AircraftController(BaseController):
                 val.extend([0 for x in xrange(10-l)])
                 setattr(c.ac,prop,tuple(val))
             c.adv_props=[
-                ("Cruise Speed (kt CAS)","adv_cruise_speed"),
+                ("Cruise Speed (kt TAS)","adv_cruise_speed"),
                 ("Cruise Consumption (L/h)","adv_cruise_burn"),
-                ("Climb Speed (kt CAS)","adv_climb_speed"),
+                ("Climb Speed (kt TAS)","adv_climb_speed"),
                 ("Climb Rate (fpm)","adv_climb_rate"),                        
                 ("Climb Consumption (L/h)","adv_climb_burn"),                        
-                ("Descent Speed (kt CAS)","adv_descent_speed"),                                                 
+                ("Descent Speed (kt TAS)","adv_descent_speed"),                                                 
                 ("Descent Rate (fpm)","adv_descent_rate"),                        
                 ("Descent Consumption (L/h)","adv_descent_burn")                        
                 ]

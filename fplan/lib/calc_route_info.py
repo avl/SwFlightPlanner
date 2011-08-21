@@ -51,6 +51,65 @@ class TechRoute(object):
 def from_feet(x): return x*0.3048
 def to_feet(x): return x/0.3048
 def from_nm(x): return x*1852.0
+def from_fpm(x): return x*0.3048/60.0
+
+class CapState(object):
+    def __init__(self,alt1,mid_alt,alt2,d,ac,rt):
+        self.alt1=alt1
+        self.alt2=alt2
+        self.mid_alt=mid_alt
+        if alt1<=mid_alt and mid_alt<=alt2: 
+            assert 0
+        self.kind="bump" if mid_alt>alt1 else "hole"
+        self.d=d
+        self.ac=ac
+        self.rt=rt
+    def do_climb1(self):
+        if self.alt1<self.mid_alt:
+            return False
+        a=int(self.alt1)-int(self.alt1)%1000
+        next alt:alt1=min(self.mid_alt,a+1000)
+        calc time there
+        update structs
+        
+            
+        
+        
+def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
+    alt1=from_feet(alt1)
+    alt2=from_feet(alt2)
+    mid_alt=from_feet(mid_alt)
+    d=from_nm(d)
+    if alt1<=mid_alt and mid_alt<=alt2: return to_feet(mid_alt)
+    #print "climb ratio",climb_ratio,"descent_ratio",descent_ratio
+    if mid_alt>alt1:
+        #bump
+        while True:
+            cr=calc_climb_ratio(ac,rt,alt1)
+            dr=calc_descent_ratio(ac,rt,alt2)
+            
+            
+            meetpoint=(descent_ratio*d + alt2 - alt1)/float(climb_ratio + descent_ratio)
+            if meetpoint<0:
+                assert meetpoint>-1e-3
+                meetpoint=0                
+            if meetpoint>d:
+                assert meetpoint<1.00001*d
+                meetpoint=d                      
+            newmid=climb_ratio*meetpoint+alt1
+            return to_feet(min(newmid,mid_alt))
+    else:
+        #hole
+        meetpoint = (alt2 - alt1-climb_ratio*d) / (-descent_ratio-climb_ratio)
+        if meetpoint<0:
+            assert meetpoint>-1e-3
+            meetpoint=0                
+        if meetpoint>d:
+            assert meetpoint<1.00001*d
+            meetpoint=d                      
+        newmid=alt1-descent_ratio*meetpoint
+        return to_feet(max(newmid,mid_alt))
+
     
 def cap_mid_alt(alt1,mid_alt,alt2,d,climb_ratio,descent_ratio):
     alt1=from_feet(alt1)
@@ -94,36 +153,105 @@ def cap_mid_alt(alt1,mid_alt,alt2,d,climb_ratio,descent_ratio):
         return to_feet(max(newmid,mid_alt))
         
 def cap_mid_alt_if_required(alt1,mid_alt,alt2,d,rt,ac):
-    result=cap_mid_alt(alt1,mid_alt,alt2,d,rt.climb_ratio,rt.descent_ratio)
+    if not ac.advanced_performance_model:
+        result=cap_mid_alt(alt1,mid_alt,alt2,d,rt.climb_ratio,rt.descent_ratio)
+    else:
+        result=adv_cap_mid_alt(alt1,mid_alt,alt2,d,rt,ac)
     d=abs(result-mid_alt)
     if d>1.0:
         return result,True
     return result,False
+def altrange(alt1,alt2):
+    def sub():
+        yield alt1
+        
+        a1=alt1-alt1%1000
+        if alt2>alt1:
+            a1+=1000
+            while a1<alt2:
+                yield a1
+                a1+=1000
+        if alt1>alt2:       
+            while a1>alt2:
+                yield a1
+                a1-=1000
+        yield alt2
     
-def max_climb_feet(start_alt,dist_nm,rt,ac):
-    if ac.advanced_performance_model:
-        return start_alt+10000 #TODO
-    else:
-        climb_nm=dist_nm*rt.climb_ratio
-        return start_alt+climb_nm*1852.0/0.3048
+    last=None
+    for x in sub():
+        if last:
+            yield last,x
+        last=x
+def calc_x_ratio(ac,rt,a1,speed,rate):
+    assert ac.advanced_performance_model
+    ialt=int(math.floor(a1/1000))
+    if ialt<0: 
+        ialt=0
+    if ialt>=10: 
+        return 0
+    climb_gs,climb_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,speed[ialt])    
     
-    
+    climb_speed_ms=climb_gs*1.852/3.6
+    climb_rate_ms=(rate[ialt]/60.0)*0.3048
+    climb_ratio=climb_rate_ms/climb_speed_ms
+    if climb_ratio<=0: climb_ratio=0
+    return climb_ratio
+def calc_climb_ratio(ac,rt,a1):
+    return calc_x_ratio(ac,rt,a1,ac.adv_climb_speed,ac.adv_climb_rate)
+def calc_descent_ratio(ac,rt,a1):
+    return calc_x_ratio(ac,rt,a1,ac.adv_descent_speed,ac.adv_descent_rate)
+
+
+def max_x_feet(start_alt,dist_nm,rt,ac,fn,targ):
+        dist=dist_nm
+        for a1,a2 in altrange(start_alt,targ):
+            cr=fn(ac,rt,0.5*sum([a1,a2]))
+            if cr<1e-3:
+                return a1
+            forward=abs((0.3048/1852.0)*(a2-a1)/cr)
+            if forward<dist:
+                dist-=forward
+                print "from",a1,"-",a2,forward,"nm","remain",dist,"used",dist_nm-dist,"cr",cr          
+            else:
+                frac=dist/forward
+                print "from",a1,"-",a2,forward,"nm","remain",0,"used",dist_nm-0,"cr",cr
+                return a1+frac*(a2-a1)
+        return targ
+        
 def max_descent_feet(start_alt,dist_nm,rt,ac):
     if ac.advanced_performance_model:
-        return start_alt-10000 #TODO
+        return max_x_feet(start_alt,dist_nm,rt,ac,calc_descent_ratio,-10000)
     else:
         descent_nm=dist_nm*rt.descent_ratio
         return start_alt-descent_nm*1852.0/0.3048
 
 def max_revdescent_feet(end_alt,dist_nm,rt,ac):
     if ac.advanced_performance_model:
-        return end_alt+10000 #TODO
+        return max_x_feet(end_alt,dist_nm,rt,ac,calc_descent_ratio,100000)
     else:
         climb_nm=dist_nm*rt.descent_ratio
         return end_alt+climb_nm*1852.0/0.3048
+
+def getalti(alt):
+    if type(alt) in [str,unicode]:
+        a=mapper.parse_elev(alt)
+    else:
+        a=alt
+    idx=int(math.floor(a))/1000
+    if idx<0: idx=0
+    if idx>=10: idx=9
+    return idx
+
+def max_climb_feet(start_alt,dist_nm,rt,ac):
+    if ac.advanced_performance_model:
+        return max_x_feet(start_alt,dist_nm,rt,ac,calc_climb_ratio,100000)
+    else:
+        climb_nm=dist_nm*rt.climb_ratio
+        return start_alt+climb_nm*1852.0/0.3048
+    
 def max_revclimb_feet(end_alt,dist_nm,rt,ac):
     if ac.advanced_performance_model:
-        return end_alt-10000 #TODO
+        return max_x_feet(end_alt,dist_nm,rt,ac,calc_climb_ratio,-10000)
     else:
         descent_nm=dist_nm*rt.climb_ratio
         return end_alt-descent_nm*1852.0/0.3048        
@@ -174,10 +302,7 @@ def get_route(user,trip):
         ac.descent_rate=500
         ac.climb_burn=0
         ac.descent_burn=0
-
-    ac.advanced_performance_model=False
     
-
         
     for rt in routes:
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
@@ -195,7 +320,10 @@ def get_route(user,trip):
             descent_speed_ms=rt.descent_gs*1.852/3.6
             descent_rate_ms=(ac.descent_rate/60.0)*0.3048
             rt.descent_ratio=descent_rate_ms/descent_speed_ms
-        
+        else:
+            rt.tas=ac.adv_cruise_speed[getalti(rt.altitude)]
+            rt.cruise_gs,rt.cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+            
 
 
 
@@ -225,6 +353,7 @@ def get_route(user,trip):
         
         
     def calc_midburn(tas):
+        assert not ac.advanced_performance_model
         if tas>ac.cruise_speed:
             f=(tas/ac.cruise_speed)**3
             return ac.cruise_burn*f        
