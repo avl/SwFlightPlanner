@@ -52,41 +52,54 @@ def from_feet(x): return x*0.3048
 def to_feet(x): return x/0.3048
 def from_nm(x): return x*1852.0
 def from_fpm(x): return x*0.3048/60.0
+def to_nm(x): return x/1852.0
+def feet_to_nm(x): return x/(1852.0*0.3048)
+def nm_to_feet(x): return x*(1852.0*0.3048)
 
-class CapState(object):
-    def __init__(self,alt1,mid_alt,alt2,d,ac,rt):
-        self.alt1=alt1
-        self.alt2=alt2
-        self.mid_alt=mid_alt
-        if alt1<=mid_alt and mid_alt<=alt2: 
-            assert 0
-        self.kind="bump" if mid_alt>alt1 else "hole"
-        self.d=d
-        self.ac=ac
-        self.rt=rt
-    def do_climb1(self):
-        if self.alt1<self.mid_alt:
-            return False
-        a=int(self.alt1)-int(self.alt1)%1000
-        next alt:alt1=min(self.mid_alt,a+1000)
-        calc time there
-        update structs
-        
-            
-        
+def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
+    if alt1<=mid_alt and mid_alt<=alt2: return to_feet(mid_alt)
+error continue here.
+    if alt1<mid_alt:
+        #climb
+        meetalt=None
+        while True:
+            d=rt.d
+            climb_ratio=calc_climb_ratio(ac,rt,alt1)
+            descent_ratio=calc_descent_ratio(ac,rt,alt2)
+            na1=int(alt1)-int(alt1)%1000+1000
+            na2=int(alt2)-int(alt2)%1000+1000
+            next_d1=na1/climb_ratio
+            next_d2=na2/descent_ratio
+            meetpoint=feet_to_nm((descent_ratio*nm_to_feet(d) + alt2 - alt1)/float(climb_ratio + descent_ratio))
+            meet_d1=meetpoint
+            meet_d2=d-meetpoint
+            cont=False
+            if na1<=na2 and meet_d1>next_d1:
+                #Step alt1 to next vertical level
+                alt1=na1
+                d-=meet_d1
+                cont=True
+            if na2<=na1 and meet_d2>next_d2:
+                #Step alt2 to next vertical level
+                alt2=na2
+                d-=meet_d1
+                cont=True
+            if cont: continue
+            meetalt1=nm_to_feet(meet_d1*climb_ratio)
+            meetalt2=nm_to_feet(meet_d2*descent_ratio)
+            assert abs(meetalt1-meetalt2)<1e-3
+            meetalt=0.5*(meetalt1+meetalt2)
+            break
+        return min(meetalt,mid_alt)
+    else:
+        assert 0 #Descent not supported yet.
         
 def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
-    alt1=from_feet(alt1)
-    alt2=from_feet(alt2)
-    mid_alt=from_feet(mid_alt)
-    d=from_nm(d)
     if alt1<=mid_alt and mid_alt<=alt2: return to_feet(mid_alt)
     #print "climb ratio",climb_ratio,"descent_ratio",descent_ratio
     if mid_alt>alt1:
         #bump
         while True:
-            cr=calc_climb_ratio(ac,rt,alt1)
-            dr=calc_descent_ratio(ac,rt,alt2)
             
             
             meetpoint=(descent_ratio*d + alt2 - alt1)/float(climb_ratio + descent_ratio)
