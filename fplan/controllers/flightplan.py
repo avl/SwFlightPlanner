@@ -203,7 +203,7 @@ class FlightplanController(BaseController):
             d['id']=rt.a.id
             d['wca']=rt.wca
             d['ch']="%03.0f"%(rt.ch,) if rt.ch else None
-            d['gs']="%.1f"%(rt.avg_gs,) if rt.avg_gs>0 else None
+            d['gs']="%.1f"%(rt.gs,) if rt.gs>0 else None
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
             d['clockstr']=rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else "--:--"
             rows.append(d)
@@ -389,7 +389,8 @@ class FlightplanController(BaseController):
                         name=wp.waypoint,
                         airport=airport,
                         symbolicpos="DCT "+symbolicpos,                
-                        exactpos=mapper.format_lfv(lat,lon)
+                        exactpos=mapper.format_lfv(lat,lon),
+                        decimalpos="%.5f,%.5f"%(lat,lon)
                         ))
                 for when,pos,fir in fir_whenposname:
                     hour,minute=divmod(int(60*when),60)

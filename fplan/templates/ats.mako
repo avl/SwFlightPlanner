@@ -35,7 +35,7 @@ function navigate_to(where)
 %for w in at['wps']:
 
 <p>
-<b>${w['name']}</b>:${w['symbolicpos']} (exact: ${w['exactpos']}) 
+<b>${w['name']}</b>:${w['symbolicpos']} (exact: ${w['exactpos']}, decimal-exact: ${w['decimalpos']}) 
 </p>
 
 %endfor
