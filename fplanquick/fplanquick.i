@@ -24,6 +24,8 @@ namespace std {
    %template(svector) vector<std::string>;
 }
 
+void geomag_free();
+double geomag_calc(double latitude,double longitude,double decimal_year,double alt_in_km);
 std::string colorize_combine_heightmap(std::vector<std::string>& arr);
 PyObject* decode_flightpath(const std::string& buf,int version);
 

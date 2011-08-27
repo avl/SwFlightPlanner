@@ -5,7 +5,7 @@ coreenv = Environment(
     CPPPATH=[distutils.sysconfig.get_python_inc(),
     	os.getcwd()],
     SHLIBPREFIX="",
-    CCFLAGS=['-Wall','-Werror','-ggdb','-std=c++0x','-Wno-error=unused-but-set-variable']
+    CCFLAGS=['-Wall','-ggdb','-std=c++0x']
     )
 
 swig_env = coreenv.Clone()
