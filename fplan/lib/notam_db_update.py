@@ -28,7 +28,7 @@ def notam_db_update_impl(html):
         #prev=parse_notam(prevobj.notamtext)
         prevdbitems=list(meta.Session.query(NotamUpdate).filter(
                 NotamUpdate.disappearnotam==sa.null()
-                ).order_by([NotamUpdate.appearnotam,NotamUpdate.appearline]).all())
+                ).order_by(NotamUpdate.appearnotam,NotamUpdate.appearline).all())
         #print "PREV:",prevdbitems
     else:
         prevobj=None
