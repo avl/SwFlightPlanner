@@ -795,15 +795,14 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         if len(c.acobjs)>0:
             c.ac=c.acobjs[0]
         
-        if c.ac and c.ac.cruise_burn>1e-9:
-            c.reserve_endurance_hours=min(t.accum_fuel_left for t in c.techroute)/c.ac.cruise_burn
-            mins=int(60.0*c.reserve_endurance_hours)
-            if mins>=0:
-                c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
-            else: 
-                c.reserve_endurance="Unknown"
-        else:
-            c.reserve_endurance="Unknown"
+        c.reserve_endurance="Unknown"
+        if c.ac and c.ac.cruise_burn>1e-9 and len(c.techroute):
+            minfuelintrip=min(t.accum_fuel_left for t in c.techroute)
+            if minfuelintrip!=None:
+                c.reserve_endurance_hours=minfuelintrip/c.ac.cruise_burn
+                mins=int(60.0*c.reserve_endurance_hours)
+                if mins>=0:
+                    c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
         c.departure=c.route[0].a.waypoint
         c.arrival=c.route[-1].b.waypoint
         c.fillable=c.user.fillable        
