@@ -69,8 +69,8 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}°</td>
 <td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
 <td>
-  <span style="font-size:10px">TAS:</span>${"%.0f"%(rt.tas,)}<span style="font-size:10px">kt</span>
-  <span style="font-size:10px">GS:</span>${"%.0f"%(rt.gs,)}<span style="font-size:10px">kt</span>
+  <span style="font-size:10px">TAS:</span>${"%.0f"%(rt.tas,) if rt.tas else '-'}<span style="font-size:10px">kt</span>
+  <span style="font-size:10px">GS:</span>${"%.0f"%(rt.gs,) if rt.gs else '-'}<span style="font-size:10px">kt</span>
 </td>
 <td><span style="font-size:10px">Time:</span>${h.timefmt(rt.time_hours)}</td>
 <td><span style="font-size:10px">Total time:</span>${h.timefmt(rt.accum_time_hours)}</td>
@@ -103,10 +103,10 @@ ${freq}
 %if rt.b.stay==None: 
 
 %if rt.accum_fuel_left<=0:
-<span style="font-size:10px">Fuel: </span><span style="color:#ff0000">EMPTY!</span>(${"%.1f"%(-rt.accum_fuel_left,)}L SHORT)
+<span style="font-size:10px">Fuel: </span><span style="color:#ff0000">EMPTY!</span>(${"%.1f"%(-rt.accum_fuel_left,) if rt.accum_fuel_left else '-'}L SHORT)
 %endif
 %if rt.accum_fuel_left>0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,) if rt.accum_fuel_left else '-'}
 <span style="font-size:10px">L</span>
 %endif
 
@@ -117,22 +117,22 @@ ${freq}
 
 %if rt.b.stay.fueladjust==None:
 %if rt.b.stay.fuel!=None and rt.b.stay.fuel>0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}<span style="font-size:10px">L Fill tanks to: </span>${"%.1f"%(rt.b.stay.fuel,)}<span style="font-size:10px">L</span>
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,) if rt.accum_fuel_left else '-'}<span style="font-size:10px">L Fill tanks to: </span>${"%.1f"%(rt.b.stay.fuel,)}<span style="font-size:10px">L</span>
 %endif
 %if (rt.b.stay.fuel==None or rt.b.stay.fuel<=0):
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}<span style="font-size:10px">L</span>
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,) if rt.accum_fuel_left else '-'}<span style="font-size:10px">L</span>
 %endif
 %endif
 %if rt.b.stay.fueladjust!=None:
 %if rt.b.stay.fueladjust<0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,) if rt.accum_fuel_left else '-'}
 <span style="font-size:10px">L Drain: </span>${"%.1f"%(abs(rt.b.stay.fueladjust),)}
 %endif
 %if rt.b.stay.fueladjust>0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,) if rt.accum_fuel_left else '-'}
 <span style="font-size:10px">L Add: </span>${"%.1f"%((rt.b.stay.fueladjust),)}
 %endif
-<span style="font-size:10px">L Giving a total of: </span>${"%.1f"%((rt.accum_fuel_left+rt.b.stay.fueladjust),)}
+<span style="font-size:10px">L Giving a total of: </span>${"%.1f"%((rt.accum_fuel_left+rt.b.stay.fueladjust),) if rt.accum_fuel_left else '-'}
 <span style="font-size:10px">L</span>
 %endif
 %endif
