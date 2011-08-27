@@ -60,7 +60,7 @@ alter table "aircraft" add column "adv_descent_burn" float[];
 alter table "aircraft" add column "adv_descent_speed" float[];
 
 ALTER TABLE "trip" DROP CONSTRAINT "trip_user_fkey1";
-ALTER TABLE "trip" ADD CONSTRAINT trip_user_fkey1 FOREIGN KEY ("user","aircraft") REFERENCES "aircraft" ("user","aircraft") ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE "trip" ADD CONSTRAINT trip_user_fkey1 FOREIGN KEY ("user","aircraft") REFERENCES "aircraft" ("user","aircraft") ON UPDATE CASCADE ON DELETE RESTRICT;
 
 alter table "user" add column "fillable" boolean not null default 'false';
 

@@ -139,7 +139,7 @@ class NotamController(BaseController):
         #TODO: This could be done in a way smarter way! TODO: Checkout subqueries in sqlalchemy
         notamupdates=\
             list(meta.Session.query(NotamUpdate).filter(
-                NotamUpdate.disappearnotam==sa.null()).order_by([sa.desc(NotamUpdate.appearnotam),sa.asc(NotamUpdate.appearline)]).all())
+                NotamUpdate.disappearnotam==sa.null()).order_by(sa.desc(NotamUpdate.appearnotam),sa.asc(NotamUpdate.appearline)).all())
         
         acks=set([(ack.appearnotam,ack.appearline) for ack in meta.Session.query(NotamAck).filter(sa.and_(
                 NotamAck.user==session['user'],

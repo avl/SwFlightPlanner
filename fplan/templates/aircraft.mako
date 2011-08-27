@@ -70,7 +70,7 @@ ${ac.aircraft}
 </tr>
 </tr>
 
-%if not c.ac.advanced_model:
+%if not (c.ac and c.ac.advanced_model):
 <tr>
 <td>Cruise speed:</td><td><input ${c.fmterror('cruise_speed')|n} type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt ${c.msgerror('cruise_speed')}</td>
 </tr>
@@ -111,7 +111,7 @@ The following abbreviations are allowed:
 </table>
 %endif
 
-%if c.ac.advanced_model:
+%if c.ac and c.ac.advanced_model:
 <table>
 <tr>
 <td title="Density Altitude in Feet">Density Alt:</td>
@@ -149,7 +149,10 @@ It is possible to paste directly from OpenOffice Calc (Excel should also work).<
 
         
 <input type="hidden" id="navigate_to" name="navigate_to" value="" />
-<input type="checkbox" name="advanced_model" ${'checked="1"' if c.ac.advanced_model else ''|n} /> Used advanced performance model instead (choose this, then save).
+
+%if c.ac:
+<input type="checkbox" name="advanced_model" ${'checked="1"' if c.ac and c.ac.advanced_model else ''|n} /> Used advanced performance model instead (choose this, then save).
+%endif
 
 <br/>
 

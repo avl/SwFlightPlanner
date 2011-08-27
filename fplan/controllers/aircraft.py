@@ -2,7 +2,7 @@ import logging
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
-from fplan.model import meta,User,Aircraft
+from fplan.model import meta,User,Aircraft,Trip
 import sqlalchemy as sa
 import routes.util as h
 from fplan.lib.base import BaseController, render
@@ -42,8 +42,8 @@ class AircraftController(BaseController):
                 c.ac.adv_climb_rate=   [770,725,675,630,580,535,485,440,390,345]                        
                 c.ac.adv_climb_burn=   [62, 60, 55, 50, 45, 42, 40, 37, 35, 33]
                 c.ac.adv_climb_speed=  [73, 73, 72, 72, 71, 71, 70, 69, 69, 68]
-                c.ac.adv_cruise_burn=  [32, 32, 32, 32, 32, 32, 32, 32,31.5,31]
-                c.ac.adv_cruise_speed= [116,117,118,119,120,121,122,122,122,122]                        
+                c.ac.adv_cruise_burn=  [32, 32, 32, 32, 32, 32, 30, 29,28.5,28]
+                c.ac.adv_cruise_speed= [116,117,118,118,118,118,118,118,118,118]                        
                 c.ac.adv_descent_rate= [400,400,400,400,400,400,400,400,400,400]
                 c.ac.adv_descent_burn= [25, 25, 25, 25, 25, 25, 25, 25, 25, 25]                       
                 c.ac.adv_descent_speed=[116,117,118,119,120,121,122,122,122,122]                                                
@@ -194,6 +194,12 @@ class AircraftController(BaseController):
 
             
         if request.params.get('del_button',False):
+            
+            for trip in meta.Session.query(Trip).filter(sa.and_(
+                    Trip.user==session['user'],
+                    Trip.aircraft==request.params['orig_aircraft'])).all():
+                trip.aircraft=None
+            
             meta.Session.query(Aircraft).filter(sa.and_(
                     Aircraft.user==session['user'],
                     Aircraft.aircraft==request.params['orig_aircraft'])).delete()

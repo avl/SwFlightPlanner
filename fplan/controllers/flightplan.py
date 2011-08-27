@@ -35,16 +35,18 @@ def strip_accents(s):
     def alnum(x):
         try:            
             if x[0] in ['-','/','.','_']:
-                return "-"
+                return " "
             cat=unicodedata.category(x)
             if cat[0] in ['L','N']:
-                return x
+                return x.upper()
             if cat[0]=='Z':
                 return " "
             return ""
         except:
             return "" 
-    return ''.join((alnum(c) for c in unicodedata.normalize('NFKD', s))).encode('ASCII','ignore')
+    t=''.join((alnum(c) for c in unicodedata.normalize('NFKD', s))).encode('ASCII','ignore')
+    ts=t.split()
+    return " ".join(ts)
 
 class AtsException(Exception): pass
 import random
@@ -515,7 +517,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 endurance=lfvclockfmt(endurance),
                 nr_passengers=nr_persons,
                 markings=c.ac.markings,
-                commander=strip_accents(c.user.realname if c.user.realname else u"UNKNOWN"),
+                commander=strip_accents(c.user.realname if c.user.realname else u"UNKNOWN").replace(" ",""),
                 phonenr=c.user.phonenr if c.user.phonenr else ""))
                 at['atsfplan']=atsfplan.strip()
                 #print "Adding atstrip:",atsfplan    

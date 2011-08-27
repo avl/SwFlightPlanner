@@ -432,7 +432,7 @@ def get_route(user,trip):
         ac.cruise_speed=75
         ac.cruise_burn=0
         ac.climb_speed=60
-        ac.descent_speed=90
+        ac.descent_speed=100
         ac.climb_rate=300
         ac.descent_rate=500
         ac.climb_burn=0
@@ -799,7 +799,8 @@ def get_route(user,trip):
         def val(x):
             if x==None: return 0.0
             return x
-        for out in sub:    
+        for out in sub:
+            out.wca=0    
             if rt.d<1e-5:
                 out.startpos=mapper.from_str(rt.a.pos)
                 out.endpos=mapper.from_str(rt.a.pos)
@@ -813,7 +814,9 @@ def get_route(user,trip):
             if out.time and out.time>1e-3:
                 out.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,out.gs)
                 dummygs,out.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,out.tas)
-                assert abs(dummygs-out.gs)<1e-3                
+                assert abs(dummygs-out.gs)<1e-3
+                
+                                
             tot_dist+=out.d
             out.total_d=tot_dist
             out.a=rt.a
@@ -822,7 +825,6 @@ def get_route(user,trip):
             out.id2=rt.waypoint2
             out.winddir=rt.winddir
             out.windvel=rt.windvel
-            res.append(out)
 
             if accum_fuel!=None and out.fuel_burn!=None:
                 accum_fuel-=out.fuel_burn
@@ -836,8 +838,8 @@ def get_route(user,trip):
                 
             out.accum_fuel_left=accum_fuel
             out.accum_fuel_used=accum_fuel_used
-
         
+            res.append(out)
         
         
         if begintime==None or midtime==None or endtime==None:
@@ -883,7 +885,8 @@ def get_route(user,trip):
             if rt.gs==None:
                 rt.tas=0
             else:
-                rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)            
+                rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)
+                print "TAS:",rt.tas,"GS:",rt.gs            
         else:
             if not rt.tas:
                 rt.tas=ac.cruise_speed
