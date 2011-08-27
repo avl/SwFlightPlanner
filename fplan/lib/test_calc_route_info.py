@@ -147,11 +147,12 @@ def test_adv_route_info():
     ac.adv_cruise_speed=    (75,75,75,76,76, 75,74,73,72,71)
     ac.adv_climb_speed=     (60,60,60,60,61, 61,61,62,63,64)
     ac.adv_descent_speed=   (80,80,81,81,82, 82,83,84,85,86)
-    ac.adv_climb_rate=      (750,700,650,600,550,  500,450,300,200,100)
+    ac.adv_climb_rate=      (750,700,650,600,550,  500,450,300,200,000)
     ac.adv_descent_rate=    (500,500,500,500,525,  525,550,550,575,600)
     ac.adv_cruise_burn=     (16,16,16,16,15.5, 15.25,15.0,14.75,14.5,14.0)
     ac.adv_climb_burn=      (20,20,20,20,19, 19,18,17,15,14.0)
     ac.adv_descent_burn=    (14,14,14,14,14, 14,14,14,14,13.5)
+    ac.advanced_model=True
     
     meta.Session.add(ac)
     meta.Session.flush();
@@ -159,20 +160,23 @@ def test_adv_route_info():
     meta.Session.add(trip)
     meta.Session.flush();
     wp1=Waypoint(u'testuser',u'mytrip','59,18',0,100,u'bromma')
-    wp2=Waypoint(u'testuser',u'mytrip','60,18',1,100,u'arlanda')
-    wp3=Waypoint(u'testuser',u'mytrip','61,18',2,100,u'gävle')
+    wp2=Waypoint(u'testuser',u'mytrip','60,18',1,101,u'arlanda')
+    wp3=Waypoint(u'testuser',u'mytrip','61,18',2,102,u'gävle')
+    wp4=Waypoint(u'testuser',u'mytrip','61.01,18',3,103,u'gävleclose')
     meta.Session.add(wp1)
     meta.Session.add(wp2)
     meta.Session.add(wp3)
+    meta.Session.add(wp4)
     meta.Session.flush();
     rt1=Route(u'testuser',u'mytrip',0,1)
-    rt1.altitude=10000
+    rt1.altitude="1000"
     rt2=Route(u'testuser',u'mytrip',1,2)
-    rt2.altitude=10000
-    rt1.variation=4
+    rt2.altitude="10000"
     rt2.windvel=25
     rt2.winddir=0
-    for s in [wp1,wp2,wp3,rt1,rt2]:
+    rt3=Route(u'testuser',u'mytrip',2,3)
+    rt3.altitude="0"
+    for s in [wp1,wp2,wp3,rt1,rt2,rt3]:
         meta.Session.add(s)
     meta.Session.flush()    
     tripobj=meta.Session.query(Trip).filter(sa.and_(
@@ -185,15 +189,20 @@ def test_adv_route_info():
     #print route[0].__dict__
     ch=route[0].ch
     assert abs(ch-355)<2 #This changes as earths magnetic field does
-    climbtime=10000/500.0/60.0
-    climbdist=50.0*climbtime
-    cruisedist=D-climbdist
-    print "Climbdist: %f, Cruisedist: %f"%(climbdist,cruisedist)
-    cruisetime=cruisedist/75.0
-    tottime=cruisetime+climbtime
-    print "Climbtime: %f, Cruisetime: %f, expected tot: %f, calculated tot time: %f"%(climbtime,cruisetime,climbtime+cruisetime,route[0].time_hours)
-    assert abs(route[0].time_hours-tottime)<0.01
+    #print "Climbtime: %f, Cruisetime: %f, expected tot: %f, calculated tot time: %f"%(climbtime,cruisetime,climbtime+cruisetime,route[0].time_hours)
+    t=route[0].time_hours
+    assert abs(t-0.806)<0.1
+    m=route[0].mid_alt
+    print "m:",m
+    assert m==1000
+    m=route[1].mid_alt
+    print "m:",m
+    assert m==9000
     #print route[1].wca
+    
+    m=route[2].subs[0].startalt
+    print "last startalt",m
+    #assert m==9000
     
     
     

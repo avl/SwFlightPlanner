@@ -265,15 +265,18 @@ def calc_descent_ratio(ac,rt,a1,extrainfo=False):
 
 
 def max_x_feet(start_alt,dist_nm,ac,rt,fn,targ):
+    print "Max_x_feet dist:",dist_nm
     #fuel,dist,time_h
     dist=dist_nm
     accudist=0.0
     fuel=0.0
     time_h=0.0
     for a1,a2 in altrange(start_alt,targ):
-        cr,speed,burn,rate=fn(ac,rt,0.5*sum([a1,a2]),extrainfo=True)            
+        cr,speed,burn,rate=fn(ac,rt,0.5*sum([a1,a2]),extrainfo=True)
+        #print "rate at alt",a1,rate            
         if cr==None or cr<1e-3 or speed<1e-3:
             #Reached aircraft's ceiling before desired altitude
+            print "Outside ac envelope at alt",a1,a2
             return a1,None,None,None
         forward=abs((0.3048/1852.0)*(a2-a1)/cr)
         if forward<dist:
@@ -291,6 +294,7 @@ def max_x_feet(start_alt,dist_nm,ac,rt,fn,targ):
             accudist=dist_nm
             print "from",a1,"-",a2,forward,"nm","remain",0,"used",dist_nm-0,"cr",cr
             return a1+frac*(a2-a1),dist_nm
+    print "returning",targ
     return targ,fuel,accudist,time_h
     
 def max_descent_feet(start_alt,dist_nm,ac,rt):
@@ -338,6 +342,7 @@ def alt_change_dist(ac,rt,startalt,delta):
             fuel,dist,time_h=max_descent_nm(startalt,startalt+delta,ac,rt)
         else:
             fuel,dist,time_h=max_climb_nm(startalt,startalt+delta,ac,rt)
+        print "Calculated time to altchange",delta,"time",time_h,"fuel",fuel,"dist",dist
         if time_h<1e-3:
             rate=0
             gs=0
@@ -345,7 +350,7 @@ def alt_change_dist(ac,rt,startalt,delta):
         else:
             burn=fuel/time_h
             gs=dist/time_h
-            rate=delta/time_h
+            rate=delta/time_h/60.0 #fpm
         print "alt change dist returning",dist,gs,burn,"climb",rate                    
         return dist,gs,burn,"climb",rate
     else:
@@ -462,7 +467,8 @@ def get_route(user,trip):
             #needs to recalculate 50% of the route on average for each call.
             #(It calculates from the last stay upt o the current waypoint).
             cone_max=max_revdescent_feet(cone_start,cone_dist,ac,rt)
-            cone_min=max_revclimb_feet(cone_start,cone_dist,ac,rt)        
+            cone_min=max_revclimb_feet(cone_start,cone_dist,ac,rt)
+        print idx,"cone_min",cone_min,"cone_max",cone_max        
         rt.cone_min=cone_min
         rt.cone_max=cone_max
         cone_dist+=rt.d
@@ -492,7 +498,7 @@ def get_route(user,trip):
     for idx,rt in enumerate(routes):
         
 
-        
+        print "Start of iteration #",idx,"prevalt",prev_alt
         if rt.a.stay:
             stay=rt.a.stay
             if stay.fuel!=None:
@@ -544,11 +550,17 @@ def get_route(user,trip):
             if alt2>rt.cone_max: alt2=rt.cone_max
             if alt2<rt.cone_min: alt2=rt.cone_min
             if alt2>alt1:
-                alt2=min(alt2,max_climb_feet(alt1,rt.d,ac,rt))
+                m=max_climb_feet(alt1,rt.d,ac,rt)
+                print "max climb feet",m
+                alt2=min(alt2,m)
             elif alt2<alt1:
-                alt2=max(alt2,max_descent_feet(alt1,rt.d,ac,rt))
+                m=max_descent_feet(alt1,rt.d,ac,rt)
+                print "max descent feet",m
+                alt2=max(alt2,m)
         
+        print "Cap mid alt, a1:",prev_alt," mid",mid_alt," alt2:",alt2
         mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,ac,rt)
+        print "Mid-alt was capped:",mid_alt,was_capped
         
         
 
@@ -568,7 +580,6 @@ def get_route(user,trip):
             enddelta=alt2-mid_alt
             
             
-            
             begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(ac,rt,alt1,begindelta)
             enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(ac,rt,mid_alt,enddelta)
     
@@ -579,23 +590,32 @@ def get_route(user,trip):
             #    begindelta*=ratio
             #    mid_alt=prev_alt+begindelta                    
             print "begindist",begindist,"enddist",enddist,"d",rt.d
-            if enddist+begindist>rt.d:
-                if rt.d>1e-3:
-                    overcommit=(enddist+begindist)/rt.d
-                    if overcommit<1.0001:
-                        begindist/=overcommit
-                        enddist/=overcommit
+            if enddist==None or begindist==None:
+                beginrate=0
+                endrate=0
+                beginburn=0
+                endburn=0
+                begindist=0
+                enddist=0
+                rt.performance="notok"
+            else:
+                if enddist+begindist>rt.d:
+                    if rt.d>1e-3:
+                        overcommit=(enddist+begindist)/rt.d
+                        if overcommit<1.0001:
+                            begindist/=overcommit
+                            enddist/=overcommit
+                        else:
+                            beginspeed=0 #make the route impossible, to flag error
+                            rt.performance="notok"
                     else:
-                        beginspeed=0 #make the route impossible, to flag error
+                        beginrate=0
+                        endrate=0
+                        beginburn=0
+                        endburn=0
+                        begindist=0
+                        enddist=0
                         rt.performance="notok"
-                else:
-                    beginrate=0
-                    endrate=0
-                    beginburn=0
-                    endburn=0
-                    begindist=0
-                    enddist=0
-                    rt.performance="notok"
                         
             del begindelta
             del enddelta
@@ -684,6 +704,7 @@ def get_route(user,trip):
                 out.dt=accum_dt
                 out.startalt=prev_alt
                 prev_alt+=beginrate*begintime*60
+                print "prevalt updated with begin",prev_alt
                 out.endalt=prev_alt
                 out.altrate=beginrate
                 out.accum_time=accum_time
@@ -712,8 +733,7 @@ def get_route(user,trip):
                 out.altrate=0
                 out.accum_time=accum_time
                 out.time=midtime
-                out.fuel_burn=midtime*calc_midburn(rt.tas,rt.mid_alt)
-                
+                out.fuel_burn=midtime*calc_midburn(rt.tas,rt.mid_alt)                
                 out.what="cruise"
                 out.legpart="mid"
                 out.lastsub=0
@@ -734,6 +754,7 @@ def get_route(user,trip):
                 out.dt=accum_dt
                 out.startalt=prev_alt
                 prev_alt+=endrate*endtime*60
+                print "prevalt updated with end",prev_alt                
                 out.endalt=prev_alt
                 if abs(out.endalt)<1e-6:
                     out.endalt=0
@@ -843,7 +864,10 @@ def get_route(user,trip):
 
         if ac.advanced_model:
             print "Is avanced"
-            rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)            
+            if rt.gs==None:
+                rt.tas=None
+            else:
+                rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)            
         else:
             if not rt.tas:
                 rt.tas=ac.cruise_speed
