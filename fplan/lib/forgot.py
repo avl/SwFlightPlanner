@@ -44,19 +44,16 @@ def forgot_password(user):
         
     link=h.url_for(controller='splash',action="reset",code=base64.b16encode(challenge))
     msgbody="""
-    Hello!
+Hello!
     
-    This is an automated message from the %(site)s website, generated because someone
-    has clicked the "forgot password" button on the login page.
+This is an automated message from the %(site)s website, generated because someone has clicked the "forgot password" button on the login page.
     
-    If you did not do so, you may safely ignore this message. Otherwise, please
-    follow this link to reset your password:
+If you did not do so, you may safely ignore this message. Otherwise, please follow this link to reset your password:
     
-    http://%(site)s%(link)s
-    
-    If you feel that you should not have received this message, and think that
-    someone should know, you may contact root@%(site)s
-    """%dict(site=os.getenv('SWFP_HOSTNAME','example.com'),link=link)
+http://%(site)s%(link)s
+  
+If you feel that you should not have received this message, and think that someone should know, you may contact anders.musikka@gmail.com
+"""%dict(site=os.getenv('SWFP_HOSTNAME','example.com'),link=link)
     
     msg = MIMEText(msgbody)
         
