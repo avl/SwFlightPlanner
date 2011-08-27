@@ -1,7 +1,7 @@
 import logging
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,Aircraft
 import sqlalchemy as sa
 import routes.util as h
@@ -15,11 +15,11 @@ advprops=[
                     'adv_cruise_speed',                        
                     'adv_cruise_burn',                        
                     'adv_climb_speed',                        
-                    'adv_climb_rate',                        
                     'adv_climb_burn',                        
+                    'adv_climb_rate',                        
                     'adv_descent_speed',                                                 
-                    'adv_descent_rate',                        
                     'adv_descent_burn',                        
+                    'adv_descent_rate'                        
                      ]
 
 class AircraftController(BaseController):
@@ -62,11 +62,11 @@ class AircraftController(BaseController):
                 ("Cruise Speed (kt TAS)","adv_cruise_speed"),
                 ("Cruise Consumption (L/h)","adv_cruise_burn"),
                 ("Climb Speed (kt TAS)","adv_climb_speed"),
-                ("Climb Rate (fpm)","adv_climb_rate"),                        
                 ("Climb Consumption (L/h)","adv_climb_burn"),                        
+                ("Climb Rate (fpm)","adv_climb_rate"),                        
                 ("Descent Speed (kt TAS)","adv_descent_speed"),                                                 
-                ("Descent Rate (fpm)","adv_descent_rate"),                        
-                ("Descent Consumption (L/h)","adv_descent_burn")                        
+                ("Descent Consumption (L/h)","adv_descent_burn"),                        
+                ("Descent Rate (fpm)","adv_descent_rate")                 
                 ]
             def getval(prop,alt):
                 ialt=alt/1000
@@ -137,15 +137,17 @@ class AircraftController(BaseController):
                                 altidx=alt/1000
                                 try:
                                     fvalue=float(value)
+                                    if fvalue<0:
+                                        raise Exception("Too small")
                                 except:
-                                    bad_values[(prop,alt)]=u'Must be a decimal number.'
+                                    bad_values[(prop,alt)]=u'Must be a non-negative decimal number.'
                                     continue
                                 allvalues[prop][altidx]=fvalue
                 if add_from_text:
                     lines=[x.strip() for x in request.params['add_from_text'].split("\n") if x.strip()]
                     for line,prop in zip(lines,advprops):
                         print "Finding line",line
-                        for idx,nums in enumerate(re.findall(r"\b\d+\.?\d*\b",line)):
+                        for idx,nums in enumerate(re.findall(r"\b?\d+\.?\d*\b",line)):
                             print "Finding nums",nums
                             num=float(nums)
                             allvalues[prop][idx]=num                                
@@ -164,8 +166,10 @@ class AircraftController(BaseController):
                         else:
                             try:
                                 fvalue=float(value)
+                                if fvalue<0:
+                                    raise Exception("Too small")
                             except:
-                                bad_values[(name,0)]=u'Must be a decimal number, like 42.3, not "%s"'%(value,)
+                                bad_values[(name,0)]=u'Must be a non-negative decimal number, like 42.3, not "%s"'%(value,)
                                 continue
                             setattr(ac,name,fvalue)
             if 'advanced_model' in request.params:
@@ -221,9 +225,9 @@ class AircraftController(BaseController):
         meta.Session.flush()
         meta.Session.commit()
         if 'navigate_to' in request.params and len(request.params['navigate_to'])>0:
-            redirect_to(request.params['navigate_to'].encode('utf8'))
+            redirect(request.params['navigate_to'].encode('utf8'))
         else:
-            redirect_to(h.url_for(controller='aircraft',action="index",flash=flash))
+            redirect(h.url_for(controller='aircraft',action="index",flash=flash))
         
 
         

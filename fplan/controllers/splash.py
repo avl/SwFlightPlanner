@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from fplan.model import meta,User,Trip,Waypoint,Route
 from datetime import datetime
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 import routes.util as h
 from fplan.lib.helpers import md5str
 from fplan.extract.extracted_cache import get_aip_download_time
@@ -33,7 +33,7 @@ def actual_login(user,firsturl=None):
     meta.Session.commit()    
     if firsturl==None:
         firsturl=h.url_for(controller='mapview',action="index")
-    redirect_to(firsturl)
+    redirect(firsturl)
 
 class SplashController(BaseController):
 
@@ -65,7 +65,7 @@ class SplashController(BaseController):
             del session['current_trip']
         session.save()
         tripsharing.cancel()
-        redirect_to(h.url_for(controller='splash',action="index"))
+        redirect(h.url_for(controller='splash',action="index"))
     def about(self):
         try:
             c.aipupdate=get_aip_download_time()            
@@ -81,14 +81,14 @@ class SplashController(BaseController):
     def reset(self):
         code=request.params.get('code',None)
         if not code: 
-            redirect_to(h.url_for(controller='splash',action="index",explanation="Not a valid password reset code"))
+            redirect(h.url_for(controller='splash',action="index",explanation="Not a valid password reset code"))
 
         user=decode_challenge(code)
         if user:
             actual_login(user,
                 h.url_for(controller='profile',action="index",changepass="1"))
         else:
-            redirect_to(h.url_for(controller='splash',action="index",explanation="Not a valid password reset code, try resetting again."))
+            redirect(h.url_for(controller='splash',action="index",explanation="Not a valid password reset code, try resetting again."))
             
         
         
@@ -103,9 +103,9 @@ class SplashController(BaseController):
             print request.params
             if request.params.get('forgot',None)!=None:
                 if forgot_password(user):
-                    redirect_to(h.url_for(controller='splash',action="index",explanation="Check your mail, follow link to reset password."))
+                    redirect(h.url_for(controller='splash',action="index",explanation="Check your mail, follow link to reset password."))
                 else:
-                    redirect_to(h.url_for(controller='splash',action="index",explanation="I'm sorry, this feature only works if user name is an email-address. The simplest way forward is to just create a new user! Or you can contact the admin of this site."))
+                    redirect(h.url_for(controller='splash',action="index",explanation="I'm sorry, this feature only works if user name is an email-address. The simplest way forward is to just create a new user! Or you can contact the admin of this site."))
                     
             elif user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key) or user.password==request.params['password']:
                 actual_login(users[0])
@@ -113,7 +113,7 @@ class SplashController(BaseController):
                 print "Bad password!"
                 user.password=md5str(request.params['password'])     
                 log.warn("Bad password: <%s> <%s>"%(user.user,request.params['password']))           
-                redirect_to(h.url_for(controller='splash',action="index",explanation="Wrong password"))
+                redirect(h.url_for(controller='splash',action="index",explanation="Wrong password"))
         else:
-            redirect_to(h.url_for(controller='splash',action="index",explanation="No such user"))
+            redirect(h.url_for(controller='splash',action="index",explanation="No such user"))
        

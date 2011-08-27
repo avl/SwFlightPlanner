@@ -22,12 +22,6 @@ addLoadEvent(loadrecordings);
 Recordings
 </h1>
 
-%if c.flash:
-<p><span style="background-color:#80ff80;font-size:14px">
-${c.flash}
-</span></p><br/>
-%endif
-
 <form action="${h.url_for(controller="recordings",action="load")}" method="POST">
 
 <table border="1">

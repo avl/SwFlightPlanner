@@ -2,7 +2,7 @@ import logging
 from fplan.model import meta,User,Trip,Waypoint,Route
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 #from md5 import md5
 from fplan.lib.base import BaseController, render
 import routes.util as h
@@ -28,6 +28,7 @@ class ProfileController(BaseController):
         c.realname=request.params.get('realname',user.realname)
         c.initial=not user.isregistered
         c.notfastmap=not user.fastmap
+        c.fillable=user.fillable
         return render('/profile.mako')
     def save(self):
         print "in save:",request.params
@@ -65,6 +66,10 @@ class ProfileController(BaseController):
             user.fastmap=False
         else:
             user.fastmap=True
+        if 'fillable' in request.params:
+            user.fillable=True
+        else:
+            user.fillable=False
         
         meta.Session.flush()
         meta.Session.commit();
@@ -74,6 +79,6 @@ class ProfileController(BaseController):
         session['user']=user.user
         session.save()
         
-        redirect_to(h.url_for(controller='profile',action="index"))
+        redirect(h.url_for(controller='profile',action="index"))
         
             

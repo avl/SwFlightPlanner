@@ -2,7 +2,7 @@
 import logging
 import re
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from fplan.model import *
 from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
@@ -14,7 +14,7 @@ class NotamController(BaseController):
 
     def index(self):
         
-        ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).filter(NotamAck.user==session.get('user',None)).group_by([NotamAck.appearnotam,NotamAck.appearline]).subquery()
+        ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).filter(NotamAck.user==session.get('user',None)).group_by(NotamAck.appearnotam,NotamAck.appearline).subquery()
     
         c.items=meta.Session.query(NotamUpdate,ack_cnt.c.acks,Notam.downloaded).outerjoin(
                 (ack_cnt,sa.and_(                    
@@ -131,7 +131,7 @@ class NotamController(BaseController):
                 
         meta.Session.flush()
         meta.Session.commit()
-        return redirect_to(h.url_for(controller='notam',action="index"))
+        return redirect(h.url_for(controller='notam',action="index"))
         
     def markall(self):
         #TODO: This could be done in a way smarter way! TODO: Checkout subqueries in sqlalchemy
@@ -151,7 +151,7 @@ class NotamController(BaseController):
                 meta.Session.add(ack)
         meta.Session.flush()
         meta.Session.commit()
-        return redirect_to(h.url_for(controller='notam',action="index"))
+        return redirect(h.url_for(controller='notam',action="index"))
 
     def mark(self):
         out=[]

@@ -291,6 +291,8 @@ function update_fields(data)
 	}
 	var e=document.getElementById('tottime');
 	e.value=data.tottime;
+	var e=document.getElementById('totfuel');
+	e.value=data.totfuel;
 	recursion=0;
 	return;	
 }
@@ -407,7 +409,7 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 			var wh=fpcolshort[i];
 			if (wh=='Clock')
 				continue;
-			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA' || wh=='Var')
+			if (wh=='TT' || wh=='D' || wh=='GS' || wh=='CH' || wh=='Time' || wh=='WCA' || wh=='Var' || (wh=='TAS' && advanced_model))
 			{  
 				ro='readonly="1"';
 			}

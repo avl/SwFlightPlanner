@@ -3,7 +3,7 @@ import logging
 import time
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import redirect_to
+from pylons.controllers.util import redirect
 from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,Stay 
 from fplan.lib.base import BaseController, render
 import sqlalchemy as sa
@@ -30,9 +30,21 @@ import unicodedata
 import time
 
 def strip_accents(s):
-   if type(s)==str:
-      return s
-   return ''.join((c for c in unicodedata.normalize('NFKD', s))).encode('ASCII','ignore')
+    if type(s)==str:
+        s=unicode(s,'utf8',"ignore")
+    def alnum(x):
+        try:            
+            if x[0] in ['-','/','.','_']:
+                return "-"
+            cat=unicodedata.category(x)
+            if cat[0] in ['L','N']:
+                return x
+            if cat[0]=='Z':
+                return " "
+            return ""
+        except:
+            return "" 
+    return ''.join((alnum(c) for c in unicodedata.normalize('NFKD', s))).encode('ASCII','ignore')
 
 class AtsException(Exception): pass
 import random
@@ -100,7 +112,7 @@ class FlightplanController(BaseController):
             c.userobj=meta.Session.query(User).filter(User.user==session['user']).one()
         except Exception,cause:
             log.warning("Access flightplan without session or trip: %s"%(cause,))
-            if exception:
+            if not exception:
                 return False
             else:
                 raise
@@ -172,8 +184,11 @@ class FlightplanController(BaseController):
                 ('Alt','altitude'),
                 ('Dev','deviation')
                 ]:
-                                                
+                                                                
                 key="%s_%d"%(col,way.id)
+                if col=='TAS' and not 'TAS' in request.params:
+                    #TAS is not present if ac.advanced_model==false
+                    continue                
                 val=request.params[key]
                 #print "Value of key %s: %s"%(key,val)
                 if col=="Alt":
@@ -209,8 +224,10 @@ class FlightplanController(BaseController):
             rows.append(d)
         if len(routes)>0:
             out['tottime']=timefmt(routes[-1].accum_time_hours) if routes[-1].accum_time_hours else "--"
+            out['totfuel']="%.1f"%(routes[-1].accum_fuel_used,) if routes[-1].accum_fuel_used else "--"
         else:
             out['tottime']='-'
+            out['totfuel']='-'
         out['rows']=rows
         return json.dumps(out)
         
@@ -274,7 +291,7 @@ class FlightplanController(BaseController):
         waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all())
         if len(waypoints)==0:
-            return redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
+            return redirect(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
         c.waypoints=[]
         for wp in waypoints:                    
             lat,lon=mapper.from_str(wp.pos)
@@ -498,23 +515,25 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 endurance=lfvclockfmt(endurance),
                 nr_passengers=nr_persons,
                 markings=c.ac.markings,
-                commander=strip_accents(c.user.realname.replace(" ",".") if c.user.realname else u"UNKNOWN"),
+                commander=strip_accents(c.user.realname if c.user.realname else u"UNKNOWN"),
                 phonenr=c.user.phonenr if c.user.phonenr else ""))
                 at['atsfplan']=atsfplan.strip()
                 #print "Adding atstrip:",atsfplan    
                 at['spacesummary']=spaces
-                last_fuel_left=routes[-1].accum_fuel_burn
+                last_fuel_left=routes[-1].accum_fuel_left
                 c.atstrips.append(at)    
             
             c.atstrips=[at for at in c.atstrips if len(at['wps'])]
             #response.headers['Content-Type'] = 'application/xml'               
             return render('/ats.mako')
         except AtsException,ats:
-            redirect_to(h.url_for(controller='flightplan',action="index",flash=unicode(ats)))
+            redirect(h.url_for(controller='flightplan',action="index",flash=unicode(ats)))
 
 
     def index(self):
-        self.validate()
+        if not self.validate(exception=False):
+            redirect(h.url_for(controller='mapview',action="index"))
+        
         c.flash=request.params.get('flash',None)
         c.waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all())
@@ -610,17 +629,19 @@ C/%(commander)s %(phonenr)s)"""%(dict(
 
         if c.trip.acobj==None:
             c.ac=None
+            c.advanced_model=False
         else:        
             c.ac=c.trip.acobj
             if session.get('cur_aircraft',None)!=c.trip.acobj.aircraft:
                 session['cur_aircraft']=c.trip.acobj.aircraft
                 session.save()
-            
+            c.advanced_model=c.ac.advanced_model
         c.sharing=tripsharing.sharing_active()
         #print repr(c)
         return render('/flightplan.mako')
     def select_aircraft(self):
-        self.validate()
+        if not self.validate(exception=False):
+            redirect(h.url_for(controller='mapview',action="index"))
         if not tripsharing.sharing_active():  
             tripobj=meta.Session.query(Trip).filter(sa.and_(
                 Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
@@ -639,7 +660,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             meta.Session.commit()
         
         
-        redirect_to(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
+        redirect(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
     def get_obstacles(self,routes,vertdist=1000.0,interval=10):        
         byid=dict()
@@ -736,6 +757,14 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         
         
     def standard_prep(self,c):
+        if not 'current_trip' in session:
+            redirect(h.url_for(controller='mapview',action="index"))
+        tripobjs=meta.Session.query(Trip).filter(sa.and_(
+            Trip.user==tripuser(),Trip.trip==session['current_trip'])).all()
+        if len(tripobjs)!=1:
+            redirect(h.url_for(controller='mapview',action="index"))
+        c.tripobj,=tripobjs
+        c.trip=c.tripobj.trip
         c.techroute,c.route=get_route(tripuser(),session['current_trip'])
         #c.route=list(meta.Session.query(Route).filter(sa.and_(
         #    Route.user==tripuser(),Route.trip==session['current_trip'])).order_by(Route.waypoint1).all())
@@ -744,10 +773,10 @@ C/%(commander)s %(phonenr)s)"""%(dict(
 
         c.all_aircraft=list(meta.Session.query(Aircraft).filter(sa.and_(
             Aircraft.user==session['user'])).order_by(Aircraft.aircraft).all())
-        c.tripobj=meta.Session.query(Trip).filter(sa.and_(
-            Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
+        
+            
         if len(c.route)==0 or len(c.techroute)==0:
-            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
+            redirect(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
             return
         c.startfuel=0
         if len(c.route)>0:
@@ -765,7 +794,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.ac=c.acobjs[0]
         
         if c.ac and c.ac.cruise_burn>1e-9:
-            c.reserve_endurance_hours=min(t.accum_fuel_burn for t in c.techroute)/c.ac.cruise_burn
+            c.reserve_endurance_hours=min(t.accum_fuel_left for t in c.techroute)/c.ac.cruise_burn
             mins=int(60.0*c.reserve_endurance_hours)
             if mins>=0:
                 c.reserve_endurance="%dh%02dm"%(mins/60,mins%60)
@@ -774,7 +803,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         else:
             c.reserve_endurance="Unknown"
         c.departure=c.route[0].a.waypoint
-        c.arrival=c.route[-1].b.waypoint        
+        c.arrival=c.route[-1].b.waypoint
+        c.fillable=c.user.fillable        
 
     def get_freqs(self,route):
         for rt in route:
@@ -834,7 +864,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         c.tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==tripuser(),Trip.trip==session['current_trip'])).one()
         if len(c.route)==0 or len(c.techroute)==0:
-            redirect_to(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
+            redirect(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
             return
         
         for rt in c.route:
@@ -871,7 +901,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.acwarn=False
             c.ac=c.tripobj.acobj
             if len(c.routes)>0:
-                c.endfuel=c.routes[-1].accum_fuel_burn
+                c.endfuel=c.routes[-1].accum_fuel_left
             else:
                 c.endfuel=0
         c.performance="ok"

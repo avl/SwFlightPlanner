@@ -2,7 +2,7 @@
 import logging
 import re
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 import fplan.lib.mapper as mapper
 import fplan.lib.helpers as helpers
 import fplan.extract.extracted_cache as extracted_cache

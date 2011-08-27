@@ -1,7 +1,7 @@
 import logging
 import math
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,SharedTrip
 import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
@@ -319,15 +319,15 @@ class MapviewController(BaseController):
         if len(shares):
             myshare,=shares
             tripsharing.view_other(user=myshare.user,trip=myshare.trip)
-            return redirect_to(h.url_for(controller='mapview',action="index"))
+            return redirect(h.url_for(controller='mapview',action="index"))
         tripsharing.cancel()
-        return redirect_to(h.url_for(controller='mapview',action="index"))
+        return redirect(h.url_for(controller='mapview',action="index"))
     def updsharing(self):
         if 'stop' in request.params:
             meta.Session.query(SharedTrip).filter(sa.and_(SharedTrip.user==session['user'],SharedTrip.trip==session.get('current_trip',None))).delete()
             meta.Session.flush()
             meta.Session.commit()
-            redirect_to(h.url_for(controller='mapview',action="share"))
+            redirect(h.url_for(controller='mapview',action="share"))
 
         if 'share' in request.params:
             secret=""
@@ -336,8 +336,8 @@ class MapviewController(BaseController):
             share=SharedTrip(session['user'],session['current_trip'],secret)
             meta.Session.add(share)
             meta.Session.commit()
-            redirect_to(h.url_for(controller='mapview',action="share"))
-        redirect_to(h.url_for(controller='mapview',action="index"))
+            redirect(h.url_for(controller='mapview',action="share"))
+        redirect(h.url_for(controller='mapview',action="index"))
 
 
     def zoom(self):
@@ -402,19 +402,19 @@ class MapviewController(BaseController):
             print "Pos:",pos
             self.set_pos_zoom(pos,zoomlevel)
 
-        redirect_to(h.url_for(controller='mapview',action="index"))
+        redirect(h.url_for(controller='mapview',action="index"))
     
     def upload_track(self):
         print "In upload",request.params.get("gpstrack",None)
         t=request.params.get("gpstrack",None)
         if t!=None:
             if len(t.value)>30000000:
-                redirect_to(h.url_for(controller='error',action="document",message="GPX file is too large."))
+                redirect(h.url_for(controller='error',action="document",message="GPX file is too large."))
             session['showtrack']=parse_gpx(t.value,request.params.get('start'),request.params.get('end'))
             session['showarea']=''
             session['showarea_id']=''
             session.save()
-        redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
+        redirect(h.url_for(controller='mapview',action="zoom",zoom='auto'))
             
     def trip_actions(self):
         #print "trip actions:",request.params
@@ -448,7 +448,7 @@ class MapviewController(BaseController):
             
         meta.Session.flush()
         meta.Session.commit();
-        redirect_to(h.url_for(controller='mapview',action="index"))
+        redirect(h.url_for(controller='mapview',action="index"))
         
         
     def index(self):

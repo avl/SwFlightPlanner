@@ -1,7 +1,7 @@
 import logging
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,Recording
 
 #from md5 import md5
@@ -17,7 +17,7 @@ class RecordingsController(BaseController):
 
     def index(self):
         if not 'user' in session:
-            redirect_to(h.url_for(controller='mapview',action="index"))
+            redirect(h.url_for(controller='mapview',action="index"))
             return None
         
         c.trips=meta.Session.query(Recording).filter(
@@ -37,6 +37,6 @@ class RecordingsController(BaseController):
         session['showarea']=''
         session['showarea_id']=''
         session.save()
-        redirect_to(h.url_for(controller='mapview',action="zoom",zoom='auto'))
+        redirect(h.url_for(controller='mapview',action="zoom",zoom='auto'))
         
                 

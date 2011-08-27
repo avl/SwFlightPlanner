@@ -17,6 +17,7 @@ fpcolshort=[];
 fpcoldesc=[];
 fpcolextra=[];
 fpcolwidth=[];
+advanced_model=${1 if c.advanced_model else 0};
 %if c.stay:
 firstwaypointid=${str(c.stay.waypoint_id)};
 %endif
@@ -174,6 +175,7 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 <br/>
 Total distance: <input type="text" readonly="1" value="${"%.0f"%(c.totdist,)}" size="4"> NM.<br/>
 Total time (enroute): <input id="tottime" type="text" readonly="1" value="" size="4"> (including time for climb/descent).<br/>
+Total fuel consumption: <input id="totfuel" type="text" readonly="1" value="" size="4">L (including fuel for climb/descent).<br/>
 </form>
 %endif
 <br/>

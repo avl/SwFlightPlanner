@@ -50,7 +50,6 @@ ALTER TABLE notamupdate ADD CONSTRAINT "notamupdate_prevnotam_fkey" FOREIGN KEY 
 
 #version 11:
 alter table "aircraft" add column "advanced_model" boolean not null default 'false';
-alter table "aircraft" add column "adv_prop_efficiency" float not null default '0.6';
 alter table "aircraft" add column "adv_climb_rate" float[];
 alter table "aircraft" add column "adv_climb_burn" float[];
 alter table "aircraft" add column "adv_climb_speed" float[];
@@ -60,7 +59,9 @@ alter table "aircraft" add column "adv_descent_rate" float[];
 alter table "aircraft" add column "adv_descent_burn" float[];
 alter table "aircraft" add column "adv_descent_speed" float[];
 
+ALTER TABLE "trip" DROP CONSTRAINT "trip_user_fkey1";
+ALTER TABLE "trip" ADD CONSTRAINT trip_user_fkey1 FOREIGN KEY ("user","aircraft") REFERENCES "aircraft" ("user","aircraft") ON UPDATE CASCADE ON DELETE SET NULL;
 
-
+alter table "user" add column "fillable" boolean not null default 'false';
 
 

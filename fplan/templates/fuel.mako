@@ -24,9 +24,6 @@ function navigate_to(where)
 </div>
 
 <h1>${c.trip}</h1>
-%for close in c.closetoroute:
-${close} <br/>
-%endfor
 %if c.sharing:
 The owner of the trip must select an aircraft before fuel calcuations can be made.
 %endif
@@ -85,7 +82,7 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${h.timefmt(route.time) if route.time else '--'}</td>
 <td>${h.timefmt(route.accum_time) if route.accum_time else '--'}</td>
 <td>${"%.1f"%(route.fuel_burn,) if route.fuel_burn else '--'}</td>
-<td>${"%.1f"%(route.accum_fuel_burn,) if route.accum_fuel_burn else '--'}</td>
+<td>${"%.1f"%(route.accum_fuel_left,) if route.accum_fuel_left else '--'}</td>
 <td>${"%.0f"%(route.startalt+0.01,) if route.startalt else '--'}</td>
 <td>${"%.0f"%(route.endalt+0.01,) if route.endalt else '--'}</td>
 <td>${"%.0ffpm"%(route.altrate+0.01,) if route.altrate else '--'}</td>

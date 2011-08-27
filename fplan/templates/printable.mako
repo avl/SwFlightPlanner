@@ -1,6 +1,6 @@
 <h1>${c.departure} - ${c.arrival}</h1>
 
-%if min(r.accum_fuel_burn for r in c.route)<0:
+%if min(r.accum_fuel_left for r in c.route)<0:
 <span style="font-size:20px;color:#ff0000">
 DON'T FLY! YOU DON'T HAVE ENOUGH FUEL!
 </span><br/>
@@ -39,12 +39,14 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 </table>
 
 <table border="1" width="100%"> 
-<tr><td colspan="6" style="font-size:16px">
+<tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
 <span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}
 <span style="font-size:10px">Fuel:</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
 <span style="font-size:10px">Terrain:</span>${"%.0f"%(c.route[0].startelev,)}<span style="font-size:10px">ft</span>
 </td>
+
+%if c.fillable:
 <td>
 <span style="font-size:10px">Actual start</span>&nbsp;&nbsp;&nbsp;&nbsp;
 </td>
@@ -54,8 +56,9 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td>
 <span style="font-size:10px">acc. delay:</span>&nbsp;&nbsp;&nbsp;&nbsp;
 </td>
+%endif
 
-</td>
+
 </tr>
 %for rt,next_rt in h.izip(c.route,h.chain(c.route[1:],[None])):
 <tr>
@@ -66,8 +69,8 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}°</td>
 <td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
 <td>
-  <span style="font-size:10px">CAS:</span>${"%.0f"%(round(h.calc_cas(rt.tas,rt.mid_alt)),)}<span style="font-size:10px">kt</span>
-  <span style="font-size:10px">GS:</span>${rt.gs}<span style="font-size:10px">kt</span>
+  <span style="font-size:10px">TAS:</span>${"%.0f"%(rt.tas,)}<span style="font-size:10px">kt</span>
+  <span style="font-size:10px">GS:</span>${"%.0f"%(rt.gs,)}<span style="font-size:10px">kt</span>
 </td>
 <td><span style="font-size:10px">Time:</span>${h.timefmt(rt.time_hours)}</td>
 <td><span style="font-size:10px">Total time:</span>${h.timefmt(rt.accum_time_hours)}</td>
@@ -93,43 +96,43 @@ ${freq}
 </tr>
 %endif
 
-<tr><td colspan="6" style="font-size:16px">
+<tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
 <b>${rt.b.waypoint}</b>
 
 
 %if rt.b.stay==None: 
 
-%if rt.accum_fuel_burn<=0:
-<span style="font-size:10px">Fuel: </span><span style="color:#ff0000">EMPTY!</span>(${"%.1f"%(-rt.accum_fuel_burn,)}L SHORT)
+%if rt.accum_fuel_left<=0:
+<span style="font-size:10px">Fuel: </span><span style="color:#ff0000">EMPTY!</span>(${"%.1f"%(-rt.accum_fuel_left,)}L SHORT)
 %endif
-%if rt.accum_fuel_burn>0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}
+%if rt.accum_fuel_left>0:
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}
 <span style="font-size:10px">L</span>
 %endif
 
 %endif
 
 %if rt.b.stay!=None: 
-%if not (rt.accum_fuel_burn<0):
+%if not (rt.accum_fuel_left<0):
 
 %if rt.b.stay.fueladjust==None:
 %if rt.b.stay.fuel!=None and rt.b.stay.fuel>0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}<span style="font-size:10px">L Fill tanks to: </span>${"%.1f"%(rt.b.stay.fuel,)}<span style="font-size:10px">L</span>
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}<span style="font-size:10px">L Fill tanks to: </span>${"%.1f"%(rt.b.stay.fuel,)}<span style="font-size:10px">L</span>
 %endif
 %if (rt.b.stay.fuel==None or rt.b.stay.fuel<=0):
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}<span style="font-size:10px">L</span>
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}<span style="font-size:10px">L</span>
 %endif
 %endif
 %if rt.b.stay.fueladjust!=None:
 %if rt.b.stay.fueladjust<0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}
 <span style="font-size:10px">L Drain: </span>${"%.1f"%(abs(rt.b.stay.fueladjust),)}
 %endif
 %if rt.b.stay.fueladjust>0:
-<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_burn,)}
+<span style="font-size:10px">Fuel left: </span>${"%.1f"%(rt.accum_fuel_left,)}
 <span style="font-size:10px">L Add: </span>${"%.1f"%((rt.b.stay.fueladjust),)}
 %endif
-<span style="font-size:10px">L Giving a total of: </span>${"%.1f"%((rt.accum_fuel_burn+rt.b.stay.fueladjust),)}
+<span style="font-size:10px">L Giving a total of: </span>${"%.1f"%((rt.accum_fuel_left+rt.b.stay.fueladjust),)}
 <span style="font-size:10px">L</span>
 %endif
 %endif
@@ -145,6 +148,8 @@ ${freq}
 %endif
 
 </td>
+
+%if c.fillable:
 <td>
 <span style="font-size:10px">ATA:</span>&nbsp;&nbsp;&nbsp;&nbsp;
 </td>
@@ -154,9 +159,7 @@ ${freq}
 <td>
 <span style="font-size:10px">acc. delay:</span>&nbsp;&nbsp;&nbsp;&nbsp;
 </td>
-
-
-</td>
+%endif
 
 </tr>
 

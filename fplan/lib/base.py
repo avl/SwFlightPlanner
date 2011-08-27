@@ -5,7 +5,7 @@ Provides the BaseController class for subclassing.
 from pylons.controllers import WSGIController
 from pylons.templating import render_mako as render
 from pylons import request, response, session
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 import routes.util as h 
 from fplan.model import meta,User
 from datetime import datetime

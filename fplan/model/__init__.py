@@ -38,6 +38,7 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column("lastlogin",DateTime(),nullable=False),
                         sa.Column('fastmap',Boolean(),nullable=False,default=True),
                         sa.Column('showobst',Boolean(),nullable=False,default=True),
+                        sa.Column('fillable',Boolean(),nullable=False,default=False),
                         sa.Column('lasttrip',Unicode(50),nullable=True,default=None))
                                                 
 
@@ -113,7 +114,6 @@ aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('descent_rate',Float(),primary_key=False,nullable=False,default=750),                        
                         sa.Column('descent_burn',Float(),primary_key=False,nullable=False,default=10),
                         sa.Column("advanced_model",Boolean(),nullable=False,default=False),
-                        sa.Column('adv_prop_efficiency',Float(),primary_key=False,nullable=False,default=60),
                         sa.Column('adv_climb_rate',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
                         sa.Column('adv_climb_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
                         sa.Column('adv_climb_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
@@ -128,7 +128,7 @@ trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
-                        sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="CASCADE"),                                                        
+                        sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="SET NULL"),                                                        
                         )
 
 download_table = sa.Table("download",meta.metadata,

@@ -62,6 +62,7 @@ Enter password again: <input type="password" name="password2" id="password2" val
 
 %if not c.initial:
 Track as line instead of dots (only for fast computers): <input type="checkbox" name="notfastmap" ${'checked="1"' if c.notfastmap else ''|n}"/><br/>
+Printable flightplan, show fields to be filled in-flight: <input type="checkbox" name="fillable" ${'checked="1"' if c.fillable else ''|n}"/><br/>
 
 Optional Information, needed to create ATS-flightplans:<br/>
 Real Name: <input type="text" name="realname" value="${c.realname}" />(example: Kalle Svensson)<br/> 

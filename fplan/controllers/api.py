@@ -1,7 +1,7 @@
 import logging
 import StringIO
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
+from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording
 from fplan.lib import mapper
 from datetime import datetime,timedelta
