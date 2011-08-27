@@ -26,6 +26,11 @@ def actual_login(user,firsturl=None):
     session['user']=user.user
     if 'current_trip' in session:
         del session['current_trip']
+    if 'showtrack' in session:
+        del session['showtrack']
+    if 'showarea' in session:
+        del session['showarea']
+                
     tripsharing.cancel()
     session.save()
     user.lastlogin=datetime.utcnow()
@@ -35,12 +40,30 @@ def actual_login(user,firsturl=None):
         firsturl=h.url_for(controller='mapview',action="index")
     redirect(firsturl)
 
+def find_free_mem():
+    try:
+        m=re.match(r"MemFree:\s*(\d+)\s*kB.*",list(open("/proc/meminfo"))[1])
+        if m:
+            freemem,=m.groups()
+            return int(freemem)/1000
+    except Exception,cause:
+        print "error:",cause
+        return 0
+    except:
+        print "other error"
+        return 0
+
 class SplashController(BaseController):
 
     def index(self):
         c.expl=request.params.get("explanation","")
         ua=request.headers.get('User-Agent','').lower()
         c.browserwarningheader=None
+        try:
+            c.mem=find_free_mem()
+        except:
+            c.mem=0
+        
         if ua.count("msie") and not (ua.count("firefox") or ua.count("chrome")):
             #MSIE detect
             m=re.search(r"msie\s+(\d+)\.(\d+)",ua)
@@ -94,13 +117,13 @@ class SplashController(BaseController):
         
     def login(self):
         users=meta.Session.query(User).filter(sa.and_(
-                User.user==request.params['username'])
-                ).all()    
+                User.user==request.params.get('username',None))
+                ).all()
+                
         if len(users)==1:
             user=users[0]
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5str(request.params['password']),user.password)
             
-            print request.params
             if request.params.get('forgot',None)!=None:
                 if forgot_password(user):
                     redirect(h.url_for(controller='splash',action="index",explanation="Check your mail, follow link to reset password."))
