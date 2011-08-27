@@ -73,17 +73,19 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
-<b>Updated 2011-08-03: </b>There have been some problems accessing the site lately, possibly due to overload. More resources have been allocated to the server, and I will monitor the situation (now ${c.mem}M free). Hopefully it will work better now. Also, to reduce load, I'm no longer updating the map every 30 minutes, but rather just every night.<br />
+<b>Updated 2011-08-27: </b>
+New version! New features include: Automatic determination of variation (magnetic declination), a new optional advanced
+aircraft performance model for more accurate fuel consumption figures, a 'forgot password' feature, and a few minor 
+improvements. If there are bugs, I really do want to know! Write in the forum, send me mail! 
+<br />
 <b>Updated 2011-03-14: </b>Some support for Danish airspace. The data is old, however.<br />
-<b>Updated 2011-02-14: </b>Fixed a bug that made wind-information be totally wrong. I know some of you noticed this, it should work better now.<br />
-<b>Updated 2011-02-05: </b>Added a <a href="http://swflightplanner.se:8080/phpBB3"><b><u>message-board/forum</u></b></a> for discussion of the swflightplanner suite of applications.<br />
-<b>Updated 2011-01-06: </b>Added links to AIP-information for the larger airports.<br />
 <b>Updated 2010-10-09: </b>Support for creating complete ATS flightplans which can be copy-pasted to www.aro.lfv.se.<br />
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br />
 <br />
 This site uses <a href="http://en.wikipedia.org/wiki/HTTP_cookie">cookies</a> to store <a href="http://en.wikipedia.org/wiki/Unique_identifier">unique</a> session identifiers.<br />
-<a href="/splash/about"><u>About this site</u></a>
+<a href="/splash/about"><u>About this site</u></a>.<br/>
+<div style="font-size:10px">${c.mem}M free</div> 
 </td>
 </tr></table> 
  
