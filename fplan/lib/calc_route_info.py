@@ -304,9 +304,11 @@ def max_descent_feet(start_alt,dist_nm,ac,rt):
         descent_nm=dist_nm*rt.descent_ratio
         return start_alt-descent_nm*1852.0/0.3048
 def max_descent_nm(start_alt,end_alt,ac,rt):
+    """returns fuel,dist,time_h"""    
     assert ac.advanced_model
     return max_x_feet(start_alt,60*360,ac,rt,calc_descent_ratio,end_alt)[1:]
 def max_climb_nm(start_alt,end_alt,ac,rt):
+    """returns fuel,dist,time_h"""    
     assert ac.advanced_model
     return max_x_feet(start_alt,60*360,ac,rt,calc_climb_ratio,end_alt)[1:]
 

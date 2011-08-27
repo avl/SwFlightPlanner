@@ -117,10 +117,10 @@ def test_max_climb_feet():
     print "In 5nm, revdescend to",m,'ft'
     assert abs(m-8000)<1e-3
     
-    m=calc.max_descent_nm(8000,5857,ac,rt)
+    fuel,m,time=calc.max_descent_nm(8000,5857,ac,rt)
     assert abs(m-5)<1e-1
     
-    m=calc.max_climb_nm(500,6071.4,ac,rt)
+    fuel,m,time=calc.max_climb_nm(500,6071.4,ac,rt)
     assert abs(m-5)<1e-1
     
     
