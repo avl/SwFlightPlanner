@@ -55,7 +55,7 @@ def forgot_password(user):
     http://%(site)s%(link)s
     
     If you feel that you should not have received this message, and think that
-    someone should know, you may contact root@%(site)s
+    someone should know, you may contact anders.musikka@gmail.com
     """%dict(site=os.getenv('SWFP_HOSTNAME','example.com'),link=link)
     
     msg = MIMEText(msgbody)
