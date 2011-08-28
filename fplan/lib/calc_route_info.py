@@ -815,7 +815,9 @@ def get_route(user,trip):
                 out.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,out.gs)
                 dummygs,out.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,out.tas)
                 assert abs(dummygs-out.gs)<1e-3
-                
+            else:
+                out.tas=0
+                out.wca=0
                                 
             tot_dist+=out.d
             out.total_d=tot_dist
