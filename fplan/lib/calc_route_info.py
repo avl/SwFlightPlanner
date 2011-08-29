@@ -163,6 +163,11 @@ def cap_mid_alt(alt1,mid_alt,alt2,d,climb_ratio,descent_ratio):
     mid_alt=from_feet(mid_alt)
     d=from_nm(d)
     if alt1<=mid_alt and mid_alt<=alt2: return to_feet(mid_alt)
+    if climb_ratio<1e-3 or descent_ratio<1e-3:
+        if mid_alt>alt1:
+            return max(alt1,alt2)
+        else:
+            return min(alt1,alt2)
     if mid_alt>alt1:
         # y = k*x + m = climb_ratio*x + alt1
         # y = k*x + m = descent_ratio*(d-x) + alt2
@@ -424,6 +429,7 @@ def get_route(user,trip):
     
     acs=meta.Session.query(Aircraft).filter(sa.and_(
         Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).all()
+    dummyac=False
     if len(acs)==1:
         ac,=acs
     else:    
@@ -437,11 +443,17 @@ def get_route(user,trip):
         ac.descent_rate=500
         ac.climb_burn=0
         ac.descent_burn=0
+        dummyac=True
     
         
     for rt in routes:
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
         rt.d=D
+        if dummyac:
+            tas=rt.tas
+            ac.cruise_speed=tas
+            ac.climb_speed=tas
+            ac.descent_speed=tas
 
 
         if not ac.advanced_model:
@@ -451,10 +463,16 @@ def get_route(user,trip):
             
             climb_speed_ms=rt.climb_gs*1.852/3.6
             climb_rate_ms=(ac.climb_rate/60.0)*0.3048
-            rt.climb_ratio=climb_rate_ms/climb_speed_ms
+            if climb_speed_ms>1e-3:
+                rt.climb_ratio=climb_rate_ms/climb_speed_ms
+            else:
+                rt.climb_ratio=0
             descent_speed_ms=rt.descent_gs*1.852/3.6
             descent_rate_ms=(ac.descent_rate/60.0)*0.3048
-            rt.descent_ratio=descent_rate_ms/descent_speed_ms
+            if descent_speed_ms>1e-3:
+                rt.descent_ratio=descent_rate_ms/descent_speed_ms
+            else:
+                rt.descent_ratio=0
             
 
 
@@ -508,6 +526,12 @@ def get_route(user,trip):
     prev_alt=None    
     numroutes=len(routes)
     for idx,rt in enumerate(routes):
+        print "rt.tas",rt.tas
+        if dummyac:
+            tas=rt.tas
+            ac.cruise_speed=tas
+            ac.climb_speed=tas
+            ac.descent_speed=tas
         
 
         if rt.a.stay:

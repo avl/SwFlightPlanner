@@ -188,7 +188,7 @@ class FlightplanController(BaseController):
                 ]:
                                                                 
                 key="%s_%d"%(col,way.id)
-                if col=='TAS' and not 'TAS' in request.params:
+                if col=='TAS' and not key in request.params:
                     #TAS is not present if ac.advanced_model==false
                     continue                
                 val=request.params[key]
