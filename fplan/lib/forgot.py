@@ -35,13 +35,14 @@ def decode_challenge(challenge):
 
 def forgot_password(user):
     if not user.user.count("@"):
+        print "not an email address"
         return False
     
     buf=(user.lastlogin.strftime("%Y-%m-%d")+user.user+user.password).encode('utf-8')
     hash=md5str(buf)
     assert len(hash)==32
     challenge=hash+user.user.encode('utf-8')
-        
+    print "Generating link"
     link=h.url_for(controller='splash',action="reset",code=base64.b16encode(challenge))
     msgbody="""
 Hello!
@@ -68,6 +69,8 @@ If you feel that you should not have received this message, and think that someo
     # envelope header.
     s = smtplib.SMTP('localhost')
     print "Sending mail with body: %s"%(msg,)
+    print "Sending email"
     s.sendmail(from_, user.user, msg.as_string())
     s.quit()
+    print "Returning"
     return True
