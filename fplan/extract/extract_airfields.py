@@ -15,6 +15,7 @@ from itertools import izip
 import fplan.extract.rwy_constructor as rwy_constructor
 import md5    
 import codecs
+import parse_landing_chart
     
 def extract_airfields(filtericao=lambda x:True):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
@@ -69,8 +70,23 @@ def extract_airfields(filtericao=lambda x:True):
     for ad in ads:        
         icao=ad['icao']
         if icao in big_ad:            
+            if icao in ['ESSB','ESMQ']:
+                try:
+                    lc=parse_landing_chart.parse_landing_chart("/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao))
+                    if lc:
+                        ad['aipadcharturl']=lc['url']
+                        ad['aipadchart']=lc                                                    
+                except:
+                    print "Apparently no AD chart for ",icao
+                    continue
+            
+            
+    for ad in ads:        
+        icao=ad['icao']
+        if icao in big_ad:            
             if icao in ['ESIB','ESNY','ESCM','ESPE']:
-                continue
+                continue                    
+            
             p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao))
             ad['aipvacurl']=p.get_url()
             for pagenr in xrange(p.get_num_pages()):

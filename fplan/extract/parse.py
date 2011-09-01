@@ -55,7 +55,9 @@ class ItemStr(unicode):
             self.y2=max(item_y2,self.y2)
 
 class Page(object):
-    def __init__(self,items):
+    def __init__(self,items,width=None,height=None):
+        self.width=width
+        self.height=height
         self.items=items
     def count(self,str):
         cnt=0
@@ -256,8 +258,19 @@ class Parser(object):
         
     def get_num_pages(self):
         return len(self.xml.getchildren())
-    def parse_page_to_items(self,pagenr):
+    def parse_page_to_items(self,pagenr,donormalize=True):
         page=self.xml.getchildren()[pagenr]
+        try:
+            width=int(page.attrib['width'])
+        except:
+            width=None
+            raise
+        try:
+            height=int(page.attrib['height'])
+        except:
+            height=None
+            raise
+                    
         out=[]
         fonts=self.fonts
         for item in page.findall(".//text"):
@@ -292,8 +305,11 @@ class Parser(object):
               italic=italic
               )
             out.append(it)
-        
-        return Page(list(self.normalize_items(out)))
+        if donormalize:
+            n=self.normalize_items(out)
+        else:
+            n=out        
+        return Page(list(n),width=width,height=height)
     def normalize_items(self,items):
         if len(items)==0:
             return

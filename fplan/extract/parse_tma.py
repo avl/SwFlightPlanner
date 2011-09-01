@@ -248,17 +248,19 @@ def parse_all_tma():
         did_replace=[0]
         def replacer(args):
             print args.groups()
-            y,x,w,h,font=args.groups()            
-            assert int(w)>=260 and int(w)<280
-            assert int(h)>=6 and int(h)<=10
+            y,x,w,h,font=args.groups()
+            print w,h            
+            assert int(w)>=260 and int(w)<420
+            assert int(h)>=6 and int(h)<=15
+            f=float(w)/270.0
             x1=x
             y1=y
             w1=80
             h1=h
 
-            x2=168
+            x2=168*f
             y2=y
-            w2=150
+            w2=150*f
             h2=h
             did_replace[0]+=1
             repl="""<text top="%s" left="%s" width="%s" height="%s" font="%s">Part of GÖTEBORG TMA</text>

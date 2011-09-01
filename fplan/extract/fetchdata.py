@@ -126,7 +126,7 @@ def getrawdata(relpath,country="se"):
 
 def getcachename(relpath,datatype):
     return os.path.join(tmppath,stripname(relpath)+datatype)
-def getdata(relpath,country="se",maxcacheage=7200):
+def getdata(relpath,country="se",maxcacheage=7200,return_path=False):
     nowdate=datetime.now()
     if not os.path.exists(tmppath):
         os.makedirs(tmppath)
@@ -141,10 +141,25 @@ def getdata(relpath,country="se",maxcacheage=7200):
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
             print "Returning cached %s"%(relpath,)
-            return open(cachename).read(),cacheddate
+            if not return_path:
+                return open(cachename).read(),cacheddate
+            else:
+                return open(cachename).read(),cacheddate,cachename
     data=getrawdata(relpath,country=country)
     open(cachename,"w").write(data)
-    return data,nowdate
+    if not return_path:
+        return data,nowdate
+    else:
+        return data,nowdate,cachename
+def getdatafilename(relpath,country="se",maxcacheage=7200):
+    """Like getdata, but gives a path to the cached file on disk,
+    rather than just returning the actual data. The returned path
+    is valid until the next getdata,getxml or getdatafilename (or similar)
+    for the same path.
+    """    
+    data,nowdate,cachename=getdata(relpath,country=country,maxcacheage=maxcacheage,return_path=True)
+    return cachename
+    
     
 def getxml(relpath,country="se",maxcacheage=7200):
     print "getxml:"+relpath

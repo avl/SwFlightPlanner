@@ -1,7 +1,7 @@
 from pdfminer.pdfparser import PDFParser, PDFDocument
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfdevice import PDFDevice
-from pdfminer.layout import LAParams,LTItem,LTRect,LTTextLineHorizontal,LTTextBoxHorizontal,LTTextLine,LTFigure,LTLine
+from pdfminer.layout import LAParams,LTItem,LTRect,LTTextLineHorizontal,LTTextBoxHorizontal,LTTextLine,LTFigure,LTLine,LTCurve
 from pdfminer.converter import PDFPageAggregator
 from parse import ItemStr,Page,Item
 from StringIO import StringIO
@@ -27,6 +27,10 @@ def get_vertical_lines(stream):
             #TODO: SUpport this?
             continue
         if type(item)==LTLine:
+            continue
+        if type(item)==LTCurve:
+            continue
+        if type(item)==LTTextLineHorizontal:
             continue
         raise Exception("Unknown type:%s"%(item,))
         
