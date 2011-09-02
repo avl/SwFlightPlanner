@@ -13,7 +13,10 @@ import numpy
 
 def dist(x,y):
     return math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2)
-
+def cartesian(xs,ys):
+    for x in xs:
+        for y in ys:
+            yield x,y
 def parse_landing_chart(path,country='se'):
     print "Running parse_landing_chart"
     p=parse.Parser(path)
@@ -25,16 +28,6 @@ def parse_landing_chart(path,country='se'):
     ret['url']=url
     page=p.parse_page_to_items(0, donormalize=False)
 
-    for item in page.get_by_regex(ur".*?[\d\.]+\s*°.*"):#
-        d=0.1*page.width
-        
-        degrees,=re.match(ur'.*?([\d\.]+)\s*°.*',item.text).groups()
-        #print "Found deg",item,float(degrees)
-        for item2 in page.get_by_regex_in_rect(ur".*?[\d\.]+\s*'.*",item.x1-d,item.y1-d,item.x2+d,item.y2+d):
-            minutes,=re.match(ur".*?([\d\.]+)\s*'.*",item2.text).groups()
-            print "Found %f deg %f min"%(float(degrees),float(minutes))
-
-    return 'oops '
     
     
     svg=svg_reader.parsesvg(path)
@@ -74,7 +67,7 @@ def parse_landing_chart(path,country='se'):
     ctx=cairo.Context(im)
     ctx.set_line_width(scale)
     lookup=dict()
-    def dive(elem,out,matrix,isdef,isclip):
+    def dive(elem,sights,matrix,isdef,isclip):
         if elem.tag.count("defs"):
             isdef=True
         #print "Parsing tag",elem.tag
@@ -111,7 +104,7 @@ def parse_landing_chart(path,country='se'):
             #print "Interpreting clip path: <%s>"%(elem.attrib['clip-path'],)
             targetid,=re.match(r"^url\(#(.*)\)$",elem.attrib['clip-path']).groups()
             child=lookup[targetid]
-            dive(child,out,newmatrix,isdef,True)
+            dive(child,sights,newmatrix,isdef,True)
             
             
                               
@@ -120,10 +113,7 @@ def parse_landing_chart(path,country='se'):
             pass
         elif elem.tag.endswith("}image"):
             if not isdef:
-                if isclip:
-                    ctx.set_source(cairo.SolidPattern(1,0.0,0,1))
-                else:
-                    ctx.set_source(cairo.SolidPattern(1,1,1,1))
+                ctx.set_source(cairo.SolidPattern(1,0.0,0,1))
                 x=float(elem.attrib.get('x',0))
                 y=float(elem.attrib.get('y',0))
                 #print "Drawing image at",x,y
@@ -145,10 +135,7 @@ def parse_landing_chart(path,country='se'):
                     #ctx.rectangle(*(zoom(x,y)+zoom(width,height)))                     
         elif elem.tag.endswith("}rect"):
             if not isdef:
-                if isclip:
-                    ctx.set_source(cairo.SolidPattern(0,1,0,1))
-                else:
-                    ctx.set_source(cairo.SolidPattern(1,1,1,1))
+                ctx.set_source(cairo.SolidPattern(0,1,0,1))
                 x=float(elem.attrib.get('x',0))
                 y=float(elem.attrib.get('y',0))
                 width=float(elem.attrib['width'])
@@ -173,10 +160,7 @@ def parse_landing_chart(path,country='se'):
         elif elem.tag.endswith("path"):
             if not isdef:
                 #print "Found path:",elem,elem.attrib            
-                if isclip:
-                    ctx.set_source(cairo.SolidPattern(0.5,0.5,1,1))
-                else:
-                    ctx.set_source(cairo.SolidPattern(1,1,1,1))
+                ctx.set_source(cairo.SolidPattern(0.5,0.5,1,1))
                 d=elem.attrib['d']
                 def triplets(xs):
                     what=None
@@ -191,7 +175,7 @@ def parse_landing_chart(path,country='se'):
                             coords.append(float(x))
                     if what:
                         yield (what,tuple(coords))
-                def lines(xs):
+                def getlines(xs):
                     last=None
                     first=None
                     for what,coords in xs:
@@ -217,9 +201,15 @@ def parse_landing_chart(path,country='se'):
                 #    print kind,pos
                 sumpos=[0,0]
                 numsum=0
-                for line in lines(triplets(d.split())):
-                    #print "line:",line
+                lines=sights.setdefault('lines',[])
+                crosshair=sights.setdefault('crosshair',[])
+                for line in getlines(triplets(d.split())):
+                    #print "line:",line                                    
                     a,b=line
+                    x1,y1=a
+                    x2,y2=b
+                    if dist(a,b)>7 and (abs(y1-y2)<2 or abs(x1-x2)<2):
+                        lines.append(line)
                     ctx.new_path()
                     sumpos[0]+=a[0]
                     sumpos[1]+=a[1]
@@ -228,11 +218,11 @@ def parse_landing_chart(path,country='se'):
                     numsum+=2
                     ctx.move_to(*zoom(*a))
                     ctx.line_to(*zoom(*b))
-                    #out.append(line)
+                    #sights.append(line)
                     ctx.stroke()
                 if isclip and numsum:
                     avgpos=(sumpos[0]/numsum,sumpos[1]/numsum)
-                    out.append(avgpos)
+                    crosshair.append(avgpos)
             else:
                 pass
         elif elem.tag.endswith("}use"):
@@ -252,7 +242,7 @@ def parse_landing_chart(path,country='se'):
                      [0,0,1]
                      ])
             newmatrix=usematrix*newmatrix
-            dive(child,out,newmatrix,isdef,False)
+            dive(child,sights,newmatrix,isdef,False)
         elif (elem.tag.endswith("}g") or 
             elem.tag.endswith("}svg") or 
             elem.tag.endswith("}defs") or 
@@ -264,16 +254,56 @@ def parse_landing_chart(path,country='se'):
             #print "Unknown tag",elem.tag
             raise Exception("Unknown tag: %s"%(elem.tag,))
         for child in elem.getchildren():                    
-            dive(child,out,newmatrix,isdef,isclip)
+            dive(child,sights,newmatrix,isdef,isclip)
     
     
     
     
-    out=[]
-    dive(svg,out,numpy.identity(3),False,False)
-
-
+    sights=dict()
+    dive(svg,sights,numpy.identity(3),False,False)
+    crosshair=sights['crosshair']
+    lines=sights['lines']
+    constraints=[]
+    for item in page.get_by_regex(ur".*?[\d\.]+\s*°.*"):#
+        d=0.1*page.width        
+        degrees,=re.match(ur'.*?([\d\.]+)\s*°.*',item.text).groups()
+        degrees=float(degrees)
+        #print "Found deg",item,float(degrees)
+        for item2 in page.get_by_regex_in_rect(ur".*?[\d\.]+\s*'.*",item.x1-d,item.y1-d,item.x2+d,item.y2+d):
+            minutes,=re.match(ur".*?([\d\.]+)\s*'.*",item2.text).groups()
+            minutes=float(minutes)
+            print "Found %f deg %f min"%(float(degrees),float(minutes))
+            cands=[]
+            def tr(x,y):
+                x*=1.0/page.width
+                y*=1.0/page.height
+                return (width*x,height*y)                
+            parselongitude=(degrees>=10.0 and degrees<=25.0)
+            parselatitude=(degrees>=50.0 and degrees<=80.0)
+            print "Parselat/lon",parselatitude,parselongitude
+            for line in lines:
+                d=min([dist(a,b) for a,b in cartesian(
+                        [line[0],line[1]],
+                        [tr(item.x1,item.y1),tr(item.x2,item.y2),tr(item2.x1,item2.y1),tr(item2.x2,item2.y2)])])
+                if d>width/20: continue
+                print "Checked line: %s, d: %s"%(line,d)
+                (x1,y1),(x2,y2)=line
+                isvert=abs(x1-x2)<2
+                ishoriz=abs(y1-y2)<2
+                print "Short d: ",d,"isvert/Horiz:",isvert,ishoriz
+                if parselongitude and isvert:
+                    cands.append((d,0.5*(x1+x2),(0.5*(x1+x2),0.5*(y1+y2))))
+                if parselatitude and ishoriz:
+                    cands.append((d,0.5*(y1+y2),(0.5*(x1+x2),0.5*(y1+y2))))
+            if not cands:continue
+            bestcand=min(cands,key=lambda cand:cand[0])
+            d,coord,point=bestcand
+            decdeg=float(degrees)+float(minutes)/60.0
+            if parselatitude:constraints.append(dict(latitude=decdeg,y=coord,point=point))
+            if parselongitude:constraints.append(dict(longitude=decdeg,x=coord,point=point))
     
+    print constraints
+    sys.exit(0)
     def angle(line):
         (x1,y1),(x2,y2)=line
         dx,dy=(x2-x1,y2-y1)
@@ -290,7 +320,7 @@ def parse_landing_chart(path,country='se'):
         pos=(width*x,height*y)
         zpos=zoom(*pos)
         #ctx.circle()
-        cand=min(out,key=lambda x:dist(x,pos))   
+        cand=min(crosshair,key=lambda x:dist(x,pos))   
         mindist=dist(cand,pos)
         if mindist>=0.05*width:
             continue
