@@ -3,6 +3,7 @@ import re
 import sys
 import math
 import cairo
+import pickle
 from itertools import izip
 import fplan.lib.mapper as mapper
 import md5
@@ -11,6 +12,8 @@ import parse
 import svg_reader
 import numpy
 
+def diff(x,y):
+    return (x[0]-y[0],x[1]-y[1])
 def dist(x,y):
     return math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2)
 def cartesian(xs,ys):
@@ -45,222 +48,229 @@ def parse_landing_chart(path,country='se'):
     
     
     
-    im=cairo.ImageSurface(cairo.FORMAT_RGB24,scale*width,scale*height)
-    def zoom(a,b):
-        return scale*a,scale*b
     
-
-    def parse_transform(s):
-        #print "Matching",s
-        coords,=re.match(ur"^matrix\((.*)\)$",s).groups()
-        d=[float(num) for num in coords.split(',')]
-        assert len(d)==6
-        mat=numpy.matrix([
-                 [d[0],d[2],d[4]],
-                 [d[1],d[3],d[5]],
-                 [0,0,1]
-                 ])
-        #print "parsed %s as %s"%(s,mat)
-        return mat
+    cache=True
+    write_cache=False
+    if not cache:
+        im=cairo.ImageSurface(cairo.FORMAT_RGB24,scale*width,scale*height)
+        def zoom(a,b):
+            return scale*a,scale*b
         
-            
-    ctx=cairo.Context(im)
-    ctx.set_line_width(scale)
-    lookup=dict()
-    def dive(elem,sights,matrix,isdef,isclip):
-        if elem.tag.count("defs"):
-            isdef=True
-        #print "Parsing tag",elem.tag
-        #if elem.tag.count("symbol"):
-        #    return
-        #if elem.tag.count("glyph"):
-        #    return
-        #if elem.tag.count("pattern"):
-        #    return
-        if 'transform' in elem.attrib:
-            #print "Matrix before",matrix
-            assert not 'patternTransform' in elem.attrib
-            newmatrix=matrix*parse_transform(elem.attrib['transform'])
-        elif 'patternTransform' in elem.attrib:
-            #print "Matrix before",matrix
-            assert not 'transform' in elem.attrib
-            newmatrix=matrix*parse_transform(elem.attrib['patternTransform'])
-            #print "Matrix after",matrix
-        else:
-            newmatrix=matrix
-        if "id" in elem.attrib:
-            lookup[elem.attrib['id']]=elem
-            
-        def trans(pos,matrix):
-            as_m=numpy.matrix([[pos[0]],[pos[1]],[1]])
-            #print "Matrix:",matrix
-            ret=matrix*as_m
-            t=ret[0,0],ret[1,0]
-            #if dist(pos,t)>10:
-            #    print "Transformed ",pos,"into",t
-            return t
-        if 'clip-path' in elem.attrib:
-            #"url(#clip2309)"
-            #print "Interpreting clip path: <%s>"%(elem.attrib['clip-path'],)
-            targetid,=re.match(r"^url\(#(.*)\)$",elem.attrib['clip-path']).groups()
-            child=lookup[targetid]
-            dive(child,sights,newmatrix,isdef,True)
-            
-            
-                              
-
-        if elem.tag.endswith("}pattern"):
-            pass
-        elif elem.tag.endswith("}image"):
-            if not isdef:
-                ctx.set_source(cairo.SolidPattern(1,0.0,0,1))
-                x=float(elem.attrib.get('x',0))
-                y=float(elem.attrib.get('y',0))
-                #print "Drawing image at",x,y
-                width=float(elem.attrib['width'])
-                height=float(elem.attrib['height'])
-                ps=[(x,y),(x+width,y),(x+width,y+height),(x,y+height)
-                    ]
-                ps2=[]
-                for p in ps:
-                    ps2.append(zoom(*trans(p,newmatrix)))
-                if isclip:
-                    print "image",x,y,width,height
-                for a,b in zip(ps2,[ps2[-1]]+ps2[:-1]):
-                    x1,y1=a
-                    x2,y2=b
-                    ctx.move_to(x1,y1)
-                    ctx.line_to(x2,y2)
-                    ctx.stroke()
-                    #ctx.rectangle(*(zoom(x,y)+zoom(width,height)))                     
-        elif elem.tag.endswith("}rect"):
-            if not isdef:
-                ctx.set_source(cairo.SolidPattern(0,1,0,1))
-                x=float(elem.attrib.get('x',0))
-                y=float(elem.attrib.get('y',0))
-                width=float(elem.attrib['width'])
-                height=float(elem.attrib['height'])
-                ps=[(x,y),(x+width,y),(x+width,y+height),(x,y+height)
-                    ]
-                ps2=[]
-                for p in ps:
-                    ps2.append(zoom(*trans(p,newmatrix)))
-                if isclip:
-                    print "rect",x1,y1,x2,y2
-                for a,b in zip(ps2,[ps2[-1]]+ps2[:-1]):
-                    x1,y1=a
-                    x2,y2=b
-                    ctx.new_path()
-                    ctx.set_line_width(scale*3)                
-                    ctx.move_to(x1,y1)
-                    ctx.line_to(x2,y2)
-                    ctx.stroke()
-                    ctx.set_line_width(scale)
-                    #ctx.rectangle(*(zoom(x,y)+zoom(width,height)))
-        elif elem.tag.endswith("path"):
-            if not isdef:
-                #print "Found path:",elem,elem.attrib            
-                ctx.set_source(cairo.SolidPattern(0.5,0.5,1,1))
-                d=elem.attrib['d']
-                def triplets(xs):
-                    what=None
-                    coords=[]
-                    for x in xs:
-                        if x.isalpha():
-                            if what:
-                                yield (what,tuple(coords))
-                            what=x
-                            coords=[]
-                        else:
-                            coords.append(float(x))
-                    if what:
-                        yield (what,tuple(coords))
-                def getlines(xs):
-                    last=None
-                    first=None
-                    for what,coords in xs:
-                        if what=='Z' or what=='z':
-                            assert len(coords)==0
-                            if first:
-                                yield trans(last,newmatrix),trans(first,newmatrix)
-                            last=None
-                            first=None
-                            continue
-                        if last!=None:
-                            if what=='L':
-                                assert len(coords)==2
-                                yield trans(last,newmatrix),trans(coords,newmatrix)
-                            if what=='l':
-                                assert len(coords)==2
-                                coords=(last[0]+coords[0],last[1]+coords[1])
-                                yield trans(last,newmatrix),trans(coords,newmatrix)
-                            
-                        last=coords[-2:]
-                        if not first:first=last
-                #for kind,pos in triplets(d.split()):
-                #    print kind,pos
-                sumpos=[0,0]
-                numsum=0
-                lines=sights.setdefault('lines',[])
-                crosshair=sights.setdefault('crosshair',[])
-                for line in getlines(triplets(d.split())):
-                    #print "line:",line                                    
-                    a,b=line
-                    x1,y1=a
-                    x2,y2=b
-                    if dist(a,b)>7 and (abs(y1-y2)<2 or abs(x1-x2)<2):
-                        lines.append(line)
-                    ctx.new_path()
-                    sumpos[0]+=a[0]
-                    sumpos[1]+=a[1]
-                    sumpos[0]+=b[0]
-                    sumpos[1]+=b[1]
-                    numsum+=2
-                    ctx.move_to(*zoom(*a))
-                    ctx.line_to(*zoom(*b))
-                    #sights.append(line)
-                    ctx.stroke()
-                if isclip and numsum:
-                    avgpos=(sumpos[0]/numsum,sumpos[1]/numsum)
-                    crosshair.append(avgpos)
-            else:
-                pass
-        elif elem.tag.endswith("}use"):
-            #print elem.attrib
-            idname=elem.attrib['{http://www.w3.org/1999/xlink}href']
-            assert idname.startswith("#")
-            idname=idname[1:]
-            child=lookup[idname]
-            if 'x' in elem.attrib:
-                x=float(elem.attrib['x'])
-                y=float(elem.attrib['y'])
-            else:
-                x=y=0
-            usematrix=numpy.matrix([
-                     [1,0,x],
-                     [0,1,y],
+    
+        def parse_transform(s):
+            #print "Matching",s
+            coords,=re.match(ur"^matrix\((.*)\)$",s).groups()
+            d=[float(num) for num in coords.split(',')]
+            assert len(d)==6
+            mat=numpy.matrix([
+                     [d[0],d[2],d[4]],
+                     [d[1],d[3],d[5]],
                      [0,0,1]
                      ])
-            newmatrix=usematrix*newmatrix
-            dive(child,sights,newmatrix,isdef,False)
-        elif (elem.tag.endswith("}g") or 
-            elem.tag.endswith("}svg") or 
-            elem.tag.endswith("}defs") or 
-            elem.tag.endswith("}symbol") or 
-            elem.tag.endswith("}mask") or 
-            elem.tag.endswith("}clipPath")): 
-            pass
-        else:
-            #print "Unknown tag",elem.tag
-            raise Exception("Unknown tag: %s"%(elem.tag,))
-        for child in elem.getchildren():                    
-            dive(child,sights,newmatrix,isdef,isclip)
+            #print "parsed %s as %s"%(s,mat)
+            return mat
+            
+                
+        ctx=cairo.Context(im)
+        ctx.set_line_width(scale)
+        lookup=dict()
+        def dive(elem,sights,matrix,isdef,isclip):
+            if elem.tag.count("defs"):
+                isdef=True
+            #print "Parsing tag",elem.tag
+            #if elem.tag.count("symbol"):
+            #    return
+            #if elem.tag.count("glyph"):
+            #    return
+            #if elem.tag.count("pattern"):
+            #    return
+            if 'transform' in elem.attrib:
+                #print "Matrix before",matrix
+                assert not 'patternTransform' in elem.attrib
+                newmatrix=matrix*parse_transform(elem.attrib['transform'])
+            elif 'patternTransform' in elem.attrib:
+                #print "Matrix before",matrix
+                assert not 'transform' in elem.attrib
+                newmatrix=matrix*parse_transform(elem.attrib['patternTransform'])
+                #print "Matrix after",matrix
+            else:
+                newmatrix=matrix
+            if "id" in elem.attrib:
+                lookup[elem.attrib['id']]=elem
+                
+            def trans(pos,matrix):
+                as_m=numpy.matrix([[pos[0]],[pos[1]],[1]])
+                #print "Matrix:",matrix
+                ret=matrix*as_m
+                t=ret[0,0],ret[1,0]
+                #if dist(pos,t)>10:
+                #    print "Transformed ",pos,"into",t
+                return t
+            if 'clip-path' in elem.attrib:
+                #"url(#clip2309)"
+                #print "Interpreting clip path: <%s>"%(elem.attrib['clip-path'],)
+                targetid,=re.match(r"^url\(#(.*)\)$",elem.attrib['clip-path']).groups()
+                child=lookup[targetid]
+                dive(child,sights,newmatrix,isdef,True)
+                
+                
+                                  
     
+            if elem.tag.endswith("}pattern"):
+                pass
+            elif elem.tag.endswith("}image"):
+                if not isdef:
+                    ctx.set_source(cairo.SolidPattern(1,0.0,0,1))
+                    x=float(elem.attrib.get('x',0))
+                    y=float(elem.attrib.get('y',0))
+                    #print "Drawing image at",x,y
+                    width=float(elem.attrib['width'])
+                    height=float(elem.attrib['height'])
+                    ps=[(x,y),(x+width,y),(x+width,y+height),(x,y+height)
+                        ]
+                    ps2=[]
+                    for p in ps:
+                        ps2.append(zoom(*trans(p,newmatrix)))
+                    if isclip:
+                        print "image",x,y,width,height
+                    for a,b in zip(ps2,[ps2[-1]]+ps2[:-1]):
+                        x1,y1=a
+                        x2,y2=b
+                        ctx.move_to(x1,y1)
+                        ctx.line_to(x2,y2)
+                        ctx.stroke()
+                        #ctx.rectangle(*(zoom(x,y)+zoom(width,height)))                     
+            elif elem.tag.endswith("}rect"):
+                if not isdef:
+                    ctx.set_source(cairo.SolidPattern(0,1,0,1))
+                    x=float(elem.attrib.get('x',0))
+                    y=float(elem.attrib.get('y',0))
+                    width=float(elem.attrib['width'])
+                    height=float(elem.attrib['height'])
+                    ps=[(x,y),(x+width,y),(x+width,y+height),(x,y+height)
+                        ]
+                    ps2=[]
+                    for p in ps:
+                        ps2.append(zoom(*trans(p,newmatrix)))
+                    if isclip:
+                        print "rect",x1,y1,x2,y2
+                    for a,b in zip(ps2,[ps2[-1]]+ps2[:-1]):
+                        x1,y1=a
+                        x2,y2=b
+                        ctx.new_path()
+                        ctx.set_line_width(scale*3)                
+                        ctx.move_to(x1,y1)
+                        ctx.line_to(x2,y2)
+                        ctx.stroke()
+                        ctx.set_line_width(scale)
+                        #ctx.rectangle(*(zoom(x,y)+zoom(width,height)))
+            elif elem.tag.endswith("path"):
+                if not isdef:
+                    #print "Found path:",elem,elem.attrib            
+                    ctx.set_source(cairo.SolidPattern(0.5,0.5,1,1))
+                    d=elem.attrib['d']
+                    def triplets(xs):
+                        what=None
+                        coords=[]
+                        for x in xs:
+                            if x.isalpha():
+                                if what:
+                                    yield (what,tuple(coords))
+                                what=x
+                                coords=[]
+                            else:
+                                coords.append(float(x))
+                        if what:
+                            yield (what,tuple(coords))
+                    def getlines(xs):
+                        last=None
+                        first=None
+                        for what,coords in xs:
+                            if what=='Z' or what=='z':
+                                assert len(coords)==0
+                                if first:
+                                    yield trans(last,newmatrix),trans(first,newmatrix)
+                                last=None
+                                first=None
+                                continue
+                            if last!=None:
+                                if what=='L':
+                                    assert len(coords)==2
+                                    yield trans(last,newmatrix),trans(coords,newmatrix)
+                                if what=='l':
+                                    assert len(coords)==2
+                                    coords=(last[0]+coords[0],last[1]+coords[1])
+                                    yield trans(last,newmatrix),trans(coords,newmatrix)
+                                
+                            last=coords[-2:]
+                            if not first:first=last
+                    #for kind,pos in triplets(d.split()):
+                    #    print kind,pos
+                    sumpos=[0,0]
+                    numsum=0
+                    lines=sights.setdefault('lines',[])
+                    crosshair=sights.setdefault('crosshair',[])
+                    for line in getlines(triplets(d.split())):
+                        #print "line:",line                                    
+                        a,b=line
+                        x1,y1=a
+                        x2,y2=b
+                        if dist(a,b)>7 and (abs(y1-y2)<2 or abs(x1-x2)<2):
+                            lines.append(line)
+                        ctx.new_path()
+                        sumpos[0]+=a[0]
+                        sumpos[1]+=a[1]
+                        sumpos[0]+=b[0]
+                        sumpos[1]+=b[1]
+                        numsum+=2
+                        ctx.move_to(*zoom(*a))
+                        ctx.line_to(*zoom(*b))
+                        #sights.append(line)
+                        ctx.stroke()
+                    if isclip and numsum:
+                        avgpos=(sumpos[0]/numsum,sumpos[1]/numsum)
+                        crosshair.append(avgpos)
+                else:
+                    pass
+            elif elem.tag.endswith("}use"):
+                #print elem.attrib
+                idname=elem.attrib['{http://www.w3.org/1999/xlink}href']
+                assert idname.startswith("#")
+                idname=idname[1:]
+                child=lookup[idname]
+                if 'x' in elem.attrib:
+                    x=float(elem.attrib['x'])
+                    y=float(elem.attrib['y'])
+                else:
+                    x=y=0
+                usematrix=numpy.matrix([
+                         [1,0,x],
+                         [0,1,y],
+                         [0,0,1]
+                         ])
+                newmatrix=usematrix*newmatrix
+                dive(child,sights,newmatrix,isdef,False)
+            elif (elem.tag.endswith("}g") or 
+                elem.tag.endswith("}svg") or 
+                elem.tag.endswith("}defs") or 
+                elem.tag.endswith("}symbol") or 
+                elem.tag.endswith("}mask") or 
+                elem.tag.endswith("}clipPath")): 
+                pass
+            else:
+                #print "Unknown tag",elem.tag
+                raise Exception("Unknown tag: %s"%(elem.tag,))
+            for child in elem.getchildren():                    
+                dive(child,sights,newmatrix,isdef,isclip)
+        sights=dict()
+        dive(svg,sights,numpy.identity(3),False,False)
+        im.write_to_png("output.png")
+        if write_cache:
+            pickle.dump(sights,open("pickled_ac_chart_"+icao,"w"))
+    else:
+        sights=pickle.load(open("pickled_ac_chart_"+icao))   
+        
     
-    
-    
-    sights=dict()
-    dive(svg,sights,numpy.identity(3),False,False)
     crosshair=sights['crosshair']
     lines=sights['lines']
     constraints=[]
@@ -301,6 +311,48 @@ def parse_landing_chart(path,country='se'):
             decdeg=float(degrees)+float(minutes)/60.0
             if parselatitude:constraints.append(dict(latitude=decdeg,y=coord,point=point))
             if parselongitude:constraints.append(dict(longitude=decdeg,x=coord,point=point))
+            
+    
+    angles=[]
+    yscales=[]
+    xscales=[]
+    for constraint in constraints:
+        if 'latitude' in constraint: 
+            point=constraint['point']
+            decdeg=constraint['latitude']
+            if point[0]>width/8: continue
+            for o in constraints:
+                opoint=o['point']                
+                if abs(opoint[1]-point[1])<height/15 and opoint[0]>width/2:
+                    if abs(decdeg-o['latitude'])<1e-3:
+                        break               
+            else:
+                print "NOthing matches",constraint
+                continue
+            yscales.append((point[1],decdeg))
+            delta=diff(opoint,point)
+            a=(180.0/math.pi)*math.atan2(delta[1],delta[0])
+        if 'longitude' in constraint: 
+            point=constraint['point']
+            decdeg=constraint['longitude']
+            if point[1]>height/8: continue
+            for o in constraints:
+                opoint=o['point']                
+                if abs(opoint[0]-point[0])<width/15 and opoint[1]>height/2:
+                    if abs(decdeg-o['longitude'])<1e-3:
+                        break            
+            else:
+                print "NOthing matches",constraint
+                continue
+            xscales.append((point[0],decdeg))
+            delta=diff(opoint,point)
+            a=(180.0/math.pi)*math.atan2(delta[1],delta[0])-90
+        print "ANGLE:",a,"deg"
+        angles.append(a)
+        xscales.sort(key=lambda x:x[0])
+        assert min(xscales,key=lambda x:x[1])==xscales[0][0]
+        
+            
     
     print constraints
     sys.exit(0)
@@ -349,7 +401,6 @@ def parse_landing_chart(path,country='se'):
         bestarp=arp
         
         
-    im.write_to_png("output.png")
 
     if not bestarp:
         raise Exception("Missing ARP")
