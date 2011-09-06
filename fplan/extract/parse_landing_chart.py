@@ -11,6 +11,7 @@ import fetchdata
 import parse
 import svg_reader
 import numpy
+import numpy.linalg as linalg
 
 def diff(x,y):
     return (x[0]-y[0],x[1]-y[1])
@@ -20,10 +21,10 @@ def cartesian(xs,ys):
     for x in xs:
         for y in ys:
             yield x,y
-def parse_landing_chart(path,country='se'):
+def parse_landing_chart(path,arppos,country='se'):
     print "Running parse_landing_chart"
     p=parse.Parser(path)
-    
+    arppos=mapper.from_str(arppos)
     res=[]    
     assert p.get_num_pages()==1
     url=fetchdata.getrawurl(path,country)
@@ -36,6 +37,8 @@ def parse_landing_chart(path,country='se'):
     svg=svg_reader.parsesvg(path)
     bestarp=None
     scale=4
+    def zoom(a,b):
+        return scale*a,scale*b
     w=svg.attrib['width']
     h=svg.attrib['height']
     assert w.endswith("pt")
@@ -53,8 +56,6 @@ def parse_landing_chart(path,country='se'):
     write_cache=False
     if not cache:
         im=cairo.ImageSurface(cairo.FORMAT_RGB24,scale*width,scale*height)
-        def zoom(a,b):
-            return scale*a,scale*b
         
     
         def parse_transform(s):
@@ -264,7 +265,6 @@ def parse_landing_chart(path,country='se'):
                 dive(child,sights,newmatrix,isdef,isclip)
         sights=dict()
         dive(svg,sights,numpy.identity(3),False,False)
-        im.write_to_png("output.png")
         if write_cache:
             pickle.dump(sights,open("pickled_ac_chart_"+icao,"w"))
     else:
@@ -314,22 +314,28 @@ def parse_landing_chart(path,country='se'):
             
     
     angles=[]
-    yscales=[]
-    xscales=[]
+    A=[]
+    B=[]
+    Ah=[]
+    Bh=[]
     for constraint in constraints:
         if 'latitude' in constraint: 
             point=constraint['point']
             decdeg=constraint['latitude']
             if point[0]>width/8: continue
             for o in constraints:
-                opoint=o['point']                
+                opoint=o['point']
                 if abs(opoint[1]-point[1])<height/15 and opoint[0]>width/2:
                     if abs(decdeg-o['latitude'])<1e-3:
+                        odecdeg=o['latitude']                
                         break               
             else:
                 print "NOthing matches",constraint
                 continue
-            yscales.append((point[1],decdeg))
+            A.append((point[0],point[1],1))
+            Ah.append([decdeg]) 
+            A.append((opoint[0],opoint[1],1))
+            Ah.append([odecdeg]) 
             delta=diff(opoint,point)
             a=(180.0/math.pi)*math.atan2(delta[1],delta[0])
         if 'longitude' in constraint: 
@@ -340,27 +346,31 @@ def parse_landing_chart(path,country='se'):
                 opoint=o['point']                
                 if abs(opoint[0]-point[0])<width/15 and opoint[1]>height/2:
                     if abs(decdeg-o['longitude'])<1e-3:
+                        odecdeg=o['longitude']                
                         break            
             else:
                 print "NOthing matches",constraint
                 continue
-            xscales.append((point[0],decdeg))
+            B.append((point[0],point[1],1))
+            Bh.append([decdeg])
+            B.append((opoint[0],opoint[1],1))
+            Bh.append([odecdeg])
             delta=diff(opoint,point)
             a=(180.0/math.pi)*math.atan2(delta[1],delta[0])-90
         print "ANGLE:",a,"deg"
         angles.append(a)
-        xscales.sort(key=lambda x:x[0])
-        assert min(xscales,key=lambda x:x[1])==xscales[0][0]
-        
             
     
-    print constraints
-    sys.exit(0)
+    
+    print 
+    #print constraints
+    #sys.exit(0)
     def angle(line):
         (x1,y1),(x2,y2)=line
         dx,dy=(x2-x1,y2-y1)
         return ((180.0/math.pi)*math.atan2(dy,dx))%360.0
     cands=[]
+    curbestarpdist=None
     for arp in page.get_by_regex(ur"ARP"):
         print "Got arp"
         print arp.x1,arp.y1
@@ -377,33 +387,110 @@ def parse_landing_chart(path,country='se'):
         if mindist>=0.05*width:
             continue
         candpos=zoom(*cand)
+        middist=dist(cand,(0.5*width,0.5*height))
+        print "Cand arp pixel",cand
         
-        ctx.set_source(cairo.SolidPattern(1,0.25,0.25,1))
-        ctx.new_path()                
-        ctx.set_line_width(scale*3)        
-        ctx.arc(candpos[0],candpos[1],scale*15,0,2*math.pi)
-        ctx.stroke()
-        
-        ctx.set_source(cairo.SolidPattern(1,1.0,0.0,1))                
-        ctx.new_path()
-        ctx.set_line_width(scale*3)        
-        ctx.arc(zpos[0],zpos[1],scale*15,0,2*math.pi)
-        ctx.stroke()
-
+        if not cache:
+            ctx.set_source(cairo.SolidPattern(1,0.25,0.25,1))
+            ctx.new_path()                
+            ctx.set_line_width(scale*3)        
+            ctx.arc(candpos[0],candpos[1],scale*15,0,2*math.pi)
+            ctx.stroke()
+            
+            ctx.set_source(cairo.SolidPattern(1,1.0,0.0,1))                
+            ctx.new_path()
+            ctx.set_line_width(scale*3)        
+            ctx.arc(zpos[0],zpos[1],scale*15,0,2*math.pi)
+            ctx.stroke()
+    
         #for elem in svg.findall(".//{http://www.w3.org/2000/svg}elem"):
         #    print dir(elem)
         #    print elem.attrib
         #    break
         
             #print "elem:",elem.getchildren()
-                     
-                
-        bestarp=arp
+        
+        if bestarp==None or middist<curbestarpdist:             
+            curbestarpdist=middist
+            bestarp=cand
         
         
 
     if not bestarp:
         raise Exception("Missing ARP")
+    
+    print "arppos",arppos,"bestarp",bestarp
+    assert type(arppos)==tuple
+    A.append((bestarp[0],bestarp[1],1))
+    Ah.append([arppos[0]])
+    B.append((bestarp[0],bestarp[1],1))
+    Bh.append([arppos[1]])
+    
+    Am=numpy.matrix(A)
+    Amh=numpy.matrix(Ah)
+    Bm=numpy.matrix(B)
+    Bmh=numpy.matrix(Bh)
+    print "Am,Amh",Am,Amh
+    Ar,Aresidue=linalg.lstsq(Am,Amh)[0:2]
+    Br,Bresidue=linalg.lstsq(Bm,Bmh)[0:2]
+    print "Aresidue",Aresidue
+    print "Bresidue",Bresidue
+    print "Ar:",Ar
+    print "Br:",Br
+    A11,A12,Tx=Ar.transpose()[0].tolist()[0]
+    A21,A22,Ty=Br.transpose()[0].tolist()[0]
+    mA=numpy.matrix([[A11,A12],[A21,A22]])
+    T=numpy.matrix([[Tx],[Ty]])
+    print "A:",A,type(A)
+    for m,mh in zip(A,Ah):
+        print "m:",m,"mh:",mh        
+        x,y,one=m
+        deg=mh[0]
+        X=numpy.matrix([[x],[y]])        
+        Y=mA*X+T
+        lat,lon=Y[0,0],Y[1,0]
+        print "Mapped lat",lat,"correct",deg
+        assert (deg-lat)<0.03*1.0/60.0
+    for m,mh in zip(B,Bh):
+        print "m:",m,"mh:",mh        
+        x,y,one=m
+        deg=mh[0]
+        X=numpy.matrix([[x],[y]])        
+        Y=mA*X+T
+        lat,lon=Y[0,0],Y[1,0]
+        print "Mapped lon",lon,"correct",deg
+        assert (deg-lon)<0.03*1.0/60.0
+        
+                 
+    
+    print "mA:",mA
+    print "T:",T
+    for x in [0,width]:
+        for y in [0,height]:
+            X=numpy.matrix([[x],[y]])
+            print "A dim",mA.shape
+            print "X dim",X.shape
+            Y=mA*X+T
+            print "Screen coordinates",X,"correspond to latlon",Y
+    
+    Ai=linalg.inv(mA)
+    
+    print "Ai",Ai
+    #A*X + T = Y
+    #A*X     = (Y-T)
+    #X     = Ai*(Y-T)
+    where=Ai*(numpy.matrix(arppos).transpose()-T)
+    print "ARP center is at latlon",arppos,"which is pixels",where
+    
+    if not cache:
+        ctx.set_source(cairo.SolidPattern(0,1.0,0.0,1))                
+        ctx.new_path()
+        ctx.set_line_width(scale*3)
+        x,y=zoom(where[0,0],where[1,0])
+        print "Drawing arc at x,y",x,y        
+        ctx.arc(x,y,scale*15,0,2*math.pi)
+        ctx.stroke()
+        im.write_to_png("output.png")
     #if nr!=1: continue
     #print "page",nr
     #print page.items    
@@ -417,5 +504,6 @@ if __name__=='__main__':
         icao=sys.argv[1]
     else:
         icao='ESMQ'    
-    ret=parse_landing_chart("/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao))
+    arppos=mapper.parse_coords("564108N","0161715E")
+    ret=parse_landing_chart("/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),arppos=arppos)
     print "returns",ret
