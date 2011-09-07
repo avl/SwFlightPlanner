@@ -85,7 +85,7 @@ class NotamController(BaseController):
         notams=meta.Session.query(Notam).filter(
              Notam.ordinal==int(request.params['notam'])).all()
         if len(notams)==0:
-            return redirect_to(h.url_for(controller='notam',action="index"))
+            return redirect(h.url_for(controller='notam',action="index"))
         notam,=notams
         c.backlink=request.params.get('backlink',
             h.url_for(controller="notam",action="index"))
