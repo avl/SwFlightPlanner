@@ -66,20 +66,6 @@ def extract_airfields(filtericao=lambda x:True):
     for ad in ads:
         if not ad.has_key('pos'):
             big_ad.add(ad['icao'])
-
-    for ad in ads:        
-        icao=ad['icao']
-        if icao in big_ad:            
-            if icao in ['ESSB','ESMQ']:
-                try:
-                    lc=parse_landing_chart.parse_landing_chart("/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao))
-                    if lc:
-                        ad['aipadcharturl']=lc['url']
-                        ad['aipadchart']=lc                                                    
-                except:
-                    print "Apparently no AD chart for ",icao
-                    continue
-            
             
     for ad in ads:        
         icao=ad['icao']
@@ -91,7 +77,6 @@ def extract_airfields(filtericao=lambda x:True):
             ad['aipvacurl']=p.get_url()
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
-                print "Parsing ",icao
                 
                 """
                 for altline in exitlines:
@@ -144,7 +129,6 @@ def extract_airfields(filtericao=lambda x:True):
                             #Check for other headings
                             #Fixup strange formatting of points in some holding items: (whitespace between coord and 'E')                            
                             s=re.sub(ur"(\d+)\s*(N)\s*(\d+)\s*(E)",lambda x:"".join(x.groups()),s)
-                            print "Holding item",item,"s:<%s>"%(s,)
 
                             m=re.match(r"([A-Z]{2,}).*?(\d+N)\s*(\d+E).*",s)
                             if not m:                                
@@ -171,7 +155,7 @@ def extract_airfields(filtericao=lambda x:True):
                             except:
                                 print "Couldn't parse:",lat,lon
                                 continue
-                            print name,lat,lon,mapper.format_lfv(*mapper.from_str(coord))
+                            #print name,lat,lon,mapper.format_lfv(*mapper.from_str(coord))
                             
                             if name.count("REMARK") or len(name)<=2:
                                 print "Suspicious name: ",name
@@ -180,8 +164,8 @@ def extract_airfields(filtericao=lambda x:True):
                             points[icao+' '+name]=dict(name=icao+' '+name,icao=icao,pos=coord,kind=kind)
 
 
-    for point in points.items():
-        print point
+    #for point in points.items():
+    #    print point
 
 
     #sys.exit(1)
@@ -190,16 +174,18 @@ def extract_airfields(filtericao=lambda x:True):
     for ad in ads:
         icao=ad['icao']
         if icao in big_ad:
-            print "Parsing ",icao
+            #print "Parsing ",icao
             p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao))
             ad['aiptexturl']=p.get_url()
-            te=p.parse_page_to_items(0).get_all_text()
-            print te
-            coords=re.findall(r"(\d{6}N)\s*(\d{7}E)",te)
+            firstpage=p.parse_page_to_items(0)
+            te="\n".join(firstpage.get_all_lines())                        
+            #print te
+            coords=re.findall(r"ARP.*(\d{6}N)\s*(\d{7}E)",te)
             if len(coords)>1:
                 raise Exception("First page of airport info (%s) does not contain exactly ONE set of coordinates"%(icao,))
             if len(coords)==0:
                 print "Couldn't find coords for ",icao
+            #print "Coords:",coords
             ad['pos']=parse_coords(*coords[0])
 
             elev=re.findall(r"Elevation.*?(\d{1,5})\s*ft",te,re.DOTALL)
@@ -211,10 +197,10 @@ def extract_airfields(filtericao=lambda x:True):
             freqs=[]
             found=False
             thrs=[]
-            uprint("-------------------------------------")
+            #uprint("-------------------------------------")
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)
-                uprint("Looking on page %d"%(pagenr,))
+                #uprint("Looking on page %d"%(pagenr,))
                 if 0: #opening hours are no longer stored in a separate document for any airports. No need to detect which any more (since none are).
                     for item in page.get_by_regex(".*OPERATIONAL HOURS.*"):
                         lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
@@ -227,11 +213,11 @@ def extract_airfields(filtericao=lambda x:True):
                         
                     
                 for item in page.get_by_regex(".*\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*.*"):
-                    uprint("Physical char on page")
+                    #uprint("Physical char on page")
                     lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
                     seen_end_rwy_text=False
                     for line,nextline in izip(lines,lines[1:]+[None]):
-                        uprint("MAtching: <%s>"%(line,))
+                        #uprint("MAtching: <%s>"%(line,))
                         if re.match(ur"AD\s+2.13",line): break
                         if line.count("Slope of"): break
                         if line.count("END RWY:"): seen_end_rwy_text=True
@@ -246,11 +232,11 @@ def extract_airfields(filtericao=lambda x:True):
                         lat=latd+n
                         lon=lond+e
                         rwytxts=page.get_lines(page.get_partially_in_rect(0,line.y1+0.05,12,nextline.y2-0.05))
-                        uprint("Rwytxts:",rwytxts)
+                        #uprint("Rwytxts:",rwytxts)
                         rwy=None
                         for rwytxt in rwytxts:
                             #uprint("lat,lon:%s,%s"%(lat,lon))
-                            uprint("rwytext:",rwytxt)
+                            #uprint("rwytext:",rwytxt)
                             m=re.match(ur"\s*(\d{2}[LRCM]?)\b.*",rwytxt)
                             if m:
                                 assert rwy==None
@@ -269,7 +255,7 @@ def extract_airfields(filtericao=lambda x:True):
                 page=p.parse_page_to_items(pagenr)                                              
                 
                 matches=page.get_by_regex(r".*ATS\s+COMMUNICATION\s+FACILITIES.*")
-                print "Matches of ATS COMMUNICATION FACILITIES on page %d: %s"%(pagenr,matches)
+                #print "Matches of ATS COMMUNICATION FACILITIES on page %d: %s"%(pagenr,matches)
                 if len(matches)>0:
                     commitem=matches[0]
                     #commitem,=page.get_by_regex("ATS\s+COMMUNICATION\s+FACILITIES")
@@ -300,7 +286,7 @@ def extract_airfields(filtericao=lambda x:True):
 
                                 
                 matches=page.get_by_regex(r".*ATS\s*AIRSPACE.*")
-                print "Matches of ATS_AIRSPACE on page %d: %s"%(pagenr,matches)
+                #print "Matches of ATS_AIRSPACE on page %d: %s"%(pagenr,matches)
                 if len(matches)>0:
                     heading=matches[0]
                     desigitem,=page.get_by_regex("Designation and lateral limits")
@@ -331,8 +317,8 @@ def extract_airfields(filtericao=lambda x:True):
                         assert lastname
                     lastname=None
 
-                    print "Spaces:",subspacelines
-                    print "ICAO",ad['icao']
+                    #print "Spaces:",subspacelines
+                    #print "ICAO",ad['icao']
                     #altlines=page.get_lines(page.get_partially_in_rect(vertitem.x2+1,vertitem.y1,100,airspaceclass.y1-0.2))
                     
                     #print "Altlines:",altlines
@@ -342,7 +328,7 @@ def extract_airfields(filtericao=lambda x:True):
                     allaltlines=" ".join(page.get_lines(page.get_partially_in_rect(vertitem.x1+0.5,vertitem.y1+0.5,100,airspaceclass.y1-0.2)))
                     single_vertlim=False
                     totalts=list(mapper.parse_all_alts(allaltlines))
-                    print "totalts:",totalts 
+                    #print "totalts:",totalts 
                     if len(totalts)==2:
                         single_vertlim=True
                     
@@ -352,7 +338,7 @@ def extract_airfields(filtericao=lambda x:True):
                         subnames=[subspacename]
                         if subspacename.split(" ")[-1].strip() in ["TIA","TIZ","CTR","CTR/TIZ"]:
                             subnames.append(subspacename.split(" ")[-1].strip())
-                        print "Parsing alts for ",subspacename,subnames
+                        #print "Parsing alts for ",subspacename,subnames
                         try:                        
                             for nametry in subnames:
                                 if single_vertlim: #there's only one subspace, parse all of vertical limits field for this single one.
@@ -362,14 +348,14 @@ def extract_airfields(filtericao=lambda x:True):
                                 for item in items: 
                                     alts=[]
                                     for line in page.get_lines(page.get_partially_in_rect(item.x1+0.5,item.y1+0.5,100,airspaceclass.y1-0.2)):
-                                        print "Parsing:",line
+                                        #print "Parsing:",line
                                         line=line.replace(nametry,"").lower().strip()
                                         parsed=list(mapper.parse_all_alts(line))
                                         if len(parsed):
                                             alts.append(mapper.altformat(*parsed[0]))
                                         if len(alts)==2: break
                                     if alts:
-                                        print "alts:",alts
+                                        #print "alts:",alts
                                         ceil,floor=alts
                                         raise StopIteration
                         except StopIteration:
@@ -380,7 +366,7 @@ def extract_airfields(filtericao=lambda x:True):
                     spaces=[]                                        
                     for spacename in subspacelines.keys():
                         altspacename=spacename
-                        print "Altspacename: %s, subspacesalts: %s"%(altspacename,subspacealts)
+                        #print "Altspacename: %s, subspacesalts: %s"%(altspacename,subspacealts)
                         space=dict(
                             name=spacename,
                             ceil=subspacealts[altspacename]['ceil'],
@@ -396,13 +382,13 @@ def extract_airfields(filtericao=lambda x:True):
                                 vs.append(Vertex(int(x),int(y)))                    
                             p=Polygon(vvector(vs))
                             if p.calc_area()<=30*30:
-                                print space
-                                print "Area:",p.calc_area()
+                                pass#print space
+                                pass#print "Area:",p.calc_area()
                             assert p.calc_area()>30*30
-                            print "Area: %f"%(p.calc_area(),)
+                            #print "Area: %f"%(p.calc_area(),)
                         
                         spaces.append(space)
-                        print space
+                        #print space
                     ad['spaces']=spaces
                     found=True
                 if found:
@@ -412,6 +398,24 @@ def extract_airfields(filtericao=lambda x:True):
                             
                             
             #Now find any ATS-airspace
+    for ad in ads:        
+        icao=ad['icao']
+        if icao in big_ad:            
+            if icao in ['ESMQ','ESOW','ESSB','ESSA']:
+                try:
+                    arp=ad['pos']
+                    lc=parse_landing_chart.parse_landing_chart(
+                            "/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
+                            icao=icao,
+                            arppos=arp)
+                    assert lc
+                    if lc:
+                        ad['adcharturl']=lc['url']
+                        ad['adchart']=lc                                                    
+                except:
+                    print "Apparently no AD chart for ",icao
+                    raise
+            
 
     #sys.exit(1)
 
@@ -423,7 +427,7 @@ def extract_airfields(filtericao=lambda x:True):
     for k,v in sorted(points.items()):
         print k,v,mapper.format_lfv(*mapper.from_str(v['pos']))
         
-    print "Num points:",len(points)
+    #print "Num points:",len(points)
     
     origads=list(ads)    
     for flygkartan_id,name,lat,lon,dummy in csv.reader(open("fplan/extract/flygkartan.csv"),delimiter=";"):
@@ -455,7 +459,7 @@ def extract_airfields(filtericao=lambda x:True):
         if ad['name'].count(u"Långtora"):            
             ad['pos']=mapper.to_str(mapper.from_aviation_format("5944.83N01708.20E"))
             
-    print ads
+    #print ads
     for ad in ads:
         print "%s: %s - %s (%s ft) (%s)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'],ad.get('flygkartan_id','inte i flygkartan'))
         if 'spaces' in ad:
@@ -482,9 +486,13 @@ def extract_airfields(filtericao=lambda x:True):
     
             
 if __name__=='__main__':
-    def filter_expr(ad):        
+    def filter_expr(ad):    
         if len(sys.argv)==2:
-            return eval(sys.argv[1],dict(icao=ad['icao'],name=ad['name']))
+            av1=sys.argv[1]
+            if len(av1)==4 and av1.isupper():
+                return ad['icao']==av1
+            else:
+                return eval(sys.argv[1],dict(icao=ad['icao'],name=ad['name']))
         return True
     extract_airfields(filter_expr)
     

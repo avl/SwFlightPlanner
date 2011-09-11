@@ -234,6 +234,26 @@ def get_raw_weather_for_area(cur_area2):
     weathercache[cur_area]=cd
     return cd['data']
     
+def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=True,cachetime=3600,country='se'):
+    inputfile=getdatafilename(inputpath,country=country,maxcacheage=cachetime)
+    svged=outputpath
+    if os.path.exists(svged) and usecache:
+        cacheddate=get_filedate(svged)
+        print "Cached %s version exists, date:"%(format,),svged,cacheddate
+        if is_devcomp() or datetime.now()-cacheddate<timedelta(0,cachetime):
+            print "Using",format,"cache"
+            try:
+                return svged
+            except Exception,cause:
+                print "Couldn't read cached",format,"version",cause
+    print "Re-parsing ",format
+    if os.path.exists(svged):
+        os.unlink(svged)
+    assert not os.path.exists(svged)
+    callback(inputfile,svged)
+    #assert 0==os.system("pdf2svg \"%s\" \"%s\" %d"%(inputfile,svged,pagenr+1))
+    assert os.path.exists(svged)
+    return svged
 
 
 

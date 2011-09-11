@@ -66,25 +66,19 @@ class Page(object):
         return cnt
     def get_by_regex(self,regex,flags=0):
         out=[]
-        #print "get_by_regex",len(self.items)
         for item in self.items:
             #if item.text.count("EEKA"):
-            #print "cand",item.text
             if re.match(regex,item.text,flags):
                 out.append(item)
         return out
     def get_by_regex_in_rect(self,regex,x1,y1,x2,y2,flags=0):
         out=[]
-        #print "Question:",x1,y1,x2,y2,repr(regex)
         for item in self.items:
             #if item.text.count("AD"):
-            #    print "- Candidate:",item
             if item.x2<x1: continue;
             if item.x1>x2: continue;
             if item.y2<y1: continue;
             if item.y1>y2: continue;
-            #if item.text.count("AD"):
-            #    print "*  Candidate:",item 
             if re.match(regex,item.text,flags):
                 out.append(item)
         return out
@@ -92,20 +86,16 @@ class Page(object):
         return self.items
     def get_partially_in_rect(self,x1,y1,x2,y2,ysort=False,xsort=False):
         out=[]
-        #print "Extracting %d-%d"%(y1,y2)
         for item in self.items:
-            #print "Considering item: %s"%(item,)
             if item.x2<x1: continue;
             if item.x1>x2: continue;
             if item.y2<y1: continue;
             if item.y1>y2: continue;
-            #print "         ^Selected"
             out.append(item)
         if xsort:
             out.sort(key=lambda x:x.x1)
         if ysort:
             out.sort(key=lambda x:x.y1) 
-        #print "Returning: %s"%(out,)       
         return out
     def get_all_text(self):
         out=[]
@@ -150,7 +140,8 @@ class Page(object):
             else:
                 outitems.append(item)
         return self.get_lines(outitems,fudge=fudge,meta=meta)
-
+    def get_all_lines(self):
+        return self.get_lines(self.items)
     def get_lines(self,items,fudge=0.25,meta=None,order_fudge=5):
         si=sorted(items,key=lambda x:x.x1)
         si=sorted(si,key=lambda x:x.y1)
@@ -185,23 +176,18 @@ class Page(object):
         out=[]
         lastline=None
         for c in cand:
-            #print "  Cand: %s"%(c,),"linesize:",linesize
             last=None
             for item in sorted(c,key=lambda x:x.x1):
-                print "Processing<",item,">"
                 if lastline:
                     delta=item.y1-lastline.y2
-                    print "delta",delta,"linesize:",linesize
                     spacing_too_big1=delta>1.0*(lastline.y2-lastline.y1)
                     spacing_too_big2=delta>1.0*(item.y2-item.y1)
                     if  (spacing_too_big1 or spacing_too_big2) and len(out)>0:
                         out.append(ItemStr(""))
-                        print "Newline, since spacing_too_big:",spacing_too_big1,spacing_too_big2
                         out[-1].x1=min(out[-2].x1,item.x1)
                         out[-1].x2=max(out[-2].x2,item.x2)
                         out[-1].y1=out[-2].y2
                         out[-1].y2=item.y1
-                        #print "Inserted newline",out[-1]
                 lastline=item
                 if last==None:
                     #this is certainly the start of a new line,
@@ -293,7 +279,6 @@ class Parser(object):
             else:
                 fontsize=None
 
-            #print "Parsed fontid: %d, known: %s (size:%s)"%(fontid,fonts.keys(),fontsize)
             it=Item(text=" ".join(t),
               x1=float(item.attrib['left']),
               x2=float(item.attrib['left'])+float(item.attrib['width']),

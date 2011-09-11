@@ -39,8 +39,32 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column('fastmap',Boolean(),nullable=False,default=True),
                         sa.Column('showobst',Boolean(),nullable=False,default=True),
                         sa.Column('fillable',Boolean(),nullable=False,default=False),
-                        sa.Column('lasttrip',Unicode(50),nullable=True,default=None))
-                                                
+                        sa.Column('lasttrip',Unicode(50),nullable=True,default=None),
+                        )
+
+airport_projection = sa.Table("airport_projection",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('airport',Unicode(100),primary_key=True,nullable=False),
+                        sa.Column('mapchecksum',String(32),primary_key=True,nullable=False),                        
+                        sa.Column('updated',DateTime(),nullable=False),
+                        sa.Column("matrix",postgresql.ARRAY(Float,mutable=False,as_tuple=True),nullable=False,default="")
+                        )
+
+airport_marker = sa.Table("airport_marker",meta.metadata,
+                        sa.Column("user",Unicode(32),primary_key=True, nullable=False),
+                        sa.Column('airport',Unicode(100),primary_key=True,nullable=False),
+                        sa.Column('mapchecksum',String(32),primary_key=True,nullable=False),
+                        sa.Column('latitude',Float(),primary_key=False,nullable=True),
+                        sa.Column('longitude',Float(),primary_key=False,nullable=True),
+                        sa.Column('x',Integer(),primary_key=True,nullable=False),
+                        sa.Column('y',Integer(),primary_key=True,nullable=False),                        
+                        sa.ForeignKeyConstraint(
+                            ['user', 'airport','mapchecksum'], 
+                            ['airport_projection.user', 'airport_projection.airport','airport_projection.mapchecksum'],
+                            onupdate="CASCADE",ondelete="CASCADE"
+                            )                              
+                        )
+
 
 notam_table = sa.Table("notam",meta.metadata,
                         sa.Column('ordinal',Integer(),primary_key=True,nullable=False),
@@ -303,6 +327,8 @@ class NotamCountryFilter(object):
     def __init__(self,user,country):
         self.user=user
         self.country=country
+class AirportProjection(object):pass
+class AirportMarker(object):pass
     
 class Aircraft(object):
     def __init__(self,user,aircraft):
@@ -315,6 +341,8 @@ class SharedTrip(object):
         self.secret=secret
             
 orm.mapper(Aircraft,aircraft_table)    
+orm.mapper(AirportProjection,airport_projection)    
+orm.mapper(AirportMarker,airport_marker)    
 orm.mapper(User, user_table)
 orm.mapper(Download, download_table)
 orm.mapper(Stay, stay_table)
