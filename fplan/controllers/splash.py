@@ -125,16 +125,15 @@ class SplashController(BaseController):
             print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5str(request.params['password']),user.password)
             
             if request.params.get('forgot',None)!=None:
+                print "Calling forgot_password"
                 if forgot_password(user):
                     redirect(h.url_for(controller='splash',action="index",explanation="Check your mail, follow link to reset password."))
                 else:
                     redirect(h.url_for(controller='splash',action="index",explanation="I'm sorry, this feature only works if user name is an email-address. The simplest way forward is to just create a new user! Or you can contact the admin of this site."))
-                    
             elif user.password==md5str(request.params['password']) or (master_key and request.params['password']==master_key) or user.password==request.params['password']:
                 actual_login(users[0])
             else:
                 print "Bad password!"
-                user.password=md5str(request.params['password'])     
                 log.warn("Bad password: <%s> <%s>"%(user.user,request.params['password']))           
                 redirect(h.url_for(controller='splash',action="index",explanation="Wrong password"))
         else:
