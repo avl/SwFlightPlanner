@@ -92,6 +92,7 @@ addLoadEvent(loadfplan);
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}');return false;" href="#">Fuel-plan</a></dt>
 		<dt id="nav-obstacles"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}');return false;" href="#">Obstacles</a></dt>		
 		<dt id="nav-enroutenotams"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="enroutenotams")}');return false;" href="#">Notams on Route</a></dt>		
+        <dt id="nav-minutemarkings"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="minutemarkings")}');return false;" href="#">Map Preparation</a></dt>        
 	</dl>
 </div>
 
@@ -187,7 +188,6 @@ Total fuel consumption: <input id="totfuel" type="text" readonly="1" value="" si
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',tripname=c.tripname)}"><u>GPX Format</u></a>.<br/>
 <!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',tripname=c.tripname)}">ITN Format</a>.<br/>-->
 
-        
 </div>
 	
 	

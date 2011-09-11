@@ -16,6 +16,7 @@ function navigate_to(where)
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="fuel")}');return false;" href="#">Fuel-plan</a></dt>
 		<dt id="nav-obstacles"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="obstacles")}');return false;" href="#">Obstacles</a></dt>		
 		<dt id="nav-enroutenotams"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="enroutenotams")}');return false;" href="#"><b>Notams on Route</b></a></dt>		
+        <dt id="nav-minutemarkings"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="minutemarkings")}');return false;" href="#">Map Preparation</a></dt>        
 	</dl>
 </div>
 

@@ -1,7 +1,7 @@
 #encoding=UTF8
 import logging
 import time
-
+from copy import copy
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import redirect
 from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,Stay 
@@ -28,6 +28,7 @@ from fplan.lib.helpers import parse_clock
 import fplan.lib.sunrise as sunrise
 import unicodedata
 import time
+from datetime import timedelta,datetime
 
 def strip_accents(s):
     if type(s)==str:
@@ -664,6 +665,30 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         
         redirect(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
+    def minutemarkings(self):
+        self.standard_prep(c)
+        scale=250000
+        for r in c.route:
+            try:
+                curdt=copy(r.depart_dt)
+                minute=(r.depart_dt.second+r.depart_dt.microsecond/1e6)/60.0
+                gs_ms=(r.gs*1.8520)/3.6
+                if gs_ms<1e-3: return "-"
+                meter_per_min=gs_ms*60.0
+                map_meter_per_min=meter_per_min/scale
+                cm_per_min=100*map_meter_per_min
+                marks=[]
+                cur=(1.0-minute)*cm_per_min
+                while curdt<r.arrive_dt:
+                    marks.append("%.1f"%cur)
+                    cur+=cm_per_min
+                    curdt+=timedelta(0,60)
+                r.marks=", ".join(marks)+" cm"
+            except:
+                r.marks="-"
+            
+        return render("/minutemarkings.mako")
+        
     def get_obstacles(self,routes,vertdist=1000.0,interval=10):        
         byid=dict()
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
