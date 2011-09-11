@@ -21,7 +21,7 @@ function navigate_to(where)
 
 <h1>${c.trip}</h1>
 This screen helps you prepare your maps with marks for each minute, for exact navigation. ("Minutstreck", in Swedish) 
-<table>
+<table border="1" cellspacing="0" cellpadding="1">
 <tr>
 <th colspan="4"></th><th colspan="1">cm/minute</th><th></th>
 </tr>
