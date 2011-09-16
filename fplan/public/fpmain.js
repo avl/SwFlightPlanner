@@ -203,7 +203,7 @@ function save_data(cont)
 		}
 		else
 		{
-			alert('Error saving trip');
+			alert('Error saving trip - check format of entered values.');
 		}
 		clear_calculating();
 	}
