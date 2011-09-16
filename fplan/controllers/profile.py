@@ -20,8 +20,9 @@ class ProfileController(BaseController):
         print request.params
         c.changepass=request.params.get('changepass','')
         c.splash=request.params.get('splash','')
-        c.user=request.params.get('username',
-                    user.user if user.isregistered else '')
+        fullname=request.params.get('username',
+                    user.fullname if user.isregistered else '')
+        c.user=fullname
         c.password=''
         print "User realname:",user.realname
         c.phonenr=request.params.get('phonenr',user.phonenr)
@@ -49,11 +50,14 @@ class ProfileController(BaseController):
         if request.params.get("username")!=session.get('user',None):
             if request.params.get("username")=="":
                 retry("An empty username won't fly. Type at least one character!")
+            fullname=request.params.get('username',user.fullname)
+            username=fullname[:32]
             
-            if meta.Session.query(User).filter(User.user==request.params.get("username")).count():
+            if meta.Session.query(User).filter(User.user==username).count():
                 name_busy=True
             else:
-                user.user=request.params.get('username',user.user)
+                user.fullname=fullname
+                user.user=username
         user.phonenr=request.params.get('phonenr',user.phonenr)
         user.realname=request.params.get('realname',user.realname)
         if request.params.get("password1",'')!='' and request.params.get('password2','')!='':
