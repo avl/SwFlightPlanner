@@ -116,13 +116,16 @@ class SplashController(BaseController):
         
         
     def login(self):
+        username=request.params.get('username',None)
+        if username:
+            username=username[:32]
         users=meta.Session.query(User).filter(sa.and_(
-                User.user==request.params.get('username',None))
+                User.user==username)
                 ).all()
                 
         if len(users)==1:
             user=users[0]
-            print "Attempt to login as %s with password %s (correct password is %s)"%(request.params['username'],md5str(request.params['password']),user.password)
+            print "Attempt to login as %s with password %s (correct password is %s)"%(username,md5str(request.params['password']),user.password)
             
             if request.params.get('forgot',None)!=None:
                 print "Calling forgot_password"

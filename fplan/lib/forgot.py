@@ -34,7 +34,11 @@ def decode_challenge(challenge):
     
 
 def forgot_password(user):
-    if not user.user.count("@"):
+    if user.fullname!=None:
+        fullname=user.fullname
+    else:
+        fullname=user.user
+    if not fullname.count("@"):
         print "not an email address"
         return False
     
@@ -63,14 +67,14 @@ If you feel that you should not have received this message, and think that someo
     from_='forgot@%s'%(os.getenv('SWFP_HOSTNAME','example.com'),)
     msg['Subject'] = 'Reset Password'
     msg['From'] = from_
-    msg['To'] = user.user
+    msg['To'] = fullname
     
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
     s = smtplib.SMTP('localhost')
     print "Sending mail with body: %s"%(msg,)
     print "Sending email"
-    s.sendmail(from_, user.user, msg.as_string())
+    s.sendmail(from_, fullname, msg.as_string())
     s.quit()
     print "Returning"
     return True
