@@ -1,0 +1,143 @@
+Module weberror.errormiddleware:162 in __call__
+<<              __traceback_supplement__ = Supplement, self, environ
+                   sr_checker = ResponseStartChecker(start_response)
+                   app_iter = self.application(environ, sr_checker)
+                   return self.make_catching_iter(app_iter, environ, sr_checker)
+               except:
+>>  app_iter = self.application(environ, sr_checker)
+Module beaker.middleware:73 in __call__
+<<                                                     self.cache_manager)
+               environ[self.environ_key] = self.cache_manager
+               return self.app(environ, start_response)
+>>  return self.app(environ, start_response)
+Module beaker.middleware:152 in __call__
+<<                          headers.append(('Set-cookie', cookie))
+                   return start_response(status, headers, exc_info)
+               return self.wrap_app(environ, session_start_response)
+           
+           def _get_session(self):
+>>  return self.wrap_app(environ, session_start_response)
+Module routes.middleware:130 in __call__
+<<                  environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'][:-1]
+               
+               response = self.app(environ, start_response)
+               
+               # Wrapped in try as in rare cases the attribute will be gone already
+>>  response = self.app(environ, start_response)
+Module pylons.wsgiapp:125 in __call__
+<<          
+               controller = self.resolve(environ, start_response)
+               response = self.dispatch(controller, environ, start_response)
+               
+               if 'paste.testing_variables' in environ and hasattr(response,
+>>  response = self.dispatch(controller, environ, start_response)
+Module pylons.wsgiapp:324 in dispatch
+<<          if log_debug:
+                   log.debug("Calling controller class with WSGI interface")
+               return controller(environ, start_response)
+           
+           def load_test_env(self, environ):
+>>  return controller(environ, start_response)
+Module fplan.lib.base:57 in __call__
+<<          # available in environ['pylons.routes_dict']
+               try:
+                   return WSGIController.__call__(self, environ, start_response)
+               finally:
+                   meta.Session.remove()
+>>  return WSGIController.__call__(self, environ, start_response)
+Module pylons.controllers.core:221 in __call__
+<<                  return response(environ, self.start_response)
+               
+               response = self._dispatch_call()
+               if not start_response_called:
+                   self.start_response = start_response
+>>  response = self._dispatch_call()
+Module pylons.controllers.core:172 in _dispatch_call
+<<              req.environ['pylons.action_method'] = func
+                   
+                   response = self._inspect_call(func)
+               else:
+                   if log_debug:
+>>  response = self._inspect_call(func)
+Module pylons.controllers.core:107 in _inspect_call
+<<                        func.__name__, args)
+               try:
+                   result = self._perform_call(func, args)
+               except HTTPException, httpe:
+                   if log_debug:
+>>  result = self._perform_call(func, args)
+Module pylons.controllers.core:60 in _perform_call
+<<          """Hide the traceback for everything above this method"""
+               __traceback_hide__ = 'before_and_this'
+               return func(**args)
+           
+           def _inspect_call(self, func):
+>>  return func(**args)
+Module fplan.controllers.mapview:413 in upload_track
+<<              if len(t.value)>30000000:
+                       redirect_to(h.url_for(controller='error',action="document",message="GPX file is too large."))
+                   session['showtrack']=parse_gpx(t.value,request.params.get('start'),request.params.get('end'))
+                   session['showarea']=''
+                   session['showarea_id']=''
+>>  session['showtrack']=parse_gpx(t.value,request.params.get('start'),request.params.get('end'))
+Module fplan.lib.parse_gpx:20 in parse_gpx
+<<          
+           print "GPX Range: ",start,end
+           xml=fromstring(gpxcontents)
+           dynamic_id=md5(gpxcontents).hexdigest()
+           out=[]
+>>  xml=fromstring(gpxcontents)
+Module xml.etree.ElementTree:963 in XML
+<<  def XML(text):
+           parser = XMLTreeBuilder()
+           parser.feed(text)
+           return parser.close()
+>>  parser.feed(text)
+Module xml.etree.ElementTree:1245 in feed
+<<      def feed(self, data):
+               self._parser.Parse(data, 0)
+       
+           ##
+>>  self._parser.Parse(data, 0)
+ExpatError: not well-formed (invalid token): line 1, column 2
+CGI Variables
+CONTENT_LENGTH	'-1'
+CONTENT_TYPE	'multipart/form-data; boundary=----WebKitFormBoundaryQ8zeROhv62H0Nt7A'
+HTTP_ACCEPT	'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+HTTP_ACCEPT_CHARSET	'ISO-8859-1,utf-8;q=0.7,*;q=0.3'
+HTTP_ACCEPT_ENCODING	'gzip,deflate,sdch'
+HTTP_ACCEPT_LANGUAGE	'sv-SE,sv;q=0.8,en-US;q=0.6,en;q=0.4'
+HTTP_CACHE_CONTROL	'max-age=0'
+HTTP_CONNECTION	'keep-alive'
+HTTP_COOKIE	'fplan=b6e1e79e60cf3d04018559bdf0374bec4281251e05f0119008c8e7507a72e9055a2575b5; phpbb3_73phi_u=1; phpbb3_73phi_k=; phpbb3_73phi_sid=49c98dcb167ce7687345713c2fa4bedb; style_cookie=null'
+HTTP_HOST	'swflightplanner.se'
+HTTP_ORIGIN	'http://swflightplanner.se'
+HTTP_REFERER	'http://swflightplanner.se/mapview/index'
+HTTP_USER_AGENT	'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.122 Safari/534.30'
+PATH_INFO	'/mapview/upload_track'
+REMOTE_ADDR	'83.233.49.198'
+REQUEST_METHOD	'POST'
+SERVER_NAME	'0.0.0.0'
+SERVER_PORT	'80'
+SERVER_PROTOCOL	'HTTP/1.1'
+WSGI Variables
+application	<beaker.middleware.CacheMiddleware object at 0xd898250>
+beaker.cache	<beaker.cache.CacheManager object at 0xd898290>
+beaker.get_session	<bound method SessionMiddleware._get_session of <beaker.middleware.SessionMiddleware object at 0xd898210>>
+beaker.session	{'last_pos': (575664.0, 307768.0), 'mapvariant': u'airspace', 'current_trip': u'Default Trip', 'zoom': 12, 'showarea_id': '', 'user': u'Skydiver', 'showarea': '', 'showtrack': None, 'cur_aircraft': u'SE-YRG', '_accessed_time': 1312202802.7230949, 'realuser': False, '_creation_time': 1312198413.6911359, 'isreg': True}
+paste.httpserver.thread_pool	<paste.httpserver.ThreadPool object at 0x2ad5a5e5f6d0>
+paste.registry	<paste.registry.Registry object at 0xf485f10>
+paste.throw_errors	True
+pylons.action_method	<bound method MapviewController.upload_track of <fplan.controllers.mapview.MapviewController object at 0xf485490>>
+pylons.controller	<fplan.controllers.mapview.MapviewController object at 0xf485490>
+pylons.environ_config	{'session': 'beaker.session', 'cache': 'beaker.cache'}
+pylons.pylons	<pylons.util.PylonsContext object at 0xf485910>
+pylons.routes_dict	{'action': u'upload_track', 'controller': u'mapview'}
+routes.route	<routes.route.Route object at 0xd786c10>
+routes.url	<routes.util.URLGenerator object at 0xf485ad0>
+webob._parsed_post_vars	(MultiDict([('gpstrack', FieldStorage('gpstrack', 'Fr\xc3\xb6lunda-Sorunda.kmz')), ('start', '1990-01-01 00:00:00'), ('end', '2011-8-1 23:59:00')]), <FakeCGIBody at 0xf4858d0 viewing MultiDict([('gp...0')])>)
+webob._parsed_query_vars	(GET([]), '')
+webob.adhoc_attrs	{'errors': 'ignore', 'language': 'en-us'}
+wsgi process	'Multithreaded'
+wsgiorg.routing_args	(<routes.util.URLGenerator object at 0xf485ad0>, {'action': u'upload_track', 'controller': u'mapview'})
+
