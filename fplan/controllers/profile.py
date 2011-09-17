@@ -36,7 +36,7 @@ class ProfileController(BaseController):
                 User.user==session['user']).one()
         print "As user:",user.user
         def retry(msg):
-            redirect_to(h.url_for(controller='profile',
+            redirect(h.url_for(controller='profile',
                                   action="index",
                                   splash=msg,
                                   username=request.params.get("username",''),
