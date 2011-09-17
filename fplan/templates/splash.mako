@@ -73,7 +73,6 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
-<b>2011-09-13: </b>A bug makes it impossible to have a user-name longer than 32 characters. So, if you try to use your email address as user name, and it doesn't work, this may be the reason. This will be fixed shortly.<br />
 <b>Updated 2011-08-27: </b>
 New version! New features include: Automatic determination of variation (magnetic declination), a new optional advanced
 aircraft performance model for more accurate fuel consumption figures, a 'forgot password' feature, and a few minor 
