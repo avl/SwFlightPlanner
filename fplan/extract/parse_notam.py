@@ -1,5 +1,4 @@
 import re
-from difflib import Differ,SequenceMatcher
 from fplan.model import *    
 from datetime import datetime
 

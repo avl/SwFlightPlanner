@@ -1,6 +1,6 @@
 #encoding=utf8
 import re
-
+import StringIO
 import sys
 import math
 import cairo
@@ -14,7 +14,8 @@ import svg_reader
 import numpy
 import numpy.linalg as linalg
 import os
-
+import Image
+from fplan.lib.blobfile import BlobFile
 def diff(x,y):
     return (x[0]-y[0],x[1]-y[1])
 def dist(x,y):
@@ -23,6 +24,31 @@ def cartesian(xs,ys):
     for x in xs:
         for y in ys:
             yield x,y
+            
+def chop_up(inputfile,outputfile,level):
+    im=Image.open(inputfile)
+    w,h=im.size
+    fac=1<<level
+    w/=fac
+    h/=fac
+    print "Size",w,h    
+    limitx2=256*(int((w+255)/256))
+    limity2=256*(int((h+255)/256))
+    blob=BlobFile(outputfile,0,
+            0,0,limitx2,limity2,'w')
+    for x in xrange(0,limitx2,256):
+        for y in xrange(0,limity2,256):
+            view=im.crop((fac*x,fac*y,fac*(x+256),fac*(y+256)))
+            view=view.resize((256,256),Image.ANTIALIAS)
+            view.save("tmp/temp%d_%d_%d.png"%(level,x,y))
+            io=StringIO.StringIO()
+            view.save(io,'png')
+            io.seek(0)
+            pngdata=io.read()
+            blob.add_tile(x,y,pngdata)
+    blob.close()
+    pass
+            
 def parse_landing_chart(path,arppos,icao,country='se'):
     print "Running parse_landing_chart"
     p=parse.Parser(path)
@@ -60,7 +86,21 @@ def parse_landing_chart(path,arppos,icao,country='se'):
         assert 0==os.system(r)
     ret['image']=icao+".png"
     fetchdata.getcreate_derived_data_raw(
-                path,outpath,render,"png")    
+                path,outpath,render,"png")
+    
+    outpath2=os.path.join(tmppath,icao+"2.png")
+    def greyscale(input,output):
+        assert 0==os.system("convert -define png:color-type=0 -depth 8 -type grayscale %s %s"%(input,output))
+    
+    fetchdata.getcreate_local_data_raw(
+                outpath,outpath2,greyscale)
+ 
+ 
+ 
+    for level in xrange(5):
+        hashpath=os.path.join(tmppath,"%s-%d.bin"%(icao,level))
+        fetchdata.getcreate_local_data_raw(
+                    outpath2,hashpath,lambda input,output:chop_up(input,output,level))    
     
     
     return ret

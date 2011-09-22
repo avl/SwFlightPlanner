@@ -234,6 +234,18 @@ def get_raw_weather_for_area(cur_area2):
     weathercache[cur_area]=cd
     return cd['data']
     
+    
+def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400):
+    inputdate=get_filedate(inputpath)
+    if os.path.exists(outputpath):
+        cacheddate=get_filedate(outputpath)
+        if cacheddate>inputdate and (datetime.now()-cacheddate<timedelta(0,maxcachetime)):
+            return 
+    if os.path.exists(outputpath):
+        os.unlink(outputpath)
+    callback(inputpath,outputpath)
+    
+    
 def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=True,cachetime=3600,country='se'):
     inputfile=getdatafilename(inputpath,country=country,maxcacheage=cachetime)
     svged=outputpath

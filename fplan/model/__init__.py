@@ -58,6 +58,7 @@ airport_marker = sa.Table("airport_marker",meta.metadata,
                         sa.Column('longitude',Float(),primary_key=False,nullable=True),
                         sa.Column('x',Integer(),primary_key=True,nullable=False),
                         sa.Column('y',Integer(),primary_key=True,nullable=False),                        
+                        sa.Column('weight',Float(),primary_key=False,nullable=True),                        
                         sa.ForeignKeyConstraint(
                             ['user', 'airport','mapchecksum'], 
                             ['airport_projection.user', 'airport_projection.airport','airport_projection.mapchecksum'],

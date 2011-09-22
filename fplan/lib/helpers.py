@@ -11,6 +11,7 @@ import cgi
 from md5 import md5
 from pylons import request, response, session, tmpl_context as c
 from datetime import datetime,timedelta
+import mapper
 import math
 def md5str(anystr):
     if type(anystr)==unicode:
@@ -68,6 +69,18 @@ def utcdatetime2stamp_inexact(d):
     delta=d-datetime(1970,1,1)
     stamp=int(delta.days*86400+delta.seconds)    
     return stamp
+def degmin(dec):
+    if dec==None: return ""    
+    neg=""
+    if dec<0:
+        neg="-1"
+        dec=-dec
+    deg,min=mapper._to_deg_min(dec+(1e-7))
+    ret=("%s%d %07.4f"%(neg,deg,min))
+    ret=ret.rstrip("0")
+    if ret.endswith("."):
+        ret=ret[:-1]
+    return ret
 
 def foldable_links(htmlid,urls):    
     out=["""<div id="%(id)s" class="foldable"><div>

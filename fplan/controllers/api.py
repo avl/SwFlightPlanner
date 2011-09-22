@@ -252,6 +252,37 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'text/plain'            
             print "Exception",cause
             return json.dumps(dict(error=repr(cause)))
+
+    def checkpass(self):
+        users=meta.Session.query(User).filter(User.user==request.params['user']).all()
+        if len(users)==0:
+            return False
+        else:
+            user,=users
+            if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
+                return False
+        return True
+
+    def getadcharts(self):
+        pass
+    def getadchart(self,icao):
+        def writeInt(x):
+            response.write(struct.pack(">I",x))
+        def writeLong(x):
+            response.write(struct.pack(">Q",x))
+
+        response.headers['Content-Type'] = 'application/binary'        
+
+        version,level,offset,maxlen,maxlevel=\
+            [int(request.params[x]) for x in "version","level","offset","maxlen","maxlevel"];
+        
+        writeInt(0x50055005)
+        writeInt(1) #version
+        if not self.checkpass():
+            print "badpassword"
+            writeInt(1) #error, bad pass
+            return None
+        pass
         
     def getmap(self):
 
@@ -263,11 +294,16 @@ class ApiController(BaseController):
             user,=users
             if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
                 badpass=True
+                
         def writeInt(x):
             response.write(struct.pack(">I",x))
         def writeLong(x):
             response.write(struct.pack(">Q",x))
         response.headers['Content-Type'] = 'application/binary'        
+
+        version,level,offset,maxlen,maxlevel=\
+            [int(request.params[x]) for x in "version","level","offset","maxlen","maxlevel"];
+        
         writeInt(0xf00df00d)
         writeInt(1) #version
         if badpass:
@@ -275,8 +311,6 @@ class ApiController(BaseController):
             writeInt(1) #error, bad pass
             return None
         print "Correct password"
-        version,level,offset,maxlen,maxlevel=\
-            [int(request.params[x]) for x in "version","level","offset","maxlen","maxlevel"];
         
         totalsize=0
         stamp=0

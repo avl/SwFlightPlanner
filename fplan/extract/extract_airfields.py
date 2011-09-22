@@ -31,6 +31,7 @@ def extract_airfields(filtericao=lambda x:True):
     if startpage==None:
         raise Exception("Couldn't find aerodrome directory in file")
     #print "Startpage: %d"%(startpage,)
+    nochartf=open("nochart.txt","w")
     for pagenr in xrange(startpage,p.get_num_pages()):
         row_y=[]
         page=p.parse_page_to_items(pagenr)
@@ -401,7 +402,7 @@ def extract_airfields(filtericao=lambda x:True):
     for ad in ads:        
         icao=ad['icao']
         if icao in big_ad:            
-            if icao in ['ESMQ','ESOW','ESSB','ESSA']:
+            if True: #icao in ['ESMQ','ESOW','ESSB','ESSA']:
                 try:
                     arp=ad['pos']
                     lc=parse_landing_chart.parse_landing_chart(
@@ -412,9 +413,9 @@ def extract_airfields(filtericao=lambda x:True):
                     if lc:
                         ad['adcharturl']=lc['url']
                         ad['adchart']=lc                                                    
-                except:
-                    print "Apparently no AD chart for ",icao
-                    raise
+                except Exception,cause:
+                    print "Apparently no AD chart for ",icao,cause
+                    nochartf.write("Apparently no chart for: %s - %s\n"%(icao,cause))
             
 
     #sys.exit(1)

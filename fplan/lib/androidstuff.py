@@ -45,7 +45,7 @@ def android_fplan_map_format(airspaces,points,version):
         versionnum=int(version.strip())
     except:
         pass
-    assert versionnum in [0,1,2]
+    assert versionnum in [0,1,2,3]
     print "Decoded vers:",versionnum
     out=StringIO()
     print "Binary download in progress"
@@ -99,6 +99,8 @@ def android_fplan_map_format(airspaces,points,version):
         lat,lon=point['lat'],point['lon']
         writeFloat(lat)
         writeFloat(lon)
+        if versionnum>=3:
+            write adchart info here for airfields
         
     ret=out.getvalue()
     assert ret[0]==chr(0x08)
