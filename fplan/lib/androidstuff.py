@@ -39,14 +39,12 @@ def android_fplan_bitmap_format(hmap):
 
     
 def android_fplan_map_format(airspaces,points,version):
-    print "Version: ",version
     versionnum=1
     try:
         versionnum=int(version.strip())
     except:
         pass
     assert versionnum in [0,1,2,3]
-    print "Decoded vers:",versionnum
     out=StringIO()
     print "Binary download in progress"
 
@@ -100,7 +98,15 @@ def android_fplan_map_format(airspaces,points,version):
         writeFloat(lat)
         writeFloat(lon)
         if versionnum>=3:
-            write adchart info here for airfields
+            if 'adchart_url' in point:
+                writeByte(1)
+                writeInt(point['adchart_width'])
+                writeInt(point['adchart_height'])
+                writeUTF(point['adchart_name'])                
+                writeUTF(point['adchart_checksum'])
+                writeUTF(point['adchart_url'])
+            else:
+                writeByte(0)
         
     ret=out.getvalue()
     assert ret[0]==chr(0x08)

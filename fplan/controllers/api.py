@@ -6,7 +6,7 @@ from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording
 from fplan.lib import mapper
 from datetime import datetime,timedelta
 from fplan.lib.recordings import parseRecordedTrip
-
+import fplan.extract.parse_landing_chart as parse_landing_chart
 
 #import md5
 from fplan.lib.helpers import md5str
@@ -39,7 +39,6 @@ def cleanup_poly(latlonpoints):
             merc=mapper.latlon2merc(latlon,13)
             if lastmerc!=None:
                 dist=math.sqrt(sum([(lastmerc[i]-merc[i])**2 for i in xrange(2)]))
-                print "Dist:",dist
                 if dist<minstep:
                     continue
             if merc==lastmerc:
@@ -84,17 +83,27 @@ class ApiController(BaseController):
                     points=[dict(lat=p[0],lon=p[1]) for p in cleanup_poly([mapper.from_str(x) for x in space['points']])]))
             
         points=[]
+        print "version",request.params.get("version",None)
         for airp in extracted_cache.get_airfields():
             lat,lon=mapper.from_str(airp['pos'])
             #if lat<58.5 or lat>60.5:
             #    continue
             aname=airp['name']+"*" if airp.get('icao','ZZZZ').upper()!='ZZZZ' else airp['name']
-            points.append(dict(
+            ap=dict(
                 name=aname,
                 lat=lat,
                 lon=lon,
                 kind="airport",
-                alt=float(airp.get('elev',0))))
+                alt=float(airp.get('elev',0)))
+            if 'adchart' in airp:
+                ret=airp['adchart']
+                ap['adchart_width']=ret['render_width']
+                ap['adchart_height']=ret['render_height']
+                ap['adchart_name']=ret['blobname']
+                ap['adchart_checksum']=ret['checksum']
+                ap['adchart_url']=ret['url']
+            
+            points.append(ap)            
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
             kind=sigp.get('kind','sigpoint')
@@ -263,26 +272,32 @@ class ApiController(BaseController):
                 return False
         return True
 
-    def getadcharts(self):
-        pass
     def getadchart(self,icao):
         def writeInt(x):
             response.write(struct.pack(">I",x))
-        def writeLong(x):
-            response.write(struct.pack(">Q",x))
 
         response.headers['Content-Type'] = 'application/binary'        
 
-        version,level,offset,maxlen,maxlevel=\
-            [int(request.params[x]) for x in "version","level","offset","maxlen","maxlevel"];
+        version,level=[int(request.params[x]) for x in "version","level"];
+        
+        chartname=request.params["chartname"]
         
         writeInt(0x50055005)
-        writeInt(1) #version
+        if version!=1:
+            print "bad version"
+            writeInt(2) #error, bad version
+            return None        
         if not self.checkpass():
             print "badpassword"
             writeInt(1) #error, bad pass
             return None
-        pass
+        writeInt(0) #no error
+        writeInt(version) #version
+            
+        chart=parse_landing_chart.get_chart(chartname=chartname,level=int(level),version=int(version))
+        response.write(chart)
+        writeInt(0xbaabaaba)
+        return 
         
     def getmap(self):
 

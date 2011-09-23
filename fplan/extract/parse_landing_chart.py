@@ -101,12 +101,18 @@ def parse_landing_chart(path,arppos,icao,country='se'):
         hashpath=os.path.join(tmppath,"%s-%d.bin"%(icao,level))
         fetchdata.getcreate_local_data_raw(
                     outpath2,hashpath,lambda input,output:chop_up(input,output,level))    
+    ret['blobname']=icao
     
     
     return ret
 
+def get_chart(chartname,level,version):
+    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
+    blobpath=os.path.join(tmppath,"%s-%d.bin"%(chartname,level))
+    return open(blobpath).read()
     
-    
+"""
+def legacystuff():    
     svg=svg_reader.parsesvg(path,0)
     bestarp=None
     scale=4
@@ -622,7 +628,6 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     mA,T=res
             
                  
-    """
     print "mA:",mA
     print "T:",T
     for x in [0,width]:
@@ -632,7 +637,6 @@ def parse_landing_chart(path,arppos,icao,country='se'):
             print "X dim",X.shape
             Y=mA*X+T
             print "Screen coordinates",X,"correspond to latlon",Y
-    """
     
     
     Ai=linalg.inv(mA)
@@ -659,7 +663,7 @@ def parse_landing_chart(path,arppos,icao,country='se'):
 
     return ret
 
-
+"""
 
 if __name__=='__main__':
     if len(sys.argv)>1:

@@ -130,9 +130,9 @@
 128: Kartan borde uppdateras med notam-info för nummer/namn-givna R-områden och D-områden och liknande.
 129: Verify notam geo search better. 
 130: Entry point Ostra Harg is parsed wrong for ESSL/Saab (linköping)
-131: Honestly, the obstacles screen should describe location of obstacles in more logical way
+131: FIXED: Honestly, the obstacles screen should describe location of obstacles in more logical way
 132: Add a "Add waypoint by coordinate"-screen.
-133: Make it more obvious that there you can have multiple routes.
+133: Make it more obvious that you can have multiple routes.
 134: Add a "reset wind" button.
 135: Create a way to scribble notes on legs (like radio-freq, opening hours, etc).
 
