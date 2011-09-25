@@ -210,6 +210,17 @@ function reorder_wp(idx,delta)
     reorder_wp_impl(idx,delta);
 	select_waypoint(odx); 
 }
+function enter_coordinate()
+{
+	var cm=document.getElementById("entercoord");
+	cm.style.display="block";
+	document.getElementById("coorddeclat").focus();
+}
+function enter_coordinate_complete()
+{
+	var cm=document.getElementById("entercoord");
+	cm.style.display="none";	
+}
 function reorder_wp_impl(idx,delta)
 {
     var odx=idx+delta;
