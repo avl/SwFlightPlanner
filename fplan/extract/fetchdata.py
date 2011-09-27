@@ -5,6 +5,7 @@ import socket
 host=socket.gethostname()
 from urllib2 import urlopen
 import mechanize
+import shutil
 
 dev_computer=os.getenv('SWFP_DEVCOMP')
 tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
@@ -236,14 +237,27 @@ def get_raw_weather_for_area(cur_area2):
     
     
 def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400):
+    outputpathtmp=outputpath+".tmp"
+    outputpathdate=outputpath+".date"
     inputdate=get_filedate(inputpath)
-    if os.path.exists(outputpath):
-        cacheddate=get_filedate(outputpath)
+    if os.path.exists(outputpathdate):
+        cacheddate=get_filedate(outputpathdate)
         if cacheddate>inputdate and (datetime.now()-cacheddate<timedelta(0,maxcachetime)):
             return 
+    if os.path.exists(outputpathtmp):
+        os.unlink(outputpathtmp)
+    callback(inputpath,outputpathtmp)
+    
     if os.path.exists(outputpath):
+        if os.system("cmp %s %s"%(outputpathtmp,outputpath))==0:
+            #identical
+            open(outputpathdate,"w").write("1")
+            return
         os.unlink(outputpath)
-    callback(inputpath,outputpath)
+    shutil.move(outputpathtmp,outputpath)
+    open(outputpathdate,"w").write("1")
+    
+    
     
     
 def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=True,cachetime=3600,country='se'):

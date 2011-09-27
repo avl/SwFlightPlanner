@@ -59,7 +59,8 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     ret=dict()
     ret['url']=url
     data,nowdate=fetchdata.getdata(path,country=country,maxcacheage=7200)
-    ret['checksum']=md5.md5(data).hexdigest()
+    cksum=md5.md5(data).hexdigest()
+    ret['checksum']=cksum
     page=p.parse_page_to_items(0, donormalize=False)
     ret['width']=page.width
     ret['height']=page.height
@@ -96,20 +97,23 @@ def parse_landing_chart(path,arppos,icao,country='se'):
                 outpath,outpath2,greyscale)
  
  
- 
+    blobname=icao
+    ckpath=os.path.join(tmppath,"%s.cksum"%(blobname,))
+    os.unlink(ckpath)
     for level in xrange(5):
-        hashpath=os.path.join(tmppath,"%s-%d.bin"%(icao,level))
+        hashpath=os.path.join(tmppath,"%s-%d.bin"%(blobname,level))
         fetchdata.getcreate_local_data_raw(
                     outpath2,hashpath,lambda input,output:chop_up(input,output,level))    
-    ret['blobname']=icao
+    ret['blobname']=blobname
     
-    
+    open(ckpath,"w").write(cksum)
     return ret
 
-def get_chart(chartname,level,version):
+def get_chart(blobname,level,version):
     tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
-    blobpath=os.path.join(tmppath,"%s-%d.bin"%(chartname,level))
-    return open(blobpath).read()
+    blobpath=os.path.join(tmppath,"%s-%d.bin"%(blobname,level))
+    ckpath=os.path.join(tmppath,"%s.cksum"%(blobname,))    
+    return open(blobpath).read(),open(ckpath).read()
     
 """
 def legacystuff():    

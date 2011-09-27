@@ -105,6 +105,8 @@ def android_fplan_map_format(airspaces,points,version):
                 writeUTF(point['adchart_name'])                
                 writeUTF(point['adchart_checksum'])
                 writeUTF(point['adchart_url'])
+                for f in point['adchart_matrix']:
+                    writeFloat(f)
             else:
                 writeByte(0)
         

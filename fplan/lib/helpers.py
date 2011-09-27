@@ -66,6 +66,8 @@ def utcdatetime2stamp(d):
         raise Exception("Unexpected internal error converting times")
     return stamp
 def utcdatetime2stamp_inexact(d):
+    """Inexact in the sense that it only counts whole seconds,
+    even if the datetime parameter d has microsecond resolution"""
     delta=d-datetime(1970,1,1)
     stamp=int(delta.days*86400+delta.seconds)    
     return stamp

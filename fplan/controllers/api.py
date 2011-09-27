@@ -2,14 +2,15 @@ import logging
 import StringIO
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
-from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording
+from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording,AirportProjection
 from fplan.lib import mapper
 from datetime import datetime,timedelta
 from fplan.lib.recordings import parseRecordedTrip
 import fplan.extract.parse_landing_chart as parse_landing_chart
-
+import StringIO
 #import md5
-from fplan.lib.helpers import md5str
+from fplan.lib.helpers import md5str,utcdatetime2stamp_inexact
+
 import stat
 from fplan.lib.notam_geo_search import get_notam_objs_cached
 import fplan.lib.calc_route_info as calc_route_info
@@ -96,12 +97,22 @@ class ApiController(BaseController):
                 kind="airport",
                 alt=float(airp.get('elev',0)))
             if 'adchart' in airp:
-                ret=airp['adchart']
-                ap['adchart_width']=ret['render_width']
-                ap['adchart_height']=ret['render_height']
-                ap['adchart_name']=ret['blobname']
-                ap['adchart_checksum']=ret['checksum']
-                ap['adchart_url']=ret['url']
+                ret=airp['adchart']                
+                try:
+                    cksum=ret['checksum']
+                    aprojs=meta.Session.query(AirportProjection).filter(
+                                    sa.and_(AirportProjection.user==os.getenv("SWFP_PRIMARY_USER",'ank'),
+                                            AirportProjection.mapchecksum==cksum)).all()
+                    if len(aprojs)>0:
+                        aproj=aprojs[0]
+                        ap['adchart_matrix']=list(aproj.matrix)
+                        ap['adchart_width']=ret['render_width']
+                        ap['adchart_height']=ret['render_height']
+                        ap['adchart_name']=ret['blobname']
+                        ap['adchart_checksum']=cksum
+                        ap['adchart_url']=ret['url']                    
+                except Exception,cause:
+                    print "Couldn't get projection for airport %s (%s)"(aname,cause)
             
             points.append(ap)            
         for sigp in extracted_cache.get_sig_points():
@@ -272,9 +283,82 @@ class ApiController(BaseController):
                 return False
         return True
 
-    def getadchart(self,icao):
+
+    def getnewadchart(self):
+        prevstamp=int(request.params["stamp"])
+        version=int(request.params["version"])
+        #Make any sort of race impossible by substracting 5 minutes from now.
+        #A race will now only happen if a file is modified on disk, after this
+        #routine started, but ends up with a timestamp 5 minutes earlier in
+        #time, but that can't happen.
+        nowstamp=utcdatetime2stamp_inexact(datetime.utcnow())-60*5
+        assert version==1
+        
+        
         def writeInt(x):
             response.write(struct.pack(">I",x))
+        def writeLong(x):
+            response.write(struct.pack(">Q",x))
+        def writeUTF(s):
+            if s==None: s=u""
+            try:
+                encoded=s.encode('utf8')
+            except Exception,cause:
+                print "While trying to encode: %s"%(s,)
+                raise
+            l=len(encoded)
+            response.write(struct.pack(">H",l)) #short
+            response.write(encoded)
+            
+        tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
+        laststamp=0
+        charts=[]
+        for ad in extracted_cache.get_airfields():
+            if 'adchart' in ad:
+                adc=ad['adchart']
+                newer=False
+                for level in xrange(5):
+                    path=os.path.join(tmppath,"%s-%d.bin"%(adc['blobname'],level))
+                    cstamp=os.path.getmtime(path)
+                    print "Read file",path,"stamp:",cstamp,"nowstamp:",nowstamp
+                    if cstamp>prevstamp:
+                        newer=True
+                    laststamp=max(laststamp,cstamp)
+                if newer:
+                    charts.append((ad['name'],adc['blobname']))
+        
+        response.headers['Content-Type'] = 'application/binary'
+           
+        writeInt(0xf00d1011)
+        writeInt(1) #version
+        writeLong(nowstamp)
+        writeInt(len(charts))
+        #TODO: Fix problem with response.write not working
+        for human,blob in charts:
+            print "Saving"
+            writeUTF(blob)
+            writeUTF(human)
+        writeInt(0xaabbccda)
+        #out.seek(0)
+        #response.app_iter=out.read()
+
+        
+
+    def getadchart(self):
+        def writeInt(x):
+            response.write(struct.pack(">I",x))
+        def writeFloat(f):
+            out.write(struct.pack(">f",f))
+        def writeUTF(s):
+            if s==None: s=u""
+            try:
+                encoded=s.encode('utf8')
+            except Exception,cause:
+                print "While trying to encode: %s"%(s,)
+                raise
+            l=len(encoded)
+            response.write(struct.pack(">H",l)) #short
+            response.write(encoded)
 
         response.headers['Content-Type'] = 'application/binary'        
 
@@ -282,7 +366,7 @@ class ApiController(BaseController):
         
         chartname=request.params["chartname"]
         
-        writeInt(0x50055005)
+        writeInt(0xaabbccdc)
         if version!=1:
             print "bad version"
             writeInt(2) #error, bad version
@@ -292,11 +376,18 @@ class ApiController(BaseController):
             writeInt(1) #error, bad pass
             return None
         writeInt(0) #no error
-        writeInt(version) #version
+        writeInt(1) #version
+        
+        writeInt(5) #numlevels
             
-        chart=parse_landing_chart.get_chart(chartname=chartname,level=int(level),version=int(version))
-        response.write(chart)
-        writeInt(0xbaabaaba)
+        writeInt(0xaabbccde)
+        for level in xrange(5):            
+            chart,cksum=parse_landing_chart.get_chart(blobname=chartname,level=level,version=version)
+            writeUTF(cksum)
+            writeInt(len(chart))
+            response.write(chart)
+            writeInt(0xaabbccdf)
+        writeInt(0xf111)
         return 
         
     def getmap(self):
