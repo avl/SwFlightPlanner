@@ -38,10 +38,12 @@ function calctileurl(zoomlevel,mercx,mercy)
 {
 	return '/maptile/get?zoom='+zoomlevel+'&mercx='+mercx+'&mercy='+mercy+'&mapvariant='+mapvariant+'&dynamic_id='+dynamic_id+'&mtime=${c.mtime}';
 }
+
 merc5_limx1=${c.merc5_limx1};
 merc5_limy1=${c.merc5_limy1};
 merc5_limx2=${c.merc5_limx2};
 merc5_limy2=${c.merc5_limy2};
+
 function clip_mappos(mercx,mercy)
 {
 	var a=merc2merc([merc5_limx1,merc5_limy1],5,map_zoomlevel);
@@ -124,6 +126,13 @@ function loadmap()
 	'<div class="popopt" onclick="add_waypoint_here(event);">Add Waypoint Here</div>'+ 
 	'<div class="popopt" onclick="hidepopup()">Close menu</div>'+
 	'</div>'+
+	'<div id="entercoord" class="popup">'+
+	'<h2>Enter coordinate in one of these formats:</h2>'+
+	'<table><tr>'+
+	'<td><b>Decimal WGS84</b></td><td>&nbsp;</td><td colspan="2">Latitude:<input type="text" id="coorddeclat"/></td><td colspan="2">Longitude:<input type="text" id="coorddeclon"/></td>'+
+	'</tr></table>'+
+	'<button onclick="enter_coordinate_complete();return false;">OK</button>'+
+	'</div>'+
 	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
 	'<input type="hidden" name="zoom" value="" />'+
 	'<input type="hidden" name="center" value="" />'+
@@ -196,8 +205,9 @@ function loadmap()
 
 %if not c.showarea and not c.showtrack:
 	'<br/><button style="font-size:10px"  onclick="visualize_track_data();return false" title="Show a point or track on the map, for example from a GPS logger.">Upload Track</button>'+
-	'<button style="font-size:10px"  onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+
+	'<button style="font-size:10px"  onclick="visualize_area_data();return false" title="Show an area on the map, for example from NOTAM.">Upload Area</button>'+	
 %endif	
+	'<button style="font-size:10px"  onclick="enter_coordinate();return false" title="Enter a coordinate.">Enter coordinate</button>'+
 %if c.showtrack:
 	'<br/><button style="font-size:10px" onclick="clear_uploaded_data();return false" title="Clear uploaded track">Clear Track</button>'+
 %endif	
