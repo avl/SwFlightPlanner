@@ -416,6 +416,7 @@ def extract_airfields(filtericao=lambda x:True):
                 except Exception,cause:
                     print "Apparently no AD chart for ",icao,cause
                     nochartf.write("Apparently no chart for: %s - %s\n"%(icao,cause))
+                    
             
 
     #sys.exit(1)

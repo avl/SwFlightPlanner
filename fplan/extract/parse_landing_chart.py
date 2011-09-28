@@ -99,13 +99,15 @@ def parse_landing_chart(path,arppos,icao,country='se'):
  
     blobname=icao
     ckpath=os.path.join(tmppath,"%s.cksum"%(blobname,))
-    os.unlink(ckpath)
+    if os.path.exists(ckpath):
+        os.unlink(ckpath)
     for level in xrange(5):
         hashpath=os.path.join(tmppath,"%s-%d.bin"%(blobname,level))
         fetchdata.getcreate_local_data_raw(
                     outpath2,hashpath,lambda input,output:chop_up(input,output,level))    
     ret['blobname']=blobname
     
+    print "Writing cksum",ckpath,cksum
     open(ckpath,"w").write(cksum)
     return ret
 

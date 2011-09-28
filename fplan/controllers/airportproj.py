@@ -66,7 +66,7 @@ class AirportprojController(BaseController):
                 worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks))
                 found=True
             if not found:
-                worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl))
+                worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[]))
         return worklist
     def show(self):
         ad=request.params['ad']

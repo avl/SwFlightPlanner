@@ -348,7 +348,7 @@ class ApiController(BaseController):
         def writeInt(x):
             response.write(struct.pack(">I",x))
         def writeFloat(f):
-            out.write(struct.pack(">f",f))
+            response.write(struct.pack(">f",f))
         def writeUTF(s):
             if s==None: s=u""
             try:
@@ -357,16 +357,17 @@ class ApiController(BaseController):
                 print "While trying to encode: %s"%(s,)
                 raise
             l=len(encoded)
+            print "Writing %s, length %d"%(repr(encoded),l)
             response.write(struct.pack(">H",l)) #short
             response.write(encoded)
 
         response.headers['Content-Type'] = 'application/binary'        
 
-        version,level=[int(request.params[x]) for x in "version","level"];
+        version=int(request.params['version'])
         
-        chartname=request.params["chartname"]
+        chartname=request.params["chart"]
         
-        writeInt(0xaabbccdc)
+        writeInt(0xaabb1234)
         if version!=1:
             print "bad version"
             writeInt(2) #error, bad version
@@ -375,10 +376,30 @@ class ApiController(BaseController):
             print "badpassword"
             writeInt(1) #error, bad pass
             return None
+        
+        dummy,cksum0=parse_landing_chart.get_chart(blobname=chartname,level=0,version=version)
+        
+        projs=meta.Session.query(AirportProjection).filter(sa.and_(
+                            AirportProjection.mapchecksum==cksum0,
+                            sa.or_(AirportProjection.user=='ank',AirportProjection.user==request.params['user'])
+                            )).all();
+        
+        if len(projs)==0:
+            writeInt(3) #No projection
+            return None
+        for t in projs:
+            if t.user!='ank':
+                proj=t
+                break
+        else:
+            proj=projs[0]
         writeInt(0) #no error
         writeInt(1) #version
         
         writeInt(5) #numlevels
+        
+        for m in proj.matrix:
+            writeFloat(m)
             
         writeInt(0xaabbccde)
         for level in xrange(5):            
