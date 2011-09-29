@@ -695,6 +695,7 @@ def get_route(user,trip):
             out.d=rt.d
             out.gs=None
             out.relstartd=0
+            out.outer_d=rt.d
             out.subposa=merca
             out.subposb=mercb
             out.startdt=accum_dt
@@ -721,6 +722,7 @@ def get_route(user,trip):
                 out.tt=rt.tt
                 out.d=begindist
                 out.relstartd=0
+                out.outer_d=rt.d
                 out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
                 out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
                 out.gs=beginspeed
@@ -748,6 +750,7 @@ def get_route(user,trip):
                 out.d=middist
                 out.gs=cruise_gs
                 out.relstartd=begindist
+                out.outer_d=rt.d
                 out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
                 out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
                 out.startdt=accum_dt
@@ -773,6 +776,7 @@ def get_route(user,trip):
                 out.d=enddist
                 out.gs=endspeed
                 out.relstartd=begindist+middist
+                out.outer_d=rt.d
                 out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
                 out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
                 out.startdt=accum_dt
@@ -804,6 +808,7 @@ def get_route(user,trip):
             out.gs=None
             out.time=0
             out.relstartd=0
+            out.outer_d=0
             out.subposa=merca
             out.subposb=mercb
             out.startalt=prev_alt

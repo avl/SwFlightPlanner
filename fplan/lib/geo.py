@@ -210,7 +210,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
                 #print "Yielding."
                 d['name']=d['kind']+': ' +d['name']
                 d['dist_from_a']=alongnm_a
-                d['dist_from_b']=rt.d-alongnm_a
+                d['dist_from_b']=rt.outer_d-alongnm_a
                 d['dir_from_a']=describe_dir(rt.tt)
                 d['dir_from_b']=describe_dir((rt.tt+180.0)%360.0)
                 d['dist']=actualdist
