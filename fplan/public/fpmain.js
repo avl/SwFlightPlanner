@@ -209,41 +209,48 @@ function save_data(cont)
 	}
 	dirty=0;
 	var params={};
+	for(var i=0;i<num_rows;i++)
+	{
+		var ik=fpid[i];
+		var val=document.getElementById('name'+ik).value;
+		params['name'+ik]=val;
+	}
 	
 	
 	for(var i=0;i<num_rows-1;i++)
 	{
 		cache[''+fpid[i]]={};
-        for(var j=0;j<modifiable_cols.length;++j)
-        {
-            var wh=modifiable_cols[j];
-            var val;
-            if (wh!='Alt')
-            {       
-                val=getf(fpid[i],wh);
-            }
-            else
-            {
-                val=parsealt(get(fpid[i],wh));
-            }
-			cache[''+fpid[i]][wh]=get(fpid[i],wh);
-            //alert('Value:'+val);
-            params[wh+'_'+fpid[i]]=val;
-        }	    
+		for(var j=0;j<modifiable_cols.length;++j)
+		{
+		    var wh=modifiable_cols[j];
+		    var val;
+		    if (wh!='Alt')
+		    {       
+		        val=getf(fpid[i],wh);
+		    }
+		    else
+		    {
+		        val=parsealt(get(fpid[i],wh));
+		    }
+				cache[''+fpid[i]][wh]=get(fpid[i],wh);
+		    //alert('Value:'+val);
+		    
+		    params[wh+'_'+fpid[i]]=val;
+		}	    
 	}			
-    function add(what)
-    {
-	    var e=document.getElementById(what);
-	    if (e)
-            params[what]=e.value;
-    }
+	    function add(what)
+	    {
+		    var e=document.getElementById(what);
+		    if (e)
+		    params[what]=e.value;
+	    }
 	for(var i=0;i<num_rows;i++)
 	{
 	    add('date_of_flight_'+fpid[i]);
 	    add('departure_time_'+fpid[i]);
 	    add('fuel_'+fpid[i]);
-	    add('persons_'+fpid[i]);
-    }
+	    add('persons_'+fpid[i]);	
+	}
     
 	params['tripname']=tripname;
 	if (document.getElementById('realname'))
@@ -391,7 +398,7 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 		var previd=fpid[idx-1];
 		clockstr='<input readonly="1" id="fplanrow'+previd+'Clock" size="4" title="The time at which you arrive at this waypoint." type="text" name="row'+previd+'Clock" value=""/>';		
 	}
-	elem.innerHTML='<td colspan="'+(fpcolnum)+'">#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." readonly="1" type="text" name="name'+id+'" value="'+name+'"/>'+
+	elem.innerHTML='<td colspan="'+(fpcolnum)+'">#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." type="text" name="name'+id+'" onchange="makedirty();" onkeydown="makedirty();" id="name'+id+'" value="'+name+'"/>'+
 		clockstr+
 	    landheres+
 	    '</td>';

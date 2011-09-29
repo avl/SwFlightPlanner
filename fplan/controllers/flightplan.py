@@ -128,7 +128,6 @@ class FlightplanController(BaseController):
         waypoints=meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==tripuser(),
              Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all()
-        #print "REquest:",request.params
         c.userobj.realname=request.params.get('realname',c.userobj.realname)
                             
         for idx,way in enumerate(waypoints):
@@ -136,6 +135,10 @@ class FlightplanController(BaseController):
             dep_s="departure_time_%d"%(way.id,)
             fuel_s="fuel_%d"%(way.id,)
             persons_s="persons_%d"%(way.id,)
+            
+            name_s="name%d"%(way.id,)
+            way.waypoint=request.params.get(name_s,way.waypoint)
+            
             if dof_s in request.params:
                 #possibly add new stay
                 if not way.stay:
@@ -722,6 +725,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             for item in items:
                 dist_from_a=item['dist_from_a']
                 dist_from_b=item['dist_from_b']
+
                 if abs(dist_from_a)<0.5:
                     descr="Near %s"%(item['a'].waypoint,)
                 elif abs(dist_from_b)<0.5:
