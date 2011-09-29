@@ -23,6 +23,7 @@ next_waypoint_id=${c.next_waypoint_id};
 selfurl='${h.url_for(controller="mapview",action="index")}';
 shareurl='${h.url_for(controller="mapview",action="share")}';
 saveurl='${h.url_for(controller="mapview",action="save")}';
+coordparseurl='${h.url_for(controller="mapview",action="coordparse")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
 mapinfourl='${h.url_for(controller="maptile",action="get_airspace")}';
@@ -126,12 +127,16 @@ function loadmap()
 	'<div class="popopt" onclick="add_waypoint_here(event);">Add Waypoint Here</div>'+ 
 	'<div class="popopt" onclick="hidepopup()">Close menu</div>'+
 	'</div>'+
-	'<div id="entercoord" class="popup">'+
-	'<h2>Enter coordinate in one of these formats:</h2>'+
-	'<table><tr>'+
-	'<td><b>Decimal WGS84</b></td><td>&nbsp;</td><td colspan="2">Latitude:<input type="text" id="coorddeclat"/></td><td colspan="2">Longitude:<input type="text" id="coorddeclon"/></td>'+
-	'</tr></table>'+
-	'<button onclick="enter_coordinate_complete();return false;">OK</button>'+
+	'<div id="entercoord" class="opopup">'+
+	'<h2>Enter coordinates:</h2>'+
+	'<div>'+
+	'<input type="text" id="coordfield" onchange="oncoordchange()" onkeyup="oncoordchange()"/>'+
+	'<div id="coordresult">Enter a coordinate in any format</br>in the field above'+
+	'</div>'+
+	'</div>'+
+	'<button onclick="enter_coordinate_addwp();return false;">Add Waypoint</button>'+
+	'<button onclick="enter_coordinate_center();return false;">Center on map</button>'+
+	'<button onclick="enter_coordinate_close();return false;">Close</button>'+
 	'</div>'+
 	'<form id="helperform" action="${h.url_for(controller="mapview",action="zoom")}">'+
 	'<input type="hidden" name="zoom" value="" />'+

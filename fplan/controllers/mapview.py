@@ -538,3 +538,18 @@ class MapviewController(BaseController):
                 c.dynamic_id=session['showtrack'].dynamic_id
         return render('/mapview.mako')
         
+
+    def coordparse(self):
+        val=request.params['val']
+        try:
+            s=mapper.anyparse(val)
+            c.pos=s
+            c.deg,c.degmin,c.degminsec=mapper.to_all_formats(mapper.from_str(s))
+            print "Rendering mako coordpres"            
+            return render("/coordpres.mako")        
+        except:        
+            print "returning empty string , coordpres"
+            return ""
+        
+        
+        

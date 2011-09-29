@@ -131,30 +131,22 @@
 129: Verify notam geo search better. 
 130: Entry point Ostra Harg is parsed wrong for ESSL/Saab (linköping)
 131: FIXED: Honestly, the obstacles screen should describe location of obstacles in more logical way
-132: Add a "Add waypoint by coordinate"-screen.
+132: FIXED: Add a "Add waypoint by coordinate"-screen.
 133: Make it more obvious that you can have multiple routes.
-134: Add a "reset wind" button.
+134: FIXED: Add a "reset wind" button.
 135: Create a way to scribble notes on legs (like radio-freq, opening hours, etc).
-
-136:
-  return func(**args)
-File '/home/anders/saker/fplan/fplan/controllers/notam.py', line 86 in show_ctx
-  Notam.ordinal==int(request.params['notam'])).one()
-File '/usr/lib/pymodules/python2.6/sqlalchemy/orm/query.py', line 1326 in one
-  raise orm_exc.NoResultFound("No row was found for one()")
-NoResultFound: No row was found for one()
-
+136: FIXED: Notam bugged out when called by googlebot or similar...
 137: Make use of HTML location tracking, to show planners position on map.
 138: Why doesn't panning always work in chrome?
 139: It should be possible to use up/down-arrows in flight plan, to move to row above/below.
-140: / are not allowed DEST-name in ATS-plan - should be changed to _ or something.
+140: FIXED: / are not allowed DEST-name in ATS-plan - should be changed to _ or something.
 141: Printable flightplan has trip-name as parameter, but actually seems to require session variable "current_trip" set as well. Not pretty :-)
 142: Verkar som att gpstrack-variabeln kan bli en tom sträng efter att gpx-import misslyckats. Detta gör att visning sedan misslyckas. Se till att gpstrack alltid blir None eller en giltig track.
 143: Clear session completely when logging out, and when logging in!
 144: Om man resizar fönstret så blir koordinaterna längst ner i statusfältet fel!!!
 145: Borde backupa allt userdata på sajten.
-146: Ta in frekvenser och ban-nummer från AD-översikten.
+146: Printable, ta in frekvenser och ban-nummer från AD-översikten.
 147: Warn if climb fuel consumption is entered as lower than cruise!
-148: Automatically fill in variation information (available from http://www.ngdc.noaa.gov/geomag/WMM/wmm_wdownload.shtml)
+148: FIXED: Automatically fill in variation information (available from http://www.ngdc.noaa.gov/geomag/WMM/wmm_wdownload.shtml)
 149: If no aircraft, and thus no fuel calc, fuel shouldn't be shown in printable.
 150: The user field should be more than 32 characters wide, or maybe rather it should be possible to enter email as a separate field.

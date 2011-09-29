@@ -89,10 +89,36 @@ def from_aviation_format(pos):
    
 def _to_deg_min(x):
     x*=60*10000
-    x=int(math.floor(x)+0.5)
+    x=int(math.floor(x+0.5))
     deg=x/(60*10000)
     min=(x%(60*10000))/10000.0
     return deg,min
+def _to_deg_min_sec(x):
+    x*=60*60*100
+    x=int(math.floor(x+0.5))
+    deg=x/(60*60*100)
+    min=(x%(60*60*100))/(60*100)
+    sec=(x%(60*100))/(100.0)
+    return deg,min,sec
+
+def to_all_formats(pos):
+    dirdeg=[]
+    degmin=[]
+    degminsec=[]
+    for c,w in zip(pos,[('N','S'),('E','W')]):
+        
+        if c<0:
+            c=-c
+            dir=w[1]
+        else:
+            dir=w[0]
+        dirdeg.append((dir,c))        
+        deg,min=_to_deg_min(c)
+        degmin.append((dir,deg,min))
+        deg,min,sec=_to_deg_min_sec(c)
+        degminsec.append((dir,deg,min,sec))
+    return dirdeg,degmin,degminsec
+
 
 def approx_bearing_vec(vec_a,vec_b):
     dx=vec_b.get_x()-vec_a.get_x()
@@ -219,6 +245,29 @@ def parse_lfv_area(area,allow_decimal_format=True):
                 yield "%.10f,%.10f"%(float(lat),float(lon))
         
                 
+def to_degminsec(latlon):
+    lat,lon=latlon
+    
+    if lat<0:
+        latw='S'
+        lat=-lat
+    else:
+        latw='N'
+    if lon<0:
+        lonw='W'
+        lon=-lon
+    else:
+        lonw='E'
+        
+    lat_deg,lat_min,lat_sec=_to_deg_min_sec(lat)
+    lon_deg,lon_min,lon_sec=_to_deg_min_sec(lon)
+    
+    lats=("%05.2f"%(lat_sec,)).rstrip("0").rstrip(".")
+    lons=("%05.2f"%(lon_sec,)).rstrip("0").rstrip(".")
+    print lats,"%02.2f"%(lat_sec,)
+    return "%02d%02d%s%s%03d%02d%s%s"%(
+        abs(lat_deg),lat_min,lats,latw,
+        abs(lon_deg),lon_min,lons,lonw)
    
 def to_aviation_format(latlon):
     lat,lon=latlon
@@ -231,11 +280,14 @@ def to_aviation_format(latlon):
     if lon<0:
         ew='W'
         lon=-lon
-    lon_deg,lon_min=_to_deg_min(lon)        
+    lon_deg,lon_min=_to_deg_min(lon)
+    
+    lats=("%07.4f"%(lat_min,)).rstrip("0").rstrip(".")        
+    lons=("%07.4f"%(lon_min,)).rstrip("0").rstrip(".")        
 
-    return "%02d%07.4f%s%03d%07.4f%s"%(
-        lat_deg,lat_min,ns,
-        lon_deg,lon_min,ew)
+    return "%02d%s%s%03d%s%s"%(
+        lat_deg,lats,ns,
+        lon_deg,lons,ew)
               
     
 
@@ -300,6 +352,20 @@ def parsecoords(seg):
         coords.append(coord)
     return coords
 
+def anyparse(coord):
+    try:
+        coord=coord.upper()
+        lat,lon=re.match(ur"^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$",coord).groups()
+        return lat+","+lon
+    except:
+        pass
+    try:
+        coord=coord.upper()
+        slat,slon=re.match(ur"(\d+[\.,]?\d*[NS])\s*(\d+[\.,]?\d*[EW]\b)",coord).groups()
+        return parse_coords(slat.strip(),slon.strip())
+    except:
+        pass
+    raise Exception("Unknown format")
 
 def seg_angles(pa1,pa2,step,direction):    
     a1=pa1

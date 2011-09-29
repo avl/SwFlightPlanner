@@ -210,17 +210,104 @@ function reorder_wp(idx,delta)
     reorder_wp_impl(idx,delta);
 	select_waypoint(odx); 
 }
+
+cparse_inprog=0;
+cparse_again=0;
+function oncoordchange()
+{
+
+			
+	if (cparse_inprog!=0)
+	{
+		cparse_again=1;
+		return;
+	}
+	cparse_inprog=1;
+	var val=document.getElementById('coordfield').value;
+
+	var params={}
+	params['val']=val
+	var def=doSimpleXMLHttpRequest(coordparseurl,
+		params);
+	function parse_complete(req)
+	{	
+		cparse_inprog=0;
+		if (req.responseText!='')
+		{
+			document.getElementById('coordresult').innerHTML=req.responseText;
+		}
+		else
+		{
+			document.getElementById('coordresult').innerHTML='Enter coordinates';
+		}
+		if (cparse_again!=0)
+		{
+			cparse_again=0;
+			oncoordchange();
+		}
+	}
+
+	def.addCallback(parse_complete);
+
+}
 function enter_coordinate()
 {
 	var cm=document.getElementById("entercoord");
 	cm.style.display="block";
-	document.getElementById("coorddeclat").focus();
+	cm.style.left=''+screen_size_x/4+'px';
+	cm.style.top=''+0+'px';
+
+	document.getElementById("coordfield").focus();
 }
-function enter_coordinate_complete()
+function enter_coordinate_addwp()
+{
+	function do_addwp(ll)
+	{
+		add_waypoint(default_wpname(ll),ll);
+		return true;
+	}
+	enter_coordinate_impl(do_addwp);
+	return true;
+}
+function enter_coordinate_close()
+{
+	function justclose()
+	{
+		return true;
+	}
+	enter_coordinate_impl(justclose);	
+}
+function enter_coordinate_center()
+{
+
+	function do_center(ll)
+	{
+		var m=latlon2merc(ll);
+		var newzoom=map_zoomlevel;
+		if (newzoom<8)
+			newzoom=8;
+		dozoom_absolute(newzoom,m);
+		return false;
+	}
+	enter_coordinate_impl(do_center);
+	return false;
+}
+function enter_coordinate_impl(dowhat)
 {
 	var cm=document.getElementById("entercoord");
-	cm.style.display="none";	
+	var val=document.getElementById("coordprespos");
+	if (val!=null)
+	{
+		var pos=val.value;
+		var idx=pos.search(',');
+		var lat=parseFloat(pos.substring(0,idx));
+		var lon=parseFloat(pos.substring(idx+1,100));
+		var ll=[lat,lon];
+		if (dowhat(ll))
+			cm.style.display="none";	
+	}
 }
+
 function reorder_wp_impl(idx,delta)
 {
     var odx=idx+delta;
@@ -338,17 +425,17 @@ function on_key(event)
 	}
 */
 }
-keyhandler=on_key
+function dozoom_auto()
+{	
+	var form=document.getElementById('helperform');
+	form.zoom.value='auto';
+	form.submit();
+	return;
+}
+keyhandler=on_key;
 
 function dozoom(how,pos)
 {	
-	if (how=='auto')
-	{
-		var form=document.getElementById('helperform');
-		form.zoom.value='auto';
-		form.submit();
-		return;
-	}
 	if (how<0 && map_zoomlevel<=5)
 		return;
 	if (how>0 && map_zoomlevel>=13)
@@ -358,8 +445,18 @@ function dozoom(how,pos)
 	var newzoom=map_zoomlevel;
 	if (how>0) newzoom+=1;
 	if (how<0) newzoom-=1;
-	
-	
+	dozoom_absolute(newzoom,pos)
+}
+
+function dozoom_absolute(newzoom,pos)
+{	
+	if (newzoom<5)
+		newzoom=5;
+	if (newzoom>13)
+		newzoom=13;
+		
+	var oldzoom=map_zoomlevel;
+		
 	//alert('zoompos:'+pos);
 	var new_zoomcenter=merc2merc(pos,oldzoom,newzoom);
 	var new_desired_topleft=[
@@ -444,16 +541,14 @@ function dozoom(how,pos)
 
 	
 	pan_map(-dx, -dy, true);
-    accum_pan_dx=0;
-    accum_pan_dy=0;
+	accum_pan_dx=0;
+	accum_pan_dy=0;
 	var overlay2=document.getElementById('overlay2');
-    overlay2.style.left=''+(overlay_left)+'px';
-    overlay2.style.top=''+(overlay_top)+'px';
+	overlay2.style.left=''+(overlay_left)+'px';
+	overlay2.style.top=''+(overlay_top)+'px';
 	draw_jg();
 	
-	var what='Zoomed in on point. (zoom level = '+map_zoomlevel+')';
-	if (how<0)
-		what='Zoomed out. (zoom level = '+map_zoomlevel+')';
+	var what='Zoomed to zoom level = '+map_zoomlevel;
 	document.getElementById("footer").innerHTML=what;
 
 }
@@ -1343,7 +1438,7 @@ function upload_areadata()
 	
 	function upload_areadata_impl()
 	{
-		dozoom('auto',0);
+		dozoom_auto();
 	}	
 	showarea=document.getElementById('visualize_data_text').value;
  	save_data(upload_areadata_impl);
