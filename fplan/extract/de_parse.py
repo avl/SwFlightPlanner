@@ -168,7 +168,7 @@ def parse_airfields():
             pos=pos+"E"
         print "ICAO:",icao
         assert icao.upper()==ICAO
-        name=unicode(name,"latin1")
+        name=coding(name)
         lat,lon=mapper.from_str(mapper.parsecoord(pos))
         nasaelev=get_terrain_elev((lat,lon))
         if elev=='':
