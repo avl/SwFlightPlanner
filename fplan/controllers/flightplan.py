@@ -1,7 +1,7 @@
 #encoding=UTF8
 import logging
 import time
-
+from copy import copy
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import redirect
 from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,Stay 
@@ -28,6 +28,7 @@ from fplan.lib.helpers import parse_clock
 import fplan.lib.sunrise as sunrise
 import unicodedata
 import time
+from datetime import timedelta,datetime
 
 def strip_accents(s):
     if type(s)==str:
@@ -124,94 +125,98 @@ class FlightplanController(BaseController):
         #print "Saving tripname:",request.params
         if not self.validate(exception=False,tripname=request.params.get('tripname',False)):
             return ""
-        
-        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==tripuser(),
-             Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all()
-        c.userobj.realname=request.params.get('realname',c.userobj.realname)
-                            
-        for idx,way in enumerate(waypoints):
-            dof_s="date_of_flight_%d"%(way.id,)
-            dep_s="departure_time_%d"%(way.id,)
-            fuel_s="fuel_%d"%(way.id,)
-            persons_s="persons_%d"%(way.id,)
-            
-            name_s="name%d"%(way.id,)
-            way.waypoint=request.params.get(name_s,way.waypoint)
-            
-            if dof_s in request.params:
-                #possibly add new stay
-                if not way.stay:
-                    #print "Adding stay: ord/id",way.ordering,way.id
-                    way.stay=Stay(tripuser(),c.trip.trip,way.id)
-                if re.match(ur"\d{2,4}-?\d{2}\-?\d{2}",request.params.get(dof_s,'')):
-                    way.stay.date_of_flight=request.params.get(dof_s,'')
-                else:
-                    way.stay.date_of_flight=''
-                    
-                if re.match(ur"\d{2}:?\d{2}",request.params.get(dep_s,'')):
-                    way.stay.departure_time=request.params.get(dep_s,'')
-                else:
-                    way.stay.departure_time=''
-                    
-                try:
-                    way.stay.nr_persons=int(request.params[persons_s])
-                except:
-                    way.stay.nr_persons=None
-                way.stay.fuel=None
-                way.stay.fueladjust=None
-                try:
-                    fuelstr=request.params.get(fuel_s,'').strip()
-                    if fuelstr.startswith("+") or fuelstr.startswith("-"):
-                        way.stay.fueladjust=float(fuelstr)
+        try:
+            waypoints=meta.Session.query(Waypoint).filter(sa.and_(
+                 Waypoint.user==tripuser(),
+                 Waypoint.trip==c.trip.trip)).order_by(Waypoint.ordering).all()
+            #print "REquest:",request.params
+            c.userobj.realname=request.params.get('realname',c.userobj.realname)
+                                
+            for idx,way in enumerate(waypoints):
+                dof_s="date_of_flight_%d"%(way.id,)
+                dep_s="departure_time_%d"%(way.id,)
+                fuel_s="fuel_%d"%(way.id,)
+                persons_s="persons_%d"%(way.id,)
+                
+                name_s="name%d"%(way.id,)
+                way.waypoint=request.params.get(name_s,way.waypoint)
+                
+                if dof_s in request.params:
+                    #possibly add new stay
+                    if not way.stay:
+                        #print "Adding stay: ord/id",way.ordering,way.id
+                        way.stay=Stay(tripuser(),c.trip.trip,way.id)
+                    if re.match(ur"\d{2,4}-?\d{2}\-?\d{2}",request.params.get(dof_s,'')):
+                        way.stay.date_of_flight=request.params.get(dof_s,'')
                     else:
-                        way.stay.fuel=float(fuelstr)
-                except:
-                    pass                
-                way.altitude=unicode(int(get_terrain_elev.get_terrain_elev(mapper.from_str(way.pos))))
-            else:
-                #remove any stay
-                meta.Session.query(Stay).filter(sa.and_(
-                    Stay.user==way.user,Stay.trip==way.trip,Stay.waypoint_id==way.id)).delete()
-                way.altitude=u''
-
-        for idx,way in enumerate(waypoints[:-1]):
-            #print "Found waypoint #%d"%(idx,)    
-            route=meta.Session.query(Route).filter(sa.and_(
-                Route.user==tripuser(),
-                Route.trip==c.trip.trip,
-                Route.waypoint1==way.id,
-                )).one()
-            for col,att in [
-                ('W','winddir'),
-                ('V','windvel'),
-                ('TAS','tas'),
-                ('Alt','altitude'),
-                ('Dev','deviation')
-                ]:
-                                                                
-                key="%s_%d"%(col,way.id)
-                if col=='TAS' and not key in request.params:
-                    #TAS is not present if ac.advanced_model==false
-                    continue                
-                val=request.params[key]
-                #print "Value of key %s: %s"%(key,val)
-                if col=="Alt":
-                    setattr(route,att,val[0:6])
-                else:
+                        way.stay.date_of_flight=''
+                        
+                    if re.match(ur"\d{2}:?\d{2}",request.params.get(dep_s,'')):
+                        way.stay.departure_time=request.params.get(dep_s,'')
+                    else:
+                        way.stay.departure_time=''
+                        
                     try:
-                        setattr(route,att,int(val))
+                        way.stay.nr_persons=int(request.params[persons_s])
                     except:
-                        setattr(route,att,0)
-                #print "Setting attrib '%s' of object %s to '%s'"%(att,route,val)
-        
-        if not tripsharing.sharing_active():
-            acname=request.params.get('aircraft','').strip()
-            if acname!="":
-                c.trip.aircraft=acname
+                        way.stay.nr_persons=None
+                    way.stay.fuel=None
+                    way.stay.fueladjust=None
+                    try:
+                        fuelstr=request.params.get(fuel_s,'').strip()
+                        if fuelstr.startswith("+") or fuelstr.startswith("-"):
+                            way.stay.fueladjust=float(fuelstr)
+                        else:
+                            way.stay.fuel=float(fuelstr)
+                    except:
+                        pass                
+                    way.altitude=unicode(int(get_terrain_elev.get_terrain_elev(mapper.from_str(way.pos))))
+                else:
+                    #remove any stay
+                    meta.Session.query(Stay).filter(sa.and_(
+                        Stay.user==way.user,Stay.trip==way.trip,Stay.waypoint_id==way.id)).delete()
+                    way.altitude=u''
+    
+            for idx,way in enumerate(waypoints[:-1]):
+                #print "Found waypoint #%d"%(idx,)    
+                route=meta.Session.query(Route).filter(sa.and_(
+                    Route.user==tripuser(),
+                    Route.trip==c.trip.trip,
+                    Route.waypoint1==way.id,
+                    )).one()
+                for col,att in [
+                    ('W','winddir'),
+                    ('V','windvel'),
+                    ('TAS','tas'),
+                    ('Alt','altitude'),
+                    ('Dev','deviation')
+                    ]:
+                                                                    
+                    key="%s_%d"%(col,way.id)
+                    if col=='TAS' and not key in request.params:
+                        #TAS is not present if ac.advanced_model==false
+                        continue                
+                    val=request.params[key]
+                    #print "Value of key %s: %s"%(key,val)
+                    if col=="Alt":
+                        setattr(route,att,val[0:6])
+                    else:
+                        try:
+                            setattr(route,att,int(val))
+                        except:
+                            setattr(route,att,0)
+                    #print "Setting attrib '%s' of object %s to '%s'"%(att,route,val)
             
-        meta.Session.flush()
-        meta.Session.commit()
+            if not tripsharing.sharing_active():
+                acname=request.params.get('aircraft','').strip()
+                if acname!="":
+                    c.trip.aircraft=acname
+                
+            meta.Session.flush()
+            meta.Session.commit()
+        except Exception,cause:
+            log.error("Save flightplan failed! %s"%(cause,))
+            return ''
         
         return self.get_json_routeinfo(get_route(tripuser(),c.trip.trip)[1])
     def get_json_routeinfo(self,routes):
@@ -667,6 +672,30 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         
         redirect(h.url_for(controller='flightplan',action=request.params.get('prevaction','fuel')))
 
+    def minutemarkings(self):
+        self.standard_prep(c)
+        scale=250000
+        for r in c.route:
+            try:
+                curdt=copy(r.depart_dt)
+                minute=(r.depart_dt.second+r.depart_dt.microsecond/1e6)/60.0
+                gs_ms=(r.gs*1.8520)/3.6
+                if gs_ms<1e-3: return "-"
+                meter_per_min=gs_ms*60.0
+                map_meter_per_min=meter_per_min/scale
+                cm_per_min=100*map_meter_per_min
+                marks=[]
+                cur=(1.0-minute)*cm_per_min
+                while curdt<r.arrive_dt:
+                    marks.append("%.1f"%cur)
+                    cur+=cm_per_min
+                    curdt+=timedelta(0,60)
+                r.marks=", ".join(marks)+" cm"
+            except:
+                r.marks="-"
+            
+        return render("/minutemarkings.mako")
+        
     def get_obstacles(self,routes,vertdist=1000.0,interval=10):        
         byid=dict()
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],

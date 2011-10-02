@@ -38,7 +38,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 </tr>
 </table>
 
-<table border="1" width="100%"> 
+<table border="1" cellspacing="0" cellpadding="4" width="100%"> 
 <tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
 <span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}

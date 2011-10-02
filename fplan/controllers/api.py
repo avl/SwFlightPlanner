@@ -286,6 +286,7 @@ class ApiController(BaseController):
 
     def getnewadchart(self):
         prevstamp=int(request.params["stamp"])
+        print "getnewadchart, prevstamp:",prevstamp
         version=int(request.params["version"])
         #Make any sort of race impossible by substracting 5 minutes from now.
         #A race will now only happen if a file is modified on disk, after this

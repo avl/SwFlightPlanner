@@ -186,26 +186,28 @@ function save_data(cont)
 					
 		    if (!dirty)
 		    {
-                var e=document.getElementById('printablelink');
-                e.innerHTML='<a id="actualprintable" href="'+printableurl+'"><u>Printable</u></a>';
-                var ret=evalJSONRequest(req);
-                update_fields(ret);		    
-			    if (cont!=null)
-			    {
+	                var e=document.getElementById('printablelink');
+        	        e.innerHTML='<a id="actualprintable" href="'+printableurl+'"><u>Printable</u></a>';
+        	        var ret=evalJSONRequest(req);
+        	        update_fields(ret);		    
+   		        if (cont!=null)
+			{
 			    	cont();			    	
-				}		
+			}		
 		    }
-    		else
-    		{
-    			save_data(cont);
-		    	return;
-    		}
+	    	    else
+	    	    {
+	    		save_data(cont);
+			return;
+	    	    }
+		    clear_calculating();
 		}
 		else
 		{
-			alert('Error saving trip');
+			var e=document.getElementById('progmessage');
+			e.innerHTML='Error saving trip - check format of entered values.';
+			e.style.display='block';
 		}
-		clear_calculating();
 	}
 	dirty=0;
 	var params={};

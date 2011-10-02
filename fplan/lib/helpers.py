@@ -116,3 +116,10 @@ def calc_tas(cas,alt):
     return cas*math.sqrt(1.22521/calc_air_density(alt))
 def calc_cas(tas,alt):
     return tas/math.sqrt(1.22521/calc_air_density(alt))
+def minutemarking(gs,scale):
+    if not gs or gs<0.1: return "-"
+    gs_ms=(gs*1.8520)/3.6
+    meter_per_min=gs_ms*60.0
+    map_meter_per_min=meter_per_min/scale
+    cm_per_min=100*map_meter_per_min
+    return "%.3fcm"%(cm_per_min)

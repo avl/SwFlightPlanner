@@ -64,4 +64,6 @@ ALTER TABLE "trip" ADD CONSTRAINT trip_user_fkey1 FOREIGN KEY ("user","aircraft"
 
 alter table "user" add column "fillable" boolean not null default 'false';
 
+alter table "user" add column "fullname" varchar(250) default null;
+
 
