@@ -73,6 +73,7 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2011-10-02: </b>AIP SUP 38/2011 contained some invisible white text on white background, which threw off our parser. The problem has been fixed, but a few android map downloads failed on Saturday because of this.<br />
 <b>Updated 2011-08-27: </b>
 New version! New features include: Automatic determination of variation (magnetic declination), a new optional advanced
 aircraft performance model for more accurate fuel consumption figures, a 'forgot password' feature, and a few minor 

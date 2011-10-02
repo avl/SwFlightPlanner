@@ -42,7 +42,7 @@ def extract_single_sup(full_url,sup,supname,opening_ours):
                 name="%s (on page %d of %s)"%(areaname,pagenr+1,supname)
             else:
                 name="Area on page %d of %s"%(pagenr+1,supname)
-        
+            print "Number of points",len(coords)
             areas.append(dict(
                 url=full_url,
                 pagenr=pagenr+1,

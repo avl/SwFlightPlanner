@@ -7,6 +7,10 @@ def find_areas(page):
         list(page.get_by_regex(r".*?\d{5,7}[EW].*"))
         ,
         key=lambda x:(x.y1,x.x1))
+    #for area in areastarts:
+    #    print "Area font:",area.fontsize,area.font,"bolditalic:",area.bold,area.italic
+    #    print " - Area:",area.text
+        
     print "Found %d area-lines on page"%(len(areastarts),)
     print areastarts
     if len(areastarts)==0: return
@@ -54,6 +58,7 @@ def find_areas(page):
                 print "AREA:"
                 print coords
                 print "===================================="
+                assert len(coords)>=3
                 coordfontsize=process[0].fontsize
                 areaname=None
                 for item in reversed(sorted(page.get_partially_in_rect(0,0,100,process[0].y1),key=lambda x:(x.y1,x.x1))):
@@ -70,7 +75,7 @@ def find_areas(page):
                                 break
                             revname.append(nameitem.text.strip())                                
                         areaname=" ".join(reversed(revname))
-                        break                    
+                        break       
                 yield (areaname,coords,dict(y1=miny,y2=maxy))
         if idx>=len(areastarts): break            
 

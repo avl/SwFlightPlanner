@@ -77,7 +77,9 @@ class ApiController(BaseController):
                 if space['type']=="notamarea":
                     name="NOTAM:"+name
                 clnd=cleanup_poly([mapper.from_str(x) for x in space['points']])
-                if not clnd: continue
+                if not clnd:
+                    print "Skipped area",name,space 
+                    continue
                 out.append(dict(
                     name=name,
                     freqs=space['freqs'] if space.get('freqs',"") else [],
