@@ -103,7 +103,18 @@ notamupdate_table = sa.Table('notamupdate',meta.metadata,
                             onupdate="CASCADE",ondelete="CASCADE"
                             )
                         )
-
+"""
+notamgeo_table = sa.Table('notamgeo',meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('appearnotam',Integer(),sa.ForeignKey("notam.ordinal",onupdate="CASCADE",ondelete="CASCADE"),nullable=False,primary_key=True),
+                        sa.Column('appearline',Integer(),nullable=False,primary_key=True),
+                        sa.Column("points",postgresql.ARRAY(String,mutable=False,as_tuple=True),nullable=False,default=""),
+                        sa.ForeignKeyConstraint(
+                            ['appearnotam', 'appearline'], 
+                            ['notamupdate.appearnotam', 'notamupdate.appearline'],
+                            onupdate="CASCADE",ondelete="CASCADE")
+                        )
+"""
 
 notamack_table = sa.Table('notamack',meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
