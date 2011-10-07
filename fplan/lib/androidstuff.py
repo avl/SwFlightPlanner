@@ -44,12 +44,14 @@ def android_fplan_map_format(airspaces,points,version):
         versionnum=int(version.strip())
     except:
         pass
-    assert versionnum in [0,1,2,3]
+    assert versionnum in [0,1,2,3,4]
     out=StringIO()
     print "Binary download in progress"
 
     def writeFloat(f):
         out.write(pack(">f",f))
+    def writeDouble(f):
+        out.write(pack(">d",f))
     def writeInt(i):
         out.write(pack(">I",i))
     def writeByte(b):
@@ -106,7 +108,10 @@ def android_fplan_map_format(airspaces,points,version):
                 writeUTF(point['adchart_checksum'])
                 writeUTF(point['adchart_url'])
                 for f in point['adchart_matrix']:
-                    writeFloat(f)
+                    if versionnum>=4:
+                        writeDouble(f)
+                    else:
+                        writeFloat(f)
             else:
                 writeByte(0)
         

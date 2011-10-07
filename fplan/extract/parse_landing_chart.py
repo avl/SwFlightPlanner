@@ -96,7 +96,9 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     fetchdata.getcreate_local_data_raw(
                 outpath,outpath2,greyscale)
  
- 
+
+    assert country=='se'
+    assert icao.startswith("ES") 
     blobname=icao
     ckpath=os.path.join(tmppath,"%s.cksum"%(blobname,))
     if os.path.exists(ckpath):
@@ -111,12 +113,37 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     open(ckpath,"w").write(cksum)
     return ret
 
+def purge_old(chartblobnames,country="se"):
+    def find(filename):
+        for chart in chartblobnames:
+            if filename.startswith(chart): return True
+        return False
+    assert country=="se"
+    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
+    for fname in list(os.listdir(tmppath)):
+        if not find(fname):
+            path=os.path.join(tmppath,fname)
+            os.unlink(path)
+            print "Removing file",fname
+        else:
+            print "Keeping",fname
+            
+    
+
 def get_chart(blobname,level,version):
     tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
     blobpath=os.path.join(tmppath,"%s-%d.bin"%(blobname,level))
     ckpath=os.path.join(tmppath,"%s.cksum"%(blobname,))    
     return open(blobpath).read(),open(ckpath).read()
+def get_chart_png(adimg):
+    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts",adimg)
+    return open(tmppath).read()
     
+def get_timestamp(blobname,level):
+    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
+    path=os.path.join(tmppath,"%s-%d.bin"%(blobname,level))
+    return os.path.getmtime(path)
+
 """
 def legacystuff():    
     svg=svg_reader.parsesvg(path,0)

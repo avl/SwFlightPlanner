@@ -59,6 +59,34 @@ def cleanup_poly(latlonpoints):
         #print "Reversed "+latlonpoints
         return reversed(backtomerc)
 
+def get_proj(cksum0):
+    projs=meta.Session.query(AirportProjection).filter(sa.and_(
+                        AirportProjection.mapchecksum==cksum0,
+                        sa.or_(AirportProjection.user=='ank',AirportProjection.user==request.params['user'])
+                        )).all()
+    if len(projs)==0:
+        return None
+#Issues to solve:
+#- It is a problem that AD-charts can change, and we don't have a new tranform. How do handle? Keep old chart for a short while? Ask user to "click the chart"? Send chart without transform?
+#- We need more robust updating of client side. 
+#  Update scenarios:
+#  - New airfield (handled by stamp)
+#  - New matrix (need stamp on matrix itself - already have - just use it!)
+#  - Recover from aborted client download. Don't store client stamp for aborted downloads?
+#  - Renaming map-clicker user? Need to update matrix stamps in this case.
+#
+#QUestion:
+# Can we be more robust? Like sending complete list of client state to server?         
+    
+    for t in projs:
+        if t.user!='ank':
+            proj=t
+            break
+    else:
+        proj=projs[0]
+    return proj
+
+
 class ApiController(BaseController):
 
     no_login_required=True #But we don't show personal data without user/pass
@@ -311,17 +339,25 @@ class ApiController(BaseController):
             response.write(struct.pack(">H",l)) #short
             response.write(encoded)
             
-        tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
+        
         laststamp=0
         charts=[]
         for ad in extracted_cache.get_airfields():
             if 'adchart' in ad:
                 adc=ad['adchart']
                 newer=False
+
+                proj=get_proj(adc['checksum'])
+                if not proj: continue
+                
+                if utcdatetime2stamp_inexact(proj.updated)>prevstamp:                
+                    newer=True
+                
                 for level in xrange(5):
-                    path=os.path.join(tmppath,"%s-%d.bin"%(adc['blobname'],level))
-                    cstamp=os.path.getmtime(path)
-                    print "Read file",path,"stamp:",cstamp,"nowstamp:",nowstamp
+                    
+                    cstamp=parse_landing_chart.get_timestamp(adc['blobname'],level)
+                    
+                    #print "Read file",path,"stamp:",cstamp,"nowstamp:",nowstamp
                     if cstamp>prevstamp:
                         newer=True
                     laststamp=max(laststamp,cstamp)
@@ -336,7 +372,7 @@ class ApiController(BaseController):
         writeInt(len(charts))
         #TODO: Fix problem with response.write not working
         for human,blob in charts:
-            print "Saving"
+            print "New AD-chart not present on device:",human,blob
             writeUTF(blob)
             writeUTF(human)
         writeInt(0xaabbccda)
@@ -379,21 +415,12 @@ class ApiController(BaseController):
             return None
         
         dummy,cksum0=parse_landing_chart.get_chart(blobname=chartname,level=0,version=version)
-        
-        projs=meta.Session.query(AirportProjection).filter(sa.and_(
-                            AirportProjection.mapchecksum==cksum0,
-                            sa.or_(AirportProjection.user=='ank',AirportProjection.user==request.params['user'])
-                            )).all();
-        
-        if len(projs)==0:
+
+        proj=get_proj(cksum0)
+        if proj==None:        
             writeInt(3) #No projection
             return None
-        for t in projs:
-            if t.user!='ank':
-                proj=t
-                break
-        else:
-            proj=projs[0]
+            
         writeInt(0) #no error
         writeInt(1) #version
         

@@ -399,6 +399,7 @@ def extract_airfields(filtericao=lambda x:True):
                             
                             
             #Now find any ATS-airspace
+    chartblobnames=[]
     for ad in ads:        
         icao=ad['icao']
         if icao in big_ad:            
@@ -408,17 +409,18 @@ def extract_airfields(filtericao=lambda x:True):
                     lc=parse_landing_chart.parse_landing_chart(
                             "/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
                             icao=icao,
-                            arppos=arp)
+                            arppos=arp,country="se")
                     assert lc
                     if lc:
                         ad['adcharturl']=lc['url']
-                        ad['adchart']=lc                                                    
+                        ad['adchart']=lc
+                        chartblobnames.append(lc['blobname'])                                                    
                 except Exception,cause:
                     print "Apparently no AD chart for ",icao,cause
                     nochartf.write("Apparently no chart for: %s - %s\n"%(icao,cause))
                     
-            
-
+    parse_landing_chart.purge_old(chartblobnames,country="se")        
+    
     #sys.exit(1)
 
     for extra in extra_airfields.extra_airfields:

@@ -4,6 +4,7 @@ from datetime import datetime
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,AirportProjection,AirportMarker
+import fplan.extract.parse_landing_chart as parse_landing_chart 
 import fplan.extract.extracted_cache as ec
 import fplan.lib.mapper as mapper
 from fplan.model import meta,User,AirportProjection
@@ -152,12 +153,11 @@ class AirportprojController(BaseController):
     
     def showimg(self):
         adimg=request.params['adimg']
-        tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts",adimg)
         response.headers['Content-Type'] = 'image/png'
         response.headers['Pragma'] = ''
         response.headers['Cache-Control'] = 'max-age=20'
 
-        return open(tmppath).read()
+        return parse_landing_chart.get_chart_png(adimg)
     def save(self):
         ad=request.params['ad']        
         for adobj in ec.get_airfields():
