@@ -68,7 +68,7 @@ ${'checked="1"' if acks else ''|n}/>
 <div style="font-size:10px">
 <b>${notamupdate.category}</b> 
 </div>
-<div style="font-size:12px;cursor:pointer" onclick="click_item(${notamupdate.appearnotam},${notamupdate.appearline},0);return true" >
+<div style="font-size:12px;cursor:pointer" onclick="click_item(${notamupdate.appearnotam},${notamupdate.appearline},0);return true;" >
 %for line in notamupdate.text.splitlines():
 ${line}<br/>
 %endfor

@@ -262,7 +262,15 @@ class AirportprojController(BaseController):
         try:
             error,A,T=customproj.solve(ms)
             matrix=list(A)+list(T)
-            proj.matrix=list(A)+list(T)
+            if proj.matrix:
+                oldmatrix=list(proj.matrix)
+                newmatrix=list(A)+list(T)
+                diff=sum(abs(a-b) for a,b in zip(oldmatrix,newmatrix))
+            else:
+                diff=1e30 #enough to trigger update
+            if diff>1e-12:
+                proj.matrix=newmatrix
+                proj.updated=datetime.utcnow()
         except Exception,cause:
             print "Couldn't solve projection equation %s"%(cause,)
                 

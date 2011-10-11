@@ -10,7 +10,7 @@ import fplan.extract.parse_landing_chart as parse_landing_chart
 import StringIO
 #import md5
 from fplan.lib.helpers import md5str,utcdatetime2stamp_inexact
-
+import fplan.lib.customproj as customproj
 import stat
 from fplan.lib.notam_geo_search import get_notam_objs_cached
 import fplan.lib.calc_route_info as calc_route_info
@@ -386,6 +386,8 @@ class ApiController(BaseController):
             response.write(struct.pack(">I",x))
         def writeFloat(f):
             response.write(struct.pack(">f",f))
+        def writeDouble(f):
+            response.write(struct.pack(">d",f))
         def writeUTF(s):
             if s==None: s=u""
             try:
@@ -426,8 +428,15 @@ class ApiController(BaseController):
         
         writeInt(5) #numlevels
         
-        for m in proj.matrix:
-            writeFloat(m)
+        tf=customproj.Transform(proj.matrix[0:4],proj.matrix[4:6])
+        Ai=tf.inverse_matrix()
+        writeDouble(Ai[0,0])
+        writeDouble(Ai[1,0])
+        writeDouble(Ai[0,1])
+        writeDouble(Ai[1,1])
+        writeDouble(proj.matrix[4])
+        writeDouble(proj.matrix[5])
+        print "Writing matrix",Ai," and offset",proj.matrix[4:6],"to client"
             
         writeInt(0xaabbccde)
         for level in xrange(5):            

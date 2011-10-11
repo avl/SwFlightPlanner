@@ -11,7 +11,9 @@ class Transform():
             T=numpy.matrix([[T[0]],[T[1]]])
         self.T=T
         self.A=A
-        self.Ai=linalg.inv(A)    
+        self.Ai=linalg.inv(A)
+    def inverse_matrix(self):
+        return self.Ai    
     def to_pixels(self,pos):    
         r=self.Ai*(numpy.matrix(pos).transpose()-self.T)
         return r[0,0],r[1,0]
