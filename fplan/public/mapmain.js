@@ -378,18 +378,23 @@ function tab_add_waypoint(idx,pos,id,name,altitude)
    	}
    	elem.onclick=onclick_waypoint;
    	*/
-    elem.innerHTML=''+
-    '<td style="cursor:pointer">#'+(idx+1)+':</td>'+
-    '<td><input size="15" style="background:#c0ffc0" type="text" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" onkeydown="setdirty();return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
-    '<img src="/uparrow.png" /><img src="/downarrow.png" /> </td>'+
-    '<td>'+
-    '<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
+    var tdelem1 = document.createElement("td");
+    var tdelem2 = document.createElement("td");
+    var tdelem3 = document.createElement("td");
+
+    tdelem1.innerHTML='#'+(idx+1)+':';
+    //tdelem1.style='cursor:pointer';
+    //alert('add waypoint');
+    tdelem2.innerHTML='<input size="15" style="background:#c0ffc0" type="text" onchange="setdirty();" onkeypress="setdirty();return not_enter(event)" onkeydown="setdirty();return not_enter(event)" name="row_'+idx+'_name" value="'+name+'"/>'+
+    '<img src="/uparrow.png" /><img src="/downarrow.png" /> ';
+    tdelem3.innerHTML='<input type="hidden" name="row_'+idx+'_pos" value="'+latlon[0]+','+latlon[1]+'"/>'+
     '<input type="hidden" name="row_'+idx+'_altitude" value="'+altitude+'"/>'+
-    '<input type="hidden" name="row_'+idx+'_id" value="'+curid+'"/>'+
-    '</td>'+
-    '';
-	
-	tab_renumber(idx);	
+    '<input type="hidden" name="row_'+idx+'_id" value="'+curid+'"/>';
+
+    elem.appendChild(tdelem1);
+    elem.appendChild(tdelem2);
+    elem.appendChild(tdelem3);
+    tab_renumber(idx);	
 	
 }
 function tab_renumber(idx_above)

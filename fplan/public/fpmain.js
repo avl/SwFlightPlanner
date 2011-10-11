@@ -339,27 +339,36 @@ function toggle_landing(id,idx)
         if (!subform)
         {
         	var landingrow=document.getElementById('landingrow'+id);
-        	var s=format_empty_landingrow(id,idx);
-        	landingrow.innerHTML=s;
+        	format_empty_landingrow(landingrow,id,idx);
         }
     }
     else
     {
     	var landingrow=document.getElementById('landingrow'+id);
-    	landingrow.innerHTML='';        
+	while ( landingrow.childNodes.length > 0 )
+	    {
+		landingrow.removeChild( cell.firstChild );
+	    } 
     }
     dirty=1;
 
     save_data(null);
 }
-function format_empty_landingrow(id,idx)
+function format_empty_landingrow(trelem,id,idx)
 {
-    return '<td colspan="'+fpcolnum+'"><table>'+
+    while ( trelem.childNodes.length > 0 )
+	    {
+		trelem.removeChild( cell.firstChild );
+	    } 
+    var tdelem = document.createElement("td");
+    tdelem.colSpan=''+fpcolnum;
+    tdelem.innerHTML='<table>'+
             '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="on_update_all()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
             '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
             '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
             '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
-        	'</table></td>';
+        	'</table>';
+    trelem.appendChild(tdelem);
 }
 function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 {
@@ -400,10 +409,11 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 		var previd=fpid[idx-1];
 		clockstr='<input readonly="1" id="fplanrow'+previd+'Clock" size="4" title="The time at which you arrive at this waypoint." type="text" name="row'+previd+'Clock" value=""/>';		
 	}
-	elem.innerHTML='<td colspan="'+(fpcolnum)+'">#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." type="text" name="name'+id+'" onchange="makedirty();" onkeydown="makedirty();" id="name'+id+'" value="'+name+'"/>'+
-		clockstr+
-	    landheres+
-	    '</td>';
+	var wpname = document.createElement("td");
+	wpname.colSpan=''+fpcolnum;
+	wpname.innerHTML='#'+(idx+1)+': <input title="Name of waypoint. Go to map-screen to change." type="text" name="name'+id+'" onchange="makedirty();" onkeydown="makedirty();" id="name'+id+'" value="'+name+'"/>'+
+		clockstr+landheres;
+	elem.appendChild(wpname);
 	    
 
 	if (rowdata!=null && rowdata.length>0)
@@ -411,9 +421,10 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 	
 	
 		var elem=tab.insertRow(-1);
-		var s='';
 		for(var i=0;i<rowdata.length;++i)
 		{	
+			var tdelem = document.createElement("td");
+
 			var ro='';
 			var wh=fpcolshort[i];
 			if (wh=='Clock')
@@ -427,9 +438,9 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 				ro='onkeyup="on_update('+id+',\''+wh+'\')"  onchange="on_update('+id+',\''+wh+'\')"'; 
 			    modifiable_cols.push(wh);
 			}
-			s=s+'<td><input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+id+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/></td>\n';		
+			tdelem.innerHTML='<input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+id+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/>';	
+			elem.appendChild(tdelem);
 		}
-		elem.innerHTML=s;
 		
 		landelem.id='landingrow'+id;
         
@@ -439,8 +450,7 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
             var time=stay[1];
             var fuel=stay[2];
             var persons=stay[3];
-        	var s=format_empty_landingrow(id,idx);
-        	landelem.innerHTML=s;
+		format_empty_landingrow(landelem,id,idx);
         	landelem.cells[0].childNodes[0].rows[0].cells[1].childNodes[0].value=date;
         	landelem.cells[0].childNodes[0].rows[1].cells[1].childNodes[0].value=time;
         	landelem.cells[0].childNodes[0].rows[2].cells[1].childNodes[0].value=fuel;

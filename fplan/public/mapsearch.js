@@ -46,7 +46,6 @@ function searchsel(delta)
 
 function on_search_keydown(event)
 {
-	
 	if (searchpopup)
 	{	
 		//38=up, 40=ner, 13 = enter
@@ -65,8 +64,8 @@ function on_search_keydown(event)
 			if (searchpopup_sel>=0 && searchpopup_sel<searchlastdata.length)
 			{
 				add_searched_waypoint(searchpopup_sel);
-        	    document.getElementById('searchfield').value='';
-            	remove_searchpopup();	
+				document.getElementById('searchfield').value='';
+        		    	remove_searchpopup();	
 			}
 			if (searchpopup_sel==-1)
 			{

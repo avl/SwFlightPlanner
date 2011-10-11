@@ -34,6 +34,7 @@ inprog=[];
 queued=[];
 function mark_notam(notam,line,marked)
 {
+
     if (inprog.length>0)
     {
         queued.push([notam,line,marked]);
@@ -78,6 +79,7 @@ function mark_notam(notam,line,marked)
 }
 function click_item(notam,line,already_toggled)
 {
+
     var e=document.getElementById('notam_'+notam+'_'+line);
     if (already_toggled==0)
     {
