@@ -3,6 +3,7 @@
 *mako.py
 .sconsign.dblite
 *.so
+*.o
 *.os
 *_wrap.cc
 *_wrap.os
@@ -18,5 +19,11 @@ aipdata*cache*
 Pyro_NS_URI
 /notams
 /fplanquick/fplanquick.py
-
+fplan/extract/lands.bin
+extract_airfields.regress*
+*wrap.cxx
+.project
+.pydevproject
+.settings
+tmp
 
