@@ -21,7 +21,8 @@ class ProfileController(BaseController):
         c.changepass=request.params.get('changepass','')
         c.splash=request.params.get('splash','')
         fullname=request.params.get('username',
-                    user.fullname if user.isregistered else '')
+                    user.fullname if user.isregistered and user.fullname else user.user)
+        print "User full name",user.fullname
         c.user=fullname
         c.password=''
         print "User realname:",user.realname

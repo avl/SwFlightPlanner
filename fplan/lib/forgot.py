@@ -34,7 +34,7 @@ def decode_challenge(challenge):
     
 
 def forgot_password(user):
-    if user.fullname!=None:
+    if user.fullname!=None and user.fullname:
         fullname=user.fullname
     else:
         fullname=user.user
