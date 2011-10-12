@@ -23,8 +23,8 @@
 <td style="width:100%;text-align:center">
 <h1>Welcome to SwFlightPlanner (BETA)!</h1>
 %if c.browserwarningheader:
-<div style="font-size:30px;background-color:#ffb0b0;border-width:1px    ">${c.browserwarningheader|n}</div>
-<div style="font-size:15px;background-color:#ffb0b0">${c.browserwarning|n}</div>
+<div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
+<div style="font-size:15px;">${c.browserwarning|n}</div>
 
 %endif
 </td>
@@ -73,6 +73,7 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2011-10-11: </b>Support for Internet Explorer! The site is now tested using IE6, although later versions should also work.<br />
 <b>Updated 2011-08-27: </b>
 New version! New features include: Automatic determination of variation (magnetic declination), a new optional advanced
 aircraft performance model for more accurate fuel consumption figures, a 'forgot password' feature, and a few minor 

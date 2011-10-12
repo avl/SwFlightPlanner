@@ -156,7 +156,7 @@ class NotamController(BaseController):
         return redirect(h.url_for(controller='notam',action="index"))
 
     def mark(self):
-        print "Mark notam called",request.params
+
         out=[]
         for notam,line,marked in json.loads(request.params['toggle']):
             acks=meta.Session.query(NotamAck).filter(

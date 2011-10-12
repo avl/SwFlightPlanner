@@ -66,19 +66,10 @@ class SplashController(BaseController):
         
         if ua.count("msie") and not (ua.count("firefox") or ua.count("chrome")):
             #MSIE detect
-            m=re.search(r"msie\s+(\d+)\.(\d+)",ua)
-            if m:
-                major,minor=m.groups()
-                if int(major)>=9:
-                    c.browserwarningheader=u"You are running Internet Explorer 9+"
-                    c.browserwarning=u"This is not recommended, although it might work."+\
-                        u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
-                        u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";
-            if c.browserwarningheader==None:
-                c.browserwarningheader=u"You are running an old version of Internet Explorer"
-                c.browserwarning=u"This site does not support Internet Explorer, due to our limited resources."+\
-                    u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
-                    u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";
+            c.browserwarningheader=u"You are running Internet Explorer."
+            c.browserwarning=u"This is not recommended, although it should  work."+\
+                u"Please install <a style=\"color:#4040ff\" href=\"http://www.google.com/chrome/\">Google Chrome</a> "+\
+                u"or <a style=\"color:#4040ff\" href=\"http://www.firefox.com\">Mozilla Firefox</a>.<br/> It's easy!";
         return render('/splash.mako')
     def surefail(self):
         raise Exception("THis failed.")

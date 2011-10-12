@@ -410,7 +410,7 @@ function tab_renumber_single(i)
 	var glist=document.getElementById('tab_fplan');
 	var rowelem=glist.rows[i];		
 	rowelem.cells[0].innerHTML='#'+(i+1)+':';
-	rowelem.cells[0].oncontextmenu=function(ev) { rightclick_waypoint_tab(i,ev); return false; };
+	rowelem.cells[0].oncontextmenu=function(event) { rightclick_waypoint_tab(i,event); return false; };
 	rowelem.cells[0].onclick=function(ev) { select_waypoint(i); clear_mapinfo(); hidedetailpane(); return false; };
 	
 	rowelem.cells[1].childNodes[0].onclick=function(ev) { select_waypoint(i); return false; };
@@ -424,11 +424,6 @@ function tab_renumber_single(i)
 
 function on_key(event)
 {
-/*
-	if (event.which==67)
-	{
-	}
-*/
 }
 function dozoom_auto()
 {	
@@ -818,6 +813,7 @@ function on_rightclickmap(event)
 function rightclick_waypoint_tab(idx,event)
 {
 	var relxy=wps[idx];
+	event=event || window.event;
 //	as_if_rightclick(relxy[0],relxy[1],event);
 	var cm=document.getElementById("mmenu");
 	document.getElementById('menu-move').style.display='block';
@@ -827,6 +823,7 @@ function rightclick_waypoint_tab(idx,event)
 	popupvisible=1;	
 	cm.style.left=''+event.clientX+'px';
 	cm.style.top=''+event.clientY+'px';
+	
 	lastrightclickwaypoint=idx;
 	lastrightclickx=relxy[0];
 	lastrightclicky=relxy[1];
@@ -1229,7 +1226,9 @@ function show_mapinfo(mercx,mercy)
 }
 function on_mouseup(event)
 {
-	if (event.which!=1)
+	event=event || window.event;
+	var button=event.which || event.button;
+	if (button!=1)
 	{	 //not left button
 		return true;
 	}
@@ -1313,13 +1312,24 @@ function on_mouseup(event)
 }
 function on_mousedown(event)
 {
-	if (event.which!=1)
+//	alert('Mousedown');
+	event=event || window.event;
+	var button=event.which || event.button;
+	if (button!=1)
 	{	 //not left button
 		return true;
 	}
+	if (event.stopPropagation)
+	{
+		event.stopPropagation();
+	}
 	if(event.preventDefault) //prevent imagedrag on firefox
 	{
-	  event.preventDefault();
+		event.preventDefault();
+	}
+	else
+	{
+		event.returnValue = false;
 	}
 	mouse_is_down=1;
 	end_drag_mode(event.clientX,event.clientY);
@@ -1394,6 +1404,7 @@ accum_pan_dx=0;
 accum_pan_dy=0;
 function on_mousemovemap(event)
 {
+	event=event || window.event;
 	last_mousemove_x=event.clientX;
 	last_mousemove_y=event.clientY;
 	var mercy=client2merc_y(event.clientY);

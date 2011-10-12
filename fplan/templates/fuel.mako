@@ -86,7 +86,7 @@ ${route.a.waypoint}</td><td> ${route.b.waypoint}
 <td>${"%.1f"%(route.accum_fuel_left,) if route.accum_fuel_left else '--'}</td>
 <td>${"%.0f"%(route.startalt+0.01,) if route.startalt else '--'}</td>
 <td>${"%.0f"%(route.endalt+0.01,) if route.endalt else '--'}</td>
-<td>${"%.0ffpm"%(route.altrate+0.01,) if route.altrate else '--'}</td>
+<td>${"%.0ffpm"%(route.altrate+0.01,) if hasattr(route,'altrate') and route.altrate else '--'}</td>
 </td>
 
 </tr>
