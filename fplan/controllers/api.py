@@ -48,9 +48,10 @@ def cleanup_poly(latlonpoints):
             mercpoints.append(Vertex(int(merc[0]),int(merc[1])))
         if len(mercpoints)<50:
             break
-    assert len(mercpoints)>2
+    if len(mercpoints)<=2: return None
     if mercpoints[0]==mercpoints[-1]:
         del mercpoints[-1]
+    if len(mercpoints)<=2: return None
     poly=Polygon(vvector(mercpoints))
     backtomerc=[mapper.merc2latlon((m.get_x(),m.get_y()),13) for m in mercpoints]
     if poly.is_ccw():
@@ -103,13 +104,17 @@ class ApiController(BaseController):
                 name=space['name']
                 if space['type']=="notamarea":
                     name="NOTAM:"+name
+                clnd=cleanup_poly([mapper.from_str(x) for x in space['points']])
+                if not clnd:
+                    print "Skipped area",name,space 
+                    continue
                 out.append(dict(
                     name=name,
                     freqs=space['freqs'] if space.get('freqs',"") else [],
                     floor=space.get('floor',""),
                     type=space['type'],
                     ceiling=space.get('ceiling',""),
-                    points=[dict(lat=p[0],lon=p[1]) for p in cleanup_poly([mapper.from_str(x) for x in space['points']])]))
+                    points=[dict(lat=p[0],lon=p[1]) for p in clnd]))
             
         points=[]
         print "version",request.params.get("version",None)

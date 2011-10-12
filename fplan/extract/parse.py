@@ -11,7 +11,7 @@ from itertools import repeat
 from copy import copy
 
 class Item(object):
-    def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None,bold=False,italic=False):
+    def __init__(self,text,x1,y1,x2,y2,font=None,fontsize=None,bold=False,italic=False,color="#000000"):
         self.text=text
         self.x1=x1
         self.y1=y1
@@ -22,6 +22,7 @@ class Item(object):
         self.fontsize=fontsize
         self.bold=bold
         self.italic=italic
+        self.color=color
     def __repr__(self):
         return "Item(%.1f,%.1f - %.1f,%.1f : %s)"%(self.x1,self.y1,self.x2,self.y2,repr(self.text))
 def uprint(s):
@@ -236,9 +237,10 @@ class Parser(object):
             for fontspec in page.findall(".//fontspec"):
                 fontid=int(fontspec.attrib['id'])
                 fontsize=int(fontspec.attrib['size'])
+                fontcolor=fontspec.attrib.get('color','#000000')
                 if fontid in self.fonts:
                     assert self.fonts[fontid]['size']==fontsize
-                self.fonts[fontid]=dict(size=fontsize)
+                self.fonts[fontid]=dict(size=fontsize,color=fontcolor)
         
         return url,xml
         
@@ -276,9 +278,14 @@ class Parser(object):
             fontobj=fonts.get(fontid,None)
             if fontobj:
                 fontsize=fontobj.get('size',None)
+                color=fontobj.get('color',"#000000")
             else:
                 fontsize=None
+                color="#000000"
 
+            #print "Parsed fontid: %d, known: %s (size:%s)"%(fontid,fonts.keys(),fontsize)
+            if color.lower()=="#ffffff":
+                continue
             it=Item(text=" ".join(t),
               x1=float(item.attrib['left']),
               x2=float(item.attrib['left'])+float(item.attrib['width']),
@@ -287,7 +294,8 @@ class Parser(object):
               font=fontid,
               fontsize=fontsize,
               bold=bold,
-              italic=italic
+              italic=italic,
+              color=color
               )
             out.append(it)
         if donormalize:
@@ -314,7 +322,8 @@ class Parser(object):
                 fontsize=item.fontsize,
                 font=item.font,
                 bold=item.bold,
-                italic=item.italic
+                italic=item.italic,
+                color=item.color
                 )
     def get_url(self):
         return self.url
