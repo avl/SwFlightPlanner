@@ -129,7 +129,7 @@ function loadmap()
 	'<div class="popopt" onclick="add_waypoint_here(event);">Add Waypoint Here</div>'+ 
 	'<div class="popopt" onclick="hidepopup()">Close menu</div>'+
 	'</div>'+
-	'<div id="entercoord" class="opopup">'+
+	'<div id="entercoord" class="opopup" style="display:none">'+
 	'<h2>Enter coordinates:</h2>'+
 	'<div>'+
 	'<input type="text" id="coordfield" onchange="oncoordchange()" onkeyup="oncoordchange()"/>'+
