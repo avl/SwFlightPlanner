@@ -61,7 +61,9 @@ ${ac.aircraft}
 
 <tr>
 <td>Registration:</td><td><input type="hidden" name="orig_aircraft" value="${c.orig_aircraft}" />
-<input type="text" name="aircraft" value="${c.ac.aircraft}" />(Example: SE-ABC)</td>
+<input type="text" ${'style="background:#ff8080;"' if c.aircraft_name_error else ''|n} name="aircraft" value="${c.ac.aircraft}" />
+${c.aircraft_name_error if c.aircraft_name_error else '(Example: SE-ABC)'} 
+</td>
 </tr>
 
 <tr>
