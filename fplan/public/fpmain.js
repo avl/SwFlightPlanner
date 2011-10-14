@@ -4,6 +4,17 @@ in_prog=0;
 cache={};
 recursion=0;
 
+
+function get_rownum(searchfpid)
+{
+	for(var i=0;i<num_rows;++i)
+	{
+		if (fpid[i]==searchfpid)
+			return i;
+	}
+	return null;
+}
+
 function set_calculating()
 {
 	var e=document.getElementById('progmessage');
@@ -76,6 +87,42 @@ function on_update_all()
 	makedirty();
 	clear_fields();
 	save_data(null);
+}
+function on_focus(id,wcol)
+{
+	function dofocus()
+	{
+		gete(id,wcol).select();	
+	}
+	setTimeout(dofocus,0); //Get around chrome-bug
+}
+function on_keydown(event,id,wcol)
+{
+	function movefocus(id,wcol)
+	{
+		var vid='fplanrow'+id+wcol;
+		var e=document.getElementById(vid);
+		if (e)
+		{
+			e.focus();			
+		}
+	}
+	if (event.which==38 || event.which==40)
+	{
+		var row=get_rownum(id);
+		if (event.which==38)
+		{ //up	
+			row-=1;
+		}
+		if (event.which==40)
+		{ //down
+			row+=1;
+		} 
+		if (row<0) row=0;
+		if (row>=num_rows) row=num_rows-1;
+		movefocus(fpid[row],wcol);
+		return false;
+	}
 }
 function on_update(id,wcol)
 {
@@ -435,7 +482,7 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 			}
 			else
 			{
-				ro='onkeyup="on_update('+id+',\''+wh+'\')"  onchange="on_update('+id+',\''+wh+'\')"'; 
+				ro='onkeyup="on_update('+id+',\''+wh+'\')" onfocus="on_focus('+id+',\''+wh+'\')" onkeydown="on_keydown(event,'+id+',\''+wh+'\')" onchange="on_update('+id+',\''+wh+'\')"'; 
 			    modifiable_cols.push(wh);
 			}
 			tdelem.innerHTML='<input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+id+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/>';	
