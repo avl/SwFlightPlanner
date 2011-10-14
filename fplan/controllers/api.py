@@ -515,12 +515,14 @@ class ApiController(BaseController):
             meta.Session.add(down)
         else:
             down=latest
-            down.bytes+=maxlen
-        
-        f=open(levelfile)
+            #Bug: If a user downloads to two devices at the same time, this may fail:
+            #Since the download-element could have been removed (bytes is part of the
+            #primary key for some reason!)
+            down.bytes+=maxlen        
         meta.Session.flush()
         meta.Session.commit()
-        
+        f=open(levelfile)
+
         if offset<curlevelsize:
             print "seeking to %d of file %s, then reading %d bytes"%(offset,levelfile,maxlen)
             f.seek(offset)

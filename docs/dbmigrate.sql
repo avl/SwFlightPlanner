@@ -66,4 +66,6 @@ alter table "user" add column "fillable" boolean not null default 'false';
 
 alter table "user" add column "fullname" varchar(250) default null;
 
+#version 12
+alter table "download" drop constraint "download_pkey";alter table "download" add constraint download_pkey PRIMARY KEY ("user","when");
 
