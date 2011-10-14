@@ -86,7 +86,7 @@ class AirportprojController(BaseController):
             proj=AirportProjection()
             proj.user=session['user']
             proj.airport=ad
-            proj.mapchecksum=adobj['adchart']['checksum']
+            proj.mapchecksum=str(adobj['adchart']['checksum'])
             proj.updated=datetime.utcnow()
             proj.matrix=[1,0,0,1,0,0]
             meta.Session.add(proj)
