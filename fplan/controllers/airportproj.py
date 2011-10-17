@@ -57,7 +57,7 @@ class AirportprojController(BaseController):
             for proj in meta.Session.query(AirportProjection).filter(sa.and_(
                     AirportProjection.user==session['user'],
                     AirportProjection.airport==ad['name'])).order_by(AirportProjection.updated).all():
-                current=(proj.mapchecksum==ad['adchart']['checksum'])
+                current=(proj.mapchecksum==str(ad['adchart']['checksum']))
                 date=proj.updated
                 airport=proj.airport
                 marks=meta.Session.query(AirportMarker).filter(sa.and_(
@@ -78,22 +78,25 @@ class AirportprojController(BaseController):
             self.error("No such airport"+ad)
         projs=meta.Session.query(AirportProjection).filter(sa.and_(
                     AirportProjection.user==session['user'],
-                    AirportProjection.airport==ad)).all()
+                    AirportProjection.airport==ad,
+                    AirportProjection.mapchecksum==adobj['adchart']['checksum'])).all()
         c.markers=meta.Session.query(AirportMarker).filter(sa.and_(
                     AirportMarker.user==session['user'],
-                    AirportMarker.airport==ad)).order_by(AirportMarker.latitude,AirportMarker.longitude,AirportMarker.x,AirportMarker.y).all()
+                    AirportMarker.airport==ad,
+                    AirportMarker.mapchecksum==adobj['adchart']['checksum'])).order_by(AirportMarker.latitude,AirportMarker.longitude,AirportMarker.x,AirportMarker.y).all()
         if not projs:            
             proj=AirportProjection()
             proj.user=session['user']
             proj.airport=ad
             proj.mapchecksum=str(adobj['adchart']['checksum'])
             proj.updated=datetime.utcnow()
-            proj.matrix=[1,0,0,1,0,0]
+            proj.matrix=(1,0,0,1,0,0)
             meta.Session.add(proj)
             meta.Session.flush()
             meta.Session.commit()
         else:
             proj,=projs
+            proj.mapchecksum=str(proj.mapchecksum)
             
         A=proj.matrix[0:4]
         T=proj.matrix[4:6]
@@ -218,7 +221,7 @@ class AirportprojController(BaseController):
             m=AirportMarker()
             m.user=session['user']
             m.airport=ad
-            m.mapchecksum=mapchecksum
+            m.mapchecksum=str(mapchecksum)
             m.x=int(val['x'])
             m.y=int(val['y'])
             
@@ -234,7 +237,8 @@ class AirportprojController(BaseController):
 
         proj=meta.Session.query(AirportProjection).filter(sa.and_(
             AirportProjection.user==session['user'],
-            AirportProjection.airport==ad)).one()
+            AirportProjection.airport==ad,
+            AirportProjection.mapchecksum==str(mapchecksum))).one()
 
         def both_lat_lon(x):
             return x.latitude and x.longitude
@@ -269,11 +273,12 @@ class AirportprojController(BaseController):
             else:
                 diff=1e30 #enough to trigger update
             if diff>1e-12:
-                proj.matrix=newmatrix
-                proj.updated=datetime.utcnow()
+                proj.matrix=tuple(newmatrix)
+                proj.updated=datetime.utcnow().replace(microsecond=0)
         except Exception,cause:
             print "Couldn't solve projection equation %s"%(cause,)
-                
+
+        print "About to save",proj,"matrix:",proj.matrix,"time",proj.updated
         meta.Session.flush();
         meta.Session.commit();
         

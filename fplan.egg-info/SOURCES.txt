@@ -92,6 +92,7 @@ fplan/lib/base.py
 fplan/lib/bbtree.py
 fplan/lib/blobfile.py
 fplan/lib/bsptree.py
+fplan/lib/calc_max_tiles.py
 fplan/lib/calc_route_info.py
 fplan/lib/cessna_performance_model.py
 fplan/lib/create_merc_elevmap.py
@@ -138,11 +139,9 @@ fplan/public/downarrow.png
 fplan/public/favicon.ico
 fplan/public/favicon.png
 fplan/public/fpmain.js
-fplan/public/fpmain.js~
 fplan/public/lib.js
 fplan/public/loading.png
 fplan/public/mapmain.js
-fplan/public/mapmain.js~
 fplan/public/mapmath.js
 fplan/public/mapsearch.js
 fplan/public/mwheel.js
@@ -152,7 +151,6 @@ fplan/public/oldindex.html
 fplan/public/pylons-logo.gif
 fplan/public/robots.txt
 fplan/public/style.css
-fplan/public/style.css~
 fplan/public/uparrow.png
 fplan/public/wz_jsgraphics.js
 fplan/templates/about.mako
@@ -178,6 +176,7 @@ fplan/templates/recordings.mako
 fplan/templates/share.mako
 fplan/templates/splash.mako
 fplan/templates/splash.txt
+fplan/templates/splash.txt~
 fplan/tests/__init__.py
 fplan/tests/test_models.py
 fplan/tests/functional/__init__.py
