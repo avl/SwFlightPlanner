@@ -88,7 +88,7 @@ class AirportprojController(BaseController):
             proj.airport=ad
             proj.mapchecksum=str(adobj['adchart']['checksum'])
             proj.updated=datetime.utcnow()
-            proj.matrix=[1,0,0,1,0,0]
+            proj.matrix=(1,0,0,1,0,0)
             meta.Session.add(proj)
             meta.Session.flush()
             meta.Session.commit()
@@ -269,7 +269,7 @@ class AirportprojController(BaseController):
             else:
                 diff=1e30 #enough to trigger update
             if diff>1e-12:
-                proj.matrix=newmatrix
+                proj.matrix=tuple(newmatrix)
                 proj.updated=datetime.utcnow()
         except Exception,cause:
             print "Couldn't solve projection equation %s"%(cause,)

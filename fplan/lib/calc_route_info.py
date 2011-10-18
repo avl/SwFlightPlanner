@@ -400,7 +400,11 @@ def max_revclimb_feet(end_alt,dist_nm,ac,rt):
 
     
 class DummyAircraft(object):pass
+
 def get_route(user,trip):
+    return get_route_prepare(user,trip,get_route_impl)
+
+def get_route_prepare(user,trip,action):
     start=time()
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==user,Trip.trip==trip)).one()
@@ -413,6 +417,8 @@ def get_route(user,trip):
         rts=list(meta.Session.query(Route).filter(sa.and_(
             Route.user==user,Route.trip==trip,
             Route.waypoint1==a.id,Route.waypoint2==b.id)).all())
+        
+        
         assert len(rts)<2 and len(rts)>=0
         if len(rts)==0:
             rt=Route(user=user,trip=trip,waypoint1=a.id,waypoint2=b.id,winddir=None,windvel=None,tas=None,variation=None,altitude="1000")
@@ -422,16 +428,12 @@ def get_route(user,trip):
         rt.a=a
         rt.b=b        
         routes.append(rt)
-    
-    for prev,next in zip(routes[:-1],routes[1:]):
-        next.prevrt=prev
-        prev.nextrt=next
-    
+        
     acs=meta.Session.query(Aircraft).filter(sa.and_(
         Aircraft.user==user,Aircraft.aircraft==tripobj.aircraft)).all()
-    dummyac=False
     if len(acs)==1:
         ac,=acs
+        dummyac=False
     else:    
         ac=DummyAircraft()
         ac.advanced_model=False
@@ -444,9 +446,15 @@ def get_route(user,trip):
         ac.climb_burn=0
         ac.descent_burn=0
         dummyac=True
+
     
+    
+    for prev,next in zip(routes[:-1],routes[1:]):
+        next.prevrt=prev
+        prev.nextrt=next    
         
-    for rt in routes:
+    for rt in routes:                    
+        
         rt.tt,D=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
         rt.d=D
         if dummyac:
@@ -474,13 +482,6 @@ def get_route(user,trip):
             else:
                 rt.descent_ratio=0
             
-
-
-
-        
-    
-            
-    
     cone_min=None
     cone_max=None
     cone_start=None
@@ -495,37 +496,161 @@ def get_route(user,trip):
         else:
             #this can be optimized, since the next calculation basically
             #needs to recalculate 50% of the route on average for each call.
-            #(It calculates from the last stay upt o the current waypoint).
+            #(It calculates from the last stay up to the current waypoint).
             cone_max=max_revdescent_feet(cone_start,cone_dist,ac,rt)
             cone_min=max_revclimb_feet(cone_start,cone_dist,ac,rt)
         rt.cone_min=cone_min
         rt.cone_max=cone_max
         cone_dist+=rt.d
+        
+    
+    
+    res,routes=action(tripobj,waypoints,routes,ac,dummyac)
+    
+    def val(x):
+        if x==None: return 0.0
+        return x
+        
+    for rt in routes: 
+        rt.variation=0
+        if rt.depart_dt!=None and rt.arrive_dt!=None: 
+            startvar=calc_declination(mapper.from_str(rt.a.pos),rt.depart_dt,rt.subs[0].startalt)
+            endvar=calc_declination(mapper.from_str(rt.b.pos),rt.arrive_dt,rt.subs[-1].endalt)
+            if startvar!=None and endvar!=None:
+                rt.variation=0.5*(startvar+endvar)
+        rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
+        #for sub in rt.subs:
+        #    sub.ch=(sub.tt+sub.wca-val(rt.variation)-val(rt.deviation))%360.0
+
+            
+    
+    return res,routes
 
 
+def calc_alts(prev_alt,rt,mid_alt,idx,numroutes,ac):
+    if rt.a.stay:
+        alt1=float(get_pos_elev(mapper.from_str(rt.a.pos)))
+        if prev_alt==None: prev_alt=alt1
+    else:                        
+        if prev_alt==None or idx==0:
+            prev_alt=float(get_pos_elev(mapper.from_str(rt.a.pos)))                            
+        alt1=prev_alt
+    if rt.b.stay:
+        alt2=float(get_pos_elev(mapper.from_str(rt.b.pos)))
+    else:            
+        alt2=mid_alt
+        if idx==numroutes-1:
+            alt2=float(get_pos_elev(mapper.from_str(rt.b.pos)))
+        if alt2>rt.cone_max: alt2=rt.cone_max
+        if alt2<rt.cone_min: alt2=rt.cone_min
+        if alt2>alt1:
+            m=max_climb_feet(alt1,rt.d,ac,rt)
+            alt2=min(alt2,m)
+        elif alt2<alt1:
+            m=max_descent_feet(alt1,rt.d,ac,rt)
+            alt2=max(alt2,m)
+    
+    mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,ac,rt)
+    return alt1,mid_alt,alt2,was_capped
+
+
+class Node(object):
+    def __init__(self,idx,altitude):
+        self.idx=idx
+        self.altitude=altitude
+        self.best_time=1e30
+        
+    def visit(self,time,):
+        if self.best_time>time:
+            self.best_time=time
+            return True
+        return False
+#asdf continue here ^ ^        
+
+def get_optimized(user,trip):
+    def action(tripobj,waypoints,routes,ac,dummyac):
+
+        accum_fuel=0.0
+        accum_fuel_used=0.0
+        accum_time=0.0
+        accum_dt=0.0
+        tot_dist=0.0
+        prev_alt=None
+        fastest=[0 for x in xrange(10)]
+        numroutes=len(routes)
+        for idx,rt in enumerate(routes):
+                        
+            print "rt.tas",rt.tas
+                
+            if rt.a.stay:
+                accum_fuel,accum_dt=calc_stay(rt,accum_fuel,accum_dt)
+                    
+            
+            rt.a.dt=copy(accum_dt)
+            for altcand in xrange(10):
+                desired_mid_alt=1000*altcand
+                
+                
+                
+                alt1,mid_alt,alt2,was_capped=calc_alts(prev_alt,rt,desired_mid_alt,idx,numroutes,ac)
+                
+                print "capped mid_alt",mid_alt,was_capped
+                                    
+                res=[]
+                (tres,taccum_fuel,taccum_fuel_used,
+                 taccum_time,taccum_dt,ttot_dist,tprev_alt)=\
+                    calc_one_leg(idx,rt,
+                                 res,accum_fuel,accum_fuel_used,
+                                 accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt1,alt2,ac)
+                
+                   
         
         
-    def calc_midburn(tas,alt):
-        if ac.advanced_model:            
-            return ac.adv_cruise_burn[getalti(alt)]
-        else:
-            if tas>ac.cruise_speed:
-                f=(tas/ac.cruise_speed)**3
-                return ac.cruise_burn*f        
-            f2=(tas/ac.cruise_speed)
-            if f2<0.75:
-                f2=0.75 #Don't assume we can fly slower than 75% of cruise, and still not waste fuel
-            return f2*ac.cruise_burn
+        return res,routes
+    return get_route_prepare(user,trip,action)
+
+
+def calc_stay(rt,accum_fuel,accum_dt):
+    stay=rt.a.stay
+    if stay.fuel!=None:
+        accum_fuel=stay.fuel
+    else:
+        if stay.fueladjust!=None and accum_fuel!=None:
+            accum_fuel+=stay.fueladjust
+    if stay.date_of_flight!=None and stay.date_of_flight.strip()!="":
+        try:
+            pd=parse_date(stay.date_of_flight.strip())
+            accum_dt=accum_dt.\
+                replace(year=pd.year).\
+                replace(month=pd.month).\
+                replace(day=pd.day)
+        except Exception,cause:
+            print "Couldn't parse date",stay.date_of_flight
+    if stay.departure_time!=None and stay.departure_time.strip()!="":
+        try:
+            tempclock=parse_clock(stay.departure_time.strip())
+            accum_dt=accum_dt.replace(
+                    hour=0,minute=0,second=0,microsecond=0)+\
+                    timedelta(0,3600*tempclock)
+        except Exception,cause:
+            print "Couldn't parse departure time %s"%(stay.departure_time)
+            pass
+        
+    return accum_fuel,accum_dt
+
+def get_route_impl(tripobj,waypoints,routes,ac,dummyac):        
+        
     res=[]
     accum_fuel=0
     accum_fuel_used=0
     accum_time=0
-    #accum_clock=0
     accum_dt=datetime.utcnow()
     tot_dist=0
     prev_alt=None    
     numroutes=len(routes)
     for idx,rt in enumerate(routes):
+        
+        
         print "rt.tas",rt.tas
         if dummyac:
             tas=rt.tas
@@ -535,32 +660,7 @@ def get_route(user,trip):
         
 
         if rt.a.stay:
-            stay=rt.a.stay
-            if stay.fuel!=None:
-                accum_fuel=stay.fuel
-            else:
-                if stay.fueladjust!=None and accum_fuel!=None:
-                    accum_fuel+=stay.fueladjust
-            if stay.date_of_flight!=None and stay.date_of_flight.strip()!="":
-                try:
-                    pd=parse_date(stay.date_of_flight.strip())
-                    accum_dt=accum_dt.\
-                        replace(year=pd.year).\
-                        replace(month=pd.month).\
-                        replace(day=pd.day)
-                except Exception,cause:
-                    print "Couldn't parse date",stay.date_of_flight
-            if stay.departure_time!=None and stay.departure_time.strip()!="":
-                try:
-                    tempclock=parse_clock(stay.departure_time.strip())
-                    accum_dt=accum_dt.replace(
-                            hour=0,minute=0,second=0,microsecond=0)+\
-                            timedelta(0,3600*tempclock)
-                except Exception,cause:
-                    print "Couldn't parse departure time %s"%(stay.departure_time)
-                    pass
-                
-                
+            accum_fuel,accum_dt=calc_stay(rt,accum_fuel,accum_dt)
                 
         
         rt.a.dt=copy(accum_dt)
@@ -594,31 +694,75 @@ def get_route(user,trip):
         mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,ac,rt)
         
         print "capped mid_alt",mid_alt,was_capped
+        
+        (res,accum_fuel,accum_fuel_used,
+         accum_time,accum_dt,tot_dist,prev_alt)=\
+            calc_one_leg(idx,rt,
+                         res,accum_fuel,accum_fuel_used,
+                         accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt1,alt2,ac)
+    if len(routes):
+        last=routes[-1]
+        last.b.dt=accum_dt
+            
+                
+    return res,routes
 
-        if True:    
-            
-                    
-            if not was_capped:
-                rt.performance="ok"
+
+def calc_one_leg(idx,rt,
+                 res,accum_fuel,accum_fuel_used,
+                 accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt1,alt2,ac):
+                
+    def calc_midburn(tas,alt):
+        if ac.advanced_model:            
+            return ac.adv_cruise_burn[getalti(alt)]
+        else:
+            if tas>ac.cruise_speed:
+                f=(tas/ac.cruise_speed)**3
+                return ac.cruise_burn*f        
+            f2=(tas/ac.cruise_speed)
+            if f2<0.75:
+                f2=0.75 #Don't assume we can fly slower than 75% of cruise, and still not waste fuel
+            return f2*ac.cruise_burn
+
+    if not was_capped:
+        rt.performance="ok"
+    else:
+        rt.performance="notok"
+    begindelta=mid_alt-prev_alt
+    enddelta=alt2-mid_alt
+    
+    
+    begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(ac,rt,alt1,begindelta)
+    enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(ac,rt,mid_alt,enddelta)
+    
+    print "begindist",begindist
+    print "enddist",enddist
+    
+    #if begindist>rt.d:
+    #    ratio=rt.d/float(begindist)
+    #    begindist=rt.d
+    #    rt.performance="notok"
+    #    begindelta*=ratio
+    #    mid_alt=prev_alt+begindelta                    
+    if enddist==None or begindist==None:
+        beginrate=0
+        endrate=0
+        beginburn=0
+        endburn=0
+        begindist=0
+        enddist=0
+        rt.performance="notok"
+    else:
+        if enddist+begindist>rt.d:
+            if rt.d>1e-3:
+                overcommit=(enddist+begindist)/rt.d
+                if overcommit<1.0001:
+                    begindist/=overcommit
+                    enddist/=overcommit
+                else:
+                    beginspeed=0 #make the route impossible, to flag error
+                    rt.performance="notok"
             else:
-                rt.performance="notok"
-            begindelta=mid_alt-prev_alt
-            enddelta=alt2-mid_alt
-            
-            
-            begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(ac,rt,alt1,begindelta)
-            enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(ac,rt,mid_alt,enddelta)
-            
-            print "begindist",begindist
-            print "enddist",enddist
-            
-            #if begindist>rt.d:
-            #    ratio=rt.d/float(begindist)
-            #    begindist=rt.d
-            #    rt.performance="notok"
-            #    begindelta*=ratio
-            #    mid_alt=prev_alt+begindelta                    
-            if enddist==None or begindist==None:
                 beginrate=0
                 endrate=0
                 beginburn=0
@@ -626,330 +770,295 @@ def get_route(user,trip):
                 begindist=0
                 enddist=0
                 rt.performance="notok"
-            else:
-                if enddist+begindist>rt.d:
-                    if rt.d>1e-3:
-                        overcommit=(enddist+begindist)/rt.d
-                        if overcommit<1.0001:
-                            begindist/=overcommit
-                            enddist/=overcommit
-                        else:
-                            beginspeed=0 #make the route impossible, to flag error
-                            rt.performance="notok"
-                    else:
-                        beginrate=0
-                        endrate=0
-                        beginburn=0
-                        endburn=0
-                        begindist=0
-                        enddist=0
-                        rt.performance="notok"
-                        
-            del begindelta
-            del enddelta
-        rt.mid_alt=mid_alt
-        del mid_alt        
-        del alt1
-        del alt2
+                
+    del begindelta
+    del enddelta
         
-        
-            
-        if beginspeed<1e-3:
-            begintime=None
-        else:
-            begintime=begindist/beginspeed
-        if endspeed<1e-3:
-            endtime=None
-        else:
-            endtime=enddist/endspeed
-        middist=rt.d-(begindist+enddist)
-        if ac.advanced_model:
-            tas=ac.adv_cruise_speed[getalti(rt.mid_alt)]
-            cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,tas)
-        else:
-            cruise_gs=rt.cruise_gs
-        if cruise_gs<1e-3:
-            midtime=None
-        else:
-            midtime=(rt.d-(begindist+enddist))/cruise_gs
-        
+    rt.mid_alt=mid_alt
+    del mid_alt        
+    del alt1
+    del alt2
     
-        merca=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
-        mercb=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
-                    
+    
+        
+    if beginspeed<1e-3:
+        begintime=None
+    else:
+        begintime=begindist/beginspeed
+    if endspeed<1e-3:
+        endtime=None
+    else:
+        endtime=enddist/endspeed
+    middist=rt.d-(begindist+enddist)
+    if ac.advanced_model:
+        tas=ac.adv_cruise_speed[getalti(rt.mid_alt)]
+        cruise_gs,cruise_wca=wind_computer(rt.winddir,rt.windvel,rt.tt,tas)
+    else:
+        cruise_gs=rt.cruise_gs
+    if cruise_gs<1e-3:
+        midtime=None
+    else:
+        midtime=(rt.d-(begindist+enddist))/cruise_gs
+    
 
-        def interpol(where,tot,a,b):
-            if abs(tot)<=1e-5:
-                f=0.0
-            else:
-                f=where/float(tot)
-            x=(1.0-f)*merca[0]+f*mercb[0]
-            y=(1.0-f)*merca[1]+f*mercb[1]
-            return (x,y)
+    merca=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
+    mercb=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
+                
 
-        sub=[]
-        if begintime==None or midtime==None or endtime==None or accum_dt==None:
+    def interpol(where,tot,a,b):
+        if abs(tot)<=1e-5:
+            f=0.0
+        else:
+            f=where/float(tot)
+        x=(1.0-f)*merca[0]+f*mercb[0]
+        y=(1.0-f)*merca[1]+f*mercb[1]
+        return (x,y)
+
+    sub=[]
+    if begintime==None or midtime==None or endtime==None or accum_dt==None:
+        out=TechRoute()
+        out.performance=rt.performance
+        out.tt=rt.tt
+        out.d=rt.d
+        out.gs=None
+        out.relstartd=0
+        out.outer_d=rt.d
+        out.subposa=merca
+        out.subposb=mercb
+        out.startdt=accum_dt
+        accum_time=None
+        #accum_clock=None
+        accum_dt=None
+        out.clock_hours=None
+        out.dt=None
+        out.startalt=prev_alt
+        prev_alt=None
+        out.endalt=None
+        out.altrate=0
+        out.accum_time=None
+        out.time=None
+        out.what="cruise"
+        out.legpart="mid"
+        out.fuel_burn=None
+        out.lastsub=0
+        sub.append(out)
+    else:
+        if abs(begintime)>1e-5:
             out=TechRoute()
             out.performance=rt.performance
             out.tt=rt.tt
-            out.d=rt.d
-            out.gs=None
+            out.d=begindist
             out.relstartd=0
             out.outer_d=rt.d
-            out.subposa=merca
-            out.subposb=mercb
+            out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
+            out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+            out.gs=beginspeed
+            accum_time+=begintime
             out.startdt=accum_dt
-            accum_time=None
-            #accum_clock=None
-            accum_dt=None
-            out.clock_hours=None
-            out.dt=None
+            accum_dt+=timedelta(0,3600*begintime)
+            #accum_clock+=begintime
+            #out.clock_hours=accum_clock%24.0
+            out.dt=accum_dt
             out.startalt=prev_alt
-            prev_alt=None
-            out.endalt=None
-            out.altrate=0
-            out.accum_time=None
-            out.time=None
-            out.what="cruise"
-            out.legpart="mid"
-            out.fuel_burn=None
+            prev_alt+=beginrate*begintime*60
+            out.endalt=prev_alt
+            out.altrate=beginrate
+            out.accum_time=accum_time
+            out.time=begintime
+            out.fuel_burn=begintime*beginburn
+            out.what=beginwhat
+            out.legpart="begin"
             out.lastsub=0
             sub.append(out)
-        else:
-            if abs(begintime)>1e-5:
-                out=TechRoute()
-                out.performance=rt.performance
-                out.tt=rt.tt
-                out.d=begindist
-                out.relstartd=0
-                out.outer_d=rt.d
-                out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
-                out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
-                out.gs=beginspeed
-                accum_time+=begintime
-                out.startdt=accum_dt
-                accum_dt+=timedelta(0,3600*begintime)
-                #accum_clock+=begintime
-                #out.clock_hours=accum_clock%24.0
-                out.dt=accum_dt
-                out.startalt=prev_alt
-                prev_alt+=beginrate*begintime*60
-                out.endalt=prev_alt
-                out.altrate=beginrate
-                out.accum_time=accum_time
-                out.time=begintime
-                out.fuel_burn=begintime*beginburn
-                out.what=beginwhat
-                out.legpart="begin"
-                out.lastsub=0
-                sub.append(out)
-            if abs(midtime)>1e-5:
-                out=TechRoute()
-                out.performance=rt.performance
-                out.tt=rt.tt
-                out.d=middist
-                out.gs=cruise_gs
-                out.relstartd=begindist
-                out.outer_d=rt.d
-                out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
-                out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
-                out.startdt=accum_dt
-                accum_time+=midtime
-                #accum_clock+=midtime
-                accum_dt+=timedelta(0,3600*midtime)
-                #out.clock_hours=accum_clock%24
-                out.dt=accum_dt
-                out.startalt=prev_alt
-                out.endalt=prev_alt
-                out.altrate=0
-                out.accum_time=accum_time
-                out.time=midtime
-                out.fuel_burn=midtime*calc_midburn(rt.tas,rt.mid_alt)                
-                out.what="cruise"
-                out.legpart="mid"
-                out.lastsub=0
-                sub.append(out)
-            if abs(endtime)>1e-5:
-                out=TechRoute()
-                out.performance=rt.performance
-                out.tt=rt.tt
-                out.d=enddist
-                out.gs=endspeed
-                out.relstartd=begindist+middist
-                out.outer_d=rt.d
-                out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
-                out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
-                out.startdt=accum_dt
-                accum_time+=endtime
-                #accum_clock+=endtime
-                accum_dt+=timedelta(0,3600*endtime)
-                #out.clock_hours=accum_clock%24
-                out.dt=accum_dt
-                out.startalt=prev_alt
-                prev_alt+=endrate*endtime*60
-                out.endalt=prev_alt
-                if abs(out.endalt)<1e-6:
-                    out.endalt=0
-                out.altrate=endrate
-                out.accum_time=accum_time
-                out.time=endtime
-                out.what=endwhat
-                out.legpart="end"
-                out.fuel_burn=endtime*endburn
-                out.lastsub=0
-                sub.append(out)
-        if len(sub):
-            sub[-1].lastsub=1        
-        else:
+        if abs(midtime)>1e-5:
             out=TechRoute()
             out.performance=rt.performance
             out.tt=rt.tt
-            out.d=0
-            out.gs=None
-            out.time=0
-            out.relstartd=0
-            out.outer_d=0
-            out.subposa=merca
-            out.subposb=mercb
+            out.d=middist
+            out.gs=cruise_gs
+            out.relstartd=begindist
+            out.outer_d=rt.d
+            out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
+            out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+            out.startdt=accum_dt
+            accum_time+=midtime
+            #accum_clock+=midtime
+            accum_dt+=timedelta(0,3600*midtime)
+            #out.clock_hours=accum_clock%24
+            out.dt=accum_dt
             out.startalt=prev_alt
             out.endalt=prev_alt
+            out.altrate=0
             out.accum_time=accum_time
-            #out.clock_hours=accum_clock%24
-            out.startdt=accum_dt
-            out.dt=accum_dt
+            out.time=midtime
+            out.fuel_burn=midtime*calc_midburn(rt.tas,rt.mid_alt)                
             out.what="cruise"
             out.legpart="mid"
-            out.fuel_burn=0
             out.lastsub=0
             sub.append(out)
-        
-        
-        
-        def val(x):
-            if x==None: return 0.0
-            return x
+        if abs(endtime)>1e-5:
+            out=TechRoute()
+            out.performance=rt.performance
+            out.tt=rt.tt
+            out.d=enddist
+            out.gs=endspeed
+            out.relstartd=begindist+middist
+            out.outer_d=rt.d
+            out.subposa=interpol(out.relstartd,rt.d,merca,mercb)
+            out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
+            out.startdt=accum_dt
+            accum_time+=endtime
+            #accum_clock+=endtime
+            accum_dt+=timedelta(0,3600*endtime)
+            #out.clock_hours=accum_clock%24
+            out.dt=accum_dt
+            out.startalt=prev_alt
+            prev_alt+=endrate*endtime*60
+            out.endalt=prev_alt
+            if abs(out.endalt)<1e-6:
+                out.endalt=0
+            out.altrate=endrate
+            out.accum_time=accum_time
+            out.time=endtime
+            out.what=endwhat
+            out.legpart="end"
+            out.fuel_burn=endtime*endburn
+            out.lastsub=0
+            sub.append(out)
+    if len(sub):
+        sub[-1].lastsub=1        
+    else:
+        out=TechRoute()
+        out.performance=rt.performance
+        out.tt=rt.tt
+        out.d=0
+        out.gs=None
+        out.time=0
+        out.relstartd=0
+        out.outer_d=0
+        out.subposa=merca
+        out.subposb=mercb
+        out.startalt=prev_alt
+        out.endalt=prev_alt
+        out.accum_time=accum_time
+        #out.clock_hours=accum_clock%24
+        out.startdt=accum_dt
+        out.dt=accum_dt
+        out.what="cruise"
+        out.legpart="mid"
+        out.fuel_burn=0
+        out.lastsub=0
+        sub.append(out)
+    
+    
+    
+    for out in sub:
+        out.wca=0    
+        if rt.d<1e-5:
+            out.startpos=mapper.from_str(rt.a.pos)
+            out.endpos=mapper.from_str(rt.a.pos)
+        else:
+            drel1=out.relstartd/rt.d
+            drel2=(out.relstartd+out.d)/rt.d
+            mercs=[((1.0-rel)*merca[0]+rel*mercb[0],(1.0-rel)*merca[1]+rel*mercb[1]) for rel in [drel1,drel2]]
+            out.startpos=mapper.merc2latlon(mercs[0],13)
+            out.endpos=mapper.merc2latlon(mercs[1],13)
+            
+        if out.time and out.time>1e-3:
+            out.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,out.gs)
+            dummygs,out.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,out.tas)
+            assert abs(dummygs-out.gs)<1e-3
+        else:
+            out.tas=0
+            out.wca=0
+                            
+        tot_dist+=out.d
+        out.total_d=tot_dist
+        out.a=rt.a
+        out.b=rt.b
+        out.id1=rt.waypoint1
+        out.id2=rt.waypoint2
+        out.winddir=rt.winddir
+        out.windvel=rt.windvel
+
+        if accum_fuel!=None and out.fuel_burn!=None:
+            accum_fuel-=out.fuel_burn
+        else:
+            accum_fuel=None
+            
+        if accum_fuel_used!=None and out.fuel_burn!=None:
+            accum_fuel_used+=out.fuel_burn
+        else:
+            accum_fuel_used=None
+            
+        out.accum_fuel_left=accum_fuel
+        out.accum_fuel_used=accum_fuel_used
+    
+        res.append(out)
+    
+    
+    if begintime==None or midtime==None or endtime==None:
+        rt.gs=None
+        rt.fuel_burn=None
+        rt.time_hours=None
+    else:
+        if (begintime+midtime+endtime)>1e-4:
+            rt.gs=rt.d/(begintime+midtime+endtime)
+        else:
+            #microshort leg (just a few seconds!)
+            if ac.advanced_model:
+                rt.gs=ac.adv_cruise_speed[getalti(rt.subs[0].startalt)]
+            else:
+                rt.gs=rt.cruise_gs
+
+        rt.fuel_burn=0
         for out in sub:
-            out.wca=0    
-            if rt.d<1e-5:
-                out.startpos=mapper.from_str(rt.a.pos)
-                out.endpos=mapper.from_str(rt.a.pos)
-            else:
-                drel1=out.relstartd/rt.d
-                drel2=(out.relstartd+out.d)/rt.d
-                mercs=[((1.0-rel)*merca[0]+rel*mercb[0],(1.0-rel)*merca[1]+rel*mercb[1]) for rel in [drel1,drel2]]
-                out.startpos=mapper.merc2latlon(mercs[0],13)
-                out.endpos=mapper.merc2latlon(mercs[1],13)
-                
-            if out.time and out.time>1e-3:
-                out.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,out.gs)
-                dummygs,out.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,out.tas)
-                assert abs(dummygs-out.gs)<1e-3
-            else:
-                out.tas=0
-                out.wca=0
-                                
-            tot_dist+=out.d
-            out.total_d=tot_dist
-            out.a=rt.a
-            out.b=rt.b
-            out.id1=rt.waypoint1
-            out.id2=rt.waypoint2
-            out.winddir=rt.winddir
-            out.windvel=rt.windvel
-
-            if accum_fuel!=None and out.fuel_burn!=None:
-                accum_fuel-=out.fuel_burn
-            else:
-                accum_fuel=None
-                
-            if accum_fuel_used!=None and out.fuel_burn!=None:
-                accum_fuel_used+=out.fuel_burn
-            else:
-                accum_fuel_used=None
-                
-            out.accum_fuel_left=accum_fuel
-            out.accum_fuel_used=accum_fuel_used
-        
-            res.append(out)
-        
-        
-        if begintime==None or midtime==None or endtime==None:
-            rt.gs=None
-            rt.fuel_burn=None
-            rt.time_hours=None
-        else:
-            if (begintime+midtime+endtime)>1e-4:
-                rt.gs=rt.d/(begintime+midtime+endtime)
-            else:
-                #microshort leg (just a few seconds!)
-                if ac.advanced_model:
-                    rt.gs=ac.adv_cruise_speed[getalti(rt.subs[0].startalt)]
-                else:
-                    rt.gs=rt.cruise_gs
-
-            rt.fuel_burn=0
-            for out in sub:
-                if out.fuel_burn==None: 
-                    rt.fuel_burn=None
-                    break
-                rt.fuel_burn+=out.fuel_burn
-                
-            if rt.gs>1e-3:
-                rt.time_hours=begintime+midtime+endtime;
-            else:
-                rt.time_hours=None                          
-                        
-        rt.subs=sub     
-        rt.accum_time_hours=accum_time
-        rt.accum_dist=tot_dist
-        rt.accum_fuel_left=accum_fuel
-        rt.accum_fuel_used=accum_fuel_used
-        
-        rt.depart_dt=rt.a.dt
-        if rt.time_hours!=None and rt.a.dt!=None:
-            rt.arrive_dt=rt.a.dt+timedelta(hours=rt.time_hours)
-        else:
-            rt.arrive_dt=None
-        #if accum_clock!=None:
-
-        if ac.advanced_model:
-            if rt.gs==None:
-                rt.tas=0
-            else:
-                rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)
-                print "TAS:",rt.tas,"GS:",rt.gs            
-        else:
-            if not rt.tas:
-                rt.tas=ac.cruise_speed
-        dummygs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
-
-        #    rt.clock_hours=accum_clock%24
-        #else:
-        #    rt.clock_hours=None
+            if out.fuel_burn==None: 
+                rt.fuel_burn=None
+                break
+            rt.fuel_burn+=out.fuel_burn
             
-    if len(routes):
-        last=routes[-1]
-        last.b.dt=accum_dt
-        
-    for rt in routes: 
-        rt.variation=0
-        if rt.depart_dt!=None and rt.arrive_dt!=None: 
-            startvar=calc_declination(mapper.from_str(rt.a.pos),rt.depart_dt,rt.subs[0].startalt)
-            endvar=calc_declination(mapper.from_str(rt.b.pos),rt.arrive_dt,rt.subs[-1].endalt)
-            if startvar!=None and endvar!=None:
-                rt.variation=0.5*(startvar+endvar)
-        rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
-        #for sub in rt.subs:
-        #    sub.ch=(sub.tt+sub.wca-val(rt.variation)-val(rt.deviation))%360.0
+        if rt.gs>1e-3:
+            rt.time_hours=begintime+midtime+endtime;
+        else:
+            rt.time_hours=None                          
+                    
+    rt.subs=sub     
+    rt.accum_time_hours=accum_time
+    rt.accum_dist=tot_dist
+    rt.accum_fuel_left=accum_fuel
+    rt.accum_fuel_used=accum_fuel_used
+    
+    rt.depart_dt=rt.a.dt
+    if rt.time_hours!=None and rt.a.dt!=None:
+        rt.arrive_dt=rt.a.dt+timedelta(hours=rt.time_hours)
+    else:
+        rt.arrive_dt=None
+    #if accum_clock!=None:
 
-            
-                
-    return res,routes
+    if ac.advanced_model:
+        if rt.gs==None:
+            rt.tas=0
+        else:
+            rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)
+            print "TAS:",rt.tas,"GS:",rt.gs            
+    else:
+        if not rt.tas:
+            rt.tas=ac.cruise_speed
+    dummygs,rt.wca=wind_computer(rt.winddir,rt.windvel,rt.tt,rt.tas)
+
+    #    rt.clock_hours=accum_clock%24
+    #else:
+    #    rt.clock_hours=None
+    return res,accum_fuel,accum_fuel_used,\
+           accum_time,accum_dt,tot_dist,prev_alt
+
+
 
 def test_route_info():
     from fplan.config.environment import load_environment
     from fplan.model import meta
-    from fplan.model import *
+    from fplan.model import Waypoint,Route,Trip
 
     from pylons import config
     u=User(u'anders',u'password')

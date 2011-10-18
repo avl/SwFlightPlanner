@@ -1,6 +1,6 @@
 #encoding=utf8
 import calc_route_info as calc
-
+import os
 
 class AC(object):pass
 class RT(object):pass
@@ -132,12 +132,14 @@ def test_calc_total_tas():
     
     
 def test_adv_route_info():
+    
     from fplan.config.environment import load_environment
     from fplan.model import meta
-    from fplan.model import *
+    from fplan.model import Waypoint,Route,Trip,User,Aircraft
+    import sqlalchemy as sa
 
     from pylons import config
-    
+     
     # meta.Session.query(User).filter(User.user==u'testuser')
     
     u=User(u'testuser',u'password')
@@ -203,8 +205,13 @@ def test_adv_route_info():
     m=route[2].subs[0].startalt
     print "last startalt",m
     #assert m==9000
+    print "Last time",route[2].accum_time_hours
+    assert abs(route[2].accum_time_hours-2.1281958051)<1e-9
     
     
-    
-    
-    
+if __name__=='__main__':
+    from fplan.config.environment import load_environment
+    from paste.deploy import appconfig
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
+    load_environment(conf.global_conf, conf.local_conf)
+    test_adv_route_info()    
