@@ -347,7 +347,7 @@ function toggle_landing(id,idx)
     	var landingrow=document.getElementById('landingrow'+id);
 	while ( landingrow.childNodes.length > 0 )
 	    {
-		landingrow.removeChild( cell.firstChild );
+		landingrow.removeChild( landingrow.firstChild );
 	    } 
     }
     dirty=1;
@@ -358,7 +358,7 @@ function format_empty_landingrow(trelem,id,idx)
 {
     while ( trelem.childNodes.length > 0 )
 	    {
-		trelem.removeChild( cell.firstChild );
+		trelem.removeChild( trelem.firstChild );
 	    } 
     var tdelem = document.createElement("td");
     tdelem.colSpan=''+fpcolnum;
