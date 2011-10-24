@@ -163,6 +163,7 @@ def get_terrain_near_route(rts,vertdist,interval=10):
                 break
     return out
 
+
 def get_stuff_near_route(rts,items,dist,vertdist):
     for item in items:
         try:

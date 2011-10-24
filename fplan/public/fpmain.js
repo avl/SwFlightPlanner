@@ -21,6 +21,13 @@ function set_calculating()
 	e.innerHTML='Calculating...';
 	e.style.display='block';
 }
+function set_calculating_msg(msg)
+{
+	var e=document.getElementById('progmessage');
+	e.innerHTML=msg;
+	e.style.display='block';
+}
+
 function clear_calculating()
 {
 	var e=document.getElementById('progmessage');
@@ -176,6 +183,40 @@ function fetch_winds()
 	var def=doSimpleXMLHttpRequest(fetchweatherurl,params);
 	def.addCallback(weather_cb);
 }
+function optimize_alts()
+{
+	function do_optimize()
+	{
+		set_calculating_msg('Optimizing altitudes for fuel consumption - please wait.');
+		
+		function optimize_cb(req)
+		{		
+	
+			clear_calculating();
+			optresult=evalJSONRequest(req);
+
+			for(var i=0;i<optresult.length;++i)
+			{
+				var w=gete(fpid[i],'W');
+				var v=gete(fpid[i],'V');
+				var alt=gete(fpid[i],'Alt');
+				
+				w.value=''+parseInt(parseFloat(optresult[i][0]));
+				v.value=''+parseInt(parseFloat(optresult[i][1]));
+				alt.value=''+parseInt(parseFloat(optresult[i][2]));
+			}
+
+		}
+		var params={};	
+		params['tripname']=tripname;
+		var def=doSimpleXMLHttpRequest(optimizeurl,params);
+		def.addCallback(optimize_cb);
+	}
+
+        save_data(do_optimize);	    
+
+}
+
 function reset_winds()
 {
     for(var i=0;i<num_rows-1;++i)
@@ -237,6 +278,7 @@ function save_data(cont)
         	        e.innerHTML='<a id="actualprintable" href="'+printableurl+'"><u>Printable</u></a>';
         	        var ret=evalJSONRequest(req);
         	        update_fields(ret);		    
+			clear_calculating();
    		        if (cont!=null)
 			{
 			    	cont();			    	
@@ -247,7 +289,7 @@ function save_data(cont)
 	    		save_data(cont);
 			return;
 	    	    }
-		    clear_calculating();
+		    
 		}
 		else
 		{
@@ -394,7 +436,7 @@ function toggle_landing(id,idx)
     	var landingrow=document.getElementById('landingrow'+id);
 	while ( landingrow.childNodes.length > 0 )
 	    {
-		landingrow.removeChild( cell.firstChild );
+		landingrow.removeChild( landingrow.firstChild );
 	    } 
     }
     dirty=1;
@@ -405,7 +447,7 @@ function format_empty_landingrow(trelem,id,idx)
 {
     while ( trelem.childNodes.length > 0 )
 	    {
-		trelem.removeChild( cell.firstChild );
+		trelem.removeChild( trelem.firstChild );
 	    } 
     var tdelem = document.createElement("td");
     tdelem.colSpan=''+fpcolnum;

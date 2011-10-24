@@ -11,7 +11,7 @@ class Weather():
         if type(elev)!=int:
             elev=mapper.parse_elev(elev)
         ielev=int(elev)
-        print "Ielev: ",ielev
+        #print "Ielev: ",ielev
         twothousand,fl50,fl100=self.winds['2000'],self.winds['FL50'],self.winds['FL100']
         def dcos(x):
             return math.cos(x/(180.0/math.pi))
@@ -28,7 +28,7 @@ class Weather():
             if direction<0: direction+=360.0
             knots=math.sqrt(x**2+y**2)
             res=dict(direction=direction,knots=knots)
-            print "\nInterpolated %s and %s with f=%s into %s\n"%(a,b,f,res)
+            #print "\nInterpolated %s and %s with f=%s into %s\n"%(a,b,f,res)
             return res
         
         if ielev<2000:
@@ -99,7 +99,7 @@ def get_weather(lat,lon):
         print "Couldn't fetch weather: ",cause #there's no weather service at certain times.
         return None
     
-    print "Reading weather from %s, %s"%(mainarea,part)
+    #print "Reading weather from %s, %s"%(mainarea,part)
     w.winds=fc[(mainarea,part)]['winds']
     #print "Winds at position:",w.winds
     #llf=parse_llf_forecast.run()
@@ -109,7 +109,10 @@ def get_weather(lat,lon):
     #w.llf=llf
     return w
 def get_wind_at(lat,lon,alt):
-    return get_weather(lat,lon).get_wind(alt)
+    w=get_weather(lat,lon)
+    assert w
+    if not w: return None
+    return w.get_wind(alt)
 
 if __name__=='__main__':
     w=get_weather(59,18.5)

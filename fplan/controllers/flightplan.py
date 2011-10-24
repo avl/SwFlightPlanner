@@ -19,7 +19,7 @@ from fplan.lib.calc_route_info import get_route
 import fplan.lib.geo as geo
 import fplan.lib.notam_geo_search as notam_geo_search
 from itertools import chain
-from fplan.lib import get_terrain_elev
+from fplan.lib import get_terrain_elev, calc_route_info
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.tripsharing import tripuser
 import fplan.lib.airspace as airspace
@@ -29,6 +29,7 @@ import fplan.lib.sunrise as sunrise
 import unicodedata
 import time
 from datetime import timedelta,datetime
+import fplan.lib.obstacle_free as obstacle_free
 
 def strip_accents(s):
     if type(s)==str:
@@ -211,6 +212,8 @@ class FlightplanController(BaseController):
                 acname=request.params.get('aircraft','').strip()
                 if acname!="":
                     c.trip.aircraft=acname
+                  
+                
                 
             meta.Session.flush()
             meta.Session.commit()
@@ -219,6 +222,23 @@ class FlightplanController(BaseController):
             return ''
         
         return self.get_json_routeinfo(get_route(tripuser(),c.trip.trip)[1])
+    
+    def optimize(self):
+        if not self.validate(exception=False,tripname=request.params.get('tripname',False)):
+            return ""
+        
+        #for rt in c.route:
+        #    rt.maxobstelev=get_obstacle_free_height_on_line(
+        ##            mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos))
+        # #   print "Max obst elev",rt.maxobstelev
+        res,routes=calc_route_info.get_optimized(tripuser(),c.trip.trip,'fuel')
+        out=[]
+        for rt in routes:
+            out.append([rt.winddir,rt.windvel,rt.altitude])
+        s=json.dumps(out)
+        print "Optimize output",s
+        return s
+            
     def get_json_routeinfo(self,routes):
         out=dict()
         rows=[]
@@ -857,15 +877,14 @@ C/%(commander)s %(phonenr)s)"""%(dict(
     def printable(self):
         self.standard_prep(c)
         self.get_freqs(c.route)
-        obsts=self.get_obstacles(c.techroute,1e6,2)
+        
         for rt in c.route:
             rt.notampoints=set()
             rt.notampoints.update(set([info['item']['notam'] for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
         for rt in c.route:
-            if rt.waypoint1 in obsts:
-                rt.maxobstelev=max([obst['elevf'] for obst in obsts[rt.waypoint1]])
-            else:
-                rt.maxobstelev=0#"unknown"
+            rt.maxobstelev=obstacle_free.get_obstacle_free_height_on_line(
+                    mapper.from_str(rt.a.pos),
+                    mapper.from_str(rt.b.pos))
             rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
             rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
             #for obst in obsts:

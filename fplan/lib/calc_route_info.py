@@ -8,9 +8,11 @@ from fplan.extract.extracted_cache import get_airfields
 from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
 from fplan.lib.geomag import calc_declination
+from fplan.lib import weather
 from datetime import datetime,timedelta
 from copy import copy
 from time import time
+from fplan.lib.obstacle_free import get_obstacle_free_height_on_line
 
 def parse_date(s):
     if s.count("-")==2:
@@ -66,11 +68,14 @@ def to_nm(x): return x/1852.0
 def feet_to_nm(x): return x/(1852.0/0.3048)
 def nm_to_feet(x): return x*(1852.0/0.3048)
 
+class PerformanceException(Exception):pass
+
 def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
     """
     Precondition: Climb from alt1 to alt2 is possible in distance d.
     Returns maximum altitude attainable in between alt1 and alt2
     """
+    #print "Locals:",locals() 
     if alt1<=mid_alt and mid_alt<=alt2: return mid_alt
     if alt2<=mid_alt and mid_alt<=alt1: return mid_alt
     if alt1<=mid_alt:
@@ -79,6 +84,8 @@ def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
         iter=0
         while True:            
             iter+=1
+            if iter>1000:
+                raise Exception("Internal error")
             na1=int(alt1)-int(alt1)%1000+1000
             na2=int(alt2)-int(alt2)%1000+1000
             climb_ratio=calc_climb_ratio(ac,rt,alt1)
@@ -87,11 +94,15 @@ def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
                 return min(mid_alt,max(alt1,alt2))
             next_d1=feet_to_nm((na1-alt1)/climb_ratio)
             next_d2=feet_to_nm((na2-alt2)/descent_ratio)
+            #print "alts",alt1,alt2
             meetpoint=feet_to_nm((descent_ratio*nm_to_feet(d) + alt2 - alt1)/float(climb_ratio + descent_ratio))
             meet_d1=meetpoint
             meet_d2=d-meetpoint
-            assert meet_d1>=-1e-3
-            assert meet_d2>=-1e-3
+            if meet_d1<-1e-3 or meet_d2<-1e-3:
+                #if we get here, performance was not enough
+                #to reach alt2. This means that one of the
+                #preconditions were not fulfilled.
+                raise PerformanceException("Performance insufficient")
             meetalt1=alt1+nm_to_feet(meet_d1*climb_ratio)
             meetalt2=alt2+nm_to_feet(meet_d2*descent_ratio)
             assert abs(meetalt1-meetalt2)<1e-3
@@ -109,7 +120,8 @@ def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
                     alt2=na2
                     d-=next_d2
                     cont=True
-                continue
+                if cont:
+                    continue
             break
         return min(meetalt,mid_alt)
     else:
@@ -118,6 +130,7 @@ def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
         iter=0
         while True:            
             iter+=1
+            if iter>1000: raise Exception("Internal error")
             na1=int(alt1)-int(alt1)%1000
             if na1==int(alt1): na1=int(alt1)-1000
             na2=int(alt2)-int(alt2)%1000
@@ -132,8 +145,11 @@ def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
             meetpoint = feet_to_nm((alt2 - alt1 - climb_ratio*nm_to_feet(d)) / float(-descent_ratio-climb_ratio))
             meet_d1=meetpoint
             meet_d2=d-meetpoint
-            assert meet_d1>=-1e-3
-            assert meet_d2>=-1e-3
+            if meet_d1<-1e-3 or meet_d2<-1e-3:
+                #if we get here, performance was not enough
+                #to reach alt2. This means that one of the
+                #preconditions were not fulfilled.
+                raise PerformanceException("Performance insufficient")
             meetalt1=alt1-nm_to_feet(meet_d1*descent_ratio)
             meetalt2=alt2-nm_to_feet(meet_d2*climb_ratio)
             assert abs(meetalt1-meetalt2)<1e-3
@@ -151,7 +167,8 @@ def adv_cap_mid_alt(alt1,mid_alt,alt2,d,ac,rt):
                     alt2=na2
                     d-=next_d2
                     cont=True
-                continue
+                if cont:
+                    continue
             break        
         return max(meetalt,mid_alt)
             
@@ -278,7 +295,7 @@ def max_x_feet(start_alt,dist_nm,ac,rt,fn,targ):
     time_h=0.0
     for a1,a2 in altrange(start_alt,targ):
         cr,speed,burn,rate=fn(ac,rt,0.5*sum([a1,a2]),extrainfo=True)
-        print "max_x_feet",start_alt,targ,"cr:",cr,"speed:",speed
+        #print "max_x_feet",start_alt,targ,"cr:",cr,"speed:",speed
         if cr==None or cr<1e-3 or speed<1e-3:
             #Reached aircraft's ceiling before desired altitude
             return a1,None,None,None
@@ -335,7 +352,7 @@ def alt_change_dist(ac,rt,startalt,delta):
     Given a delta in feet, calculate
     how many NM are required to achieve this change.
     """
-    print locals()
+    #print locals()
     if ac.advanced_model:
         if delta==0: 
             tas=ac.adv_cruise_speed[getalti(startalt)]
@@ -350,7 +367,7 @@ def alt_change_dist(ac,rt,startalt,delta):
             what="climb"
         if time_h==None:
             return None,None,None,"cruise",None
-        print "Time_h",time_h
+        #print "Time_h",time_h
         if time_h<1e-5:
             #very unusual special case
             if dist<1e-3:                
@@ -369,7 +386,7 @@ def alt_change_dist(ac,rt,startalt,delta):
             burn=fuel/time_h
             gs=dist/time_h
             rate=delta/time_h/60.0 #fpm
-            print dist,"NM in ",time_h,"is",gs,"knots","what:",what,"rate:",rate
+            #print dist,"NM in ",time_h,"is",gs,"knots","what:",what,"rate:",rate
         return dist,gs,burn,what,rate
     else:
         if delta==0: return 0,rt.cruise_gs,ac.cruise_burn,'',0                
@@ -462,6 +479,10 @@ def get_route_prepare(user,trip,action):
             ac.cruise_speed=tas
             ac.climb_speed=tas
             ac.descent_speed=tas
+            
+        rt.maxobstelev=get_obstacle_free_height_on_line(
+                mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos))
+        print "Max obst elev",rt.maxobstelev            
 
 
         if not ac.advanced_model:
@@ -504,8 +525,8 @@ def get_route_prepare(user,trip,action):
         cone_dist+=rt.d
         
     
-    
-    res,routes=action(tripobj,waypoints,routes,ac,dummyac)
+    r=action(tripobj,waypoints,routes,ac,dummyac)
+    res,routes=r
     
     def val(x):
         if x==None: return 0.0
@@ -551,63 +572,197 @@ def calc_alts(prev_alt,rt,mid_alt,idx,numroutes,ac):
             alt2=max(alt2,m)
     
     mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,ac,rt)
-    return alt1,mid_alt,alt2,was_capped
+    return prev_alt,alt1,mid_alt,alt2,was_capped
 
 
 class Node(object):
     def __init__(self,idx,altitude):
         self.idx=idx
         self.altitude=altitude
-        self.best_time=1e30
-        
-    def visit(self,time,):
-        if self.best_time>time:
-            self.best_time=time
+        self.accum_time=1e30
+        self.origin=None
+        self.accum_fuel=0.0
+        self.accum_fuel_used=1e30
+        self.accum_dt=None
+        self.tot_dist=0.0
+    
+    def goodness(self,strategy):
+        if strategy=='fuel':
+            return self.accum_fuel_used
+        else:
+            return self.accum_time
+            
+    def visit(self,time,origin,accum_fuel,accum_fuel_used,
+                accum_dt,tot_dist,strategy):
+        better=False
+        if strategy=='fuel':
+            if accum_fuel_used<self.accum_fuel_used:
+                better=True        
+        else:
+            if time<self.accum_time:
+                better=True
+        if better:
+            assert accum_dt!=None
+            self.origin=origin
+            self.accum_time=time
+            self.accum_fuel=accum_fuel
+            self.accum_fuel_used=accum_fuel_used
+            self.accum_dt=accum_dt
+            self.tot_dist=tot_dist
             return True
         return False
+    def getidx(self):
+        return self.idx
+    def getalt(self):
+        return self.altitude 
+    def gettime(self):
+        return self.accum_time
+#class Strategy(object):pass
+altstep=500
+class Nodes(object):
+    def __init__(self,routes,ac,strategy):
+        self.nodes=[]
+        self.ac=ac
+        self.routes=routes
+        self.strategy=strategy
+        for idx,rt in enumerate(routes):
+            
+            amerc=mapper.latlon2merc(mapper.from_str(rt.a.pos),13)
+            bmerc=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
+            wmerc=(0.5*(amerc[0]+bmerc[0]),0.5*(amerc[1]+bmerc[1]))
+            lat,lon=mapper.merc2latlon(wmerc,13)
+            rt.wind=weather.get_weather(lat,lon)
+            altnodes=[]
+            for alt in xrange(0,10000,altstep):
+                altnodes.append(Node(idx,alt))
+            self.nodes.append(altnodes)
+        self.breadth=[]
+    def optimize(self,startalt,endalt):
+        alt1=startalt
+        a1=int(alt1)/altstep
+        alt2=startalt
+        a2=int(alt2)/altstep
+        startnode=Node(-1,a1)
+        startnode.accum_dt=datetime.utcnow()
+        startnode.accum_time=0.0
+        startnode.accum_fuel_used=0.0
+        self.breadth.append(startnode)
+        
+        while True:
+            #print "Processing"
+            self.breadth.sort(key=lambda x:-x.gettime())
+            if len(self.breadth)==0:
+                break
+            cur=self.breadth.pop()
+            def handle(cur,targalt):
+                idx=cur.getidx()+1
+                if idx==len(self.routes):
+                    return False
+                rt=self.routes[idx]
+                
+                if targalt<=rt.maxobstelev+1000:
+                    return False
+                
+                if idx!=0:
+                    prev_rt=self.routes[idx-1]                    
+                else:
+                    prev_rt=None
+                rt.a.dt=copy(cur.accum_dt)
+                
+                prev_alt=cur.getalt()
+                if prev_rt:
+                    #Avoid specifying altitudes that are clearly unreachable:
+                    if targalt+altstep<rt.cone_min and targalt+altstep<prev_rt.cone_min:
+                        return False 
+                    if targalt-altstep>rt.cone_max and targalt-altstep>prev_rt.cone_max:
+                        return False 
+                    if prev_alt>prev_rt.cone_max:
+                        prev_alt=prev_rt.cone_max
+                    if prev_alt<prev_rt.cone_min:
+                        prev_alt=prev_rt.cone_min
+
+                mid_alt=targalt
+                
+                
+                wind=rt.wind.get_wind(mid_alt) if rt.wind else None
+                if wind:
+                    rt.windvel=wind['knots']
+                    rt.winddir=wind['direction']
+                else:
+                    rt.windvel=0
+                    rt.winddir=0
+                                
+                if rt.a.stay:
+                    accum_fuel,accum_dt=calc_stay(rt,cur.accum_fuel,cur.accum_dt)
+                else:
+                    accum_fuel,accum_dt=cur.accum_fuel,cur.accum_dt
+                assert accum_dt!=None
+                
+                
+                
+                try:
+                    prev_alt,alt1,mid_alt,alt2,was_capped=calc_alts(prev_alt,rt,mid_alt,idx,len(self.routes),self.ac)
+                except PerformanceException:
+                    return False 
+                
+                #if was_capped:
+                #    return False
+                #print "Initial prev_alt:",prev_alt
+                (tres,taccum_fuel,taccum_fuel_used,
+                 taccum_time,taccum_dt,ttot_dist,tresult_alt)=\
+                    calc_one_leg(idx,rt,
+                        [],accum_fuel,cur.accum_fuel_used,
+                        cur.accum_time,accum_dt,cur.tot_dist,prev_alt,was_capped,mid_alt,alt2,self.ac)
+                #print "Result_alt",tresult_alt
+                
+                ta2=int(rt.mid_alt)/altstep
+                ta2targ=int(targalt)/altstep
+                
+                targnode=self.nodes[idx][ta2]
+                
+                if targnode.visit(taccum_time,cur,
+                            accum_fuel=taccum_fuel,accum_fuel_used=taccum_fuel_used,
+                            accum_dt=taccum_dt,tot_dist=ttot_dist,strategy=self.strategy):
+                    #print "Visit succeeded #%d @ %f.0f in %fh and %fL"%(idx,targalt,taccum_time,taccum_fuel_used)
+                    #print "Cone:",rt.cone_min,rt.cone_max
+                    targnode.windvel=rt.windvel
+                    targnode.winddir=rt.winddir
+                    if prev_rt:
+                        pass#print "  pCone:",prev_rt.cone_min,prev_rt.cone_max
+                        
+                    self.breadth.append(targnode)
+                return True
+            for alt in xrange(0,10000,altstep):
+                #print cur.idx,cur.altitude,"->",alt
+                handle(cur,alt)
+        
+        print "End of action"
+        path=[] 
+        node=min(self.nodes[len(self.routes)-1],key=lambda x:x.goodness(self.strategy))       
+        while True:
+            path.append(node)
+            if not node.origin or node.origin==startnode: break
+            node=node.origin
+        print "Path len",len(path),"route len",len(self.routes)
+        path=list(reversed(path))
+        assert len(path)==len(self.routes)
+        for rt,p in zip(self.routes,path):
+            rt.altitude="%d"%(p.altitude,)
+            rt.winddir=p.winddir
+            rt.windvel=p.windvel
+            print "Idx: #%d, alt: %f.0"%(p.idx,p.altitude)
+                
 #asdf continue here ^ ^        
 
-def get_optimized(user,trip):
+def get_optimized(user,trip,strategy):
+    assert strategy in ['fuel','time']
     def action(tripobj,waypoints,routes,ac,dummyac):
 
-        accum_fuel=0.0
-        accum_fuel_used=0.0
-        accum_time=0.0
-        accum_dt=0.0
-        tot_dist=0.0
-        prev_alt=None
-        fastest=[0 for x in xrange(10)]
-        numroutes=len(routes)
-        for idx,rt in enumerate(routes):
-                        
-            print "rt.tas",rt.tas
-                
-            if rt.a.stay:
-                accum_fuel,accum_dt=calc_stay(rt,accum_fuel,accum_dt)
-                    
-            
-            rt.a.dt=copy(accum_dt)
-            for altcand in xrange(10):
-                desired_mid_alt=1000*altcand
-                
-                
-                
-                alt1,mid_alt,alt2,was_capped=calc_alts(prev_alt,rt,desired_mid_alt,idx,numroutes,ac)
-                
-                print "capped mid_alt",mid_alt,was_capped
-                                    
-                res=[]
-                (tres,taccum_fuel,taccum_fuel_used,
-                 taccum_time,taccum_dt,ttot_dist,tprev_alt)=\
-                    calc_one_leg(idx,rt,
-                                 res,accum_fuel,accum_fuel_used,
-                                 accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt1,alt2,ac)
-                
-                   
-        
-        
-        return res,routes
+        nodes=Nodes(routes,ac,strategy)
+        nodes.optimize(0,0) #TODO: Use real start alt and end altinstead of 0
+        return [],routes
     return get_route_prepare(user,trip,action)
+    
 
 
 def calc_stay(rt,accum_fuel,accum_dt):
@@ -635,7 +790,7 @@ def calc_stay(rt,accum_fuel,accum_dt):
         except Exception,cause:
             print "Couldn't parse departure time %s"%(stay.departure_time)
             pass
-        
+    #print "calc_stay: dt:",accum_dt
     return accum_fuel,accum_dt
 
 def get_route_impl(tripobj,waypoints,routes,ac,dummyac):        
@@ -651,7 +806,7 @@ def get_route_impl(tripobj,waypoints,routes,ac,dummyac):
     for idx,rt in enumerate(routes):
         
         
-        print "rt.tas",rt.tas
+        #print "rt.tas",rt.tas
         if dummyac:
             tas=rt.tas
             ac.cruise_speed=tas
@@ -693,13 +848,13 @@ def get_route_impl(tripobj,waypoints,routes,ac,dummyac):
         
         mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,ac,rt)
         
-        print "capped mid_alt",mid_alt,was_capped
+        #print "capped mid_alt",mid_alt,was_capped
         
         (res,accum_fuel,accum_fuel_used,
          accum_time,accum_dt,tot_dist,prev_alt)=\
             calc_one_leg(idx,rt,
                          res,accum_fuel,accum_fuel_used,
-                         accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt1,alt2,ac)
+                         accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt2,ac)
     if len(routes):
         last=routes[-1]
         last.b.dt=accum_dt
@@ -710,7 +865,7 @@ def get_route_impl(tripobj,waypoints,routes,ac,dummyac):
 
 def calc_one_leg(idx,rt,
                  res,accum_fuel,accum_fuel_used,
-                 accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt1,alt2,ac):
+                 accum_time,accum_dt,tot_dist,prev_alt,was_capped,mid_alt,alt2,ac):
                 
     def calc_midburn(tas,alt):
         if ac.advanced_model:            
@@ -732,11 +887,11 @@ def calc_one_leg(idx,rt,
     enddelta=alt2-mid_alt
     
     
-    begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(ac,rt,alt1,begindelta)
+    begindist,beginspeed,beginburn,beginwhat,beginrate=alt_change_dist(ac,rt,prev_alt,begindelta)
     enddist,endspeed,endburn,endwhat,endrate=alt_change_dist(ac,rt,mid_alt,enddelta)
     
-    print "begindist",begindist
-    print "enddist",enddist
+    #print "begindist",begindist
+    #print "enddist",enddist
     
     #if begindist>rt.d:
     #    ratio=rt.d/float(begindist)
@@ -776,7 +931,6 @@ def calc_one_leg(idx,rt,
         
     rt.mid_alt=mid_alt
     del mid_alt        
-    del alt1
     del alt2
     
     
@@ -813,6 +967,8 @@ def calc_one_leg(idx,rt,
         x=(1.0-f)*merca[0]+f*mercb[0]
         y=(1.0-f)*merca[1]+f*mercb[1]
         return (x,y)
+    
+    #print "Times",begintime,midtime,endtime,accum_dt
 
     sub=[]
     if begintime==None or midtime==None or endtime==None or accum_dt==None:
@@ -1041,7 +1197,7 @@ def calc_one_leg(idx,rt,
             rt.tas=0
         else:
             rt.tas=calc_total_tas(rt.winddir,rt.windvel,rt.tt,rt.gs)
-            print "TAS:",rt.tas,"GS:",rt.gs            
+            #print "TAS:",rt.tas,"GS:",rt.gs            
     else:
         if not rt.tas:
             rt.tas=ac.cruise_speed

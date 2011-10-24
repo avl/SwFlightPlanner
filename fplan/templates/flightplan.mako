@@ -9,6 +9,7 @@
 tripname='${h.jsescape(c.tripname)|n}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 fetchweatherurl='${h.url_for(controller="flightplan",action="weather")}';
+optimizeurl='${h.url_for(controller="flightplan",action="optimize")}';
 saveurl='${h.url_for(controller="flightplan",action="save")}';
 fetchacurl='${h.url_for(controller="flightplan",action="fetchac")}';
 printableurl='${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}';
@@ -169,6 +170,7 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 </table>
 <button title="Fetch wind-information from the low-level forecast provided by LFV" onclick="fetch_winds();return false;">Fetch Wind Information</button>
 <button title="Reset wind-information - set all wind to 0." onclick="reset_winds();return false;">Reset Wind</button>
+<button title="Calculate optimal altitudes from a fuel point of view." onclick="optimize_alts();return false;">Optimize</button>
 
 %if False and len(c.all_aircraft):
 <button onclick="fetch_acparams();return false;">Fetch Values from Aircraft</button>
