@@ -746,7 +746,7 @@ class Nodes(object):
                 rt.a.dt=copy(cur.accum_dt)
                 
                 prev_alt=cur.getalt()
-                if prev_rt and targalt>rt.maxobstelev+1500+50:
+                if prev_rt and targalt>rt.maxobstelev+1500+50 and prev_rt.b.stay==None:
                     #Avoid specifying altitudes that are clearly unreachable:
                     #(And not just barely above obstacles)
                     if targalt+altstep<rt.cone_min and targalt+altstep<prev_rt.cone_min:
