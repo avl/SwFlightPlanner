@@ -353,9 +353,44 @@ def parsecoords(seg):
     return coords
 
 def anyparse(coord):
+    try:        
+        coord=coord.upper()
+        a,b,c,d,e,f,g,h=re.match(
+            ur"s*(\d+)\s*(?:\s|°)\s*"+
+            ur"(\d*)\s*'?\s*"+
+            ur"(\d*\.?\d*)\s*(?:''|\")?\s*"+
+            ur"\s*([NS])\s*"+
+            ur"(\d+)\s*(?:\s|°)\s*"+
+            ur"(\d*)\s*'?\s*"+
+            ur"(\d*\.?\d*)\s*(?:''|\")?\s*"+
+            ur"\s*([EW])\b",coord).groups();            
+        def intg(s):
+            if s.strip(): return int(s,0)
+            return 0
+        def floatg(s):
+            if s.strip(): return float(s)
+            return 0.0
+        return parse_coords(
+                "%02d%02d%08.5f%s"%(intg(a),intg(b),floatg(c),d),
+                "%03d%02d%08.5f%s"%(intg(e),intg(f),floatg(g),h)
+                )
+                
+    except:
+        pass
+        raise
     try:
         coord=coord.upper()
-        lat,lon=re.match(ur"^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$",coord).groups()
+        def neg(s):
+            s=s.strip()
+            if s.startswith("-"):
+                return s[1:]
+            else:
+                return "-"+s
+        lat,latm,lon,lonm=re.match(ur"^\s*(-?\d+(?:\.\d+)?)\s*°\s*([,NS])\s*(-?\d+(?:\.\d+)?)\s*°\s*([EW])$",coord).groups()
+        if latm=='S':
+            lat=neg(lat)
+        if latm=='W':
+            lon=neg(lon)
         return lat+","+lon
     except:
         pass
