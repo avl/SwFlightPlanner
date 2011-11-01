@@ -377,7 +377,6 @@ def anyparse(coord):
                 
     except:
         pass
-        raise
     try:
         coord=coord.upper()
         def neg(s):
