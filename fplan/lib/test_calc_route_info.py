@@ -271,9 +271,11 @@ def test_adv_route_info():
 if __name__=='__main__':
     from fplan.config.environment import load_environment
     from paste.deploy import appconfig
+    import profile
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))
     load_environment(conf.global_conf, conf.local_conf)
-    test_adv_route_info()
+    test_route_optimize()
+    #print profile.run("test_route_optimize()")
     
     
     

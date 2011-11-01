@@ -183,17 +183,31 @@ function fetch_winds()
 	var def=doSimpleXMLHttpRequest(fetchweatherurl,params);
 	def.addCallback(weather_cb);
 }
-function optimize_alts()
+
+optimize_in_prog=0;
+function optimize_alts(strategy)
 {
+	if (optimize_in_prog!=0 || in_prog) 	
+	{
+		alert('Optimization or calculation already in progress. Please wait at least 30 seconds (worst case). If it has hung, reload page and try again.');
+		return;
+	}
+	optimize_in_prog=1;
 	function do_optimize()
 	{
 		set_calculating_msg('Optimizing altitudes for fuel consumption - please wait.');
 		
 		function optimize_cb(req)
 		{		
-	
+			optimize_in_prog=0;	
 			clear_calculating();
+			if (req.responseText=='')
+			{
+				alert('Failed to optimize route. Check if headwind is greater than TAS, or airport elevations exceed climb performance.');
+				return;
+			}
 			optresult=evalJSONRequest(req);
+			
 
 			for(var i=0;i<optresult.length;++i)
 			{
@@ -205,10 +219,13 @@ function optimize_alts()
 				v.value=''+parseInt(parseFloat(optresult[i][1]));
 				alt.value=''+parseInt(parseFloat(optresult[i][2]));
 			}
+			makedirty();
+			do_save();
 
 		}
 		var params={};	
 		params['tripname']=tripname;
+		params['strategy']=strategy;
 		var def=doSimpleXMLHttpRequest(optimizeurl,params);
 		def.addCallback(optimize_cb);
 	}
@@ -363,6 +380,7 @@ function update_fields(data)
 		var wcae=gete(id,'WCA');
 		var gse=gete(id,'GS');
 		var che=gete(id,'CH');
+		var tase=gete(id,'TAS');
 		
 		if (row.gs!=null && row.ch!=null && row.wca!=null)
 		{		
@@ -375,12 +393,16 @@ function update_fields(data)
 			
 			gse.value=row.gs;
 			che.value=row.ch;
+			if (advanced_model)
+				tase.value=row.tas;
 		}
 		else
 		{
 			wcae.value="--";
 			gse.value="--";
 			che.value="--";
+			if (advanced_model)
+				tase.value='--';
 		}
 		var time=gete(id,'Time');
 		time.value=row.timestr;

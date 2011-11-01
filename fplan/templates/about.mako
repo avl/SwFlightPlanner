@@ -25,7 +25,7 @@ Welcome to Flightplanner
 </table>
 <table style="height:80%;vertical-align:middle;margin: 0 auto">
 <tr>
-<td style="width:75%;text-align:left;background:#d0d0ff;border: 1px #808080 solid;padding:2%">
+<td style="width:800px;text-align:left;background:#d0d0ff;border: 1px #808080 solid;padding:2%">
 
 <h2>Who are you?</h2>
 My name is Anders Musikka, and I am an enthusiast pilot and programmer.
@@ -93,7 +93,7 @@ word swflightplanner did not give any hits on google. Sw stands for Sweden. I am
 <br/>
 <br/>
 <h2>Where does the data come from?</h2>
-The airspace data (which only covers Sweden and Finland) and NOTAMs (which only cover Sweden) are from LFV and Finavia. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.
+The airspace data (which only covers Sweden and Finland in detail, and with some Danish data) and NOTAMs (which only cover Sweden) are from LFV and Finavia. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.
 Magnetic variation/declination data is from "The World Magnetic Model" by National Geophysical Data Center.<br/>
 
 The airspace data was last downloaded from LFV/Finavia at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
@@ -109,8 +109,53 @@ Most Swedes know English fairly well, and the site could be of use to visiting p
 Also, the software running the site could in principle support a larger area, if airspace data were available. 
 <br/>
 <br/>
+<h2>How reliable is the optimization function?</h2>
+The program contains a function to help select good cruising altitudes.
+<br/>
+<br/>
+This is only available if the "advanced performance model" has been selected in
+the aircraft parameters. The reason for not making it available for the simpler
+model, is that typically, the difference in economy between different altitudes
+is rather small, and trying to find an optimal altitude without knowing how
+aircraft performance varies with altitude, is therefore not very reasonable.
+<br/>
+<br/>
+The function will fetch wind information for the altitudes 2000', FL50 and FL100,
+and will then use Dijkstra's path-finding algorithm to find the optimum altitude
+for each leg. You can choose to optimize for fuel economy (least fuel spent to
+destination) and time (getting there quickest). 
+<br/>
+<br/>
+To use the function, you need to figure out a few performance parameters for your
+aircraft. All of the information required is in the Pilot Operating Handbook of
+typical Piper PA28:s and Cessna 172:s.
+<br/>
+<br/>
+
+Some limitations of this function:
+<ul>
+
+<li>It finds the wind at the midpoint of each leg, and uses this for the entire leg.</li>
+
+<li>It uses the wind at the cruise altitude of each leg, so it does not take into account
+that the climb up to cruise altitude will pass through other wind layers.</li>
+
+<li>It is dependent upon having wind information, and this program only has wind
+information for Sweden. Also, the wind is only available when the "LHP" (Low Altitude
+Forecast) is available from LFV; and it is always just the current prognosis that is used.</li>
+
+<li>
+To make really optimal routes, power settings and speeds should be varied 
+along the route depending on wind. This would require an even more detailed 
+performance model, to the point that validating it way beyond the reach of 
+most enthusiasts (such as myself).
+</li> 
+</ul>
+
+
 </td>
 </tr></table>
+Updated 2011-10-27.
 <a href="/"><u>Back to start page</u></a> 
 </body>
 </html>

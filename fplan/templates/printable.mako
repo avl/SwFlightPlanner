@@ -1,4 +1,4 @@
-<h1>${c.departure} - ${c.arrival}</h1>
+<h1>${c.trip}</h1>
 
 %if min(r.accum_fuel_left for r in c.route)<0:
 <span style="font-size:20px;color:#ff0000">

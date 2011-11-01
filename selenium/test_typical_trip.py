@@ -38,7 +38,7 @@ def test_typical_trip():
         text=sel.get_body_text()
         print text
         assert re.match(ur".*STOCKHOLM/Västerås Start:\s*09:00 Fuel:70.0L.*",text)
-        arrive_hour,arrive_min,fuel=re.match(ur".*BORLÄNGE ETA:\s*(\d{2}):(\d{2})\s*Fuel left:\s*(\d+.?\d*).*",text).groups()
+        fuel,arrive_hour,arrive_min=re.match(ur".*BORLÄNGE.*Fuel left:\s*(\d+.?\d*)\s*L.*ETA:\s*(\d{2}):(\d{2})\s*",text).groups()
         assert int(arrive_hour)==10
         assert abs(int(arrive_min)-24)<=2
         fuel=float(fuel)

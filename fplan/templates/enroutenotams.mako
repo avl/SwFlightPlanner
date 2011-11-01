@@ -20,7 +20,7 @@ function navigate_to(where)
 	</dl>
 </div>
 
-<h1>Notams on Route ${c.route[0].a.waypoint} - ${c.route[-1].b.waypoint}</h1>
+<h1>Notams on Route ${c.trip} (${c.route[0].a.waypoint} - ${c.route[-1].b.waypoint})</h1>
 <h2>${c.route[0].a.waypoint}</h2>
 %for rt in c.route:
 <ul>

@@ -170,7 +170,10 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 </table>
 <button title="Fetch wind-information from the low-level forecast provided by LFV" onclick="fetch_winds();return false;">Fetch Wind Information</button>
 <button title="Reset wind-information - set all wind to 0." onclick="reset_winds();return false;">Reset Wind</button>
-<button title="Calculate optimal altitudes from a fuel point of view." onclick="optimize_alts();return false;">Optimize</button>
+%if c.ac and c.ac.advanced_model:
+<button title="Calculate optimal altitudes from a fuel point of view, find which altitude to fly to minimize fuel consumption" onclick="optimize_alts('fuel');return false;">Optimize Fuel</button>
+<button title="Calculate optimal altitudes from a time point of view, find which altitude to fly to get to destination as quickly as possible." onclick="optimize_alts('time');return false;">Optimize Time</button>
+%endif
 
 %if False and len(c.all_aircraft):
 <button onclick="fetch_acparams();return false;">Fetch Values from Aircraft</button>
