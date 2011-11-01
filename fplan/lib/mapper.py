@@ -388,7 +388,7 @@ def anyparse(coord):
                 return s[1:]
             else:
                 return "-"+s
-        lat,latm,lon,lonm=re.match(ur"^\s*(-?\d+(?:\.\d+)?)\s*°?\s*([,NS])\s*(-?\d+(?:\.\d+)?)\s*°?\s*([EW]|)\s*$",coord).groups()
+        lat,latm,lon,lonm=re.match(ur"^\s*(-?\d{1,2}(?:\.\d+)?)\s*°?\s*([,NS])\s*(-?\d{1,3}(?:\.\d+)?)\s*°?\s*([EW]|)\s*$",coord).groups()
         if latm=='S':
             lat=neg(lat)
         if lonm=='W':
@@ -398,7 +398,7 @@ def anyparse(coord):
         pass
     try:
         coord=coord.upper()
-        slat,slon=re.match(ur"(\d+[\.,]?\d*[NS])\s*(\d+[\.,]?\d*[EW]\b)",coord).groups()
+        slat,slon=re.match(ur"(\d{1,2}[\.,]?\d*[NS])\s*(\d{1,3}[\.,]?\d*[EW]\b)",coord).groups()
         return parse_coords(slat.strip(),slon.strip())
     except:
         pass

@@ -231,8 +231,10 @@ class FlightplanController(BaseController):
         #    rt.maxobstelev=get_obstacle_free_height_on_line(
         ##            mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos))
         # #   print "Max obst elev",rt.maxobstelev
+        strat=request.params.get('strategy','time')
+        print "Strategy",strat
         resultcode,routes=calc_route_info.get_optimized(tripuser(),c.trip.trip,
-                            request.params.get('strategy','time'))
+                            strat)
         if resultcode==False:
             return ""
         out=[]

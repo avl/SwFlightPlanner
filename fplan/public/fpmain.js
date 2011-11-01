@@ -195,7 +195,11 @@ function optimize_alts(strategy)
 	optimize_in_prog=1;
 	function do_optimize()
 	{
-		set_calculating_msg('Optimizing altitudes for fuel consumption - please wait.');
+		if (strategy=='fuel')
+			set_calculating_msg('Optimizing altitudes for fuel consumption - please wait.');
+		else
+			set_calculating_msg('Optimizing altitudes for travel time - please wait.');
+	
 		
 		function optimize_cb(req)
 		{		

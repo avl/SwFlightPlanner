@@ -135,7 +135,9 @@ typical Piper PA28:s and Cessna 172:s.
 Some limitations of this function:
 <ul>
 
-<li>It finds the wind at the midpoint of each leg, and uses this for the entire leg.</li>
+<li>It finds the wind at the midpoint of each leg, and uses this for the entire leg.
+Try to keep legs 50 nautical miles or shorter, to ensure reasonable wind values.
+</li>
 
 <li>It uses the wind at the cruise altitude of each leg, so it does not take into account
 that the climb up to cruise altitude will pass through other wind layers.</li>
