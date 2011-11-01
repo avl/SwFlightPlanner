@@ -113,7 +113,7 @@ The cruise climb/cruise descent values entered for the aircraft are not enough t
 %if c.endfuel<0:
 style="background-color:#ff8080"
 %endif
-><td>End:</td><td>${"%.1f"%(c.endfuel,)}L</td></tr>
+><td>End:</td><td>${"%.1fL"%(c.endfuel,) if c.endfuel!=None else '--'}</td></tr>
 </table>
 
 WARNING! This information may only be used for quickly checking possible flights for plausibility.<br/>

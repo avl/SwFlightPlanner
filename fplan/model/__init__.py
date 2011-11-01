@@ -138,9 +138,9 @@ rating_table = sa.Table("rating",meta.metadata,
 
 aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
-                        sa.Column('aircraft',Unicode(32),primary_key=True,nullable=False,default="SE-XYZ"),#Registration, like SE-VLI
-                        sa.Column('atstype',Unicode(32),primary_key=False,nullable=False,default="ULAC"),#Type of aircraft, like ULAC
-                        sa.Column('markings',Unicode(32),primary_key=False,nullable=False,default="W"),#Color, for use in ATS-flightplan
+                        sa.Column('aircraft',Unicode(32),primary_key=True,nullable=False,default=u"SE-XYZ"),#Registration, like SE-VLI
+                        sa.Column('atstype',Unicode(32),primary_key=False,nullable=False,default=u"ULAC"),#Type of aircraft, like ULAC
+                        sa.Column('markings',Unicode(32),primary_key=False,nullable=False,default=u"W"),#Color, for use in ATS-flightplan
                         sa.Column('cruise_speed',Float(),primary_key=False,nullable=False,default=75),
                         sa.Column('cruise_burn',Float(),primary_key=False,nullable=False,default=18),                        
                         sa.Column('climb_speed',Float(),primary_key=False,nullable=False,default=60),                        
@@ -178,8 +178,8 @@ recordings_table = sa.Table("recordings",meta.metadata,
                         sa.Column("end",DateTime(),nullable=False,primary_key=False),
                         sa.Column("duration",Float(),nullable=False,primary_key=False),
                         sa.Column("distance",Float(),nullable=False,primary_key=False),
-                        sa.Column('depdescr',Unicode(100),primary_key=False,nullable=False,default=""),
-                        sa.Column('destdescr',Unicode(100),primary_key=False,nullable=False,default=""),
+                        sa.Column('depdescr',Unicode(100),primary_key=False,nullable=False,default=u""),
+                        sa.Column('destdescr',Unicode(100),primary_key=False,nullable=False,default=u""),
                         sa.Column('trip',Binary(),primary_key=False,nullable=False,default=""),                        
                         sa.Column("version",Integer(),nullable=False,primary_key=False,default="2")
                         )
@@ -194,7 +194,7 @@ stay_table = sa.Table("stay",meta.metadata,
                     sa.Column('waypoint_id',Integer(),primary_key=True,nullable=False),
                     sa.Column('date_of_flight',Unicode(10),nullable=False,primary_key=False),
                     sa.Column('fuel',Float(),nullable=True,primary_key=False,default=None),
-                    sa.Column('departure_time',Unicode(5),nullable=False,primary_key=False,default=""),
+                    sa.Column('departure_time',Unicode(5),nullable=False,primary_key=False,default=u""),
                     sa.Column('nr_persons',Integer(),nullable=True,primary_key=False,default=None),
                     sa.Column('fueladjust',Float(),nullable=True,primary_key=False,default=None),
                     sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE"),                                                        

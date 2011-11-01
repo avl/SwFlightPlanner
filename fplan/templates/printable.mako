@@ -1,4 +1,4 @@
-<h1>${c.departure} - ${c.arrival}</h1>
+<h1>${c.trip}</h1>
 
 %if min(r.accum_fuel_left for r in c.route)<0:
 <span style="font-size:20px;color:#ff0000">
@@ -65,7 +65,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td>&nbsp;</td>
 <td><span style="font-size:10px">CH:</span>${"%03.0f"%(rt.ch,)}° <span style="font-size:10px">TT:</span>${"%03.0f"%(rt.tt,)}°</td>
 <td><span style="font-size:10px">D:</span>${"%.0f"%(rt.d,)}<span style="font-size:10px">NM</span></td>
-<td><span style="font-size:10px">Obst-free alt.:</span>${"%.0f"%(rt.maxobstelev+500,)}<span style="font-size:10px">ft</span></td>
+<td><span style="font-size:10px">Obst-free alt.:</span>${"%.0f"%(rt.maxobstelev+1000,)}<span style="font-size:10px">ft</span></td>
 <td><span style="font-size:10px">W:</span>${"%.0f"%(rt.windvel,)}<span style="font-size:10px">kt@</span>${"%03.0f"%(rt.winddir,)}°</td>
 <td><span style="font-size:10px">Alt:</span>${rt.altitude.replace(" ","&nbsp;")|n}</td>
 <td>

@@ -19,7 +19,7 @@ from fplan.lib.calc_route_info import get_route
 import fplan.lib.geo as geo
 import fplan.lib.notam_geo_search as notam_geo_search
 from itertools import chain
-from fplan.lib import get_terrain_elev
+from fplan.lib import get_terrain_elev, calc_route_info
 import fplan.lib.tripsharing as tripsharing
 from fplan.lib.tripsharing import tripuser
 import fplan.lib.airspace as airspace
@@ -29,6 +29,7 @@ import fplan.lib.sunrise as sunrise
 import unicodedata
 import time
 from datetime import timedelta,datetime
+import fplan.lib.obstacle_free as obstacle_free
 
 def strip_accents(s):
     if type(s)==str:
@@ -211,6 +212,8 @@ class FlightplanController(BaseController):
                 acname=request.params.get('aircraft','').strip()
                 if acname!="":
                     c.trip.aircraft=acname
+                  
+                
                 
             meta.Session.flush()
             meta.Session.commit()
@@ -219,6 +222,28 @@ class FlightplanController(BaseController):
             return ''
         
         return self.get_json_routeinfo(get_route(tripuser(),c.trip.trip)[1])
+    
+    def optimize(self):
+        if not self.validate(exception=False,tripname=request.params.get('tripname',False)):
+            return ""
+        
+        #for rt in c.route:
+        #    rt.maxobstelev=get_obstacle_free_height_on_line(
+        ##            mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos))
+        # #   print "Max obst elev",rt.maxobstelev
+        strat=request.params.get('strategy','time')
+        print "Strategy",strat
+        resultcode,routes=calc_route_info.get_optimized(tripuser(),c.trip.trip,
+                            strat)
+        if resultcode==False:
+            return ""
+        out=[]
+        for rt in routes:
+            out.append([rt.winddir,rt.windvel,rt.altitude])
+        s=json.dumps(out)
+        print "Optimized output",s
+        return s
+            
     def get_json_routeinfo(self,routes):
         out=dict()
         rows=[]
@@ -229,6 +254,7 @@ class FlightplanController(BaseController):
             d['wca']=rt.wca
             d['ch']="%03.0f"%(rt.ch,) if rt.ch else None
             d['gs']="%.1f"%(rt.gs,) if rt.gs>0 else None
+            d['tas']="%.1f"%(rt.tas,) if rt.tas>0 else None
             d['timestr']=timefmt(rt.time_hours) if rt.time_hours else "--"            
             d['clockstr']=rt.arrive_dt.strftime("%H:%M") if rt.arrive_dt else "--:--"
             rows.append(d)
@@ -381,7 +407,10 @@ class FlightplanController(BaseController):
                                     if sub.gs>1e-6:
                                         curtime=accum_time+along/sub.gs
                                         fir_whenposname.append((curtime,enterpos,fir['icao']))
-                            accum_time+=sub.time
+                            if sub.time!=None:
+                                accum_time+=sub.time
+                            else:
+                                accum_time=9999
                             
                         for space in get_any_space_on_line(lastwppos,curpos):
                             spaces.add((space['name'],space.get('floor',"<Unknown>"),space.get('ceiling',"<Unknown>")))
@@ -431,11 +460,11 @@ class FlightplanController(BaseController):
                     if len(dof)==8 and dof.startswith("20"):
                         dof=dof[2:]
                 else:
-                    dof=""
-                    
+                    dof=routes[0].depart_dt.strftime("%y%m%d")
+                print "dof:",dof
                                         
                 if len(dof)!=6:
-                    raise AtsException(u"You need to enter the Date of Flight/Takeoff date!")
+                    raise AtsException(u"ATS flight plans need takeoff date for all takeoffs!")
                 else:                    
                     extra_remarks.append(u"DOF/%s"%(dof,))            
                 if stay and stay.nr_persons:
@@ -462,10 +491,11 @@ class FlightplanController(BaseController):
                     endurance=0.0
                 
                 if endurance<=0.0:
-                    if fuel<1e-3:
+                    if fuel==None:
                         raise AtsException("Enter a value for 'Fuel at takeoff'!")
                     else:
-                        raise AtsException("You do not have enough fuel for the entire journey! Add a fuel stop, shorten the journey, or bring more fuel!")
+                        raise AtsException("You do not have enough fuel for the entire journey! This means your endurance would be 0 or negative for one or more legs. Add a fuel stop, shorten the journey, or bring more fuel!")
+                        
                 if not c.user.realname:
                     raise AtsException("You should enter your name under profile settings, for use as the name of the commander in the flight plan")
                 phonenr=""
@@ -700,6 +730,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         byid=dict()
         items=chain(notam_geo_search.get_notam_objs_cached()['obstacles'],
                     get_obstacles())
+        print "Get terrain"
         for closeitem in chain(geo.get_stuff_near_route(routes,items,3.0,vertdist),
                         geo.get_terrain_near_route(routes,vertdist,interval=interval),
                         geo.get_low_sun_near_route(routes)
@@ -857,15 +888,14 @@ C/%(commander)s %(phonenr)s)"""%(dict(
     def printable(self):
         self.standard_prep(c)
         self.get_freqs(c.route)
-        obsts=self.get_obstacles(c.techroute,1e6,2)
+        
         for rt in c.route:
             rt.notampoints=set()
             rt.notampoints.update(set([info['item']['notam'] for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))
         for rt in c.route:
-            if rt.waypoint1 in obsts:
-                rt.maxobstelev=max([obst['elevf'] for obst in obsts[rt.waypoint1]])
-            else:
-                rt.maxobstelev=0#"unknown"
+            rt.maxobstelev=obstacle_free.get_obstacle_free_height_on_line(
+                    mapper.from_str(rt.a.pos),
+                    mapper.from_str(rt.b.pos))
             rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
             rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
             #for obst in obsts:
@@ -901,6 +931,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             redirect(h.url_for(controller='flightplan',action="index",flash=u"Must have at least two waypoints in trip!"))
             return
         
+        c.trip=c.tripobj.trip
         for rt in c.route:
             rt.notampoints=dict()
             rt.notampoints.update(dict([(info['item']['notam'],info['item']) for info in get_notampoints_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos),5)]))

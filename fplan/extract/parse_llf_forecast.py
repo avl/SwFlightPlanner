@@ -9,7 +9,7 @@ def parse_groundwinds(w):
         area,descr=line.split(':',1)
 def parse_area(a,cur_area):
     a=a.strip()
-    print "Area:",a
+    #print "Area:",a
     letter,part=a.split(" ",1)
     assert letter.lower()==cur_area.lower()
     assert part.startswith("DEN ")

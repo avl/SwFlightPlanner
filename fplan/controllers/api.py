@@ -516,12 +516,11 @@ class ApiController(BaseController):
         else:
             down=latest
             down.bytes+=maxlen
-        
         meta.Session.flush()
         meta.Session.commit()
 
         f=open(levelfile)
-        
+
         if offset<curlevelsize:
             print "seeking to %d of file %s, then reading %d bytes"%(offset,levelfile,maxlen)
             f.seek(offset)

@@ -85,6 +85,7 @@ class AircraftController(BaseController):
                     msgs.add(msg)
             return ", ".join(msgs)
                 
+        c.aircraft_name_error=bad_values.get('aircraft',None)
         c.msgerror=get_msgerror
         c.fmterror=lambda x,alt=0:'style="background:#ff8080;' if bad_values.get((x,alt),None) else ''
         
@@ -114,8 +115,19 @@ class AircraftController(BaseController):
             Aircraft.aircraft==acname)).all()
                     
         bad_values=dict()
+        newname=request.params['aircraft']
         if len(cac)==1:
             ac,=cac
+            print "Newname",newname,"oldname",acname
+            if newname!=acname:
+                if meta.Session.query(Aircraft).filter(sa.and_(
+                    Aircraft.user==session['user'],
+                    Aircraft.aircraft==newname)).count():
+                    bad_values['aircraft']=u"You already have another aircraft by the name %s, choose a different name."%(newname,)
+                    print "Name busy"
+                else:
+                    ac.aircraft=newname
+                    print "Name was available",newname
             if ac.advanced_model:
                 if 'add_from_text' in request.params:
                     add_from_text=request.params['add_from_text'].strip()!=""
@@ -125,9 +137,10 @@ class AircraftController(BaseController):
                 for prop in advprops:
                     allvalues[prop]=[0 for x in xrange(10)]
                 print "Using advanced model"
+                
                 for name,value in request.params.items():
-                    if name in ('orig_aircraft','advanced_model'): continue
-                    if name in ['aircraft','atstype','markings']:
+                    if name in ('orig_aircraft','advanced_model','aircraft'): continue
+                    if name in ['atstype','markings']:
                         setattr(ac,name,value)
                     else:
                         if not add_from_text and name.count("_"):
@@ -159,9 +172,9 @@ class AircraftController(BaseController):
                 
             else:            
                 for name,value in request.params.items():            
-                    if name in ('orig_aircraft','advanced_model'): continue
+                    if name in ('orig_aircraft','advanced_model','aircraft'): continue
                     if hasattr(ac,name):
-                        if name in ['aircraft','atstype','markings']:
+                        if name in ['atstype','markings']:
                             setattr(ac,name,value)
                         else:
                             try:
@@ -177,7 +190,7 @@ class AircraftController(BaseController):
             else:
                 ac.advanced_model=False
             
-            session['cur_aircraft']=request.params['aircraft']
+            session['cur_aircraft']=ac.aircraft
             session.save()                  
         return bad_values
                  
@@ -189,6 +202,7 @@ class AircraftController(BaseController):
         if 'orig_aircraft' in request.params:
             bad=self.do_save()
             if bad:
+                print "Save failed",bad
                 return self.index(bad,orig=request.params['orig_aircraft'])
 
 
@@ -233,6 +247,7 @@ class AircraftController(BaseController):
         if 'navigate_to' in request.params and len(request.params['navigate_to'])>0:
             redirect(request.params['navigate_to'].encode('utf8'))
         else:
+            print "Redirect to index"
             redirect(h.url_for(controller='aircraft',action="index",flash=flash))
         
 

@@ -4,12 +4,30 @@ in_prog=0;
 cache={};
 recursion=0;
 
+
+function get_rownum(searchfpid)
+{
+	for(var i=0;i<num_rows;++i)
+	{
+		if (fpid[i]==searchfpid)
+			return i;
+	}
+	return null;
+}
+
 function set_calculating()
 {
 	var e=document.getElementById('progmessage');
 	e.innerHTML='Calculating...';
 	e.style.display='block';
 }
+function set_calculating_msg(msg)
+{
+	var e=document.getElementById('progmessage');
+	e.innerHTML=msg;
+	e.style.display='block';
+}
+
 function clear_calculating()
 {
 	var e=document.getElementById('progmessage');
@@ -77,6 +95,42 @@ function on_update_all()
 	clear_fields();
 	save_data(null);
 }
+function on_focus(id,wcol)
+{
+	function dofocus()
+	{
+		gete(id,wcol).select();	
+	}
+	setTimeout(dofocus,0); //Get around chrome-bug
+}
+function on_keydown(event,id,wcol)
+{
+	function movefocus(id,wcol)
+	{
+		var vid='fplanrow'+id+wcol;
+		var e=document.getElementById(vid);
+		if (e)
+		{
+			e.focus();			
+		}
+	}
+	if (event.which==38 || event.which==40)
+	{
+		var row=get_rownum(id);
+		if (event.which==38)
+		{ //up	
+			row-=1;
+		}
+		if (event.which==40)
+		{ //down
+			row+=1;
+		} 
+		if (row<0) row=0;
+		if (row>=num_rows) row=num_rows-1;
+		movefocus(fpid[row],wcol);
+		return false;
+	}
+}
 function on_update(id,wcol)
 {
 	if (recursion!=0) return;
@@ -129,6 +183,61 @@ function fetch_winds()
 	var def=doSimpleXMLHttpRequest(fetchweatherurl,params);
 	def.addCallback(weather_cb);
 }
+
+optimize_in_prog=0;
+function optimize_alts(strategy)
+{
+	if (optimize_in_prog!=0 || in_prog) 	
+	{
+		alert('Optimization or calculation already in progress. Please wait at least 30 seconds (worst case). If it has hung, reload page and try again.');
+		return;
+	}
+	optimize_in_prog=1;
+	function do_optimize()
+	{
+		if (strategy=='fuel')
+			set_calculating_msg('Optimizing altitudes for fuel consumption - please wait.');
+		else
+			set_calculating_msg('Optimizing altitudes for travel time - please wait.');
+	
+		
+		function optimize_cb(req)
+		{		
+			optimize_in_prog=0;	
+			clear_calculating();
+			if (req.responseText=='')
+			{
+				alert('Failed to optimize route. Check if headwind is greater than TAS, or airport elevations exceed climb performance.');
+				return;
+			}
+			optresult=evalJSONRequest(req);
+			
+
+			for(var i=0;i<optresult.length;++i)
+			{
+				var w=gete(fpid[i],'W');
+				var v=gete(fpid[i],'V');
+				var alt=gete(fpid[i],'Alt');
+				
+				w.value=''+parseInt(parseFloat(optresult[i][0]));
+				v.value=''+parseInt(parseFloat(optresult[i][1]));
+				alt.value=''+parseInt(parseFloat(optresult[i][2]));
+			}
+			makedirty();
+			do_save();
+
+		}
+		var params={};	
+		params['tripname']=tripname;
+		params['strategy']=strategy;
+		var def=doSimpleXMLHttpRequest(optimizeurl,params);
+		def.addCallback(optimize_cb);
+	}
+
+        save_data(do_optimize);	    
+
+}
+
 function reset_winds()
 {
     for(var i=0;i<num_rows-1;++i)
@@ -190,6 +299,7 @@ function save_data(cont)
         	        e.innerHTML='<a id="actualprintable" href="'+printableurl+'"><u>Printable</u></a>';
         	        var ret=evalJSONRequest(req);
         	        update_fields(ret);		    
+			clear_calculating();
    		        if (cont!=null)
 			{
 			    	cont();			    	
@@ -200,7 +310,7 @@ function save_data(cont)
 	    		save_data(cont);
 			return;
 	    	    }
-		    clear_calculating();
+		    
 		}
 		else
 		{
@@ -274,6 +384,7 @@ function update_fields(data)
 		var wcae=gete(id,'WCA');
 		var gse=gete(id,'GS');
 		var che=gete(id,'CH');
+		var tase=gete(id,'TAS');
 		
 		if (row.gs!=null && row.ch!=null && row.wca!=null)
 		{		
@@ -286,12 +397,16 @@ function update_fields(data)
 			
 			gse.value=row.gs;
 			che.value=row.ch;
+			if (advanced_model)
+				tase.value=row.tas;
 		}
 		else
 		{
 			wcae.value="--";
 			gse.value="--";
 			che.value="--";
+			if (advanced_model)
+				tase.value='--';
 		}
 		var time=gete(id,'Time');
 		time.value=row.timestr;
@@ -435,7 +550,7 @@ function fpaddwaypoint(idx,pos,name,rowdata,altitude,stay)
 			}
 			else
 			{
-				ro='onkeyup="on_update('+id+',\''+wh+'\')"  onchange="on_update('+id+',\''+wh+'\')"'; 
+				ro='onkeyup="on_update('+id+',\''+wh+'\')" onfocus="on_focus('+id+',\''+wh+'\')" onkeydown="on_keydown(event,'+id+',\''+wh+'\')" onchange="on_update('+id+',\''+wh+'\')"'; 
 			    modifiable_cols.push(wh);
 			}
 			tdelem.innerHTML='<input '+ro+' id="fplanrow'+id+fpcolshort[i]+'" size="'+fpcolwidth[i]+'" onkeypress="return not_enter(event );" title="'+fpcoldesc[i]+' '+fpcolextra[i]+'" type="text" name="row'+id+''+fpcolshort[i]+'" value="'+rowdata[i]+'"/>';	
