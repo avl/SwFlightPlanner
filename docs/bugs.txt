@@ -60,7 +60,7 @@
 58: FIXAD: ATS-läget borde nog använda sig-punkter om det finns (tillräckligt nära angiven koordinat)
 59: FIXAD: Finska ATS-routes.
 60: FIXAD: Sänd upp shapemerge-fixen till servern.
-61: Hastigheterna blir ibland fel i Android-appen.
+61: CAN'T REPRODUCE: Hastigheterna blir ibland fel i Android-appen.
 62: FIXAD: Testa att weather-funktionen hämtar rätt väder efter ordinal/id/ordering-refactoringen.
 63: FIXAD: Handle the case where a certain waypoint has been deleted when saving the flightplan->overview page.
 64: FIXAD: A *LOT* of verification to do. Is it so that we should even deploy in parallel? (NO!?)
@@ -95,7 +95,7 @@
 93: FIXAD: Vi klarar för tillfället inte av situationen windspeed>climbspeed...
 94: FIXAD: master: There's something very wrong with the new ajaxy flightplan-overview. It sometimes fills the TAS into the estimated start time, or the flight time to the DOF (on top of page!) (It was chrome that was confused when returning by back-button to a form without name-attributes for its fields)
 95: FIXAD: More testing needed!
-96: Skriv på forumet!
+96: TRIAGED: Skriv på forumet!
 97: FIXAD Bättre prestanda när man trycker på "printable"; och även när man sparar flightplan overview. Är det calc_route_info som är seg? (det var en sleep som använts för att provocera fram concurrency-problem som låg kvar!)
 98: FIXAD: Kolla om notam "downloaded" stämpeln är UTC eller lokal tid! Gör tydligt att det är UTC (för det borde nog vara UTC). (It is UTC)
 99: TRIAGED: Should have a way to enter small comments that will be shown to users, like "We don't have the ceiling of this airspace!".
@@ -108,7 +108,7 @@
 106: Make printable flight-plan quicker!
 107: FIXED: Overviewen borde visa "clock"-fältet tillsammans med waypointnamnet, inte som en del av legget!
 108: FIXED: The winds-download-function seems to round 15.0 to 14 and 25.0 to 24! (or rather, I don't think it does. Consider, however, interpolation between directions - it's done using vectors!)
-109: Mer test behövs. Selenium?
+109: TRIAGED: Mer test behövs. Selenium?
 110: FIXAD: Funkar db-rensningen av NOTAMS?
 111: FIXAD: I flightplanner overview borde man inte ha verktygsfältet till höger!
 112: Add some generic code to validate trip and user objects, rather than doing it badly all over.
@@ -136,19 +136,19 @@
 134: FIXED: Add a "reset wind" button.
 135: Create a way to scribble notes on legs (like radio-freq, opening hours, etc).
 136: FIXED: Notam bugged out when called by googlebot or similar...
-137: Make use of HTML location tracking, to show planners position on map.
-138: Why doesn't panning always work in chrome?
-139: It should be possible to use up/down-arrows in flight plan, to move to row above/below.
+137: TRIAGED: Make use of HTML location tracking, to show planners position on map.
+138: CAN'T REPRODUCE: Why doesn't panning always work in chrome?
+139: FIXED: It should be possible to use up/down-arrows in flight plan, to move to row above/below.
 140: FIXED: / are not allowed DEST-name in ATS-plan - should be changed to _ or something.
-141: Printable flightplan has trip-name as parameter, but actually seems to require session variable "current_trip" set as well. Not pretty :-)
+141: FIXED: Printable flightplan has trip-name as parameter, but actually seems to require session variable "current_trip" set as well. Not pretty :-)
 142: Verkar som att gpstrack-variabeln kan bli en tom sträng efter att gpx-import misslyckats. Detta gör att visning sedan misslyckas. Se till att gpstrack alltid blir None eller en giltig track.
-143: Clear session completely when logging out, and when logging in!
-144: Om man resizar fönstret så blir koordinaterna längst ner i statusfältet fel!!!
+143: FIXED: Clear session completely when logging out, and when logging in!
+144: TRIAGED: Om man resizar fönstret så blir koordinaterna längst ner i statusfältet fel!!!
 145: Borde backupa allt userdata på sajten.
-146: Printable, ta in frekvenser och ban-nummer från AD-översikten.
+146: TRIAGED: Printable, ta in frekvenser och ban-nummer från AD-översikten.
 147: Warn if climb fuel consumption is entered as lower than cruise!
 148: FIXED: Automatically fill in variation information (available from http://www.ngdc.noaa.gov/geomag/WMM/wmm_wdownload.shtml)
-149: If no aircraft, and thus no fuel calc, fuel shouldn't be shown in printable.
+149: FIXED: If no aircraft, and thus no fuel calc, fuel shouldn't be shown in printable.
 150: FIXED: The user field should be more than 32 characters wide, or maybe rather it should be possible to enter email as a separate field.
 151: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
 152: Rate-limit error-emails.

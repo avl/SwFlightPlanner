@@ -77,6 +77,7 @@ class SplashController(BaseController):
         del session['user']
         if 'current_trip' in session:
             del session['current_trip']
+        session.clear()
         session.save()
         tripsharing.cancel()
         redirect(h.url_for(controller='splash',action="index"))
