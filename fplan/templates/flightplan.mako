@@ -187,7 +187,7 @@ Total fuel consumption: <input id="totfuel" type="text" readonly="1" value="" si
 <br/>
 <h2>Printable version</h2>
 <span id="printablelink">
-<a href="${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}"><u>Printable</u></a><br/>
+<a href="${h.url_for(controller="flightplan",action="printable")}"><u>Printable</u></a><br/>
 </span>
 <h2>Download to GPS:</h2>
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',tripname=c.tripname)}"><u>GPX Format</u></a>.<br/>

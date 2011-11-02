@@ -42,7 +42,9 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
 <span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}
+%if c.ac!=None:
 <span style="font-size:10px">Fuel:</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
+%endif
 <span style="font-size:10px">Terrain:</span>${"%.0f"%(c.route[0].startelev,)}<span style="font-size:10px">ft</span>
 </td>
 
@@ -99,7 +101,7 @@ ${freq}
 <tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
 <b>${rt.b.waypoint}</b>
 
-
+%if c.ac!=None:
 %if rt.b.stay==None: 
 
 %if rt.accum_fuel_left<=0:
@@ -138,7 +140,7 @@ ${freq}
 %endif
 
 
-
+%endif
 %endif
 <span style="font-size:10px">Terrain: </span>${"%.0f"%(rt.endelev,)}<span style="font-size:10px">ft</span>
 
