@@ -158,6 +158,12 @@ It is possible to paste directly from OpenOffice Calc (Excel should also work).<
 
 <br/>
 
+%if c.burn_warning:
+<p style="background-color:#80ff80;font-size:14px">
+${c.burn_warning}
+</p>
+%endif
+
 %if len(c.all_aircraft):
 <input type="submit" name="save_button" value="Save"/>
 %endif

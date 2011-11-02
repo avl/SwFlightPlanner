@@ -32,6 +32,14 @@ class AircraftController(BaseController):
                  Aircraft.aircraft==cur_acname)).all()
             if len(cac)==1:
                 c.ac=cac[0]
+        c.burn_warning=None
+        
+        c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
+                 Aircraft.user==session['user'])).all()
+        if len(c.all_aircraft) and c.ac==None:
+            c.ac=c.all_aircraft[0]
+        print "c.ac",c.ac
+        
         if c.ac and c.ac.advanced_model:
             
             print "adv climb rate",c.ac.adv_climb_rate
@@ -46,7 +54,11 @@ class AircraftController(BaseController):
                 c.ac.adv_cruise_speed= [116,117,118,118,118,118,118,118,118,118]                        
                 c.ac.adv_descent_rate= [400,400,400,400,400,400,400,400,400,400]
                 c.ac.adv_descent_burn= [25, 25, 25, 25, 25, 25, 25, 25, 25, 25]                       
-                c.ac.adv_descent_speed=[116,117,118,119,120,121,122,122,122,122]                                                
+                c.ac.adv_descent_speed=[116,117,118,119,120,121,122,122,122,122]
+            for idx,(cruise_burn,climb_burn) in enumerate(zip(c.ac.adv_cruise_burn,c.ac.adv_climb_burn)):                                                
+                if climb_burn<cruise_burn:
+                    c.burn_warning="You have entered a fuel consumption for climb that is lower than that for cruise (for altitude %d). Is this right?"%(idx*1000)
+                    break
             
             for prop in advprops:
                 val=getattr(c.ac,prop)
@@ -76,6 +88,11 @@ class AircraftController(BaseController):
                     return s[:-2]
                 return s
             c.getval=getval
+        else:
+            if c.ac:
+                if c.ac.climb_burn<c.ac.cruise_burn:                                
+                    c.burn_warning="You have entered a fuel consumption for climb that is lower than that for cruise. Is this right?"
+
                 
         def get_msgerror(x):
             msgs=set()
@@ -96,10 +113,6 @@ class AircraftController(BaseController):
         else:
             c.flash=''
         
-        c.all_aircraft=meta.Session.query(Aircraft).filter(sa.and_(
-                 Aircraft.user==session['user'])).all()
-        if len(c.all_aircraft) and c.ac==None:
-            c.ac=c.all_aircraft[0]
         if c.ac:
             c.orig_aircraft=c.ac.aircraft
         else:
