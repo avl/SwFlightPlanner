@@ -221,7 +221,7 @@ def extract_airfields(filtericao=lambda x:True):
                         #uprint("MAtching: <%s>"%(line,))
                         if re.match(ur"AD\s+2.13",line): break
                         if line.count("Slope of"): break
-                        if line.count("END RWY:"): seen_end_rwy_text=True
+                        if line.lower().count("end rwy:"): seen_end_rwy_text=True
                         m=re.match(ur".*(\d{6}\.\d+)[\s\(\)\*]*(N).*",line)
                         if not m:continue
                         m2=re.match(ur".*(\d{6,7}\.\d+)\s*[\s\(\)\*]*(E).*",nextline)                            
@@ -233,7 +233,7 @@ def extract_airfields(filtericao=lambda x:True):
                         lat=latd+n
                         lon=lond+e
                         rwytxts=page.get_lines(page.get_partially_in_rect(0,line.y1+0.05,12,nextline.y2-0.05))
-                        #uprint("Rwytxts:",rwytxts)
+                        uprint("Rwytxts:",rwytxts)
                         rwy=None
                         for rwytxt in rwytxts:
                             #uprint("lat,lon:%s,%s"%(lat,lon))
