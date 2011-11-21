@@ -141,7 +141,7 @@
 139: FIXED: It should be possible to use up/down-arrows in flight plan, to move to row above/below.
 140: FIXED: / are not allowed DEST-name in ATS-plan - should be changed to _ or something.
 141: FIXED: Printable flightplan has trip-name as parameter, but actually seems to require session variable "current_trip" set as well. Not pretty :-)
-142: Verkar som att gpstrack-variabeln kan bli en tom sträng efter att gpx-import misslyckats. Detta gör att visning sedan misslyckas. Se till att gpstrack alltid blir None eller en giltig track.
+142: TRIAGED: Verkar som att gpstrack-variabeln kan bli en tom sträng efter att gpx-import misslyckats. Detta gör att visning sedan misslyckas. Se till att gpstrack alltid blir None eller en giltig track.
 143: FIXED: Clear session completely when logging out, and when logging in!
 144: TRIAGED: Om man resizar fönstret så blir koordinaterna längst ner i statusfältet fel!!!
 145: Borde backupa allt userdata på sajten.
