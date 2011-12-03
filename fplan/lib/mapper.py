@@ -644,7 +644,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
             
         
     if not arc:
-        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
+        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along ?an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
         #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)
         #if arc:
         #    print "midArc:",arc,arc.groups()

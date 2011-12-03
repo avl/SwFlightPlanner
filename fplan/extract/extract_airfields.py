@@ -17,7 +17,7 @@ import md5
 import codecs
 import parse_landing_chart
     
-def extract_airfields(filtericao=lambda x:True):
+def extract_airfields(filtericao=lambda x:True,purge=True):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
     p=Parser("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
@@ -418,8 +418,9 @@ def extract_airfields(filtericao=lambda x:True):
                 except Exception,cause:
                     print "Apparently no AD chart for ",icao,cause
                     nochartf.write("Apparently no chart for: %s - %s\n"%(icao,cause))
-                    
-    parse_landing_chart.purge_old(chartblobnames,country="se")        
+               
+    if purge:
+        parse_landing_chart.purge_old(chartblobnames,country="se")        
     
     #sys.exit(1)
 
@@ -490,6 +491,7 @@ def extract_airfields(filtericao=lambda x:True):
     
             
 if __name__=='__main__':
+    purge=False
     def filter_expr(ad):    
         if len(sys.argv)==2:
             av1=sys.argv[1]
@@ -498,6 +500,6 @@ if __name__=='__main__':
             else:
                 return eval(sys.argv[1],dict(icao=ad['icao'],name=ad['name']))
         return True
-    extract_airfields(filter_expr)
+    extract_airfields(filter_expr,purge)
     
     

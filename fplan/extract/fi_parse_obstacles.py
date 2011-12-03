@@ -26,7 +26,8 @@ def fi_parse_obstacles():
                         ('Rakennus','Building'),
                         ('Tuulivoimala','Wind turbine'),
                         ('Torni','Tower'),
-                        ('Nosturi','Crane')
+                        ('Nosturi','Crane'),
+                        ('Pyloni','Pylon')
                         ]
             
             lines=page.get_partially_in_rect(lx+15,item.y1-0.25,100,item.y2+0.25)
@@ -34,7 +35,9 @@ def fi_parse_obstacles():
             nameandtype=" ".join(l.text.strip() for l in lines)
             name,kind=None,None
             for obst_fi,obst_en in obsttypes:
+                print "Mach:",repr(nameandtype)
                 regex=ur"(.{3,})\s+%s\s*/\s*(%s)\s*(\d{6}N)\s*(\d{7}E)\s+(\d+)\s+(\d+)(.*)"%(obst_fi,obst_en)
+                print regex
                 m=re.match(regex,nameandtype)
                 print "Matched <%s> against <%s>, result: %s"%(regex,nameandtype,m)
                 if m:
