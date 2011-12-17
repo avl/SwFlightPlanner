@@ -274,8 +274,14 @@ def parse_all_tma():
     p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_2_1_en.pdf",fixgote)
 	
     res=[]    
-    for pagenr in xrange(5,p.get_num_pages()): 
-        parsed=parse_page(p,pagenr,"TMA")#pagenr)
+    found=False
+    for pagenr in xrange(0,p.get_num_pages()):
+        page=p.parse_page_to_items(pagenr)
+        if found or page.get_by_regex(r"Terminal Control Areas"):
+            found=True
+        else:
+            continue        
+        parsed=parse_page(p,pagenr,"TMA")
         res.extend(parsed)
         
     res.append(dict(
