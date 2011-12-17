@@ -309,10 +309,12 @@ class ApiController(BaseController):
     def checkpass(self):
         users=meta.Session.query(User).filter(User.user==request.params['user']).all()
         if len(users)==0:
+            print "no user found with name",request.params['user']
             return False
         else:
             user,=users
             if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
+                print "Attempted password: %s, user has: %s"%(request.params['password'],user.password)
                 return False
         return True
 
@@ -357,15 +359,18 @@ class ApiController(BaseController):
                 
                 if utcdatetime2stamp_inexact(proj.updated)>prevstamp:                
                     newer=True
-                
-                for level in xrange(5):
+                try:
+                    for level in xrange(5):
                     
-                    cstamp=parse_landing_chart.get_timestamp(adc['blobname'],level)
+                        cstamp=parse_landing_chart.get_timestamp(adc['blobname'],level)
                     
-                    #print "Read file",path,"stamp:",cstamp,"nowstamp:",nowstamp
-                    if cstamp>prevstamp:
-                        newer=True
-                    laststamp=max(laststamp,cstamp)
+                        #print "Read file",path,"stamp:",cstamp,"nowstamp:",nowstamp
+                        if cstamp>prevstamp:
+                            newer=True
+                        laststamp=max(laststamp,cstamp)
+                except Exception,cause:
+                    print cause
+                    continue
                 if newer:
                     charts.append((ad['name'],adc['blobname']))
         
