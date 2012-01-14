@@ -314,6 +314,18 @@ class FlightplanController(BaseController):
         #print "returning json:",jsonstr
         return jsonstr
         
+    def excel(self):
+        # Return a rendered template
+        #return render('/flightplan.mako')
+        # or, return a response
+        if not self.validate(tripname=request.params.get('tripname',None),exception=False):
+            return "Internal error. Missing trip-name or user-session."
+        self.standard_prep(c)
+
+        c.waypoints=c.route
+        response.content_type = 'application/octet-stream'               
+        response.charset="utf8"
+        return render('/excel.mako')
         
         
 
