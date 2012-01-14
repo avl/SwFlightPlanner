@@ -35,21 +35,25 @@ def extract_single_sup(full_url,sup,supname,opening_ours):
                 if re.match(ur".*SUP\s*\d+/\d{4}\.?\s+HOURS OF OPERATION\s*$",line):
                     opening_ours.add(p.get_url())
                     print "Found hours:",opening_ours
-            
-            
-        for areaname,coords,meta in find_areas(page):
-            if areaname:
-                name="%s (on page %d of %s)"%(areaname,pagenr+1,supname)
-            else:
-                name="Area on page %d of %s"%(pagenr+1,supname)
-            print "Number of points",len(coords)
-            areas.append(dict(
-                url=full_url,
-                pagenr=pagenr+1,
-                sup=supname,
-                name=name,
-                type='aip_sup',
-                points=coords))
+
+        try:
+            for areaname,coords,meta in find_areas(page):
+                if areaname:
+                    name="%s (on page %d of %s)"%(areaname,pagenr+1,supname)
+                else:
+                    name="Area on page %d of %s"%(pagenr+1,supname)
+                    
+                    
+                print "Number of points",len(coords)
+                areas.append(dict(
+                        url=full_url,
+                        pagenr=pagenr+1,
+                        sup=supname,
+                        name=name,
+                        type='aip_sup',
+                        points=coords))
+        except:
+            pass
 
         #hits=page.get_by_regex(r"[Ee]ntry.*[Ee]xit.*point")
         #items=sorted(page.get_partially_in_rect(holdingheading.x1+2.0,holdingheading.y2+0.1,holdingheading.x1+0.5,100),
