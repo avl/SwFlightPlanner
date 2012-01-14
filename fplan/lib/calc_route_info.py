@@ -987,8 +987,8 @@ def get_route_impl(tripobj,waypoints,routes,ac,dummyac):
             if startvar!=None and endvar!=None:
                 rt.variation=0.5*(startvar+endvar)
         rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
-        rt.mh=rt.ch+val(rt.deviation)
-        rt.th=rt.mh+val(rt.variation)
+        rt.mh=(rt.ch+val(rt.deviation))%360.0
+        rt.th=(rt.mh+val(rt.variation))%360.0
         #rt.tt=rt.th-wca
         #rt.tt=rt.mh+val(rt.variation)-wca
         #rt.tt=rt.ch+val(rt.deviation)+val(rt.variation)-wca
