@@ -325,6 +325,11 @@ class FlightplanController(BaseController):
         c.waypoints=c.route
         response.content_type = 'application/octet-stream'               
         response.charset="utf8"
+        def fixup(val):
+            if type(val)==float:
+                return str(val).replace(".",",")
+            return val
+        c.fixup=fixup
         return render('/excel.mako')
         
         
