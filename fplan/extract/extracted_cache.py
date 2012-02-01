@@ -1,4 +1,4 @@
-
+import traceback
 from fplan.extract.parse_tma import parse_all_tma,parse_r_areas
 from fplan.extract.fi_parse_tma import fi_parse_tma
 from fplan.extract.parse_obstacles import parse_obstacles
@@ -252,7 +252,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                             filename)                            
                         result="Loaded new"
                     except Exception,cause:
-                        msg=repr(cause)
+                        msg=traceback.format_exc()
                         try:
                             d=pickle.load(open(filename))
                             result="Used backup"

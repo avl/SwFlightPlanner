@@ -8,7 +8,7 @@ def run():
     f.close()
     for key,what in d.items():
         when=datetime.utcfromtimestamp(what['date'])
-        print "%30s: %s - %s"%(what['what'],now-when,what['result'])
+        print "%30s: %s - %s (%s)"%(what['what'],now-when,what['result'],what['msg'])
 
 
 run()
