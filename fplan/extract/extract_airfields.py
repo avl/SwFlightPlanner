@@ -259,7 +259,6 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                 #print "Matches of ATS COMMUNICATION FACILITIES on page %d: %s"%(pagenr,matches)
                 if len(matches)>0:
                     commitem=matches[0]
-                    #commitem,=page.get_by_regex("ATS\s+COMMUNICATION\s+FACILITIES")
                     curname=None
                     
                     callsign=page.get_by_regex_in_rect(ur"Call\s*sign",0,commitem.y1,100,commitem.y2+8)[0]
@@ -285,6 +284,8 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                         freqs.append((curname.strip().rstrip("/"),freq))
 
 
+            for pagenr in xrange(0,p.get_num_pages()):
+                page=p.parse_page_to_items(pagenr)                                              
                                 
                 matches=page.get_by_regex(r".*ATS\s*AIRSPACE.*")
                 #print "Matches of ATS_AIRSPACE on page %d: %s"%(pagenr,matches)
