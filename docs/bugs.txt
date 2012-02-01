@@ -152,4 +152,6 @@
 150: FIXED: The user field should be more than 32 characters wide, or maybe rather it should be possible to enter email as a separate field.
 151: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
 152: Rate-limit error-emails.
+153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
+
 
