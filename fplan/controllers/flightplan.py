@@ -722,20 +722,42 @@ C/%(commander)s %(phonenr)s)"""%(dict(
     def minutemarkings(self):
         self.standard_prep(c)
         scale=250000
+        def total_seconds(td):
+            return float(td.seconds)+td.days*86400.0+td.microseconds/1e6
         for r in c.route:
             try:
+                subs=r.subs
+                def get_d_at_time(dt):
+                    for sub in subs:
+                        if dt<=sub.arrive_dt:
+                            sub_time=dt-sub.depart_dt
+                            sub_seconds=total_seconds(sub_time)
+                            sub_hours=sub_seconds/3600.0
+                            return sub.relstartd+sub_hours*sub.gs
+                    return r.d
+                        
                 curdt=copy(r.depart_dt)
-                minute=(r.depart_dt.second+r.depart_dt.microsecond/1e6)/60.0
-                gs_ms=(r.gs*1.8520)/3.6
-                if gs_ms<1e-3: return "-"
-                meter_per_min=gs_ms*60.0
-                map_meter_per_min=meter_per_min/scale
-                cm_per_min=100*map_meter_per_min
+                curdt=curdt.replace(second=60*(curdt.second//60),microsecond=0)
+                if curdt<r.depart_dt:
+                    curdt+=timedelta(0,60)
+                    
+                                    
+                #gs_ms=(r.gs*1.8520)/3.6
+                #if gs_ms<1e-3: return "-"
+                #meter_per_min=gs_ms*60.0
+                #map_meter_per_min=meter_per_min/scale
+                #cm_per_min=100*map_meter_per_min
+                    #d=get_d_at_time(curdt)
+                    #get_
+                    #marks.append("%.1f"%cur)
+                    #cur+=cm_per_min                                    
                 marks=[]
-                cur=(1.0-minute)*cm_per_min
                 while curdt<r.arrive_dt:
-                    marks.append("%.1f"%cur)
-                    cur+=cm_per_min
+                    d=get_d_at_time(curdt)
+                    meter=d*1852.0
+                    cm=meter*100.0
+                    mapcm=cm/scale
+                    marks.append("%.1f"%mapcm)
                     curdt+=timedelta(0,60)
                 r.marks=", ".join(marks)+" cm"
             except:
@@ -914,6 +936,15 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             for rt in c.origroute:
                 for sub in rt.subs:
                     sub.freqset=rt.freqset
+                    sub.is_start=False
+                    sub.is_end=False
+                rt.subs[-1].is_end=True
+                rt.subs[0].is_start=True
+        else:
+            for rt in c.route:
+                rt.is_end=True
+                rt.is_start=True
+                rt.what=''
         
         for rt in c.route:
             rt.notampoints=set()

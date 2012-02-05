@@ -1159,6 +1159,7 @@ def calc_one_leg(idx,rt,
         out.depart_dt=out.startdt
         out.arrive_dt=accum_dt
         accum_time=None
+        out.time_hours=0        
         out.accum_time_hours=None
         out.accum_dist=0
         #accum_clock=None
