@@ -153,5 +153,7 @@
 151: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
 152: Rate-limit error-emails.
 153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
+154: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
+155: Show cruise GS on the average-legs.
 
 

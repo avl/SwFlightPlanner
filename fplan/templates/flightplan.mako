@@ -189,6 +189,11 @@ Total fuel consumption: <input id="totfuel" type="text" readonly="1" value="" si
 <span id="printablelink">
 <a href="${h.url_for(controller="flightplan",action="printable")}"><u>Printable</u></a><br/>
 </span>
+<h2>Extended printable (warning: experimental)</h2>
+<span id="printablelink">
+<a href="${h.url_for(controller="flightplan",action="printable",extended=True)}"><u>Extended Printable</u></a><br/>
+This version includes separate legs for climbs and descents.
+</span>
 <h2>Download to GPS:</h2>
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',tripname=c.tripname)}"><u>GPX Format</u></a>.<br/>
 Custom: <a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname)}"><u>CSV Format</u></a>.<br/>

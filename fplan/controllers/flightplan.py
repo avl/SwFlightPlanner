@@ -903,8 +903,17 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 #print "Airspace:",air
             #print "Inspecting leg",rt
     def printable(self):
+        extended=False
+        if request.params.get('extended',False):
+            extended=True
         self.standard_prep(c)
         self.get_freqs(c.route)
+        if extended:
+            c.origroute=c.route
+            c.route=c.techroute
+            for rt in c.origroute:
+                for sub in rt.subs:
+                    sub.freqset=rt.freqset
         
         for rt in c.route:
             rt.notampoints=set()
