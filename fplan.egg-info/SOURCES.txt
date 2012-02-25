@@ -111,6 +111,7 @@ fplan/lib/mapper.py
 fplan/lib/maptilereader.py
 fplan/lib/notam_db_update.py
 fplan/lib/notam_geo_search.py
+fplan/lib/obstacle_free.py
 fplan/lib/octree.py
 fplan/lib/parse_gpx.py
 fplan/lib/poly_cleaner.py
@@ -162,6 +163,7 @@ fplan/templates/base.mako
 fplan/templates/coordpres.mako
 fplan/templates/enroutenotams.mako
 fplan/templates/error.mako
+fplan/templates/excel.mako
 fplan/templates/flightplan.mako
 fplan/templates/fuel.mako
 fplan/templates/gpx.mako
