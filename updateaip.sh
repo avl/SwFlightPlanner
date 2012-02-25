@@ -1,8 +1,9 @@
 #!/bin/bash
+nice python fplan/extract/extracted_cache.py force
 for (( ; ; ))
 do
-   nice python fplan/extract/extracted_cache.py $1 $2 $3
-   sleep 1800
+   nice python fplan/extract/extracted_cache.py
+   sleep 7200
 done
 
 
