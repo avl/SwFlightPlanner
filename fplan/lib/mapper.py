@@ -368,7 +368,7 @@ def anyparse(coord):
             ur"((?:\d*\.?\d*|\d+\.?\d*\s*(?:''|\")))"+
             ur"\s*([EW])\b",coord).groups())
         def intg(s):
-            if s.strip(): return int(s,0)
+            if s.strip(): return int(s,10)
             return 0
         def floatg(s):
             if s.strip(): return float(s)
