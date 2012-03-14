@@ -462,9 +462,8 @@ if __name__=='__main__':
     time.sleep(2)
     if len(sys.argv)>1 and sys.argv[1]:
         single_force=True
-    while True:
-        run_update_iteration()
-        time.sleep(1800)
+    #while True:
+    run_update_iteration()
 
 
 
