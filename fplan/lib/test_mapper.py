@@ -1,3 +1,4 @@
+#encoding=utf8
 from fplan.lib.mapper import *
 import mapper
 
@@ -39,6 +40,14 @@ def test_parse_coord():
     c,=parsecoords("590000,0N 0180000,0E")
     assert from_str(c)[0]==59
     assert from_str(c)[1]==18
+    
+
+if __name__=='__main__':
+    c=anyparse(u"N 55° 35,́9856 E 014° 38,́454")
+    print c
+    assert abs(from_str(c)[0]-55.59976)<1e-5
+    assert abs(from_str(c)[1]-14.6409)<1e-5
+    
     
 def test_parse_all_alts():
     def check(what,exp):

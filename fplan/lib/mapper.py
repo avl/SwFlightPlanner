@@ -1,6 +1,7 @@
 #encoding=utf8
 import re
 from itertools import count
+import traceback
 import popen2
 import math
 import cStringIO
@@ -401,6 +402,21 @@ def anyparse(coord):
         slat,slon=re.match(ur"(\d{1,2}[\.,]?\d*[NS])\s*(\d{1,3}[\.,]?\d*[EW]\b)",coord).groups()
         return parse_coords(slat.strip(),slon.strip())
     except:
+        pass
+        
+    try:
+        coord=coord.upper().replace(" ","").replace(",",".")
+        print "matching",repr(coord)
+        #NS,latdeg,latmin,EW,londeg,lonmin=re.match(ur"([NS])(\d+)°?(\d+[\.,]\d+)([EW])(\d+)°?(\d+[\.,]\d+)",coord).groups()
+        NS,latdeg,latmin,latmindec,EW,londeg,lonmin,lonmindec=re.match(ur"([NS])(\d+)°?(\d+)[^\d]{1,3}(\d*)([EW])(\d+)°?(\d+)[^\d]{1,3}(\d*)",coord).groups()
+        print "Captures:",(NS,latdeg,latmin,EW,londeg,lonmin)
+        lat=int(latdeg,10)+float(latmin+"."+latmindec)/60.0
+        lon=int(londeg,10)+float(lonmin+"."+lonmindec)/60.0
+        if NS=='S':lat=-lat
+        if EW=='W':lon=-lon
+        return to_str((lat,lon))
+    except:
+        #print traceback.format_exc()
         pass
     raise Exception("Unknown format")
 
