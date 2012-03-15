@@ -155,5 +155,6 @@
 153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
 154: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
 155: Show cruise GS on the average-legs.
+156: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
 
 
