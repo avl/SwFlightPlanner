@@ -46,8 +46,8 @@ def fi_parse_airfield(icao=None):
     for item in page.get_by_regex(ur".*ELEV\s*/\s*REF.*"):
         lines=page.get_lines(page.get_partially_in_rect(0,item.y1+0.1,100,item.y2-0.1))
         for line in lines:
-            m,ft=re.match(".*([(\d\.)]+)\s*M\s*\(([\d\.]+)\s*FT\).*",line).groups()
-            assert (float(m)-float(ft)*0.3048)<5
+            print "Line:",line
+            ft,=re.match(".*ELEV.*([\d\.]+)\s*FT.*",line).groups()
             assert not 'elev' in ad
             ad['elev']=float(ft)
         
