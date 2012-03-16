@@ -17,6 +17,7 @@ from paste.deploy import appconfig
 
 def notam_db_update():
     #TODO: Remove this function!
+    
     return notam_db_update_impl(get_latest_notam())
 def notam_db_update_impl(html):
     prevobjs=meta.Session.query(Notam).order_by(sa.desc(Notam.ordinal)).limit(1).all()
@@ -36,6 +37,7 @@ def notam_db_update_impl(html):
     latest=parse_notam(html)
     
     if not prevobj or prevobj.notamtext!=latest.notamtext:
+        print "There is a difference"
         #print "diff1",not prevobj
         #if prevobj:
         #    print "diff2",prevobj.issued!=latest.issued
@@ -105,7 +107,9 @@ def notam_db_update_impl(html):
             #meta.Session.add(ni)
             
         meta.Session.flush()
-
+    else:
+        print "Start:",latest.notamtext[:20]
+        print "No difference compared to last notam"
 def run_update():
     if sys.argv[1]=='clear':
         meta.Session.query(Notam).delete()

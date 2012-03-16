@@ -399,7 +399,7 @@ class Notam(object):
         self.downloaded=downloaded
         self.notamtext=notamtext
     def __repr__(self):
-        return u"Notam(%s,%s,%s,%d chars)"%(self.ordinal,self.downloaded,len(self.notamtext))
+        return u"Notam(%s,%s,%d chars)"%(self.ordinal,self.downloaded,len(self.notamtext))
 class NotamUpdate(object):
     def __init__(self,appearnotam,appearline,category,text):
         self.appearnotam=appearnotam
