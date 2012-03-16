@@ -216,7 +216,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def fi_parse_parse_airfields(self):
                     "Finnish major airfields"
                     fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
-                    return dict(airfields=airfields,airspaces=fi_spaces)
+                    return dict(airfields=fi_airfields,airspaces=fi_spaces)
                 def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
                 def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
 
