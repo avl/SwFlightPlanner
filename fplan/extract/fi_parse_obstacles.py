@@ -24,7 +24,7 @@ def fi_parse_obstacles():
                         ("Savupiippu",'Chimney'),
                         ('Masto','Mast'),
                         ('Rakennus','Building'),
-                        ('Tuulivoimala','Wind turbine'),
+                        ('Tuulivoimala','Wind tur[\s-]*bine'),
                         ('Torni','Tower'),
                         ('Nosturi','Crane'),
                         ('Pyloni','Pylon')
