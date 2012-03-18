@@ -338,9 +338,9 @@ def scalarprod(x,y):
 
 def parsecoord(seg):
     print "Parsecoord for <%s>"%(seg,)
-    m=re.match(ur"\s*([\d\.]+[NS])\s*([\d\.]+[EW])\s*",seg)
+    m=re.match(ur"\s*([\d\.]+[NS])\s*([\d\.]+[EW])\s*",seg,re.UNICODE)
     if not m:
-        print seg
+        print "Input:",repr(seg)
         raise MapperBadFormat()
     lat,lon=m.groups()
     coord=parse_coords(lat.strip(),lon.strip())
@@ -822,6 +822,11 @@ def parse_elev(elev):
     if not isinstance(elev,basestring):
         raise NotAnAltitude(repr(elev))
     elev=elev.strip()
+    if type(elev)==unicode:
+        print repr(elev)
+        elev=" ".join(elev.replace(u"\xa0 ",u" ").split())
+        print "After",repr(elev)
+        
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
     if elev.lower().endswith("ft msl"): elev=elev[:-6].strip()

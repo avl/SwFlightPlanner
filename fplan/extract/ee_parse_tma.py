@@ -169,7 +169,7 @@ def pretty(pa):
 def ee_parse_tma():
     def fixgote(raw):
         return raw
-    p=parse.Parser(r"/index.aw?section=9129&action=genpdf&file=9129.pdf",fixgote,country='ee')
+    p=parse.Parser(r"/2012-03-08/pdf/EE-ENR-2.1.pdf",fixgote,country='ee')
 	
     res=[]    
     for pagenr in xrange(1,p.get_num_pages()): 

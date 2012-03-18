@@ -25,8 +25,8 @@ import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 from fplan.extract.de_parse import parse_denmark
 import json
-from fplan.extract.ee_parse_tma import ee_parse_tma
-from fplan.extract.ee_parse_airfields import ee_parse_airfields
+from fplan.extract.ee_parse_tma2 import ee_parse_tma2
+from fplan.extract.ee_parse_airfields2 import ee_parse_airfields2
 from fplan.extract.ee_parse_sigpoints import ee_parse_sigpoints
 from fplan.extract.ev_parse_tma import ev_parse_tma,ev_parse_r,ev_parse_obst
 from fplan.extract.ev_parse_sigpoints import ev_parse_sigpoints
@@ -186,13 +186,13 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(ads)
                 sig_points.extend(ey_parse_sigpoints())
                 airspaces.extend(ey_parse_tma())
-            if 0: #estonia
-                ads,spaces=ee_parse_airfields()
+            if 1: #estonia
+                ads,spaces=ee_parse_airfields2()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
-                sig_points.extend(ee_parse_sigpoints())
-                airspaces.extend(ee_parse_restrictions())
-                airspaces.extend(ee_parse_tma())
+                #sig_points.extend(ee_parse_sigpoints())
+                #airspaces.extend(ee_parse_restrictions())
+                airspaces.extend(ee_parse_tma2())
             if 0: #latvia
                 #airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ev_parse_tma())

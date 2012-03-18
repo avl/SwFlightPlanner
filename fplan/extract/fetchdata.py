@@ -41,7 +41,7 @@ def getrawurl(relpath,country="se"):
     elif country=="fi":
         durl="http://ais.fi"+fixed
     elif country=="ee":
-        durl="http://aip.eans.ee"+fixed
+        durl="http://eaip.eans.ee"+fixed
     elif country=="pl":
         durl="http://localhost"+fixed #TODO; Add something reasonsable here
     elif country=="no":
