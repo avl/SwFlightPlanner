@@ -823,9 +823,9 @@ def parse_elev(elev):
         raise NotAnAltitude(repr(elev))
     elev=elev.strip()
     if type(elev)==unicode:
-        print repr(elev)
-        elev=" ".join(elev.replace(u"\xa0 ",u" ").split())
-        print "After",repr(elev)
+        #print repr(elev)
+        elev=" ".join(elev.replace(u"\xa0",u" ").split())
+        #print "After",repr(elev)
         
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
