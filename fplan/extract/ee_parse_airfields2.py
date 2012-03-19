@@ -7,12 +7,12 @@ import re
 from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext,alltexts
 from datetime import datetime
-
+from ee_common import get_airac_date
 
 def ee_parse_airfields2():
     ads=[]
     spaces=[]
-    airac_date="2012-03-08"
+    airac_date=get_airac_date()
     overview_url="/%s/html/eAIP/EE-AD-0.6-en-GB.html"%(airac_date,)
         
     parser=lxml.html.HTMLParser()
@@ -79,8 +79,8 @@ def ee_parse_airfields2():
                     space['points']=mapper.parse_coord_str("\n".join(rest))
 
                     space['name']=zname+" "+what
-                    space['date']=datetime.utcnow()
-                    space['url']=url
+                    space['date']=date
+                    space['url']=fetchdata.getrawurl(url,'ee')
                  
                     
                 if trtxt.count("Vertical limits"):
@@ -118,7 +118,9 @@ def ee_parse_airfields2():
             assert 'floor' in space
             assert 'ceiling' in space
             assert 'type' in space
-            spaces.append(space)   
+            spaces.append(space)
+        ad['date']=date
+        ad['url']=fetchdata.getrawurl(url,'ee')   
         print "AD:",ad
         assert 'pos' in ad
         assert 'name' in ad

@@ -560,7 +560,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     #uprint("Parsing <%s>"%(seg,))
     
     for firspec in [
-        ur"(.*)/then\s*(?:northbound)?\s*along\s*the\s*(?:\w{4})?\s*FIR\s*boundary\s*to\s*the\s*point\s*(\d+N\s*\d+E)"
+        ur"(.*)/?then\s*(?:northbound)?\s*along\s*the\s*(?:\w{4})?\s*FIR\s*boundary\s*to\s*the\s*point\s*(\d+N\s*\d+E)"
         ]:
         firm=re.match(firspec,seg,re.IGNORECASE|re.UNICODE)
         if firm:
@@ -577,10 +577,10 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
             return ["%f,%f"%(lat,lon) for lat,lon in border_follower(fir_context,from_str(prevc),from_str(nextc))]
     
     for borderspec in [
-        ur"()(.*)/\s*further\s*(?:clockwise)?\s*along the state border to the point\s*([\d.]+N\s*[\d.]+E)\s*",
+        ur"()(.*)/?\s*further\s*(?:clockwise)?\s*along the state border to the point\s*([\d.]+N\s*[\d.]+E)\s*",
         ur"()()Along\s*the\s*common\s*\w+\s*/\s*\w+ (?:state\s*boundary|existing administrative boundary)\s*to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
-        ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
-        ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/?\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/?\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
         ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)",
         ur"()(.*)/then along the boundary of\s*territorial waters to:?\s*(\d+N\s*\d+E)",
         ur"()(.*)\s*/\s*then along the \w+/\w+ state boundary to\s*(\d+N\s*\d+E)",
@@ -832,6 +832,7 @@ def parse_elev(elev):
     if elev.lower().endswith("ft msl"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft amsl"):elev=elev[:-6].strip()
     if elev.lower().endswith("ft gnd"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft agl"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft alt"): elev=elev[:-6].strip()
     if elev.lower().endswith("ftalt"):  elev=elev[:-5].strip()

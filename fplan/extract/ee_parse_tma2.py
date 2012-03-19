@@ -7,6 +7,12 @@ import re
 from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext,alltexts
 from datetime import datetime
+from ee_common import get_airac_date
+    
+eer1txt=u"""573311N 0271110E –
+then along the EETT FIR boundary to the point 573104N 0272102E –
+then along the EETT FIR boundary to the point 592818N 0280236E –
+then along the EETT FIR boundary to the point 594519N 0264317E – 595106N 0260442E – 594847N 0260108E – 594300N 0263900E – 593500N 0265200E – 593300N 0273900E – 592500N 0280000E – 592200N 0280400E – 591800N 0275000E – 590000N 0273700E – 584800N 0271600E – 583000N 0272400E – 581200N 0272400E – 575800N 0273300E – 573311N 0271110E"""
 
 firtxt=u"""592818N 0280236E –
 Along the common Estonian/X state boundary to 573100N 0272000E –
@@ -15,7 +21,7 @@ Along the common Estonian/X state boundary to 575300N 0242200E –
 """
 def ee_parse_tma2():
     spaces=[]
-    airac_date="2012-03-08"
+    airac_date=get_airac_date()    
     url="/%s/html/eAIP/EE-ENR-2.1-en-GB.html"%(airac_date,)
     parser=lxml.html.HTMLParser()
     data,date=fetchdata.getdata(url,country='ee')
@@ -48,6 +54,8 @@ def ee_parse_tma2():
             space['freqs']=[]
             space['icao']='EETT'
             space['type']='FIR'
+            space['date']=date
+            space['url']=fetchdata.getrawurl(url,'ee')
             spaces.append(space)            
             continue
         else:
@@ -97,8 +105,8 @@ def ee_parse_tma2():
         space['ceiling']=ceiling
         space['freqs']=[]
         space['type']=type
-        space['date']=datetime.utcnow()
-        space['url']=url
+        space['date']=date
+        space['url']=fetchdata.getrawurl(url,'ee')
         for freq in freqs:
             space['freqs'].append((callsign,freq))
         spaces.append(space)
