@@ -36,11 +36,14 @@ fplan/extract/border_follower.py
 fplan/extract/coord2latlon.py
 fplan/extract/coords_from_map.py
 fplan/extract/de_parse.py
+fplan/extract/ee_common.py
 fplan/extract/ee_extract_airfields.py
 fplan/extract/ee_parse_airfields.py
 fplan/extract/ee_parse_airfields2.py
+fplan/extract/ee_parse_r2.py
 fplan/extract/ee_parse_restrictions.py
 fplan/extract/ee_parse_sigpoints.py
+fplan/extract/ee_parse_sigpoints2.py
 fplan/extract/ee_parse_tma.py
 fplan/extract/ee_parse_tma2.py
 fplan/extract/ek_parse_airfields.py
