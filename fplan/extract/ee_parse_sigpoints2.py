@@ -36,6 +36,8 @@ def ee_parse_sigpoints2():
             sig['url']=url
             sig['date']=date
             sig['name']=nametxt            
+            sig['short']=nametxt
+            sig['kind']='sig. point'        
             subed=re.sub(ur"[\n\s]+"," ",coordtxt,flags=re.UNICODE)
             sig['pos']=mapper.anyparse(subed)
             sigs.append(sig)
