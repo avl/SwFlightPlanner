@@ -26,6 +26,7 @@ from datetime import datetime,timedelta
 from fplan.extract.de_parse import parse_denmark
 import json
 from fplan.extract.ee_parse_tma2 import ee_parse_tma2
+from fplan.extract.ee_parse_sigpoints2 import ee_parse_sigpoints2
 from fplan.extract.ee_parse_r2 import ee_parse_r_and_tsa2
 from fplan.extract.ee_parse_airfields2 import ee_parse_airfields2
 from fplan.extract.ee_parse_sigpoints import ee_parse_sigpoints
@@ -191,7 +192,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 ads,spaces=ee_parse_airfields2()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
-                #sig_points.extend(ee_parse_sigpoints())
+                sig_points.extend(ee_parse_sigpoints2())
                 #airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ee_parse_tma2())
                 airspaces.extend(ee_parse_r_and_tsa2())
