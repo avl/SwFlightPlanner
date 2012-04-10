@@ -157,4 +157,4 @@
 155: Show cruise GS on the average-legs.
 156: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
 157: Estonian AIRAC not selected correctly
-
+158: Should get airport NOTAMS when clicking on them, both in android app and online. ALso, downloading notams to app should be super-quick.
