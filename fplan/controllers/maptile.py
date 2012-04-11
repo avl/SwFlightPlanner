@@ -4,6 +4,8 @@ import re
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
 import fplan.lib.mapper as mapper
+import fplan.lib.metartaf as metartaf
+from fplan.model import meta
 import fplan.lib.helpers as helpers
 import fplan.extract.extracted_cache as extracted_cache
 import StringIO
@@ -168,7 +170,47 @@ class MaptileController(BaseController):
                     links.append((
                         extracted_cache.get_se_aip_sup_hours_url(),
                         "AIP SUP Opening Hours"))
+                weather=""
+                if airp.get('icao','ZZZZ').upper()!='ZZZZ':
+                    icao=airp['icao']
+                    metar=metartaf.get_metar(icao)
+                    taf=metartaf.get_taf(icao)
+                    weather="<table>"
+                    
+                    def colorize(item):
+                        if item==None:
+                            col="ffffff"
+                            agestr=""
+                        else:
+                            age=metartaf.get_data_age(item)
+                            if age==None:
+                                col="ffffff"
+                                agestr=""                                
+                            elif age<timedelta(0,60*35):
+                                col="c5c5c5"
+                                agestr="%d minutes"%(int(age.seconds/60))
+                            elif age<timedelta(0,60*60):
+                                col="ffff30"
+                                agestr="%d minutes"%(int(age.seconds/60))
+                            else:
+                                col="ff3030"
+                                if age<timedelta(2):
+                                    if age<timedelta(0,3600*1.5):
+                                        agestr="%d minutes"%int(age.seconds/60)
+                                    else:
+                                        agestr="%d hours"%int(0.5+(age.seconds)/3600.0)
+                                else:
+                                    agestr="%d days"%(int(age.days))
+                            
+                        return "style=\"background:#"+col+"\" title=\""+agestr+" old.\""
                 
+                    if taf.text:
+                        weather+="<tr valign=\"top\"><td>TAF:</td><td "+colorize(taf)+">"+taf.text+"</td></tr>"
+                    if metar.text:
+                        weather+="<tr valign=\"top\"><td>METAR:</td><td "+colorize(metar)+">"+metar.text+"</td></tr>"
+                    weather+="</table>"
+                    meta.Session.flush()
+                    meta.Session.commit()
                     
                 if len(links)>0:                    
                     linksstr=helpers.foldable_links(airp['icao']+"links",links)
@@ -183,7 +225,7 @@ class MaptileController(BaseController):
                 
                 
                 
-                airports.append(u"<li><b>%s</b> - %s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],linksstr," ".join(rwys)))
+                airports.append(u"<li><b>%s</b> - %s%s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],linksstr," ".join(rwys),weather))
             airports.append("</ul>")
         
         sigpoints=[]

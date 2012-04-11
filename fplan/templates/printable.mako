@@ -29,7 +29,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td style="font-size:12px">Total distance:</td><td>${"%.1f"%(c.route[-1].accum_dist,)}NM</td></tr>
 <tr><td style="font-size:12px">Initial fuel:</td><td>${c.startfuel}L</td>
 <td style="font-size:12px">Fuel needed:</td><td>${"%.1f"%(sum(r.fuel_burn for r in c.route if r.fuel_burn),)}L</td>
-<td style="font-size:12px">Number of fuel stops:</td><td>${sum(1 if (x.a.stay and (x.a.stay.fuel>0 or x.a.stay.fueladjust>0)) else 0 for x in c.route[1:])}</td>
+<td style="font-size:12px">Number of fuel stops:</td><td>${sum(1 if (x.a.stay and x.is_start and (x.a.stay.fuel>0 or x.a.stay.fueladjust>0)) else 0 for x in c.route[1:])}</td>
 </tr>
 <tr>
 <td style="font-size:12px">Reserve:</td><td>${c.reserve_endurance}</td>
@@ -41,7 +41,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <table border="1" cellspacing="0" cellpadding="4" width="100%"> 
 <tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
 <b>${c.route[0].a.waypoint}</b>
-<span style="font-size:10px">Start:</span>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}
+<span style="font-size:10px">Start:</span><b>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}</b>
 %if c.ac!=None:
 <span style="font-size:10px">Fuel:</span>${"%.1f"%(c.startfuel)}<span style="font-size:10px">L</span>
 %endif
@@ -50,7 +50,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 
 %if c.fillable:
 <td>
-<span style="font-size:10px">Actual start</span>&nbsp;&nbsp;&nbsp;&nbsp;
+<span style="font-size:10px">Actual start:</span>&nbsp;&nbsp;&nbsp;&nbsp;
 </td>
 <td>
 <span style="font-size:10px">delay:</span>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -64,7 +64,14 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 </tr>
 %for rt,next_rt in h.izip(c.route,h.chain(c.route[1:],[None])):
 <tr>
-<td>&nbsp;</td>
+<td>
+%if not rt.what:
+&nbsp;
+%endif
+%if rt.what:
+<span style="font-size:10px">${rt.what}</span>
+%endif
+</td>
 <td><span style="font-size:10px">CH:</span>${"%03.0f"%(rt.ch,)}° <span style="font-size:10px">TT:</span>${"%03.0f"%(rt.tt,)}°</td>
 <td><span style="font-size:10px">D:</span>${"%.0f"%(rt.d,)}<span style="font-size:10px">NM</span></td>
 <td><span style="font-size:10px">Obst-free alt.:</span>${"%.0f"%(rt.maxobstelev+1000,)}<span style="font-size:10px">ft</span></td>
@@ -77,6 +84,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 <td><span style="font-size:10px">Time:</span>${h.timefmt(rt.time_hours)}</td>
 <td><span style="font-size:10px">Total time:</span>${h.timefmt(rt.accum_time_hours)}</td>
 </tr>
+%if rt.is_end:
 
 %if len(rt.notampoints)>0:
 <tr style="font-size:11px">
@@ -163,7 +171,9 @@ ${freq}
 </td>
 %endif
 
+
 </tr>
+%endif
 
 %endfor
 

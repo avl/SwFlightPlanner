@@ -46,8 +46,8 @@ def fi_parse_airfield(icao=None):
     for item in page.get_by_regex(ur".*ELEV\s*/\s*REF.*"):
         lines=page.get_lines(page.get_partially_in_rect(0,item.y1+0.1,100,item.y2-0.1))
         for line in lines:
-            m,ft=re.match(".*([(\d\.)]+)\s*M\s*\(([\d\.]+)\s*FT\).*",line).groups()
-            assert (float(m)-float(ft)*0.3048)<5
+            print "Line:",line
+            ft,=re.match(".*ELEV.*([\d\.]+)\s*FT.*",line).groups()
             assert not 'elev' in ad
             ad['elev']=float(ft)
         
@@ -150,19 +150,29 @@ def fi_parse_airfield(icao=None):
             missing=set([space['name'] for space in spaces])
             while True:
                 for space in spaces:
-                    #print "Matching ",space['name']," to ",line,"missing:",missing
-                    for it in xrange(2):  
+
+                    for it in xrange(3):  
                         cand=space['name']
                         if it==1:
                             if cand.count("CTR"):
                                 cand="CTR"
                             if cand.count("FIZ"):
                                 cand="FIZ"
+                        if it==2:
+                            if cand.count("CTR"):
+                                cand=r"CTR\s*/[\sA-Z]+"
+                            if cand.count("FIZ UPPER"):
+                                cand="FIZ UPPER"
+                            if cand.count("FIZ LOWER"):
+                                cand="FIZ LOWER"
                         m=re.match(ur".*%s\s*:([^,:-]*)\s*-\s*([^,:-]*)"%(cand,),line)
+                        print "Matching ",cand," to ",line,"missing:",missing,m
                         if m: break
+                        
                     if len(spaces)==1 and not m:                        
-                        m=re.match(ur".*Vertical limits\s*(.*)\s*-\s*(.*)",line)                        
+                        m=re.match(ur".*Vertical limits\s*(.*)\s*-\s*(.*)",line)
                     if m:
+                        print "*****MATCH!!:::",m.groups()
                         for lim in m.groups():
                             assert lim.count(",")==0
                         space['floor'],space['ceiling']=m.groups()
@@ -170,6 +180,7 @@ def fi_parse_airfield(icao=None):
                     #print "Missing:"
                     if len(missing)==0: break
                 if len(missing)==0: break
+                #print "Still missing:",missing
                 line=lines.next()
             
         print "Parse f o n page",pagenr      

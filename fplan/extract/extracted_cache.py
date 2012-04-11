@@ -1,4 +1,4 @@
-
+import traceback
 from fplan.extract.parse_tma import parse_all_tma,parse_r_areas
 from fplan.extract.fi_parse_tma import fi_parse_tma
 from fplan.extract.parse_obstacles import parse_obstacles
@@ -25,8 +25,10 @@ import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
 from fplan.extract.de_parse import parse_denmark
 import json
-from fplan.extract.ee_parse_tma import ee_parse_tma
-from fplan.extract.ee_parse_airfields import ee_parse_airfields
+from fplan.extract.ee_parse_tma2 import ee_parse_tma2
+from fplan.extract.ee_parse_sigpoints2 import ee_parse_sigpoints2
+from fplan.extract.ee_parse_r2 import ee_parse_r_and_tsa2
+from fplan.extract.ee_parse_airfields2 import ee_parse_airfields2
 from fplan.extract.ee_parse_sigpoints import ee_parse_sigpoints
 from fplan.extract.ev_parse_tma import ev_parse_tma,ev_parse_r,ev_parse_obst
 from fplan.extract.ev_parse_sigpoints import ev_parse_sigpoints
@@ -187,12 +189,13 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 sig_points.extend(ey_parse_sigpoints())
                 airspaces.extend(ey_parse_tma())
             if 0: #estonia
-                ads,spaces=ee_parse_airfields()
+                ads,spaces=ee_parse_airfields2()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
-                sig_points.extend(ee_parse_sigpoints())
-                airspaces.extend(ee_parse_restrictions())
-                airspaces.extend(ee_parse_tma())
+                sig_points.extend(ee_parse_sigpoints2())
+                #airspaces.extend(ee_parse_restrictions())
+                airspaces.extend(ee_parse_tma2())
+                airspaces.extend(ee_parse_r_and_tsa2())
             if 0: #latvia
                 #airspaces.extend(ee_parse_restrictions())
                 airspaces.extend(ev_parse_tma())
@@ -203,7 +206,22 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            class SpaceLoader(object):                
+            class SpaceLoader(object):
+                
+                def parse_estonian_airfields(self):
+                    "Estonian Airfields"
+                    ads,spaces=ee_parse_airfields2()
+                    return dict(airspaces=spaces,airfields=ads)
+                def parse_estonian_sigpoints(self):
+                    "Estonian sig points"
+                    return dict(sig_points=ee_parse_sigpoints2())
+                def parse_estonian_tma(self):
+                    "Estonian TMA"
+                    return dict(airspaces=ee_parse_tma2())
+                def parse_estonian_r_and_tsa(self):
+                    "Estonian R and TSA"
+                    return dict(ee_parse_r_and_tsa2())
+                                
                 def parse_denmark(self):
                     if not is_devcomp() or a: #denmark
                         denmark=parse_denmark()
@@ -216,7 +234,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def fi_parse_parse_airfields(self):
                     "Finnish major airfields"
                     fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
-                    return dict(airfields=airfields,airspaces=fi_spaces)
+                    return dict(airfields=fi_airfields,airspaces=fi_spaces)
                 def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
                 def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
 
@@ -252,7 +270,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                             filename)                            
                         result="Loaded new"
                     except Exception,cause:
-                        msg=repr(cause)
+                        msg=traceback.format_exc()
                         try:
                             d=pickle.load(open(filename))
                             result="Used backup"
@@ -462,9 +480,8 @@ if __name__=='__main__':
     time.sleep(2)
     if len(sys.argv)>1 and sys.argv[1]:
         single_force=True
-    while True:
-        run_update_iteration()
-        time.sleep(1800)
+    #while True:
+    run_update_iteration()
 
 
 

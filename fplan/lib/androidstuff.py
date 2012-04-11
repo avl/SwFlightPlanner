@@ -2,6 +2,7 @@ from struct import pack
 from StringIO import StringIO
 import zlib
 from fplan.lib.tilegen_worker import get_airspace_color
+from deltify import deltify
 
 def android_fplan_bitmap_format(hmap):
     out=StringIO()
@@ -38,13 +39,14 @@ def android_fplan_bitmap_format(hmap):
 
 
     
-def android_fplan_map_format(airspaces,points,version):
+def android_fplan_map_format(airspaces,points,version,user_aipgen):
+    print "fplan_map_format, version: ",version,"aipgen",user_aipgen
     versionnum=1
     try:
         versionnum=int(version.strip())
     except:
         pass
-    assert versionnum in [0,1,2,3,4]
+    assert versionnum in [0,1,2,3,4,5]
     out=StringIO()
     print "Binary download in progress"
 
@@ -70,9 +72,36 @@ def android_fplan_map_format(airspaces,points,version):
         out.write(encoded)
         
     writeInt(0x8A31CDA)
+    
+    if versionnum>=5:
+        clearall,new_aipgen,data,new_namechecksum=deltify(user_aipgen,
+                dict(airspaces=airspaces,points=points))
+        print "clearall",clearall,"new_namechecksum;",new_namechecksum
+        airspaces=data['airspaces']
+        points=data['points']
+        
+    
     writeInt(versionnum)
+    
+        
+    if versionnum>=5:
+        print "Wrote aipgen:",new_aipgen
+        writeUTF(new_aipgen)
+        if clearall:
+            writeByte(1)
+        else:
+            writeByte(0)
+    
     writeInt(len(airspaces))
     for space in airspaces:
+        if versionnum>=5:
+            if 'kill' in space:
+                print "Killing space index",space['idx']
+                writeByte(0)
+                writeInt(space['idx'])
+                continue
+            writeByte(1)
+            
         writeUTF(space['name'])
         if versionnum>=2:
             (r,g,b,a),dummy_edge_col=get_airspace_color(space['type'])
@@ -93,8 +122,35 @@ def android_fplan_map_format(airspaces,points,version):
     
     writeInt(len(points))
     for point in points:
+        if versionnum>=5:
+            if 'kill' in point:
+                print "Killing points index",point['idx']
+                writeByte(0)
+                writeInt(point['idx'])
+                continue
+            writeByte(1)
         writeUTF(point['name'])
         writeUTF(point['kind'])
+        if versionnum>=5:
+            if point.get('notams',[]):
+                notams=point['notams']
+                writeInt(len(notams))
+                for notam in notams:
+                    writeUTF(notam)
+            else:
+                writeInt(0)
+            if point.get('taf',None):
+                writeByte(1)
+                writeUTF(point['taf'])
+            else:
+                writeByte(0)
+            if point.get('metar',None):
+                writeByte(1)
+                writeUTF(point['metar'])
+            else:
+                writeByte(0)
+                
+            
         writeFloat(float(point['alt']))
         lat,lon=point['lat'],point['lon']
         writeFloat(lat)
@@ -114,6 +170,10 @@ def android_fplan_map_format(airspaces,points,version):
                         writeFloat(f)
             else:
                 writeByte(0)
+    if versionnum>=5:
+        print "New namechecksum;",new_namechecksum
+        writeUTF(new_namechecksum)
+            
         
     ret=out.getvalue()
     assert ret[0]==chr(0x08)

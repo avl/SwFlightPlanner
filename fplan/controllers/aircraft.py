@@ -55,10 +55,14 @@ class AircraftController(BaseController):
                 c.ac.adv_descent_rate= [400,400,400,400,400,400,400,400,400,400]
                 c.ac.adv_descent_burn= [25, 25, 25, 25, 25, 25, 25, 25, 25, 25]                       
                 c.ac.adv_descent_speed=[116,117,118,119,120,121,122,122,122,122]
-            for idx,(cruise_burn,climb_burn) in enumerate(zip(c.ac.adv_cruise_burn,c.ac.adv_climb_burn)):                                                
-                if climb_burn<cruise_burn:
-                    c.burn_warning="You have entered a fuel consumption for climb that is lower than that for cruise (for altitude %d). Is this right?"%(idx*1000)
-                    break
+            try:
+                for idx,(cruise_burn,climb_burn) in enumerate(zip(c.ac.adv_cruise_burn,c.ac.adv_climb_burn)):                                                
+                    if climb_burn<cruise_burn:
+                        c.burn_warning="You have entered a fuel consumption for climb that is lower than that for cruise (for altitude %d). Is this right?"%(idx*1000)
+                        break
+            except:
+                print "Internal error in ac, burn check"
+                pass
             
             for prop in advprops:
                 val=getattr(c.ac,prop)

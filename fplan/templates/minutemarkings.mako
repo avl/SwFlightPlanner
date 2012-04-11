@@ -26,7 +26,7 @@ This screen helps you prepare your maps with marks for each minute, for exact na
 <th colspan="4"></th><th colspan="1">cm/minute</th><th></th>
 </tr>
 <tr>
-<th>From</th><th></th><th>To</th><th>GS (kt)</th><th>1:250000</th><th>Start time</th><th>marks</th>
+<th>From</th><th></th><th>To</th><th>cruise GS (kt)</th><th>1:250000</th><th>Start time</th><th>marks</th>
 </tr>
 %for rt in c.route:
 <tr>

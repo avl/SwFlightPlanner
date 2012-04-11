@@ -987,6 +987,21 @@ def get_route_impl(tripobj,waypoints,routes,ac,dummyac):
             if startvar!=None and endvar!=None:
                 rt.variation=0.5*(startvar+endvar)
         rt.ch=(rt.tt+rt.wca-val(rt.variation)-val(rt.deviation))%360.0
+        rt.mh=(rt.ch+val(rt.deviation))%360.0
+        rt.th=(rt.mh+val(rt.variation))%360.0
+        
+        for sub in rt.subs:
+            sub.ch=(sub.tt+sub.wca-val(rt.variation)-val(rt.deviation))%360.0
+            sub.mh=(sub.ch+val(rt.deviation))%360.0
+            sub.th=(sub.mh+val(rt.variation))%360.0
+            
+        
+        #rt.tt=rt.th-wca
+        #rt.tt=rt.mh+val(rt.variation)-wca
+        #rt.tt=rt.ch+val(rt.deviation)+val(rt.variation)-wca
+        #rt.tt+wca-val(rt.deviation)-val(rt.variation)=rt.ch
+        
+        #
         #for sub in rt.subs:
         #    sub.ch=(sub.tt+sub.wca-val(rt.variation)-val(rt.deviation))%360.0
                 
@@ -1141,10 +1156,14 @@ def calc_one_leg(idx,rt,
         out.subposa=merca
         out.subposb=mercb
         out.startdt=accum_dt
+        out.depart_dt=out.startdt
+        out.arrive_dt=accum_dt
         accum_time=None
+        out.time_hours=0        
+        out.accum_time_hours=None
+        out.accum_dist=0
         #accum_clock=None
         accum_dt=None
-        out.clock_hours=None
         out.dt=None
         out.startalt=prev_alt
         prev_alt=None
@@ -1169,8 +1188,12 @@ def calc_one_leg(idx,rt,
             out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
             out.gs=beginspeed
             accum_time+=begintime
+            out.accum_time_hours=accum_time
+            out.time_hours=begintime
             out.startdt=accum_dt
             accum_dt+=timedelta(0,3600*begintime)
+            out.depart_dt=out.startdt
+            out.arrive_dt=accum_dt
             #accum_clock+=begintime
             #out.clock_hours=accum_clock%24.0
             out.dt=accum_dt
@@ -1197,8 +1220,12 @@ def calc_one_leg(idx,rt,
             out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
             out.startdt=accum_dt
             accum_time+=midtime
+            out.accum_time_hours=accum_time
+            out.time_hours=midtime
             #accum_clock+=midtime
             accum_dt+=timedelta(0,3600*midtime)
+            out.depart_dt=out.startdt
+            out.arrive_dt=accum_dt
             #out.clock_hours=accum_clock%24
             out.dt=accum_dt
             out.startalt=prev_alt
@@ -1223,8 +1250,12 @@ def calc_one_leg(idx,rt,
             out.subposb=interpol(out.relstartd+out.d,rt.d,merca,mercb)
             out.startdt=accum_dt
             accum_time+=endtime
+            out.accum_time_hours=accum_time
+            out.time_hours=endtime
             #accum_clock+=endtime
             accum_dt+=timedelta(0,3600*endtime)
+            out.depart_dt=out.startdt
+            out.arrive_dt=accum_dt
             #out.clock_hours=accum_clock%24
             out.dt=accum_dt
             out.startalt=prev_alt
@@ -1256,9 +1287,13 @@ def calc_one_leg(idx,rt,
         out.startalt=prev_alt
         out.endalt=prev_alt
         out.accum_time=accum_time
+        out.accum_time_hours=accum_time
+        out.time_hours=0
         #out.clock_hours=accum_clock%24
         out.startdt=accum_dt
         out.dt=accum_dt
+        out.depart_dt=out.startdt
+        out.arrive_dt=accum_dt
         out.what="cruise"
         out.legpart="mid"
         out.fuel_burn=0
@@ -1286,9 +1321,13 @@ def calc_one_leg(idx,rt,
         else:
             out.tas=0
             out.wca=0
-                            
+        if out.what=='cruise':
+            out.altitude=rt.altitude
+        else:
+            out.altitude="%d -> %d ft"%(int(out.startalt+0.1),int(out.endalt+0.1))
         tot_dist+=out.d
         out.total_d=tot_dist
+        out.accum_dist=tot_dist
         out.a=rt.a
         out.b=rt.b
         out.id1=rt.waypoint1
@@ -1317,14 +1356,22 @@ def calc_one_leg(idx,rt,
         rt.fuel_burn=None
         rt.time_hours=None
     else:
+        """
         if (begintime+midtime+endtime)>1e-4:
+            
+                if ac.advanced_model:
+                rt.gs=ac.adv_cruise_speed[getalti(rt.subs[0].startalt)]                    
             rt.gs=rt.d/(begintime+midtime+endtime)
-        else:
-            #microshort leg (just a few seconds!)
-            if ac.advanced_model:
-                rt.gs=ac.adv_cruise_speed[getalti(rt.subs[0].startalt)]
+            
+        else:         #microshort leg (just a few seconds!)
+        """
+        if ac.advanced_model:
+            if sub[-1].endalt!=None:
+                rt.gs=ac.adv_cruise_speed[getalti(0.5*(sub[0].startalt+sub[-1].endalt))]
             else:
-                rt.gs=rt.cruise_gs
+                rt.gs=ac.adv_cruise_speed[getalti(sub[0].startalt)]
+        else:
+            rt.gs=rt.cruise_gs
 
         rt.fuel_burn=0
         for out in sub:

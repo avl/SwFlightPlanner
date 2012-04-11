@@ -1,6 +1,7 @@
 #encoding=utf8
 import re
 from itertools import count
+import traceback
 import popen2
 import math
 import cStringIO
@@ -337,9 +338,9 @@ def scalarprod(x,y):
 
 def parsecoord(seg):
     print "Parsecoord for <%s>"%(seg,)
-    m=re.match(ur"\s*([\d\.]+[NS])\s*([\d\.]+[EW])\s*",seg)
+    m=re.match(ur"\s*([\d\.]+[NS])\s*([\d\.]+[EW])\s*",seg,re.UNICODE)
     if not m:
-        print seg
+        print "Input:",repr(seg)
         raise MapperBadFormat()
     lat,lon=m.groups()
     coord=parse_coords(lat.strip(),lon.strip())
@@ -368,7 +369,7 @@ def anyparse(coord):
             ur"((?:\d*\.?\d*|\d+\.?\d*\s*(?:''|\")))"+
             ur"\s*([EW])\b",coord).groups())
         def intg(s):
-            if s.strip(): return int(s,0)
+            if s.strip(): return int(s,10)
             return 0
         def floatg(s):
             if s.strip(): return float(s)
@@ -401,6 +402,21 @@ def anyparse(coord):
         slat,slon=re.match(ur"(\d{1,2}[\.,]?\d*[NS])\s*(\d{1,3}[\.,]?\d*[EW]\b)",coord).groups()
         return parse_coords(slat.strip(),slon.strip())
     except:
+        pass
+        
+    try:
+        coord=coord.upper().replace(" ","").replace(",",".")
+        print "matching",repr(coord)
+        #NS,latdeg,latmin,EW,londeg,lonmin=re.match(ur"([NS])(\d+)°?(\d+[\.,]\d+)([EW])(\d+)°?(\d+[\.,]\d+)",coord).groups()
+        NS,latdeg,latmin,latmindec,EW,londeg,lonmin,lonmindec=re.match(ur"([NS])(\d+)°?(\d+)[^\d]{1,3}(\d*)([EW])(\d+)°?(\d+)[^\d]{1,3}(\d*)",coord).groups()
+        print "Captures:",(NS,latdeg,latmin,EW,londeg,lonmin)
+        lat=int(latdeg,10)+float(latmin+"."+latmindec)/60.0
+        lon=int(londeg,10)+float(lonmin+"."+lonmindec)/60.0
+        if NS=='S':lat=-lat
+        if EW=='W':lon=-lon
+        return to_str((lat,lon))
+    except:
+        #print traceback.format_exc()
         pass
     raise Exception("Unknown format")
 
@@ -544,7 +560,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     #uprint("Parsing <%s>"%(seg,))
     
     for firspec in [
-        ur"(.*)/then\s*(?:northbound)?\s*along\s*the\s*(?:\w{4})?\s*FIR\s*boundary\s*to\s*the\s*point\s*(\d+N\s*\d+E)"
+        ur"(.*)/?then\s*(?:northbound)?\s*along\s*the\s*(?:\w{4})?\s*FIR\s*boundary\s*to\s*the\s*point\s*(\d+N\s*\d+E)"
         ]:
         firm=re.match(firspec,seg,re.IGNORECASE|re.UNICODE)
         if firm:
@@ -561,10 +577,10 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
             return ["%f,%f"%(lat,lon) for lat,lon in border_follower(fir_context,from_str(prevc),from_str(nextc))]
     
     for borderspec in [
-        ur"()(.*)/\s*further\s*(?:clockwise)?\s*along the state border to the point\s*([\d.]+N\s*[\d.]+E)\s*",
+        ur"()(.*)/?\s*further\s*(?:clockwise)?\s*along the state border to the point\s*([\d.]+N\s*[\d.]+E)\s*",
         ur"()()Along\s*the\s*common\s*\w+\s*/\s*\w+ (?:state\s*boundary|existing administrative boundary)\s*to(?:\s*the point)?\s*(\d+N\s*\d+E)\s*",
-        ur"()(.*)/\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
-        ur"()(.*)/\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/?\s*further along the territory dividing line between Estonia and Russia to the point (\d+N\s*\d+E)\s*",
+        ur"()(.*)/?\s*further along the territory dividing line to the point (\d+N\s*\d+E)\s*",
         ur"(\d+N\s*\d+E)(.*)then along the territory dividing line between Estonia and Russia to (\d+N\s*\d+E)",
         ur"()(.*)/then along the boundary of\s*territorial waters to:?\s*(\d+N\s*\d+E)",
         ur"()(.*)\s*/\s*then along the \w+/\w+ state boundary to\s*(\d+N\s*\d+E)",
@@ -644,7 +660,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
             
         
     if not arc:
-        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
+        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along ?an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
         #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)
         #if arc:
         #    print "midArc:",arc,arc.groups()
@@ -806,11 +822,17 @@ def parse_elev(elev):
     if not isinstance(elev,basestring):
         raise NotAnAltitude(repr(elev))
     elev=elev.strip()
+    if type(elev)==unicode:
+        #print repr(elev)
+        elev=" ".join(elev.replace(u"\xa0",u" ").split())
+        #print "After",repr(elev)
+        
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
     if elev.lower().endswith("ft msl"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft amsl"):elev=elev[:-6].strip()
     if elev.lower().endswith("ft gnd"): elev=elev[:-6].strip()
+    if elev.lower().endswith("ft agl"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft sfc"): elev=elev[:-6].strip()
     if elev.lower().endswith("ft alt"): elev=elev[:-6].strip()
     if elev.lower().endswith("ftalt"):  elev=elev[:-5].strip()

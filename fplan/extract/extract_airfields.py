@@ -17,7 +17,7 @@ import md5
 import codecs
 import parse_landing_chart
     
-def extract_airfields(filtericao=lambda x:True):
+def extract_airfields(filtericao=lambda x:True,purge=True):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
     p=Parser("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
@@ -221,7 +221,7 @@ def extract_airfields(filtericao=lambda x:True):
                         #uprint("MAtching: <%s>"%(line,))
                         if re.match(ur"AD\s+2.13",line): break
                         if line.count("Slope of"): break
-                        if line.count("END RWY:"): seen_end_rwy_text=True
+                        if line.lower().count("end rwy:"): seen_end_rwy_text=True
                         m=re.match(ur".*(\d{6}\.\d+)[\s\(\)\*]*(N).*",line)
                         if not m:continue
                         m2=re.match(ur".*(\d{6,7}\.\d+)\s*[\s\(\)\*]*(E).*",nextline)                            
@@ -233,7 +233,7 @@ def extract_airfields(filtericao=lambda x:True):
                         lat=latd+n
                         lon=lond+e
                         rwytxts=page.get_lines(page.get_partially_in_rect(0,line.y1+0.05,12,nextline.y2-0.05))
-                        #uprint("Rwytxts:",rwytxts)
+                        uprint("Rwytxts:",rwytxts)
                         rwy=None
                         for rwytxt in rwytxts:
                             #uprint("lat,lon:%s,%s"%(lat,lon))
@@ -259,7 +259,6 @@ def extract_airfields(filtericao=lambda x:True):
                 #print "Matches of ATS COMMUNICATION FACILITIES on page %d: %s"%(pagenr,matches)
                 if len(matches)>0:
                     commitem=matches[0]
-                    #commitem,=page.get_by_regex("ATS\s+COMMUNICATION\s+FACILITIES")
                     curname=None
                     
                     callsign=page.get_by_regex_in_rect(ur"Call\s*sign",0,commitem.y1,100,commitem.y2+8)[0]
@@ -285,6 +284,8 @@ def extract_airfields(filtericao=lambda x:True):
                         freqs.append((curname.strip().rstrip("/"),freq))
 
 
+            for pagenr in xrange(0,p.get_num_pages()):
+                page=p.parse_page_to_items(pagenr)                                              
                                 
                 matches=page.get_by_regex(r".*ATS\s*AIRSPACE.*")
                 #print "Matches of ATS_AIRSPACE on page %d: %s"%(pagenr,matches)
@@ -418,8 +419,9 @@ def extract_airfields(filtericao=lambda x:True):
                 except Exception,cause:
                     print "Apparently no AD chart for ",icao,cause
                     nochartf.write("Apparently no chart for: %s - %s\n"%(icao,cause))
-                    
-    parse_landing_chart.purge_old(chartblobnames,country="se")        
+               
+    if purge:
+        parse_landing_chart.purge_old(chartblobnames,country="se")        
     
     #sys.exit(1)
 
@@ -490,6 +492,7 @@ def extract_airfields(filtericao=lambda x:True):
     
             
 if __name__=='__main__':
+    purge=False
     def filter_expr(ad):    
         if len(sys.argv)==2:
             av1=sys.argv[1]
@@ -498,6 +501,6 @@ if __name__=='__main__':
             else:
                 return eval(sys.argv[1],dict(icao=ad['icao'],name=ad['name']))
         return True
-    extract_airfields(filter_expr)
+    extract_airfields(filter_expr,purge)
     
     

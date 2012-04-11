@@ -73,6 +73,8 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
+<b>Updated 2012-03-17: </b>The NOTAM fetch script was broken recently, fixed now, but only for Sweden.<br />
 <b>Updated 2011-11-01: </b>Now support for automatically calculating optimum cruise altitudes. See <a href="/splash/about"><u>"about"</u></a> and use with caution..<br />
 <b>Updated 2011-10-11: </b>Support for Internet Explorer! The site is now tested using IE6, although later versions should also work.<br />
 <b>Updated 2011-10-02: </b>AIP SUP 38/2011 contained some invisible white text on white background, which threw off our parser. The problem has been fixed, but a few android map downloads failed on Saturday because of this.<br />

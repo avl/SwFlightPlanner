@@ -45,6 +45,7 @@ typecolormap=dict(
     R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
     TSA=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
     CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
+    FIZ=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),#Should we have this category? I think we could just as well count it as CTR.
     TIZ=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),#Should we have this category? I think we could just as well count it as CTR.
     notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
     aip_sup=((1.0,0.25,0.25,0.07),(1.0,0.25,0.25,0.9)),

@@ -28,7 +28,13 @@ class Notam(object):
     def __hash__(self):
         return hash(self.items)
 def normalize_item(text):
-    return "\n".join([x.strip() for x in text.splitlines() if x.strip()])
+    itemstr="\n".join([x.strip() for x in text.splitlines() if x.strip()])
+    if itemstr.strip()=='NIL': return ""
+    if itemstr.strip()=='NAV WARNINGS': return ""
+    if itemstr.strip()=='END OF PIB': return ""
+    itemstr=itemstr.lstrip("-").lstrip("+").lstrip()
+        
+    return itemstr
 
 
 strange_skavsta_notam=normalize_item(
@@ -69,9 +75,10 @@ def parse_notam(html):
     out=[]
     category=None
     stale=True
-    for appearline,l in enumerate(ls):
-        cat=re.match(r"([^\s/]+/.*)\s*",l)
+    for appearline,l in enumerate(ls):        
+        cat=re.match(r"([A-Z]{3,}/.*)\s*",l)
         if cat:
+            #print "Match notam cat:",cat.groups()[0]
             category=cat.groups()[0].strip()
             continue
         if l.strip()=="ESGT":

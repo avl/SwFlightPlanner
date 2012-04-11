@@ -21,6 +21,7 @@ def make_map():
     map.connect('/', controller='splash', action="index")
 
     map.connect('/flightplan/{tripname}.gpx', controller='flightplan', action="gpx")
+    map.connect('/flightplan/{tripname}.csv', controller='flightplan', action="excel")
 
     # CUSTOM ROUTES HERE
 

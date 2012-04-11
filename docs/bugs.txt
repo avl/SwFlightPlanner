@@ -152,4 +152,10 @@
 150: FIXED: The user field should be more than 32 characters wide, or maybe rather it should be possible to enter email as a separate field.
 151: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
 152: Rate-limit error-emails.
+153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
+154: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
+155: Show cruise GS on the average-legs.
+156: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
+157: Estonian AIRAC not selected correctly
+158: Se till att man inte kan skriva in datum för långt tillbaka i tiden.
 

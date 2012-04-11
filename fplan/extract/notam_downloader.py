@@ -17,28 +17,49 @@ def download_notam():
         lasttext=""       
     
     nextnotam=int(last)+1
-    all_notams_but_seldom_updated=urllib2.urlopen(
-                          "http://www.lfv.se/AISInfo.asp?TextFile=odinesaa.txt&SubTitle=&T=SWEDEN&Frequency=250").read()
+    
+    
+    
+    all_notams=[]
+    for url_ in [
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunesaavfr.txt&SubTitle=&T=Sverige%20VFR&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunenor.txt&SubTitle=&T=Norge&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunefin.txt&SubTitle=&T=Finland&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=iduneett.txt&SubTitle=&T=Estland&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunevrr.txt&SubTitle=&T=Lettland&Frequency=250"
+                 ]:
+        print "Downloading",url_ 
+        all_notams.append(urllib2.urlopen(
+                          url_).read())
+        
+    """                          
+                          http://www.lfv.se/AISInfo.asp?TextFile=odinesaa.txt&SubTitle=&T=SWEDEN&Frequency=250").read()
     north=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinesun.txt&SubTitle=&T=SWEDEN%20-%20North&Frequency=250").read()
     mid=urllib2.urlopen(  "http://www.lfv.se/AISInfo.asp?TextFile=odinesos.txt&SubTitle=&T=SWEDEN%20-%20Middle&Frequency=250").read()
     south=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinesmm.txt&SubTitle=&T=SWEDEN%20-%20South&Frequency=250").read()
-    print "Downloaded swedish, now Finnish"
+"""
     
-    finland_n=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefps.txt&SubTitle=&T=Finland%20N&Frequency=250").read()
-    finland_s=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefes.txt&SubTitle=&T=Finland%20S&Frequency=250").read()
-    finland_all=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefin.txt&SubTitle=&T=Finland&Frequency=250").read()
-    print "Downloaded Finnish"
+    print "Downloaded all"
     
-    text="\n".join([north,mid,south,
-        all_notams_but_seldom_updated,
-        finland_n,finland_s,finland_all
-        ])
+    #finland_n=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefps.txt&SubTitle=&T=Finland%20N&Frequency=250").read()
+    #finland_s=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefes.txt&SubTitle=&T=Finland%20S&Frequency=250").read()
+    #finland_all=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefin.txt&SubTitle=&T=Finland&Frequency=250").read()
+    #print "Downloaded Finnish"
+    
+    text="\n".join(
+        all_notams)
     
     outfile="notams/%08d"%(nextnotam,)
+    #force diff
+    #text="5_- "+text
     f=open(outfile,"w")
     f.write(text)
-    f.close()    
-    print "Downloaded notam (%d bytes) did differ from last stored (%d bytes)"%(len(text),len(lasttext))
+    f.close()
+    if text!=lasttext:     
+        print "Downloaded notam (%d bytes) did differ from last stored (%d bytes)"%(len(text),len(lasttext))
+    else:
+        print "Downloaded notam did not differ from last"
+        
     ret=os.system("fplan/lib/notam_db_update.py %s 1"%(outfile,))
     if ret:
         raise Exception("notam_db_update failed: %s"%(ret,))
