@@ -172,6 +172,14 @@ download_table = sa.Table("download",meta.metadata,
                         sa.Column("when",DateTime(),nullable=False,primary_key=True),
                         sa.Column('bytes',Numeric(20),nullable=False)
                         )
+
+aip_history_table = sa.Table("aip_history",meta.metadata,
+                        sa.Column('aipgen',Integer(),primary_key=True),                        
+                        sa.Column('data',Binary(),primary_key=False,nullable=False),                        
+                        )
+
+
+
 recordings_table = sa.Table("recordings",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column("start",DateTime(),nullable=False,primary_key=True),
@@ -351,6 +359,11 @@ class SharedTrip(object):
         self.user=user
         self.trip=trip
         self.secret=secret
+class AipHistory(object):
+    def __init__(self,aipgen,data):
+        self.aipgen=aipgen
+        self.data=data
+orm.mapper(AipHistory,aip_history_table)
             
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(AirportProjection,airport_projection)    

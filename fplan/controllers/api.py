@@ -199,8 +199,13 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'text/plain'           
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
-            response.headers['Content-Type'] = 'application/binary'                    
-            ret=android_fplan_map_format(airspaces=out,points=points,version=request.params.get("version",None))
+            response.headers['Content-Type'] = 'application/binary'                 
+            version=request.params.get("version",None)   
+            ret=android_fplan_map_format(airspaces=out,points=points,version=version)
+            if version>=5:
+                meta.Session.flush()
+                meta.Session.commit()
+                
             print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')
             return ret
         else:
