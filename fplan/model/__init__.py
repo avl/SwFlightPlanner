@@ -29,6 +29,7 @@ Boolean=sa.types.Boolean
 Float=sa.types.Float
 Binary=sa.types.Binary
 
+
 user_table = sa.Table("user",meta.metadata,
                         sa.Column("user",Unicode(32),primary_key=True, nullable=False),
                         sa.Column("password",Unicode(100),nullable=False),
@@ -173,8 +174,19 @@ download_table = sa.Table("download",meta.metadata,
                         sa.Column('bytes',Numeric(20),nullable=False)
                         )
 
+metar_table = sa.Table("metar",meta.metadata,
+                        sa.Column('icao',Unicode(4),primary_key=True),
+                        sa.Column("last_sync",DateTime(),nullable=False),
+                        sa.Column("text",Unicode(),nullable=False))
+taf_table = sa.Table("taf",meta.metadata,
+                        sa.Column('icao',Unicode(4),primary_key=True),
+                        sa.Column("last_sync",DateTime(),nullable=False),
+                        sa.Column("text",Unicode(),nullable=False))
+                        
+
 aip_history_table = sa.Table("aip_history",meta.metadata,
-                        sa.Column('aipgen',Integer(),primary_key=True),                        
+                        sa.Column('aipgen',Unicode(32),primary_key=True),
+                        sa.Column("when",DateTime(),nullable=False),                        
                         sa.Column('data',Binary(),primary_key=False,nullable=False),                        
                         )
 
@@ -360,10 +372,29 @@ class SharedTrip(object):
         self.trip=trip
         self.secret=secret
 class AipHistory(object):
-    def __init__(self,aipgen,data):
+    def __init__(self,aipgen,when,data):
         self.aipgen=aipgen
+        self.when=when
         self.data=data
+        
+class Metar(object):
+    def __init__(self,icao,last_sync,text):
+        self.icao=icao
+        self.last_sync=last_sync
+        self.text=text
+    def __repr__(self):
+        return "Metar(%s,%s,%s)"%(self.icao,self.last_sync,self.text)
+class Taf(object):
+    def __init__(self,icao,last_sync,text):
+        self.icao=icao
+        self.last_sync=last_sync
+        self.text=text
+    def __repr__(self):
+        return "Metar(%s,%s,%s)"%(self.icao,self.last_sync,self.text)
+        
 orm.mapper(AipHistory,aip_history_table)
+orm.mapper(Metar,metar_table)
+orm.mapper(Taf,taf_table)
             
 orm.mapper(Aircraft,aircraft_table)    
 orm.mapper(AirportProjection,airport_projection)    
@@ -413,6 +444,8 @@ class Notam(object):
         self.notamtext=notamtext
     def __repr__(self):
         return u"Notam(%s,%s,%d chars)"%(self.ordinal,self.downloaded,len(self.notamtext))
+
+
 class NotamUpdate(object):
     def __init__(self,appearnotam,appearline,category,text):
         self.appearnotam=appearnotam

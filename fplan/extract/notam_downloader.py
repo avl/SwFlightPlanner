@@ -17,8 +17,20 @@ def download_notam():
         lasttext=""       
     
     nextnotam=int(last)+1
-    all_vfr_notams=urllib2.urlopen(
-                          "http://www.lfv.se/AISInf2.asp?TextFile=idunesaavfr.txt&SubTitle=&T=Sverige%20VFR&Frequency=250").read()
+    
+    
+    
+    all_notams=[]
+    for url_ in [
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunesaavfr.txt&SubTitle=&T=Sverige%20VFR&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunenor.txt&SubTitle=&T=Norge&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunefin.txt&SubTitle=&T=Finland&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=iduneett.txt&SubTitle=&T=Estland&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunevrr.txt&SubTitle=&T=Lettland&Frequency=250"
+                 ]:
+        print "Downloading",url_ 
+        all_notams.append(urllib2.urlopen(
+                          url_).read())
         
     """                          
                           http://www.lfv.se/AISInfo.asp?TextFile=odinesaa.txt&SubTitle=&T=SWEDEN&Frequency=250").read()
@@ -27,17 +39,15 @@ def download_notam():
     south=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinesmm.txt&SubTitle=&T=SWEDEN%20-%20South&Frequency=250").read()
 """
     
-    print "Downloaded swedish, now Finnish"
+    print "Downloaded all"
     
-    finland_n=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefps.txt&SubTitle=&T=Finland%20N&Frequency=250").read()
-    finland_s=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefes.txt&SubTitle=&T=Finland%20S&Frequency=250").read()
-    finland_all=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefin.txt&SubTitle=&T=Finland&Frequency=250").read()
-    print "Downloaded Finnish"
+    #finland_n=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefps.txt&SubTitle=&T=Finland%20N&Frequency=250").read()
+    #finland_s=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefes.txt&SubTitle=&T=Finland%20S&Frequency=250").read()
+    #finland_all=urllib2.urlopen("http://www.lfv.se/AISInfo.asp?TextFile=odinefin.txt&SubTitle=&T=Finland&Frequency=250").read()
+    #print "Downloaded Finnish"
     
-    text="\n".join([
-        all_vfr_notams,
-        finland_n,finland_s,finland_all
-        ])
+    text="\n".join(
+        all_notams)
     
     outfile="notams/%08d"%(nextnotam,)
     #force diff

@@ -7,6 +7,16 @@ from itertools import chain
 import os
 
 
+def get_notam_for_airport(icao):
+    notamupdates=meta.Session.query(NotamUpdate).filter(
+              NotamUpdate.disappearnotam==sa.null(),
+              NotamUpdate.category.like("%s%%"%(icao,))).all()
+    out=[]
+    for u in notamupdates:
+        out.append(u.text)
+    return out
+    
+
 def get_notam_objs(kind=None):    
     notamupdates=meta.Session.query(NotamUpdate).filter(
               NotamUpdate.disappearnotam==sa.null()).all()

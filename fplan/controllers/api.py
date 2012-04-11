@@ -1,6 +1,7 @@
 import logging
 import StringIO
 from pylons import request, response, session, tmpl_context as c
+import fplan.lib.metartaf as metartaf
 from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording,AirportProjection
 from fplan.lib import mapper
@@ -117,20 +118,44 @@ class ApiController(BaseController):
                     points=[dict(lat=p[0],lon=p[1]) for p in clnd]))
             
         points=[]
-        print "version",request.params.get("version",None)
+        version=request.params.get("version",None)
+        print "version",version
+        if version and int(version.strip())>=5:
+            user_aipgen=request.params.get("aipgen","")
+        else:
+            user_aipgen=""
         for airp in extracted_cache.get_airfields():
             lat,lon=mapper.from_str(airp['pos'])
             #if lat<58.5 or lat>60.5:
             #    continue
             aname=airp['name']+"*" if airp.get('icao','ZZZZ').upper()!='ZZZZ' else airp['name']
+            
+            notams=[]
+            icao=None
+            taf=None
+            metar=None
+            if airp.get('icao','zzzz').lower()!='zzzz':
+                icao=airp['icao']
+                notams=notam_geo_search.get_notam_for_airport(icao)
+                metar=metartaf.get_metar(icao)
+                taf=metartaf.get_taf(icao)
+                
             ap=dict(
                 name=aname,
                 lat=lat,
                 lon=lon,
                 kind="airport",
+                notams=notams,
                 alt=float(airp.get('elev',0)))
+            if icao:
+                ap['icao']=icao
+            if taf and taf.text:
+                ap['taf']=taf.text
+            if metar and metar.text:
+                ap['metar']=metar.text
+            
             if 'adchart' in airp:
-                ret=airp['adchart']                
+                ret=airp['adchart']
                 try:
                     cksum=ret['checksum']
                     aprojs=meta.Session.query(AirportProjection).filter(
@@ -180,6 +205,8 @@ class ApiController(BaseController):
                     
         if request.params.get('csv','').strip()!="":
             #use CSV format
+            meta.Session.flush()
+            meta.Session.commit()
             buf=StringIO.StringIO()
             w=csv.writer(buf)            
             for space in out:
@@ -200,15 +227,16 @@ class ApiController(BaseController):
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
             response.headers['Content-Type'] = 'application/binary'                 
-            version=request.params.get("version",None)   
-            ret=android_fplan_map_format(airspaces=out,points=points,version=version)
-            if version>=5:
-                meta.Session.flush()
-                meta.Session.commit()
+            ret=android_fplan_map_format(airspaces=out,points=points,version=version,user_aipgen=user_aipgen)
                 
+            meta.Session.flush()
+            meta.Session.commit()
             print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')
             return ret
         else:
+            meta.Session.flush()
+            meta.Session.commit()
+            
             rawtext=json.dumps(dict(airspaces=out,points=points))
             if 'zip' in request.params:
                 response.headers['Content-Type'] = 'application/x-gzip-compressed'            

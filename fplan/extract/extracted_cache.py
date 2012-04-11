@@ -188,7 +188,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(ads)
                 sig_points.extend(ey_parse_sigpoints())
                 airspaces.extend(ey_parse_tma())
-            if 1: #estonia
+            if 0: #estonia
                 ads,spaces=ee_parse_airfields2()
                 airfields.extend(ads)
                 airspaces.extend(spaces)
@@ -206,7 +206,22 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            class SpaceLoader(object):                
+            class SpaceLoader(object):
+                
+                def parse_estonian_airfields(self):
+                    "Estonian Airfields"
+                    ads,spaces=ee_parse_airfields2()
+                    return dict(airspaces=spaces,airfields=ads)
+                def parse_estonian_sigpoints(self):
+                    "Estonian sig points"
+                    return dict(sig_points=ee_parse_sigpoints2())
+                def parse_estonian_tma(self):
+                    "Estonian TMA"
+                    return dict(airspaces=ee_parse_tma2())
+                def parse_estonian_r_and_tsa(self):
+                    "Estonian R and TSA"
+                    return dict(ee_parse_r_and_tsa2())
+                                
                 def parse_denmark(self):
                     if not is_devcomp() or a: #denmark
                         denmark=parse_denmark()

@@ -40,6 +40,7 @@ def android_fplan_bitmap_format(hmap):
 
     
 def android_fplan_map_format(airspaces,points,version,user_aipgen):
+    print "fplan_map_format, version: ",version,"aipgen",user_aipgen
     versionnum=1
     try:
         versionnum=int(version.strip())
@@ -73,11 +74,19 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     writeInt(0x8A31CDA)
     
     if versionnum>=5:
-        clearall,airspaces,points,notams=deltify(user_aipgen,airspaces,points,notams)
+        clearall,new_aipgen,data,new_namechecksum=deltify(user_aipgen,
+                dict(airspaces=airspaces,points=points))
+        print "clearall",clearall,"new_namechecksum;",new_namechecksum
+        airspaces=data['airspaces']
+        points=data['points']
+        
     
     writeInt(versionnum)
     
+        
     if versionnum>=5:
+        print "Wrote aipgen:",new_aipgen
+        writeUTF(new_aipgen)
         if clearall:
             writeByte(1)
         else:
@@ -87,7 +96,9 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     for space in airspaces:
         if versionnum>=5:
             if 'kill' in space:
+                print "Killing space index",space['idx']
                 writeByte(0)
+                writeInt(space['idx'])
                 continue
             writeByte(1)
             
@@ -112,12 +123,34 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     writeInt(len(points))
     for point in points:
         if versionnum>=5:
-            if 'kill' in space:
+            if 'kill' in point:
+                print "Killing points index",point['idx']
                 writeByte(0)
+                writeInt(point['idx'])
                 continue
             writeByte(1)
         writeUTF(point['name'])
         writeUTF(point['kind'])
+        if versionnum>=5:
+            if point.get('notams',[]):
+                notams=point['notams']
+                writeInt(len(notams))
+                for notam in notams:
+                    writeUTF(notam)
+            else:
+                writeInt(0)
+            if point.get('taf',None):
+                writeByte(1)
+                writeUTF(point['taf'])
+            else:
+                writeByte(0)
+            if point.get('metar',None):
+                writeByte(1)
+                writeUTF(point['metar'])
+            else:
+                writeByte(0)
+                
+            
         writeFloat(float(point['alt']))
         lat,lon=point['lat'],point['lon']
         writeFloat(lat)
@@ -137,6 +170,10 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                         writeFloat(f)
             else:
                 writeByte(0)
+    if versionnum>=5:
+        print "New namechecksum;",new_namechecksum
+        writeUTF(new_namechecksum)
+            
         
     ret=out.getvalue()
     assert ret[0]==chr(0x08)

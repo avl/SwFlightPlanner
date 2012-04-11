@@ -6,7 +6,7 @@ host=socket.gethostname()
 from urllib2 import urlopen
 import mechanize
 import shutil
-
+import md5
 dev_computer=os.getenv('SWFP_DEVCOMP')
 tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
 
@@ -16,7 +16,7 @@ def is_devcomp():
     return host==dev_computer
 
 def get_filedate(path):
-    return datetime.fromtimestamp(os.path.getmtime(path))
+    return datetime.utcfromtimestamp(os.path.getmtime(path))
 
 def stripname(path):
     out=[]
@@ -25,7 +25,11 @@ def stripname(path):
             out.append(c)
         else:
             out.append("_")
-    return "".join(out)
+    complete="".join(out)
+    if len(complete)>82:
+        complete=complete[:50]+md5.md5(complete).hexdigest()
+    return complete
+
 def changeext(path,from_,to_):
     assert path.endswith(from_)
     path=path[:-len(from_)]
@@ -35,7 +39,7 @@ def changeext(path,from_,to_):
 def getrawurl(relpath,country="se"):
     fixed=relpath.replace(" ","%20")
     print fixed
-    assert(fixed.startswith("/"))
+    if country!="raw": assert(fixed.startswith("/"))
     if country=="se":
         durl="http://www.lfv.se"+fixed
     elif country=="fi":
@@ -55,6 +59,9 @@ def getrawurl(relpath,country="se"):
         durl="http://www.ais.pansa.pl"+fixed
     elif country=="wikipedia":
         durl="http://en.wikipedia.org"+fixed
+    elif country=="raw":
+        durl=fixed
+        print "Raw:",durl
     else:
         raise Exception("Unknown country:"+country)
     return durl
@@ -130,7 +137,7 @@ def getrawdata(relpath,country="se"):
 def getcachename(relpath,datatype):
     return os.path.join(tmppath,stripname(relpath)+datatype)
 def getdata(relpath,country="se",maxcacheage=7200,return_path=False):
-    nowdate=datetime.now()
+    nowdate=datetime.utcnow()
     if not os.path.exists(tmppath):
         os.makedirs(tmppath)
     cachename=os.path.join(tmppath,stripname(relpath))    
@@ -169,7 +176,7 @@ def getxml(relpath,country="se",maxcacheage=7200):
     assert relpath.startswith("/")
     if not os.path.exists(tmppath):
         os.makedirs(tmppath)
-    nowdate=datetime.now()
+    nowdate=datetime.utcnow()
     cachenamepdf=tmppath+"/"+stripname(relpath)
     cachenamexml=changeext(tmppath+"/"+stripname(relpath),'.pdf',".xml")
     print "cachepath:"+cachenamexml
@@ -244,7 +251,7 @@ def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400
     inputdate=get_filedate(inputpath)
     if os.path.exists(outputpathdate):
         cacheddate=get_filedate(outputpathdate)
-        if cacheddate>inputdate and (datetime.now()-cacheddate<timedelta(0,maxcachetime)):
+        if cacheddate>inputdate and (datetime.utcnow()-cacheddate<timedelta(0,maxcachetime)):
             return 
     if os.path.exists(outputpathtmp):
         os.unlink(outputpathtmp)
@@ -268,7 +275,7 @@ def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=Tru
     if os.path.exists(svged) and usecache:
         cacheddate=get_filedate(svged)
         print "Cached %s version exists, date:"%(format,),svged,cacheddate
-        if is_devcomp() or datetime.now()-cacheddate<timedelta(0,cachetime):
+        if is_devcomp() or datetime.utcnow()-cacheddate<timedelta(0,cachetime):
             print "Using",format,"cache"
             try:
                 return svged
