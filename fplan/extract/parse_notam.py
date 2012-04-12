@@ -76,7 +76,7 @@ def parse_notam(html):
     category=None
     stale=True
     for appearline,l in enumerate(ls):        
-        cat=re.match(r"([A-Z]{3,}/.*)\s*",l)
+        cat=re.match(r"^\s*([A-Z]{4}/.*)\s*",l)
         if cat:
             #print "Match notam cat:",cat.groups()[0]
             category=cat.groups()[0].strip()
@@ -96,6 +96,9 @@ def parse_notam(html):
         if l.strip()=="AERODROMES INCLUDED: ALL": continue            
         if l.strip()=="INSIGNIFICANT NOTAM INCLUDED, EXCEPT OLD PERM NOTAM": continue
         if re.match(r"VALID\s*\d+-\d+\s*ALL\s*FL\s*CS.{3,19}",l.strip()): continue
+        if re.match(r"\s*ISSUED:\s*\d+.*\d{4}.*PAGE:\s*\d+.\d+\s*(?:NIL)?\s*",l):
+            continue
+            
         iss=re.match(r"\s*AIS\s*(?:FIR|AREA)\s*INFORMATION\s+ISSUED\s+(\d{6})\s+(\d{4})\s+...\d+\s+PAGE\s+\d+\(\d+\)\s*",l)
         if not iss:
             iss=re.match(r"ISSUED BY ODIN ESSA AIS\s+(\d{6})\s+(\d{4})\s+HAVE A NICE FLIGHT",l)

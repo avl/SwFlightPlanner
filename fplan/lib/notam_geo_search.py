@@ -8,13 +8,16 @@ import os
 
 
 def get_notam_for_airport(icao):
-    notamupdates=meta.Session.query(NotamUpdate).filter(
-              NotamUpdate.disappearnotam==sa.null(),
-              NotamUpdate.category.like("%s%%"%(icao,))).all()
-    out=[]
-    for u in notamupdates:
-        out.append(u.text)
-    return out
+    try:
+        notamupdates=meta.Session.query(NotamUpdate).filter(
+                  NotamUpdate.disappearnotam==sa.null(),
+                  NotamUpdate.category.like("%s%%"%(icao,))).all()
+        out=[]
+        for u in notamupdates:
+            out.append(u.text)
+        return out
+    except:
+        return []
     
 
 def get_notam_objs(kind=None):    

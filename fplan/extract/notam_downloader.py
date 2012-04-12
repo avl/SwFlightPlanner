@@ -26,7 +26,8 @@ def download_notam():
         "http://www.lfv.se/AISInf2.asp?TextFile=idunenor.txt&SubTitle=&T=Norge&Frequency=250",
         "http://www.lfv.se/AISInf2.asp?TextFile=idunefin.txt&SubTitle=&T=Finland&Frequency=250",
         "http://www.lfv.se/AISInf2.asp?TextFile=iduneett.txt&SubTitle=&T=Estland&Frequency=250",
-        "http://www.lfv.se/AISInf2.asp?TextFile=idunevrr.txt&SubTitle=&T=Lettland&Frequency=250"
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunevrr.txt&SubTitle=&T=Lettland&Frequency=250",
+        "http://www.lfv.se/AISInf2.asp?TextFile=idunekdk.txt&SubTitle=&T=Danmark&Frequency=250"
                  ]:
         print "Downloading",url_ 
         all_notams.append(urllib2.urlopen(

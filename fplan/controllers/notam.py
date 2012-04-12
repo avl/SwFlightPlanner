@@ -45,6 +45,7 @@ class NotamController(BaseController):
            dict(name="Finland",sel=False,short="EF"),
            dict(name="Estonia",sel=False,short="EE"),
            dict(name="Latvia",sel=False,short="EV"),
+           dict(name="Denmark",sel=False,short="EK"),
         ]
         if 1:
             for ct in meta.Session.query(NotamCountryFilter).filter(

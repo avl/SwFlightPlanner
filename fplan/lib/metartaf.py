@@ -168,10 +168,16 @@ def get_some(what,icao):
     #print "Obj exists, using it"
     return items[0]
 def get_metar(icao):
-    return get_some("METAR",icao)        
+    try:
+        return get_some("METAR",icao)
+    except:
+        return Metar(icao,datetime.utcnow(),"")
 def get_taf(icao):
-    return get_some("TAF",icao)        
-            
+    try:
+        return get_some("TAF",icao)
+    except:
+        return Taf(icao,datetime.utcnow(),"")
+
 
 
 def geturl(what,area):

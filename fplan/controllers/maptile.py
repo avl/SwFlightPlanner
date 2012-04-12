@@ -204,9 +204,9 @@ class MaptileController(BaseController):
                             
                         return "style=\"background:#"+col+"\" title=\""+agestr+" old.\""
                 
-                    if taf.text:
+                    if taf and taf.text:
                         weather+="<tr valign=\"top\"><td>TAF:</td><td "+colorize(taf,5)+">"+taf.text+"</td></tr>"
-                    if metar.text:
+                    if metar and metar.text:
                         weather+="<tr valign=\"top\"><td>METAR:</td><td "+colorize(metar)+">"+metar.text+"</td></tr>"
                     weather+="</table>"
                     meta.Session.flush()

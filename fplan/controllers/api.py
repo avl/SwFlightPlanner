@@ -95,7 +95,8 @@ class ApiController(BaseController):
 
         
     def get_airspaces(self):
-        #print "Get airspaces called"
+        print "Get airspaces called"
+        
         out=[]
         if 1:
             for space in extracted_cache.get_airspaces()+get_notam_objs_cached()['areas']+extracted_cache.get_aip_sup_areas():
@@ -151,10 +152,10 @@ class ApiController(BaseController):
                 alt=float(airp.get('elev',0)))
             if icao:
                 ap['icao']=icao
-            if taf and taf.text:
-                ap['taf']=taf.text
-            if metar and metar.text:
-                ap['metar']=metar.text
+                if taf.text:
+                    ap['taf']=taf.text
+                if metar.text:
+                    ap['metar']=metar.text
             
             if 'adchart' in airp:
                 ret=airp['adchart']
@@ -324,17 +325,20 @@ class ApiController(BaseController):
                 def either(x,fallback):
                     if x==None: return fallback
                     return x
-                def add_wp(name,pos,startalt,endalt,winddir,windvel,gs,what,legpart,lastsub,d,tas):
+                def add_wp(name,pos,startalt,endalt,winddir,windvel,gs,what,legpart,lastsub,d,tas,land_at_end):
                     d=dict(lat=pos[0],lon=pos[1],
                         name=name,startalt=startalt,endalt=endalt,winddir=winddir,windvel=windvel,
-                            gs=either(gs,75),what=what,legpart=legpart,lastsub=lastsub,d=d,tas=either(tas,75))
+                            gs=either(gs,75),what=what,legpart=legpart,lastsub=lastsub,d=d,tas=either(tas,75),land_at_end=land_at_end)
                     waypoints.append(d)
                 rt0=rts[0]
+                
                 add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.endalt,rt0.winddir,rt0.windvel,rt0.gs,
-                        "start","start",1,0,rt0.tas)
+                        "start","start",1,0,rt0.tas,False)
                                         
                 for rt in rts:                        
-                    add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.endalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub,rt.d,rt.tas)
+                    land_at_end=not not (rt.b.stay and rt.lastsub)
+                    print "Land at end of leg:",rt.b.waypoint,":",land_at_end
+                    add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.endalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub,rt.d,rt.tas,land_at_end)
 
             tripobj['waypoints']=waypoints
             print "returning json:", waypoints
