@@ -35,20 +35,27 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
     for pagenr in xrange(startpage,p.get_num_pages()):
         row_y=[]
         page=p.parse_page_to_items(pagenr)
-        for item in list(page.get_partially_in_rect(10,0,55,100)):
-            #print item
-            m=re.match(r"\b\d\dR?L?/\d\dR?L?\b",item.text)
+        allines=[x for x in (page.get_lines(page.get_partially_in_rect(0,0,15,100))) if x.strip()]
+        for item,next in zip(allines,allines[1:]+[""]):
+            #print "item:",item
+            
+            m=re.match(ur"^\s*[A-ZÅÄÖ]{3,}(?:/.*)?\b.*",item)
             if m:
-                if not page.get_partially_in_rect(0,item.y1-0.6,50,item.y1-0.5) and \
-                    page.get_partially_in_rect(0,item.y1,item.x1,item.y1+0.5):                    
+                #print "Candidate, next is:",next
+                if re.match(r"^\s*[A-Z]{4}\b.*",next):
+                    #print "Matched:",item
+                    #print "y1:",item.y1                    
                     row_y.append(item.y1)
         for y1,y2 in zip(row_y,row_y[1:]+[100.0]):
             #print "Extacting from y-range: %f-%f"%(y1,y2)
             items=list(page.get_partially_in_rect(0,y1-0.25,5.0,y2+0.25,ysort=True))
             if len(items)>=2:
+                #print "Extract items",items
                 ad=dict(name=unicode(items[0].text).strip(),
                         icao=unicode(items[1].text).strip()                    
                         )
+                #print "Icao:",ad['icao']
+                assert re.match(r"[A-Z]{4}",ad['icao'])
                 if not filtericao(ad): continue
                 if len(items)>=3:
                     #print "Coord?:",items[2].text
@@ -56,7 +63,9 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                     if m:
                         lat,lon=m.groups()
                         ad['pos']=parse_coords(lat,lon)           
+                        #print "Items3:",items[3:]   
                         elev=re.findall(r"(\d{1,5})\s*ft"," ".join(t.text for t in items[3:]))
+                        #print "Elev:",elev
                         assert len(elev)==1
                         ad['elev']=int(elev[0])                        
                                      
