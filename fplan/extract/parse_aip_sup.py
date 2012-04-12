@@ -68,7 +68,7 @@ def parse_all_sups(limiter=None):
     opening_ours=set()
     for base,sup in re.findall(r"(http://.*?)(/AIP/AIP.*Sup/SUP_\d+_\d+.pdf)",raw):
         #print "Parsing",base,sup
-        if sup.count('33_10') or sup.count("14_11"):
+        if sup.count('33_10') or sup.count("14_11") or sup.coutn("11_12"):
             #No longer active
             continue
         
