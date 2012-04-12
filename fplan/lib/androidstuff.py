@@ -105,7 +105,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                 writeInt(space['idx'])
                 continue
             writeByte(1)
-        print "Writing space",space['name']
+        print "Sending space",space['name']
         writeUTF(space['name'])
         if versionnum>=2:
             (r,g,b,a),dummy_edge_col=get_airspace_color(space['type'])
@@ -134,6 +134,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                 writeInt(point['idx'])
                 continue
             writeByte(1)
+        print "Sending point",point['name']
         writeUTF(point['name'])
         writeUTF(point['kind'])
         if versionnum>=5:

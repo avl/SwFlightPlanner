@@ -12,7 +12,7 @@ import sys
 
 timeout=300
 host=socket.gethostname()
-dev_computer=os.getenv('SWFP_DEVCOMP')+" blaha"
+dev_computer=os.getenv('SWFP_DEVCOMP')+"blaha"
 
 cache=dict()
 
@@ -31,8 +31,8 @@ def too_old(item):
 
 def getpage(what,area):
     
-    data,last_sync=fetchdata.getdata(geturl(what,area),country="raw",maxcacheage=100)    
-    
+    data,last_sync=fetchdata.getdata(geturl(what,area),country="raw",maxcacheage=timeout/2,no_dev_comp_exception=True)    
+    #print "Fetched data, last sync",last_sync
     parser=lxml.html.HTMLParser()
     parser.feed(data)
     tree=parser.close()
@@ -126,10 +126,11 @@ def get_some(what,icao):
     klass=getklass(what)
     #items=meta.Session.query(Metar).filter(Metar.icao==icao).all()
     items=meta.Session.query(klass).filter(klass.icao==icao).all()
+    #if len(items):
+    #    #print "Item age:",items[0].last_sync
     #print "Querying",icao,what
     if len(items)==0 or too_old(items[0]):
         area=get_area(icao)
-        
         key=(area,what)
         now=datetime.utcnow()
         if key in last_parse:        
@@ -146,7 +147,7 @@ def get_some(what,icao):
                     obj=items[0]            
                 return obj
         last_parse[key]=now
-        
+        #print "Reparsing"
         item=get_and_store(what,area,icao)
         if item!=None:
             #print "Found in new dump"
@@ -212,14 +213,14 @@ def test_metar_age():
     t=Taf()
     t.text="312020Z akdsjfal dfkj"
     age=get_data_age(t,lambda:datetime(2013,1,1,0,20))
-    print age
+    #print age
     assert age==timedelta(0,3600*4)
 def test_metar_age2():
     class Taf():pass
     t=Taf()
     t.text="010020Z akdsjfal dfkj"
     age=get_data_age(t,lambda:datetime(2013,12,31,23,59))
-    print age
+    #print age
     assert age==-timedelta(0,60*21)
 
 def test_metar_age3():
@@ -227,7 +228,7 @@ def test_metar_age3():
     t=Taf()
     t.text="250000Z akdsjfal dfkj"
     age=get_data_age(t,lambda:datetime(2013,7,10,00,00))
-    print age
+    #print age
     assert age==-timedelta(15,0)
     
     

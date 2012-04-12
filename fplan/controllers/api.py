@@ -95,7 +95,7 @@ class ApiController(BaseController):
 
         
     def get_airspaces(self):
-        print "Get airspaces called"
+        #print "Get airspaces called"
         out=[]
         if 1:
             for space in extracted_cache.get_airspaces()+get_notam_objs_cached()['areas']+extracted_cache.get_aip_sup_areas():
@@ -230,10 +230,14 @@ class ApiController(BaseController):
         elif request.params.get('binary','').strip()!='':
             response.headers['Content-Type'] = 'application/binary'                 
             ret=android_fplan_map_format(airspaces=out,points=points,version=version,user_aipgen=user_aipgen)
-                
+            
             meta.Session.flush()
             meta.Session.commit()
-            print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')
+            if 'zip' in request.params:
+                zobj = zlib.compressobj(9)#,zlib.DEFLATED,14)
+                ret=zobj.compress(ret)
+                ret+=zobj.flush()
+            print "Android map download from:",request.environ.get("REMOTE_ADDR",'unknown')," size: ",len(ret),"bytes"
             return ret
         else:
             meta.Session.flush()
@@ -519,7 +523,7 @@ class ApiController(BaseController):
             print "badpassword"
             writeInt(1) #error, bad pass
             return None
-        print "Correct password"
+        #print "Correct password"
         
         totalsize=0
         stamp=0
@@ -527,12 +531,12 @@ class ApiController(BaseController):
             tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(lev))
             totalsize+=os.path.getsize(tlevelfile)
             stamp=max(stamp,os.stat(tlevelfile)[stat.ST_MTIME])
-        print "Maxlevel: %d, stamp: %d"%(maxlevel,stamp)
+        #print "Maxlevel: %d, stamp: %d"%(maxlevel,stamp)
         levelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(level))
         curlevelsize=os.path.getsize(levelfile)    
         cursizeleft=curlevelsize-offset
-        print "cursize left:",cursizeleft
-        print "maxlen:",maxlen
+        #print "cursize left:",cursizeleft
+        #print "maxlen:",maxlen
         if cursizeleft<0:
             cursizeleft=0
         if maxlen>cursizeleft:
@@ -542,9 +546,9 @@ class ApiController(BaseController):
         
          
         writeInt(0) #no error
-        print "No error"
+        #print "No error"
         writeLong(stamp) #"data version"
-        print "stamp:",stamp
+        #print "stamp:",stamp
         writeLong(curlevelsize)
         writeLong(totalsize)
         writeLong(cursizeleft)
@@ -562,10 +566,10 @@ class ApiController(BaseController):
         f=open(levelfile)
 
         if offset<curlevelsize:
-            print "seeking to %d of file %s, then reading %d bytes"%(offset,levelfile,maxlen)
+            #print "seeking to %d of file %s, then reading %d bytes"%(offset,levelfile,maxlen)
             f.seek(offset)
             data=f.read(maxlen)
-            print "Writing %d bytes to client"%(len(data),)
+            #print "Writing %d bytes to client"%(len(data),)
             response.write(data)
         f.close()
         return None

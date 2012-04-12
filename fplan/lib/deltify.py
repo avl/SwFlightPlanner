@@ -1,6 +1,6 @@
 from fplan.model import meta,AipHistory
 import md5
-from datetime import datetime
+from datetime import datetime,timedelta
 import pickle
 from copy import deepcopy
 
@@ -15,7 +15,7 @@ def freeze(inp):
         return frozenset(inp)
     if type(inp)==tuple:
         return tuple(freeze(x) for x in inp)
-    print "Type:",type(inp),repr(inp)
+    #print "Type:",type(inp),repr(inp)
     assert 0
 def freeze_top(inp):
     out=dict()
@@ -30,6 +30,8 @@ def add_aip_history(currdata):
     hits=meta.Session.query(AipHistory).filter(AipHistory.aipgen==new_aipgen).all()
     if len(hits):
         return new_aipgen
+    
+    meta.Session.query(AipHistory).filter(AipHistory.when<(datetime.utcnow()-timedelta(7))).delete()
     aiphist=AipHistory(new_aipgen,datetime.utcnow(),bindata)
     meta.Session.add(aiphist)
     return new_aipgen
@@ -44,7 +46,7 @@ def deltify_sub(prev,next):
     killed=set()
     newcurr=[]
     for idx,p in enumerate(prev):
-        print "Prev",idx," ",p
+        #print "Prev",idx," ",p
         pkey=freeze(p)
         if not (pkey in nextset):
             out.append(dict(idx=idx,kill=True))
@@ -52,7 +54,7 @@ def deltify_sub(prev,next):
             numdelta+=1
             continue
         nextset.remove(pkey)
-        print "idx at end of loop",idx
+        #print "idx at end of loop",idx
         newcurr.append(p)
     for x in nextset:
         d=dict(x)
@@ -80,7 +82,7 @@ def mkcksum(newdata):
     m=md5.md5()
     for k in sorted(newdata):
         for v in newdata[k]:
-            print "Checksumming",v['name']
+            #print "Checksumming",v['name']
             m.update(v['name'].encode('utf8','ignore'))
     return m.hexdigest()
 

@@ -136,21 +136,21 @@ def getrawdata(relpath,country="se"):
 
 def getcachename(relpath,datatype):
     return os.path.join(tmppath,stripname(relpath)+datatype)
-def getdata(relpath,country="se",maxcacheage=7200,return_path=False):
+def getdata(relpath,country="se",maxcacheage=7200,return_path=False,no_dev_comp_exception=False):
     nowdate=datetime.utcnow()
     if not os.path.exists(tmppath):
         os.makedirs(tmppath)
     cachename=os.path.join(tmppath,stripname(relpath))    
-    print "Checking if cached version exists:",cachename
+    #print "Checking if cached version exists:",cachename
     if caching_enabled and os.path.exists(cachename):
         cacheddate=get_filedate(cachename)
-        print "cachedate:",cacheddate,"nowdate:",nowdate
+        #print "cachedate:",cacheddate,"nowdate:",nowdate
         age=nowdate-cacheddate
-        print "cache-age:",age
-        if host==dev_computer:
+        #print "cache-age:",age
+        if host==dev_computer and not no_dev_comp_exception:
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
-            print "Returning cached %s"%(relpath,)
+            #print "Returning cached %s"%(relpath,)
             if not return_path:
                 return open(cachename).read(),cacheddate
             else:
