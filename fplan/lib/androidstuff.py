@@ -42,6 +42,9 @@ def android_fplan_bitmap_format(hmap):
 def android_fplan_map_format(airspaces,points,version,user_aipgen):
     print "fplan_map_format, version: ",version,"aipgen",user_aipgen
     versionnum=1
+    
+    airspaces=airspaces    
+    points=points#[x for x in points if not x['name'].upper().count("G")]
     try:
         versionnum=int(version.strip())
     except:
@@ -74,6 +77,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     writeInt(0x8A31CDA)
     
     if versionnum>=5:
+        print "User aipgen",user_aipgen
         clearall,new_aipgen,data,new_namechecksum=deltify(user_aipgen,
                 dict(airspaces=airspaces,points=points))
         print "clearall",clearall,"new_namechecksum;",new_namechecksum
@@ -101,7 +105,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                 writeInt(space['idx'])
                 continue
             writeByte(1)
-            
+        print "Writing space",space['name']
         writeUTF(space['name'])
         if versionnum>=2:
             (r,g,b,a),dummy_edge_col=get_airspace_color(space['type'])
@@ -111,6 +115,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
             writeByte(255*a)
         writeInt(len(space['points']))
         for point in space['points']:
+            point=dict(point)
             lat,lon=point['lat'],point['lon']
             writeFloat(lat)
             writeFloat(lon)
@@ -139,6 +144,11 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                     writeUTF(notam)
             else:
                 writeInt(0)
+            if point.get('icao',None):
+                writeByte(1)
+                writeUTF(point['icao'])
+            else:
+                writeByte(0)
             if point.get('taf',None):
                 writeByte(1)
                 writeUTF(point['taf'])
@@ -172,6 +182,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                 writeByte(0)
     if versionnum>=5:
         print "New namechecksum;",new_namechecksum
+        writeInt(0x1eedbaa5)
         writeUTF(new_namechecksum)
             
         

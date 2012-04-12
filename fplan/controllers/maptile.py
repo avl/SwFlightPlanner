@@ -177,7 +177,7 @@ class MaptileController(BaseController):
                     taf=metartaf.get_taf(icao)
                     weather="<table>"
                     
-                    def colorize(item):
+                    def colorize(item,colfac=1):
                         if item==None:
                             col="ffffff"
                             agestr=""
@@ -186,10 +186,10 @@ class MaptileController(BaseController):
                             if age==None:
                                 col="ffffff"
                                 agestr=""                                
-                            elif age<timedelta(0,60*35):
+                            elif age<timedelta(0,60*35*colfac):
                                 col="c5c5c5"
                                 agestr="%d minutes"%(int(age.seconds/60))
-                            elif age<timedelta(0,60*60):
+                            elif age<timedelta(0,60*60*colfac):
                                 col="ffff30"
                                 agestr="%d minutes"%(int(age.seconds/60))
                             else:
@@ -205,7 +205,7 @@ class MaptileController(BaseController):
                         return "style=\"background:#"+col+"\" title=\""+agestr+" old.\""
                 
                     if taf.text:
-                        weather+="<tr valign=\"top\"><td>TAF:</td><td "+colorize(taf)+">"+taf.text+"</td></tr>"
+                        weather+="<tr valign=\"top\"><td>TAF:</td><td "+colorize(taf,5)+">"+taf.text+"</td></tr>"
                     if metar.text:
                         weather+="<tr valign=\"top\"><td>METAR:</td><td "+colorize(metar)+">"+metar.text+"</td></tr>"
                     weather+="</table>"

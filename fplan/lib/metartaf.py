@@ -10,8 +10,9 @@ import fplan.extract.fetchdata as fetchdata
 from copy import copy
 import sys
 
+timeout=300
 host=socket.gethostname()
-dev_computer=os.getenv('SWFP_DEVCOMP')
+dev_computer=os.getenv('SWFP_DEVCOMP')+" blaha"
 
 cache=dict()
 
@@ -21,11 +22,11 @@ def too_old(item):
     if dev_computer==host:
         maxage=timedelta(1000,0)
     else:
-        maxage=timedelta(0,300)
+        maxage=timedelta(0,timeout)
     if age>maxage:
-        print "Too old",age
+        #print "Too old",age
         return True
-    print "Not too old",age
+    #print "Not too old",age
     return False
 
 def getpage(what,area):
@@ -125,7 +126,7 @@ def get_some(what,icao):
     klass=getklass(what)
     #items=meta.Session.query(Metar).filter(Metar.icao==icao).all()
     items=meta.Session.query(klass).filter(klass.icao==icao).all()
-    print "Querying",icao,what
+    #print "Querying",icao,what
     if len(items)==0 or too_old(items[0]):
         area=get_area(icao)
         
@@ -133,33 +134,37 @@ def get_some(what,icao):
         now=datetime.utcnow()
         if key in last_parse:        
             age=now-last_parse[key]
-            if age<timedelta(0,120):
-                print "Not reparsing, already done it recently, inserting dummy"
-                obj=klass(icao,datetime.utcnow(),"")            
-                meta.Session.add(obj)                
-                meta.Session.flush()
-                meta.Session.commit()
-                return
+            if age<timedelta(0,timeout/2):                
+                if len(items)==0:
+                    #print "Not reparsing, already done it recently, inserting dummy"
+                    obj=klass(icao,datetime.utcnow(),"")
+                    meta.Session.add(obj)                
+                    meta.Session.flush()
+                    meta.Session.commit()
+                else:
+                    #not reparsing, returning too-old item instead
+                    obj=items[0]            
+                return obj
         last_parse[key]=now
         
         item=get_and_store(what,area,icao)
         if item!=None:
-            print "Found in new dump"
+            #print "Found in new dump"
             return item
         #Store a dummy, so we don't re-parse on next click/fetch
         if len(items)==0:
-            print "Not existing, inserting dummy"
+            #print "Not existing, inserting dummy"
             obj=klass(icao,datetime.utcnow(),"")            
         else:
             obj=items[0]
             obj.text=""
-            print "Obj exists, storing dummy"
+            #print "Obj exists, storing dummy"
             obj.last_sync=datetime.utcnow()
         meta.Session.add(obj)                
         meta.Session.flush()
         meta.Session.commit()
         return obj
-    print "Obj exists, using it"
+    #print "Obj exists, using it"
     return items[0]
 def get_metar(icao):
     return get_some("METAR",icao)        

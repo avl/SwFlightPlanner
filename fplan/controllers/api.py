@@ -128,23 +128,25 @@ class ApiController(BaseController):
             lat,lon=mapper.from_str(airp['pos'])
             #if lat<58.5 or lat>60.5:
             #    continue
-            aname=airp['name']+"*" if airp.get('icao','ZZZZ').upper()!='ZZZZ' else airp['name']
+            aname=airp['name']
             
             notams=[]
             icao=None
             taf=None
             metar=None
+            kind='field'
             if airp.get('icao','zzzz').lower()!='zzzz':
                 icao=airp['icao']
                 notams=notam_geo_search.get_notam_for_airport(icao)
                 metar=metartaf.get_metar(icao)
                 taf=metartaf.get_taf(icao)
+                kind='port'
                 
             ap=dict(
                 name=aname,
                 lat=lat,
                 lon=lon,
-                kind="airport",
+                kind=kind,
                 notams=notams,
                 alt=float(airp.get('elev',0)))
             if icao:

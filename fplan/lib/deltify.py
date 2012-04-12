@@ -2,6 +2,7 @@ from fplan.model import meta,AipHistory
 import md5
 from datetime import datetime
 import pickle
+from copy import deepcopy
 
 def freeze(inp):
     if type(inp) in [int,float,str,unicode,frozenset]:
@@ -53,15 +54,12 @@ def deltify_sub(prev,next):
         nextset.remove(pkey)
         print "idx at end of loop",idx
         newcurr.append(p)
-    idx+=1
     for x in nextset:
         d=dict(x)
-        print "Used idx for new",idx
-        idx+=1
         numdelta+=1
         out.append(d)
-        newcurr.append(p)
-    newcurr.sort(key=lambda x:x['name'])
+        newcurr.append(d)
+    newcurr.sort(key=lambda x:x['name'].encode('utf8','ignore'))
     return out,numdelta,newcurr
         
 def deltify_toplevel(prevs,nexts):
@@ -82,9 +80,14 @@ def mkcksum(newdata):
     m=md5.md5()
     for k in sorted(newdata):
         for v in newdata[k]:
+            print "Checksumming",v['name']
             m.update(v['name'].encode('utf8','ignore'))
     return m.hexdigest()
-        
+
+def sortit(cats):
+    for k in cats:
+        cats[k].sort(key=lambda x:x['name'].encode('utf8','ignore'))
+                
 def deltify(user_aipgen,cats):
     try:
         currdata=freeze_top(cats)
@@ -94,7 +97,9 @@ def deltify(user_aipgen,cats):
     if user_aipgen!="":
         theirs=meta.Session.query(AipHistory).filter(AipHistory.aipgen==user_aipgen).all()
     if len(theirs)!=1:
-        #we don't know what they have now, their aipgen is unknown. Wipe all.        
+        #we don't know what they have now, their aipgen is unknown. Wipe all.
+        cats=deepcopy(cats)        
+        sortit(cats)
         new_aipgen=add_aip_history(cats)
         return True,new_aipgen,cats,mkcksum(cats)
     their,=theirs
