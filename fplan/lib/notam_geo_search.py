@@ -5,18 +5,19 @@ import fplan.lib.mapper as mapper
 import re
 from itertools import chain
 import os
-
+import traceback
 
 def get_notam_for_airport(icao):
     try:
-        notamupdates=meta.Session.query(NotamUpdate).filter(
+        notamupdates=meta.Session.query(NotamUpdate).filter(sa.and_(
                   NotamUpdate.disappearnotam==sa.null(),
-                  NotamUpdate.category.like("%s%%"%(icao,))).all()
+                  NotamUpdate.category.like("%s%%"%(icao.upper(),)))).all()
         out=[]
         for u in notamupdates:
             out.append(u.text)
         return out
     except:
+        print "Exception:",traceback.format_exc()
         return []
     
 

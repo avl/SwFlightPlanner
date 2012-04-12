@@ -104,6 +104,7 @@ fplan/lib/create_merc_elevmap.py
 fplan/lib/customproj.py
 fplan/lib/db_env_loader.py
 fplan/lib/delete_old_notams.py
+fplan/lib/deltify.py
 fplan/lib/extract_heights_near_path.py
 fplan/lib/forgot.py
 fplan/lib/gen_tile.py
@@ -114,6 +115,7 @@ fplan/lib/get_terrain_elev.py
 fplan/lib/helpers.py
 fplan/lib/mapper.py
 fplan/lib/maptilereader.py
+fplan/lib/metartaf.py
 fplan/lib/notam_db_update.py
 fplan/lib/notam_geo_search.py
 fplan/lib/obstacle_free.py
@@ -124,6 +126,7 @@ fplan/lib/recordings.py
 fplan/lib/remove_unused_users.py
 fplan/lib/sunrise.py
 fplan/lib/test_calc_route_info.py
+fplan/lib/test_deltify.py
 fplan/lib/test_flightpath_decode.py
 fplan/lib/test_mapper.py
 fplan/lib/test_notam_db_update.py
