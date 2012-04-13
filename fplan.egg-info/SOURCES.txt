@@ -50,6 +50,7 @@ fplan/extract/ek_parse_airfields.py
 fplan/extract/ep_parse_airfields.py
 fplan/extract/ep_parse_restrict.py
 fplan/extract/ep_parse_tma.py
+fplan/extract/ev_parse_airac.py
 fplan/extract/ev_parse_airfields.py
 fplan/extract/ev_parse_sigpoints.py
 fplan/extract/ev_parse_tma.py

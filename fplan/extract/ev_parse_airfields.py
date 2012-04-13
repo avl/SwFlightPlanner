@@ -16,13 +16,13 @@ def ev_parse_airfields():
     ads=[]
     spaces=[]
     seen=set()
-    thrs=[]
     cur_airac=get_cur_airac()
     assert cur_airac
     for icao in ["EVRA",
                 "EVLA",
                 "EVTJ",
                 "EVVA"]:
+        thrs=[]
         url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-AD-2.%s-en-GB.html"%(cur_airac,icao)
         data,date=fetchdata.getdata(url,country='ev')
         parser=lxml.html.HTMLParser()

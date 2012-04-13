@@ -100,7 +100,7 @@ def parse_landing_chart(path,arppos,icao,country='se'):
         assert 0==os.system(r)
     ret['image']=icao+".png"
     fetchdata.getcreate_derived_data_raw(
-                path,outpath,render,"png")
+                path,outpath,render,"png",country=country)
     
     outpath2=os.path.join(tmppath,icao+"2.png")
     def greyscale(input,output):

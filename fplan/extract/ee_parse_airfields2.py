@@ -105,7 +105,7 @@ def ee_parse_airfields2():
                             tr.getchildren()
                         nametxt=alltext(name)
                         print "nametxt:",nametxt,"link:"
-                        if nametxt.count("Visual Approach Chart"):
+                        if re.match(r"Aerodrome.*Chart.*",nametxt):
                             for a in page.xpath(".//a"):
                                 print "linklabel",a.text
                                 print "attrib:",a.attrib
