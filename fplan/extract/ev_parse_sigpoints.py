@@ -6,14 +6,15 @@ import re
 from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext 
 from datetime import datetime
-
+from fplan.extract.ev_parse_airac import get_cur_airac
 
 
 def ev_parse_sigpoints():
     out=[]
     parser=lxml.html.HTMLParser()
-    url="/EV-ENR-4.4-en-GB.html"
-    data,date=fetchdata.getdata(url)
+    airac=get_cur_airac()
+    url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-4.4-en-GB.html"%(airac)
+    data,date=fetchdata.getdata(url,country='ev')
     parser.feed(data)
     tree=parser.close()
     for table in tree.xpath("//table"):

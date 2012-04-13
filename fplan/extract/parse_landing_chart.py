@@ -16,6 +16,18 @@ import numpy.linalg as linalg
 import os
 import Image
 from fplan.lib.blobfile import BlobFile
+
+def get_icao_prefix(country):            
+    if country=='se':
+        return "ES"
+    elif country=='ee':
+        return "EE"
+    elif country=='ev':
+        return "EV"
+    else:
+        None
+            
+
 def diff(x,y):
     return (x[0]-y[0],x[1]-y[1])
 def dist(x,y):
@@ -51,11 +63,12 @@ def chop_up(inputfile,outputfile,level):
             
 def parse_landing_chart(path,arppos,icao,country='se'):
     print "Running parse_landing_chart"
-    p=parse.Parser(path)
+    print "country:",country
+    p=parse.Parser(path,country=country)
     arppos=mapper.from_str(arppos)
     res=[]    
     assert p.get_num_pages()<=2
-    url=fetchdata.getrawurl(path,country)
+    url=fetchdata.getrawurl(path,country=country)
     ret=dict()
     ret['url']=url
     data,nowdate=fetchdata.getdata(path,country=country,maxcacheage=7200)
@@ -91,14 +104,14 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     
     outpath2=os.path.join(tmppath,icao+"2.png")
     def greyscale(input,output):
-        assert 0==os.system("convert -define png:color-type=0 -depth 8 -type grayscale %s %s"%(input,output))
+        assert 0==os.system("convert -define png:color-type=3 -depth 8 -type Palette %s %s"%(input,output))
     
     fetchdata.getcreate_local_data_raw(
                 outpath,outpath2,greyscale)
  
-
-    assert country=='se'
-    assert icao.startswith("ES") 
+    icao_prefix=get_icao_prefix(country)
+    assert icao.startswith(icao_prefix)
+    
     blobname=icao
     ckpath=os.path.join(tmppath,"%s.cksum"%(blobname,))
     if os.path.exists(ckpath):
@@ -114,7 +127,9 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     return ret
 
 def purge_old(chartblobnames,country="se"):
+    pref=get_icao_prefix(country)    
     def find(filename):
+        if not filename.startswith(pref):return True
         for chart in chartblobnames:
             if filename.startswith(chart): return True
         return False

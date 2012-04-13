@@ -1,5 +1,8 @@
 #!/usr/bin/python
 import os
+import lxml
+import lxml.html
+import re
 from datetime import datetime,timedelta
 import socket
 host=socket.gethostname()
@@ -48,6 +51,8 @@ def getrawurl(relpath,country="se"):
         durl="http://eaip.eans.ee"+fixed
     elif country=='ee_base':
         durl="http://aim.eans.ee"+fixed
+    elif country=="ev":
+        durl="https://ais.lgv.ev"+fixed
     elif country=="pl":
         durl="http://localhost"+fixed #TODO; Add something reasonsable here
     elif country=="no":
@@ -118,6 +123,65 @@ def polish_download(url):
     mbrowse.submit()
     return mopen(url)
 
+evmbrowse=None
+def latvian_download(url):
+    global evmbrowse    
+    def mopen(url):
+        print "Actually downloading data from latvian AIP server"
+        m=re.match(r"https://ais.lgv.ev(/.*)",url)
+        if m:
+            url=m.groups()[0]
+        
+        print "Opening url:",url
+        data=evmbrowse.open_novisit(url).read()
+        #print data
+        if len(data)<500:
+            print data
+            raise Exception("Suspiciously small data file (%d) bytes - is this right?"%(len(data),))
+        return data
+    if evmbrowse:
+        try:
+            return mopen(url)
+        except Exception,cause:
+            print cause
+            print "Trying a new browser"
+    f=open("latvian_aip_login.txt")
+    username=f.readline().strip()
+    password=f.readline().strip()
+    codes={}
+    for line in f:
+        if not line.strip():continue
+        nr,code=line.strip().split()
+        codes[int(nr.strip())]=code.strip()
+            
+    evmbrowse=mechanize.Browser()
+    print "Logging on to Latvian AIP server"
+    evmbrowse.addheaders = [('user-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.3) Gecko/20100423 Ubuntu/10.04 (lucid) Firefox/3.6.3'),
+                     ("Accept-Language", "en-us,en")]    
+    frontpage=evmbrowse.open("https://ais.lgs.lv/").read()
+    parser=lxml.html.HTMLParser()
+    parser.feed(frontpage)
+    tree=parser.close()
+    curr_nr=None
+    for form in tree.xpath(".//form"):
+        for label in form.xpath(".//label"):
+            if label.text==None:continue
+            print "Matching,",label.text
+            m=re.match(r"\s*[Cc]ode\s*(\d+):\s*",label.text)
+            if m:
+                curr_nr,=m.groups()
+                curr_nr=int(curr_nr)
+    #print "curr_nr:",curr_nr
+    #print "codes",codes
+    evmbrowse.select_form(
+        predicate=lambda f: 'action' in f.attrs and f.attrs['action'] == '/login/login')
+    
+    evmbrowse['username']=username
+    evmbrowse['password']=password
+    evmbrowse['code']=codes[curr_nr]
+    evmbrowse.submit()
+    return mopen(url)
+
 
 
 def getrawdata(relpath,country="se"):
@@ -125,6 +189,8 @@ def getrawdata(relpath,country="se"):
     print "Downloading url: "+durl
     if country=='ep':
         data=polish_download(durl)
+    elif country=='ev':
+        data=latvian_download(durl)
     elif country=="wikipedia":
         data=wiki_download(durl)
     elif country=="ek":
