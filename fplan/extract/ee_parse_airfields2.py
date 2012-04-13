@@ -94,10 +94,10 @@ def ee_parse_airfields2():
                     
                 #space['freqs']=x
                 
-
+        hlc=False
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
-            if txt.count("CHARTS"):
+            if txt.lower().count("charts"):
                 par=h4.getparent()
                 for table in par.xpath(".//table"):
                     for idx,tr in enumerate(table.xpath(".//tr")):
@@ -123,8 +123,9 @@ def ee_parse_airfields2():
                                     if lc:
                                         ad['adcharturl']=lc['url']
                                         ad['adchart']=lc
+                                        hlc=True
                                         #chartblobnames.append(lc['blobname'])                                                    
-                                    
+        assert hlc
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
             if txt.count("RUNWAY PHYSICAL"):

@@ -75,18 +75,16 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     cksum=md5.md5(data).hexdigest()
     ret['checksum']=cksum
     page=p.parse_page_to_items(0, donormalize=False)
-    ret['width']=page.width
-    ret['height']=page.height
-    width=page.width
-    height=page.height
-    scale=2048.0/min(width,height)
-    width*=scale
-    height*=scale
-    width=int(width+0.5)
-    height=int(height+0.5)
+    #ret['width']=page.width
+    #ret['height']=page.height
+    #width=page.width
+    #height=page.height
+    #scale=2048.0/min(width,height)
+    #width*=scale
+    #height*=scale
+    #width=int(width+0.5)
+    #height=int(height+0.5)
     
-    ret['render_width']=width
-    ret['render_height']=height
     
     tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
     if not os.path.exists(tmppath):
@@ -94,8 +92,8 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     assert len(icao)==4
     outpath=os.path.join(tmppath,icao+".png")
     def render(inputfile,outputfile):
-        r="pdftoppm -f 0 -l 0 -scale-to-x %d -scale-to-y %d -png -freetype yes -aa yes -aaVector yes %s >%s"%(
-                  width,height,inputfile,outputfile)
+        r="pdftoppm -f 0 -l 0 -scale-to 2500 -png -freetype yes -aa yes -aaVector yes %s >%s"%(
+                  inputfile,outputfile)
         print "rendering",r
         assert 0==os.system(r)
     ret['image']=icao+".png"
@@ -108,6 +106,12 @@ def parse_landing_chart(path,arppos,icao,country='se'):
     
     fetchdata.getcreate_local_data_raw(
                 outpath,outpath2,greyscale)
+    i=Image.open(outpath2)
+    width,height=i.size
+    #ret['width']=page.width
+    #ret['height']=page.height    
+    ret['render_width']=width
+    ret['render_height']=height
  
     icao_prefix=get_icao_prefix(country)
     assert icao.startswith(icao_prefix)
