@@ -6,19 +6,26 @@ import re
 from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext,alltexts
 from datetime import datetime
-
+from fplan.extract.ev_parse_airac import get_cur_airac
+import fplan.extract.parse_landing_chart as parse_landing_chart 
+import rwy_constructor
+#   #CURRENTLY EFFECTIVE eAIP:
+#05-APR-2012-AIRAC (open in new window) 
 
 def ev_parse_airfields():
     ads=[]
     spaces=[]
     seen=set()
+    thrs=[]
+    cur_airac=get_cur_airac()
+    assert cur_airac
     for icao in ["EVRA",
                 "EVLA",
-                "EVTA",
+                "EVTJ",
                 "EVVA"]:
-        url="/EV-AD-2.%s-en-GB.html"%(icao,)
+        url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-AD-2.%s-en-GB.html"%(cur_airac,icao)
+        data,date=fetchdata.getdata(url,country='ev')
         parser=lxml.html.HTMLParser()
-        data,date=fetchdata.getdata(url)
         parser.feed(data)
         tree=parser.close()
         elev=None
@@ -27,6 +34,8 @@ def ev_parse_airfields():
         ctr=None
         ctralt=None
         ctrname=None
+        adcharturl=None
+        adchart=None
         adnametag,=tree.xpath("//p[@class='ADName']")
         adnamestr=alltext(adnametag)
         print adnamestr
@@ -77,19 +86,91 @@ def ev_parse_airfields():
                         ceiling,floor=alts
                     print "Parsed",ceiling,floor
 
+
+             
+                    
+        for h4 in tree.xpath(".//h4"):
+            txt=alltext(h4)
+            if txt.count("RUNWAY PHYSICAL"):
+                par=h4.getparent()
+
+                for table in par.xpath(".//table"):
+                    prevnametxt=""
+                    for idx,tr in enumerate(table.xpath(".//tr")):
+                        if idx==0:
+                            fc=alltext(tr.getchildren()[0])
+                            print "FC",fc
+                            if not fc.count("Designations"):
+                                break #skip table
+                        if idx<2:continue
+                        if len(tr.getchildren())==1:continue
+                        print "c:",tr.getchildren(),alltexts(tr.getchildren())
+                        desig,trubrg,dims,strength,thrcoord,threlev=tr.getchildren()
+                        rwy=re.match(r"(\d{2}[LRC]?)",alltext(desig))
+                        altc=alltext(thrcoord)
+                        print "Matching",altc
+                        print "rwymatch:",alltext(desig)
+                        m=re.match(r"\s*(\d+\.?\d*N)[\s\n]*(\d+\.?\d*E).*",altc,re.DOTALL|re.MULTILINE)                        
+                        if m:
+                            lat,lon=m.groups()
+                            print "Got latlon",lat,lon
+                            thrs.append(dict(pos=mapper.parse_coords(lat,lon),thr=rwy.groups()[0]))         
+                        
+        
+        for h4 in tree.xpath(".//h4"):
+            txt=alltext(h4)
+            if txt.count("CHARTS"):
+                par=h4.getparent()
+                
+                for table in par.xpath(".//table"):
+                    prevnametxt=""
+                    for idx,tr in enumerate(table.xpath(".//tr")):
+                        namepage=tr
+                            
+                        nametxt=alltext(tr)
+                        print "nametxt:",nametxt,"link:"
+                        st="Aerodrome Chart"
+                        if nametxt.count(st) or prevnametxt.count(st):
+                            for a in namepage.xpath(".//a"):
+                                print "linklabel",a.text
+                                print "attrib:",a.attrib
+                                href=a.attrib['href']
+                                print "Bef repl",href
+                                if href.lower().endswith("pdf"):
+                                    href=href.replace("../../graphics","/eAIPfiles/%s-AIRAC/graphics"%(cur_airac,))
+                                    print "href:",href,cur_airac
+                                    arp=pos
+                                    lc=parse_landing_chart.parse_landing_chart(
+                                            href,
+                                            icao=icao,
+                                            arppos=arp,country="ev")
+                                    assert lc
+                                    if lc:
+                                        adcharturl=lc['url']
+                                        adchart=lc
+                                        #chartblobnames.append(lc['blobname'])
+                                    nametxt=""
+                        prevnametxt=nametxt
+                    
+
         assert pos
         assert type_
         assert elev
         assert name                                        
         assert not ctrname in seen
         seen.add(ctrname)
-        ads.append(dict(
+        ad=dict(
             icao=icao,
             name=name,
             elev=elev,
-            date=datetime(2011,03,25),
-            pos=pos))
-            
+            date=date,
+            runways=rwy_constructor.get_rwys(thrs),
+            pos=pos)
+        if adcharturl:
+            ad['adcharturl']=adcharturl
+        if adchart:
+            ad['adchart']=adchart
+        ads.append(ad)            
         spaces.append(dict(
             name=ctrname,
             points=mapper.parse_coord_str(ctrarea),
@@ -97,7 +178,7 @@ def ev_parse_airfields():
             type=type_,
             floor=floor,
             freqs=freqs,
-            date=datetime(2011,03,25),
+            date=date,
             url=url            
                       ))
     ads.append(dict(

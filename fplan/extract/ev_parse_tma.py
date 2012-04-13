@@ -4,15 +4,18 @@ import lxml.html
 import fplan.lib.mapper as mapper
 import re
 from fplan.lib.poly_cleaner import clean_up_polygon
-from fplan.extract.html_helper import alltext 
+from fplan.extract.html_helper import alltext
+from fplan.extract.ev_parse_airac import get_cur_airac 
 from datetime import datetime
 def s(r):
     return r.replace(" ","\s*")
 
 def ev_parse_obst():
-    url="/EV-ENR-5.4-en-GB.html"
+    cur_airac=get_cur_airac()
+    url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-5.4-en-GB.html"%(cur_airac,)
+    #url="/EV-ENR-5.4-en-GB.html"
     parser=lxml.html.HTMLParser()
-    data,date=fetchdata.getdata(url)
+    data,date=fetchdata.getdata(url,country="ev")
     parser.feed(data)
     tree=parser.close()
     got_fir=False
@@ -38,17 +41,20 @@ def ev_parse_obst():
 
 def ev_parse_r():
     out=[]
-    out.extend(ev_parse_x(url="/EV-ENR-5.1-en-GB.html"))
-    out.extend(ev_parse_x(url="/EV-ENR-5.2-en-GB.html"))
-    out.extend(ev_parse_x(url="/EV-ENR-5.3-en-GB.html"))
-    out.extend(ev_parse_x(url="/EV-ENR-5.5-en-GB.html"))
+    cur_airac=get_cur_airac()
+    #url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-2.1-en-GB.html"%(cur_airac,)
+    
+    out.extend(ev_parse_x(url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-5.1-en-GB.html"%(cur_airac,)))
+    out.extend(ev_parse_x(url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-5.2-en-GB.html"%(cur_airac,)))
+    out.extend(ev_parse_x(url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-5.3-en-GB.html"%(cur_airac,)))
+    out.extend(ev_parse_x(url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-5.5-en-GB.html"%(cur_airac,)))
     
     
     return out
 def ev_parse_x(url):
     out=[]
     parser=lxml.html.HTMLParser()
-    data,date=fetchdata.getdata(url)
+    data,date=fetchdata.getdata(url,country="ev")
     parser.feed(data)
     tree=parser.close()
     got_fir=False
@@ -118,8 +124,11 @@ def ev_parse_x(url):
 def ev_parse_tma():
     out=[]
     parser=lxml.html.HTMLParser()
-    url="/Latvia_EV-ENR-2.1-en-GB.html"
-    data,date=fetchdata.getdata(url)
+    #url="/Latvia_EV-ENR-2.1-en-GB.html"
+    cur_airac=get_cur_airac()
+    url="/eAIPfiles/%s-AIRAC/html/eAIP/EV-ENR-2.1-en-GB.html"%(cur_airac,)
+    
+    data,date=fetchdata.getdata(url,country='ev')
     parser.feed(data)
     tree=parser.close()
     
@@ -229,7 +238,7 @@ def ev_parse_tma():
 
 
 if __name__=='__main__':
-    if 0:
+    if 1:
         for space in ev_parse_r():
             print "name:",space['name']
             print "  floor:",space['floor']

@@ -1,15 +1,19 @@
 def alltextlist(x):
     s=[]
-    if x.tag.lower() in ['p']:
+    if isinstance(x.tag,basestring):
+        xtag=x.tag
+    else:
+        xtag=""
+    if xtag.lower() in ['p']:
         s.append("\n")
     if x.text:
         s.append(x.text)
-    if x.tag.lower() in ['br']:
+    if xtag.lower() in ['br']:
         s.append("\n")        
     for child in x.getchildren():
         childitems=alltextlist(child)
         s.extend(childitems)
-    if x.tag.lower() in ['p']:
+    if xtag.lower() in ['p']:
         s.append("\n")
     if x.tail:    
         s.append(x.tail)

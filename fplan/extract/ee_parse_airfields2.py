@@ -8,11 +8,13 @@ from fplan.lib.poly_cleaner import clean_up_polygon
 from fplan.extract.html_helper import alltext,alltexts
 from datetime import datetime
 from ee_common import get_airac_date
-
+import rwy_constructor
+import fplan.extract.parse_landing_chart as parse_landing_chart
 def ee_parse_airfields2():
     ads=[]
     spaces=[]
     airac_date=get_airac_date()
+    print "airac",airac_date
     overview_url="/%s/html/eAIP/EE-AD-0.6-en-GB.html"%(airac_date,)
         
     parser=lxml.html.HTMLParser()
@@ -36,7 +38,9 @@ def ee_parse_airfields2():
         data,date=fetchdata.getdata(url,country='ee')
         parser.feed(data)
         tree=parser.close()
-        
+        thrs=[]
+
+
         
         for h3 in tree.xpath(".//h3"):
             txt=alltext(h3)
@@ -89,6 +93,66 @@ def ee_parse_airfields2():
                     space['floor'],space['ceiling']=vlim.split(" to ")
                     
                 #space['freqs']=x
+                
+
+        for h4 in tree.xpath(".//h4"):
+            txt=alltext(h4)
+            if txt.count("CHARTS"):
+                par=h4.getparent()
+                for table in par.xpath(".//table"):
+                    for idx,tr in enumerate(table.xpath(".//tr")):
+                        name,page=\
+                            tr.getchildren()
+                        nametxt=alltext(name)
+                        print "nametxt:",nametxt,"link:"
+                        if nametxt.count("Visual Approach Chart"):
+                            for a in page.xpath(".//a"):
+                                print "linklabel",a.text
+                                print "attrib:",a.attrib
+                                href=a.attrib['href']
+                                print "Bef repl",href
+                                if href.lower().endswith("pdf"):
+                                    href=href.replace("../../graphics","/%s/graphics"%(airac_date,))
+                                    print "href:",href,airac_date
+                                    arp=ad['pos']
+                                    lc=parse_landing_chart.parse_landing_chart(
+                                            href,
+                                            icao=icao,
+                                            arppos=arp,country="ee")
+                                    assert lc
+                                    if lc:
+                                        ad['adcharturl']=lc['url']
+                                        ad['adchart']=lc
+                                        #chartblobnames.append(lc['blobname'])                                                    
+                                    
+        for h4 in tree.xpath(".//h4"):
+            txt=alltext(h4)
+            if txt.count("RUNWAY PHYSICAL"):
+                par=h4.getparent()
+
+                for table in par.xpath(".//table"):
+                    prevnametxt=""
+                    for idx,tr in enumerate(table.xpath(".//tr")):
+                        if idx==0:
+                            fc=alltext(tr.getchildren()[0])
+                            print "FC",fc
+                            if not fc.count("Designations"):
+                                break #skip table
+                        if idx<2:continue
+                        if len(tr.getchildren())==1:continue
+                        print "c:",tr.getchildren(),alltexts(tr.getchildren())
+                        desig,trubrg,dims,strength,thrcoord,threlev=tr.getchildren()
+                        rwy=re.match(r"(\d{2}[LRC]?)",alltext(desig))
+                        altc=alltext(thrcoord)
+                        print "Matching",altc
+                        print "rwymatch:",alltext(desig)
+                        m=re.match(r"\s*(\d+\.?\d*N)[\s\n]*(\d+\.?\d*E).*",altc,re.DOTALL|re.MULTILINE)                        
+                        if m:
+                            lat,lon=m.groups()
+                            print "Got latlon",lat,lon
+                            thrs.append(dict(pos=mapper.parse_coords(lat,lon),thr=rwy.groups()[0]))         
+                        
+                                
         space['freqs']=[]
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
@@ -119,6 +183,8 @@ def ee_parse_airfields2():
             assert 'ceiling' in space
             assert 'type' in space
             spaces.append(space)
+        if thrs:
+            ad['runways']=rwy_constructor.get_rwys(thrs)
         ad['date']=date
         ad['url']=fetchdata.getrawurl(url,'ee')   
         print "AD:",ad

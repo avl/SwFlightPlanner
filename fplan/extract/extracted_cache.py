@@ -198,16 +198,30 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(ee_parse_r_and_tsa2())
             if 0: #latvia
                 #airspaces.extend(ee_parse_restrictions())
-                airspaces.extend(ev_parse_tma())
-                airspaces.extend(ev_parse_r())
-                obstacles.extend(ev_parse_obst())
-                evads,evspaces=ev_parse_airfields()
+                #airspaces.extend(ev_parse_tma())
+                #airspaces.extend(ev_parse_r())
+                #obstacles.extend(ev_parse_obst())
                 sig_points.extend(ev_parse_sigpoints())
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
             class SpaceLoader(object):
-                
+                def parse_latvian_tma(self):
+                    "latvian tma"
+                    return dict(airspaces=ev_parse_tma())                
+                def parse_latvian_r(self):
+                    "latvian r"
+                    return dict(airspaces=ev_parse_r())
+                def parse_latvian_obst(self):
+                    "latvian obst"
+                    return dict(obstacles=ev_parse_obst())
+                def parse_latvian_sigpoints(self):
+                    "latvian sig points"
+                    return dict(sig_points=ev_parse_sigpoints())
+                def parse_latvian_airfields(self):
+                    "latvian ad"
+                    evads,evspaces=ev_parse_airfields()
+                    return dict(airspaces=evspaces,airfields=evads)
                 def parse_estonian_airfields(self):
                     "Estonian Airfields"
                     ads,spaces=ee_parse_airfields2()
@@ -220,9 +234,10 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     return dict(airspaces=ee_parse_tma2())
                 def parse_estonian_r_and_tsa(self):
                     "Estonian R and TSA"
-                    return dict(ee_parse_r_and_tsa2())
+                    return dict(airspaces=ee_parse_r_and_tsa2())
                                 
                 def parse_denmark(self):
+                    "denmark"
                     if not is_devcomp() or a: #denmark
                         denmark=parse_denmark()
                         return dict(airspaces=denmark['airspace'],
