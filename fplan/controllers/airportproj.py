@@ -64,10 +64,15 @@ class AirportprojController(BaseController):
                     AirportMarker.user==session['user'],
                     AirportMarker.airport==ad['name'])).all()
                 
-                worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks))
-                found=True
+                if current:
+                    if len(proj.matrix)==0 or all([x==0 for x in proj.matrix]):
+                        needwork=True
+                    else:
+                        needwork=False
+                    worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks,needwork=needwork))
+                    found=True
             if not found:
-                worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[]))
+                worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[],needwork=True))
         return worklist
     def show(self):
         ad=request.params['ad']

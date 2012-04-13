@@ -24,9 +24,9 @@ function navigate_to(where)
 <td>Airport</td><td>Last updated</td><td>Current</td><td>Marks</td>
 </tr>
 %for work in c.worklist:
-<tr>
+<tr ${'style="background-color:#ffc0c0"' if work['needwork'] else ""|n}}>
 <td><a href="${work['url']}">${work['airport']}</a></td><td>${work['updated']}</td><td>${work['current']}</td>
-<td>${len(work['marks'])}</td>
+<td>${len(work['marks'])},${work['needwork']}</td>
 </tr>
 %endfor
 
