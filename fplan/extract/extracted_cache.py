@@ -206,11 +206,6 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(evads)
                 
             class SpaceLoader(object):
-                def parse_estonian_airfields(self):
-                    "Estonian Airfields"
-                    ads,spaces=ee_parse_airfields2()
-                    return dict(airspaces=spaces,airfields=ads)
-                """
                 def parse_latvian_tma(self):
                     "latvian tma"
                     return dict(airspaces=ev_parse_tma())                
@@ -227,6 +222,10 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     "latvian ad"
                     evads,evspaces=ev_parse_airfields()
                     return dict(airspaces=evspaces,airfields=evads)
+                def parse_estonian_airfields(self):
+                    "Estonian Airfields"
+                    ads,spaces=ee_parse_airfields2()
+                    return dict(airspaces=spaces,airfields=ads)
                 def parse_estonian_sigpoints(self):
                     "Estonian sig points"
                     return dict(sig_points=ee_parse_sigpoints2())
@@ -265,7 +264,6 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def se_parse_r(self):"Swedish R/D-areas";return dict(airspaces=parse_r_areas())
                 def se_parse_mountain(self):"Swedish mountain area";return dict(airspaces=parse_mountain_area())
                 def se_parse_obstacles(self):"Swedish obstacles";return dict(obstacles=parse_obstacles())
-                """
                
             
             def run_space_loader(loader):
