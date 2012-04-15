@@ -109,7 +109,7 @@ class AirportprojController(BaseController):
         c.matrix=proj.matrix
                 
         c.curadmarker=session.get('curadmarker',(0,0))
-        c.img=adobj['adchart'].get('image',adobj['icao']+'.png')
+        c.img=adobj['adchart']['blobname']+","+adobj['adchart']['checksum']
         c.flash=None
         c.ad=ad
         c.mapchecksum=adobj['adchart']['checksum']
@@ -160,12 +160,12 @@ class AirportprojController(BaseController):
                     
     
     def showimg(self):
-        adimg=request.params['adimg']
+        adimg,cksum=request.params['adimg'].split(",")
         response.headers['Content-Type'] = 'image/png'
         response.headers['Pragma'] = ''
         response.headers['Cache-Control'] = 'max-age=20'
 
-        return parse_landing_chart.get_chart_png(adimg)
+        return parse_landing_chart.get_chart_png(adimg,cksum)
     def save(self):
         ad=request.params['ad']        
         for adobj in ec.get_airfields():

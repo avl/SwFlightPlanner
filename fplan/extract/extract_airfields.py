@@ -31,7 +31,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
     if startpage==None:
         raise Exception("Couldn't find aerodrome directory in file")
     #print "Startpage: %d"%(startpage,)
-    nochartf=open("nochart.txt","w")
+    #nochartf=open("nochart.txt","w")
     for pagenr in xrange(startpage,p.get_num_pages()):
         row_y=[]
         page=p.parse_page_to_items(pagenr)
@@ -412,25 +412,12 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
     chartblobnames=[]
     for ad in ads:        
         icao=ad['icao']
-        if icao in big_ad:            
-            if True: #icao in ['ESMQ','ESOW','ESSB','ESSA']:
-                try:
-                    arp=ad['pos']
-                    lc=parse_landing_chart.parse_landing_chart(
-                            "/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
-                            icao=icao,
-                            arppos=arp,country="se")
-                    assert lc
-                    if lc:
-                        ad['adcharturl']=lc['url']
-                        ad['adchart']=lc
-                        chartblobnames.append(lc['blobname'])                                                    
-                except Exception,cause:
-                    print "Apparently no AD chart for ",icao,cause
-                    nochartf.write("Apparently no chart for: %s - %s\n"%(icao,cause))
-               
-    if purge:
-        parse_landing_chart.purge_old(chartblobnames,country="se")        
+        if icao in big_ad:          
+            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
+                            icao,ad['pos'],"se",variant="")
+                  
+    #if purge:
+    #    parse_landing_chart.purge_old(chartblobnames,country="se")        
     
     #sys.exit(1)
 
@@ -470,9 +457,29 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
             if filtericao(d):
                 ads.append(d)
                     
+    minor_ad_charts=extra_airfields.minor_ad_charts
+        
+                    
     for ad in ads:     
         if ad['name'].count(u"Långtora"):            
             ad['pos']=mapper.to_str(mapper.from_aviation_format("5944.83N01708.20E"))
+            
+        if ad['name'] in minor_ad_charts:
+            charturl=minor_ad_charts[ad['name']]
+            arp=ad['pos']
+            if 'icao' in ad and ad['icao'].upper()!='ZZZZ':
+                icao=ad['icao'].upper()
+            else:
+                icao=ad['fake_icao']
+            assert icao!=None
+            lc=parse_landing_chart.parse_landing_chart(
+                    charturl,
+                    icao=icao,
+                    arppos=arp,country="raw")
+            assert lc
+            if lc:
+                ad['adcharturl']=lc['url']
+                ad['adchart']=lc
             
     #print ads
     for ad in ads:

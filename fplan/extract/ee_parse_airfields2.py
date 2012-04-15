@@ -94,7 +94,7 @@ def ee_parse_airfields2():
                     
                 #space['freqs']=x
                 
-        hlc=False
+        #hlc=False
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
             if txt.lower().count("charts"):
@@ -114,7 +114,10 @@ def ee_parse_airfields2():
                                 if href.lower().endswith("pdf"):
                                     href=href.replace("../../graphics","/%s/graphics"%(airac_date,))
                                     print "href:",href,airac_date
-                                    arp=ad['pos']
+                                    
+                                    parse_landing_chart.help_plc(ad,href,
+                                                    icao,ad['pos'],"ee",variant="")
+                                    """arp=ad['pos']
                                     lc=parse_landing_chart.parse_landing_chart(
                                             href,
                                             icao=icao,
@@ -124,8 +127,9 @@ def ee_parse_airfields2():
                                         ad['adcharturl']=lc['url']
                                         ad['adchart']=lc
                                         hlc=True
-                                        #chartblobnames.append(lc['blobname'])                                                    
-        assert hlc
+                                        #chartblobnames.append(lc['blobname'])
+                                    """                                                    
+        #assert hlc
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
             if txt.count("RUNWAY PHYSICAL"):

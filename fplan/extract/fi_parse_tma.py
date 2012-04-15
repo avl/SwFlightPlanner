@@ -56,23 +56,41 @@ def parse_page(parser,pagenr):
     headings=[]
     majorre=ur"\s*([A-ZÅÄÖ ][A-ZÅÄÖ]{3,})\s+(?:TMA|MIL CTA)\s*(?:-.*)?$"
     minorre=ur"\s*(?:TMA|MIL CTA [SN]?)\s*[A-ZÅÄÖ ]*\s*"
+    airwayre=ur"(AWY\s+EF\s+[-A-Z]+)"
+    delegre=ur".*(Delegation\s+of\s+responsibility).*"
     for item in page.get_by_regex(majorre):
         m,=re.match(majorre,item.text).groups()
         assert m!=None
         assert m.strip()!=""
         headings.append(('major',item.text.strip(),m,item))
+    for item in page.get_by_regex(airwayre):
+        m,=re.match(airwayre,item.text).groups()
+        assert m!=None
+        assert m.strip()!=""
+        headings.append(('airway',item.text.strip(),m,item))
     for item in page.get_by_regex(minorre):
         m=re.match(minorre,item.text).group()
         assert m!=None
         assert m.strip()!=""
         #print "Heading %d: %s"%(item.y1,m)
         headings.append(('minor',item.text.strip(),m,item))
+    for item in page.get_by_regex(delegre):
+        m,=re.match(delegre,item.text).groups()
+        assert m!=None
+        assert m.strip()!=""
+        headings.append(('deleg',item.text.strip(),m,item))
     #print headings
     headings.sort(key=lambda x:x[3].y1)
     def findheadingfor(y,meta=None):
         minor=None
         major=None
+        print "HEadings:",headings
         for (kind,full,name,item) in reversed(headings):
+            print "Checking %s,%s (state: minor %s / major %s)"%(kind,item.y1,minor,major)
+            if kind=='airway' and item.y1<y:
+                return name,"airway"
+            if kind=='deleg' and item.y1<y:
+                return name,"deleg"
             if minor==None and kind=="minor" and item.y1<y:
                 minor=name.strip()
                 if meta!=None: meta['minor_y']=item.y1
@@ -83,8 +101,8 @@ def parse_page(parser,pagenr):
                 break
         assert major!=None and major.strip()!=""
         if minor!=None:
-            return major+" "+minor
-        return fullname
+            return major+" "+minor,"area"
+        return fullname,"area"
     cury=0
     coordstrs=page.get_by_regex(ur".*\d{6}N \d{7}E.*")
     out=[]
@@ -101,36 +119,48 @@ def parse_page(parser,pagenr):
         if not found: break
         cury=item.y1
         headmeta=dict()
-        name=findheadingfor(item.y1,headmeta)
-        areaspec=[]
-        #print "Rect: ",0,cury,minx+35,100
-        y1=cury
-        lines=page.get_lines(page.get_partially_in_rect(0,cury,minx+35,100),order_fudge=10)
-        for idx,line in enumerate(lines):
-            if re.search(ur"FL \d+",line) or line.count("FT MSL"): 
-                vertidx=idx
-                break            
-            print "Line:",line.encode('utf8')
-            if line.strip()=="":
-                vertidx=idx
-                break
-            cury=max(cury,line.y2+0.5)                
-            line=line.replace(u"–","-")
-            if not (line.endswith("-") or line.endswith(" ")):
-                line+=" "                
-            areaspec.append(line)
-        verts=[]
+        name,hkind=findheadingfor(item.y1,headmeta)
         
-        for idx in xrange(vertidx,len(lines)):
-            #print "Looking for alt:",lines[idx],"y2:",lines[idx].y2
-            m=re.search(ur"(FL\s+\d+)",lines[idx].strip())
-            if m:
-                verts.append((m.groups()[0],lines[idx].y1))
-            m=re.search(ur"(\d+ FT (?:MSL|GND|SFC))",lines[idx].strip())
-            if m:
-                verts.append((m.groups()[0],lines[idx].y1))
-            if len(verts)>=2: break
-        y2=verts[-1][1]
+        if hkind=='airway':
+                        
+            y2=cury+1
+            continue            
+        elif hkind=='deleg':
+                        
+            y2=cury+1
+            continue            
+        else:
+            areaspec=[]
+            #print "Rect: ",0,cury,minx+35,100
+            y1=cury
+            lines=page.get_lines(page.get_partially_in_rect(0,cury,minx+35,100),order_fudge=10)
+            for idx,line in enumerate(lines):
+                if re.search(ur"FL \d+",line) or line.count("FT MSL"): 
+                    vertidx=idx
+                    break            
+                print "Line:",line.encode('utf8')
+                if line.strip()=="":
+                    vertidx=idx
+                    break
+                cury=max(cury,line.y2+0.5)                
+                line=line.replace(u"–","-")
+                if not (line.endswith("-") or line.endswith(" ")):
+                    line+=" "                
+                areaspec.append(line)
+            verts=[]
+            
+            for idx in xrange(vertidx,len(lines)):
+                #print "Looking for alt:",lines[idx],"y2:",lines[idx].y2
+                m=re.search(ur"(FL\s+\d+)",lines[idx].strip())
+                if m:
+                    verts.append((m.groups()[0],lines[idx].y1))
+                m=re.search(ur"(\d+ FT (?:MSL|GND|SFC))",lines[idx].strip())
+                if m:
+                    verts.append((m.groups()[0],lines[idx].y1))
+                if len(verts)>=2: break
+            y2=verts[-1][1]
+            
+        
         freqs=[]
         for attempt in xrange(2):
             for freqcand in page.get_by_regex(ur".*\d{3}\.\d{3}.*"):

@@ -253,10 +253,12 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
                 def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
 
+                
                 def se_parse_airfields(self):
                     "Swedish Major airports"
                     se_airfields,se_points=extract_airfields()
                     return dict(airfields=se_airfields,sig_points=se_points)
+                
                 def se_parse_sigpoints(self):"Swedish significant points";return dict(sig_points=parse_sig_points())
                 def se_parse_tma(self):
                     "Swedish TMA"

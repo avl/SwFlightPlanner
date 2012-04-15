@@ -139,7 +139,11 @@ def ev_parse_airfields():
                                 if href.lower().endswith("pdf"):
                                     href=href.replace("../../graphics","/eAIPfiles/%s-AIRAC/graphics"%(cur_airac,))
                                     print "href:",href,cur_airac
-                                    arp=pos
+                                    #arp=pos
+                                    parse_landing_chart.help_plc(ad,href,
+                                                    icao,pos,"ee",variant="")
+                                    
+                                    """
                                     lc=parse_landing_chart.parse_landing_chart(
                                             href,
                                             icao=icao,
@@ -149,6 +153,7 @@ def ev_parse_airfields():
                                         adcharturl=lc['url']
                                         adchart=lc
                                         #chartblobnames.append(lc['blobname'])
+                                    """
                                     nametxt=""
                         prevnametxt=nametxt
                     

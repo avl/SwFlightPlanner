@@ -9,6 +9,7 @@ from datetime import datetime,timedelta
 from fplan.lib.recordings import parseRecordedTrip
 import fplan.extract.parse_landing_chart as parse_landing_chart
 import StringIO
+import traceback
 #import md5
 from fplan.lib.helpers import md5str,utcdatetime2stamp_inexact
 import fplan.lib.customproj as customproj
@@ -64,7 +65,7 @@ def cleanup_poly(latlonpoints):
 def get_proj(cksum0):
     projs=meta.Session.query(AirportProjection).filter(sa.and_(
                         AirportProjection.mapchecksum==cksum0,
-                        sa.or_(AirportProjection.user=='ank',AirportProjection.user==request.params['user'])
+                        sa.or_(AirportProjection.user=='ank',AirportProjection.user==request.params.get('user','ank'))
                         )).all()
     if len(projs)==0:
         return None
@@ -79,7 +80,6 @@ def get_proj(cksum0):
 #
 #QUestion:
 # Can we be more robust? Like sending complete list of client state to server?         
-    
     for t in projs:
         if t.user!='ank':
             proj=t
@@ -157,23 +157,25 @@ class ApiController(BaseController):
                 if metar.text:
                     ap['metar']=metar.text
             
-            if 'adchart' in airp:
+            if 'adchart' in airp and airp['adchart']['blobname']:
                 ret=airp['adchart']
                 try:
                     cksum=ret['checksum']
-                    aprojs=meta.Session.query(AirportProjection).filter(
-                                    sa.and_(AirportProjection.user==os.getenv("SWFP_PRIMARY_USER",'ank'),
-                                            AirportProjection.mapchecksum==cksum)).all()
-                    if len(aprojs)>0:
-                        aproj=aprojs[0]
-                        ap['adchart_matrix']=list(aproj.matrix)
-                        ap['adchart_width']=ret['render_width']
-                        ap['adchart_height']=ret['render_height']
-                        ap['adchart_name']=ret['blobname']
-                        ap['adchart_checksum']=cksum
-                        ap['adchart_url']=ret['url']                    
+                    try:
+                        aprojmatrix=get_proj(cksum).matrix
+                    except:
+                        print traceback.format_exc()
+                        print "Using 0-proj for ",aname
+                        aprojmatrix=[0 for x in xrange(6)]
+                        
+                    ap['adchart_matrix']=list(aprojmatrix)
+                    ap['adchart_width']=ret['render_width']
+                    ap['adchart_height']=ret['render_height']
+                    ap['adchart_name']=ret['blobname']
+                    ap['adchart_checksum']=cksum
+                    ap['adchart_url']=ret['url']                    
                 except Exception,cause:
-                    print "Couldn't get projection for airport %s (%s)"(aname,cause)
+                    print "Couldn't get projection for airport %s (%s)"%(aname,cause)
             
             points.append(ap)            
         for sigp in extracted_cache.get_sig_points():
@@ -361,7 +363,26 @@ class ApiController(BaseController):
                 return False
         return True
 
-
+    def get_sel_cksum(self,blobname):
+        #Get the most suitable cksum version of map for this
+        #blobname
+        proj=None
+        issues=sorted(parse_landing_chart.get_all_issues(blobname),
+                   key=lambda x:-x['stamp'])
+        if len(issues)==0:
+            return None,proj
+        
+        for issue in issues:
+            proj=get_proj(issue['cksum'])
+            if proj:
+                break
+        else:                            
+            issue=issues[0]
+            proj=None                                            
+        
+        cksum=issue['cksum']
+        return cksum,proj
+     
     def getnewadchart(self):
         prevstamp=int(request.params["stamp"])
         print "getnewadchart, prevstamp:",prevstamp
@@ -371,7 +392,7 @@ class ApiController(BaseController):
         #routine started, but ends up with a timestamp 5 minutes earlier in
         #time, but that can't happen.
         nowstamp=utcdatetime2stamp_inexact(datetime.utcnow())-60*5
-        assert version==1
+        assert version in [1,2]
         
         
         def writeInt(x):
@@ -390,44 +411,45 @@ class ApiController(BaseController):
             response.write(encoded)
             
         
-        laststamp=0
         charts=[]
+        print "Old stamp",prevstamp
         for ad in extracted_cache.get_airfields():
+            if ad.get('icao','ZZZZ').upper()=='ZZZZ':continue #Ignore non-icao airports 
             if 'adchart' in ad:
                 adc=ad['adchart']
                 newer=False
-
-                proj=get_proj(adc['checksum'])
-                if not proj: continue
-                
-                if utcdatetime2stamp_inexact(proj.updated)>prevstamp:                
-                    newer=True
                 try:
+                    cksum,proj=self.get_sel_cksum(adc['blobname'])
+                    if proj and proj.updated>datetime.utcfromtimestamp(prevstamp):
+                        newer=True 
+                    #print "selected",cksum,"for",adc
+                    if cksum==None: continue
                     for level in xrange(5):
-                    
-                        cstamp=parse_landing_chart.get_timestamp(adc['blobname'],level)
-                    
-                        #print "Read file",path,"stamp:",cstamp,"nowstamp:",nowstamp
+                        cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
+                        print "Read file stamp:",cstamp,"prevstamp:",prevstamp
                         if cstamp>prevstamp:
                             newer=True
-                        laststamp=max(laststamp,cstamp)
                 except Exception,cause:
-                    print cause
+                    
+                    print traceback.format_exc()
                     continue
                 if newer:
-                    charts.append((ad['name'],adc['blobname']))
+                    charts.append((ad['name'],adc['blobname'],ad['icao'],cksum))
         
         response.headers['Content-Type'] = 'application/binary'
            
         writeInt(0xf00d1011)
-        writeInt(1) #version
+        writeInt(version) #version
         writeLong(nowstamp)
         writeInt(len(charts))
         #TODO: Fix problem with response.write not working
-        for human,blob in charts:
-            print "New AD-chart not present on device:",human,blob
+        for human,blob,icao,cksum in charts:
+            print "New AD-chart not present on device:",human,blob,icao
             writeUTF(blob)
             writeUTF(human)
+            if version>=2:
+                writeUTF(icao)
+                writeUTF(cksum)
         writeInt(0xaabbccda)
         #out.seek(0)
         #response.app_iter=out.read()
@@ -449,7 +471,7 @@ class ApiController(BaseController):
                 print "While trying to encode: %s"%(s,)
                 raise
             l=len(encoded)
-            print "Writing %s, length %d"%(repr(encoded),l)
+            #print "Writing %s, length %d"%(repr(encoded),l)
             response.write(struct.pack(">H",l)) #short
             response.write(encoded)
 
@@ -459,8 +481,13 @@ class ApiController(BaseController):
         
         chartname=request.params["chart"]
         
+        cksum=request.params.get("cksum")
+        if cksum==None:
+            cksum,proj=self.get_sel_cksum(chartname)
+            assert cksum            
+        
         writeInt(0xaabb1234)
-        if version!=1:
+        if version!=1 and version!=2:
             print "bad version"
             writeInt(2) #error, bad version
             return None        
@@ -469,31 +496,47 @@ class ApiController(BaseController):
             writeInt(1) #error, bad pass
             return None
         
-        dummy,cksum0=parse_landing_chart.get_chart(blobname=chartname,level=0,version=version)
-
+        width,height=parse_landing_chart.get_width_height(chartname=chartname,cksum=cksum)
+        
+        dummy,cksum0=parse_landing_chart.get_chart(blobname=chartname,cksum=cksum,level=0)
+        assert cksum0==cksum
         proj=get_proj(cksum0)
-        if proj==None:        
-            writeInt(3) #No projection
-            return None
-            
+        if proj:
+            matrix=proj.matrix
+        else:
+            matrix=[0.0 for x in xrange(6)]    
+        zeromat=all([abs(x)<1e-13 for x in matrix])
         writeInt(0) #no error
-        writeInt(1) #version
+        writeInt(version) #version
         
         writeInt(5) #numlevels
         
-        tf=customproj.Transform(proj.matrix[0:4],proj.matrix[4:6])
-        Ai=tf.inverse_matrix()
-        writeDouble(Ai[0,0])
-        writeDouble(Ai[1,0])
-        writeDouble(Ai[0,1])
-        writeDouble(Ai[1,1])
-        writeDouble(proj.matrix[4])
-        writeDouble(proj.matrix[5])
-        print "Writing matrix",Ai," and offset",proj.matrix[4:6],"to client"
+        if not zeromat:
+            tf=customproj.Transform(matrix[0:4],matrix[4:6])
+            Ai=tf.inverse_matrix()        
+            writeDouble(Ai[0,0])
+            writeDouble(Ai[1,0])
+            writeDouble(Ai[0,1])
+            writeDouble(Ai[1,1])
+            print "Writing matrix",Ai," and offset",matrix[4:6],"to client"
+        else:
+            writeDouble(0)
+            writeDouble(0)
+            writeDouble(0)
+            writeDouble(0)
+            print "Dummy matrix"
+            
+        writeDouble(matrix[4])
+        writeDouble(matrix[5])
+        
+        if version>=2:
+            writeInt(width)
+            writeInt(height)
+            print "Writing width,height",chartname,width,height
             
         writeInt(0xaabbccde)
         for level in xrange(5):            
-            chart,cksum=parse_landing_chart.get_chart(blobname=chartname,level=level,version=version)
+            chart,cksum=parse_landing_chart.get_chart(blobname=chartname,cksum=cksum,level=level)
             writeUTF(cksum)
             writeInt(len(chart))
             response.write(chart)

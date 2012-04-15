@@ -49,7 +49,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
         versionnum=int(version.strip())
     except:
         pass
-    assert versionnum in [0,1,2,3,4,5]
+    assert versionnum in [0,1,2,3,4,5,6]
     out=StringIO()
     print "Binary download in progress"
 
@@ -166,7 +166,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
         lat,lon=point['lat'],point['lon']
         writeFloat(lat)
         writeFloat(lon)
-        if versionnum>=3:
+        if versionnum>=3 and versionnum<=5:
             if 'adchart_url' in point:
                 writeByte(1)
                 writeInt(point['adchart_width'])

@@ -6,10 +6,12 @@ import sys
 import fplan.lib.mapper as mapper
 from fplan.lib.mapper import uprint
 import fplan.extract.rwy_constructor as rwy_constructor
+import parse_landing_chart
 
 def fi_parse_airfield(icao=None):
     spaces=[]
     ad=dict()
+    assert icao!=None
     ad['icao']=icao
     sigpoints=[]
     #https://ais.fi/ais/eaip/pdf/aerodromes/EF_AD_2_EFET_EN.pdf
@@ -36,6 +38,8 @@ def fi_parse_airfield(icao=None):
                     pos=mapper.parse_coords(lat.replace(" ",""),lon.replace(" ",""))))
 
 
+
+
     page=p.parse_page_to_items(0)
     nameregex=ur"%s\s+-\s+([A-ZÅÄÖ\- ]{3,})"%(icao,)
     for item in page.get_by_regex(nameregex):
@@ -59,6 +63,16 @@ def fi_parse_airfield(icao=None):
             for crd in mapper.parsecoords(line):
                 assert not ('pos' in ad)
                 ad['pos']=crd
+                
+
+    
+    parse_landing_chart.help_plc(ad,
+        "/ais/eaip/aipcharts/%s/EF_AD_2_%s_ADC.pdf"%(icao.lower(),icao.upper()),
+        icao,ad['pos'],country='fi'
+                        )
+    
+
+                                
     ad['runways']=[]
     thrs=[]
     freqs=[]

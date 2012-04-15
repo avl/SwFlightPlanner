@@ -12,7 +12,7 @@ import sys
 
 timeout=300
 host=socket.gethostname()
-dev_computer=os.getenv('SWFP_DEVCOMP')+"blaha"
+dev_computer=os.getenv('SWFP_DEVCOMP')
 
 cache=dict()
 

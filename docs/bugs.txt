@@ -161,3 +161,4 @@
 159: FIXED: Should get airport NOTAMS/TAF/METAR when clicking on them, both in android app and online. ALso, downloading notams to app should be super-quick.
 160: Add an option to "quick-sync", just syncing nOtam,metar, airspaces etc.
 161: We could draw the runway in the android app.
+162: Fix Finnish airspaces, they're now in the TMA PDF, looks parseable!

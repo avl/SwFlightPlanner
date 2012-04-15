@@ -255,7 +255,7 @@ def getxml(relpath,country="se",maxcacheage=7200):
         if host==dev_computer:
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
-            print "Returning cached %s"%(relpath,)
+            print "Returning cached %s"%(cachenamepdf,)
             return open(cachenamexml).read()
         print "Cache too old"
     try:
