@@ -116,6 +116,7 @@ def ev_parse_airfields():
                             print "Got latlon",lat,lon
                             thrs.append(dict(pos=mapper.parse_coords(lat,lon),thr=rwy.groups()[0]))         
                         
+        addummy=dict()
         
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
@@ -140,9 +141,8 @@ def ev_parse_airfields():
                                     href=href.replace("../../graphics","/eAIPfiles/%s-AIRAC/graphics"%(cur_airac,))
                                     print "href:",href,cur_airac
                                     #arp=pos
-                                    parse_landing_chart.help_plc(ad,href,
+                                    parse_landing_chart.help_plc(addummy,href,
                                                     icao,pos,"ee",variant="")
-                                    
                                     """
                                     lc=parse_landing_chart.parse_landing_chart(
                                             href,
@@ -173,8 +173,8 @@ def ev_parse_airfields():
             pos=pos)
         if adcharturl:
             ad['adcharturl']=adcharturl
-        if adchart:
-            ad['adchart']=adchart
+        if 'adcharts' in addummy:
+            ad['adcharts']=addummy['adcharts']
         ads.append(ad)            
         spaces.append(dict(
             name=ctrname,

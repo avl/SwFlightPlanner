@@ -128,7 +128,7 @@ class BlobFile(object):
             #self.f.write(pack(">I",len(data)))
         finally:
             self.lock.release()
-        if 1:
+        if 0:
             #extra checks
             print "Written file to %d,%d,%d, now checking"%(x,y,self.zoomlevel)
             assert self.get_tile(x,y)==data

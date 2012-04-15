@@ -1,5 +1,6 @@
 #manual import controller
 import logging
+import traceback
 from datetime import datetime
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
@@ -14,10 +15,13 @@ from fplan.lib.base import BaseController, render
 import os
 import re
 from fplan.lib import customproj
+import fplan.lib.transform_map as transform_map
 import math
+import StringIO
 
 log = logging.getLogger(__name__)
 def parselatlon(latlon,arplatlon,rwyends,which):
+    print "Interpreting",repr(latlon),"as latlon"
     if latlon==None: 
         return None,0
     if type(latlon) in [str,unicode]:
@@ -51,49 +55,59 @@ class AirportprojController(BaseController):
     def get_worklist(self):
         worklist=[]
         for ad in sorted(ec.get_airfields(),key=lambda x:x['name']):
-            if not 'adchart' in ad: continue            
-            projurl=h.url_for(controller='airportproj',action="show",ad=ad['name'])
-            found=False
-            for proj in meta.Session.query(AirportProjection).filter(sa.and_(
-                    AirportProjection.user==session['user'],
-                    AirportProjection.airport==ad['name'])).order_by(AirportProjection.updated).all():
-                current=(proj.mapchecksum==str(ad['adchart']['checksum']))
-                date=proj.updated
-                airport=proj.airport
-                marks=meta.Session.query(AirportMarker).filter(sa.and_(
-                    AirportMarker.user==session['user'],
-                    AirportMarker.airport==ad['name'])).all()
-                
-                if current:
-                    if len(proj.matrix)==0 or all([x==0 for x in proj.matrix]):
-                        needwork=True
-                    else:
-                        needwork=False
-                    worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks,needwork=needwork))
-                    found=True
-            if not found:
-                worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[],needwork=True))
+            if not 'adcharts' in ad: continue
+            for adchart in ad['adcharts'].values():
+                                    
+                projurl=h.url_for(controller='airportproj',action="show",ad=ad['name'],checksum=adchart['checksum'])
+                found=False
+                for proj in meta.Session.query(AirportProjection).filter(sa.and_(
+                        AirportProjection.user==session['user'],
+                        AirportProjection.airport==ad['name'])).order_by(AirportProjection.updated).all():
+                    current=(proj.mapchecksum==str(adchart['checksum']))
+                    date=proj.updated
+                    airport=proj.airport
+                    marks=meta.Session.query(AirportMarker).filter(sa.and_(
+                        AirportMarker.user==session['user'],
+                        AirportMarker.airport==ad['name'])).all()
+                    
+                    if current:
+                        if len(proj.matrix)==0 or all([x==0 for x in proj.matrix]):
+                            needwork=True
+                        else:
+                            needwork=False
+                        worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks,needwork=needwork,variant=adchart['variant']))
+                        found=True
+                if not found:
+                    worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[],needwork=True,variant=adchart['variant']))
         return worklist
     def show(self):
         ad=request.params['ad']
+        cksum=request.params['checksum']
+        chartobj=None
         for adobj in ec.get_airfields():
-            if adobj['name']==ad and 'adchart' in adobj:
-                break
+            bb=False
+            if adobj['name']==ad and 'adcharts' in adobj:                
+                for adchart in adobj['adcharts'].values():
+                    if adchart['checksum']==cksum:
+                        chartobj=adchart
+                        bb=True
+                        break
+            if bb: break
         else:
-            self.error("No such airport"+ad)
+            self.error("No such airport/picture "+ad+"/"+cksum)
         projs=meta.Session.query(AirportProjection).filter(sa.and_(
                     AirportProjection.user==session['user'],
                     AirportProjection.airport==ad,
-                    AirportProjection.mapchecksum==adobj['adchart']['checksum'])).all()
+                    AirportProjection.mapchecksum==adchart['checksum'])).all()
         c.markers=meta.Session.query(AirportMarker).filter(sa.and_(
                     AirportMarker.user==session['user'],
                     AirportMarker.airport==ad,
-                    AirportMarker.mapchecksum==adobj['adchart']['checksum'])).order_by(AirportMarker.latitude,AirportMarker.longitude,AirportMarker.x,AirportMarker.y).all()
+                    AirportMarker.mapchecksum==adchart['checksum'])).order_by(AirportMarker.latitude,AirportMarker.longitude,AirportMarker.x,AirportMarker.y).all()
         if not projs:            
             proj=AirportProjection()
             proj.user=session['user']
             proj.airport=ad
-            proj.mapchecksum=str(adobj['adchart']['checksum'])
+            proj.mapchecksum=str(adchart['checksum'])
             proj.updated=datetime.utcnow()
             proj.matrix=(1,0,0,1,0,0)
             meta.Session.add(proj)
@@ -103,16 +117,25 @@ class AirportprojController(BaseController):
             proj,=projs
             proj.mapchecksum=str(proj.mapchecksum)
             
-        A=proj.matrix[0:4]
-        T=proj.matrix[4:6]
+        if all([x==0 for x in proj.matrix[4:6]]):
+            projmatrix=self.invent_matrix(proj.mapchecksum)
+        else:            
+            projmatrix=proj.matrix
+            
+        A=projmatrix[0:4]
+        T=projmatrix[4:6]
         transform=customproj.Transform(A,T)
-        c.matrix=proj.matrix
+        c.matrix=projmatrix
+        c.initial_scroll_x=request.params.get("scroll_x",0)
+        c.initial_scroll_y=request.params.get("scroll_y",0)
+        c.maptype=request.params.get("maptype","chart")
+        
                 
         c.curadmarker=session.get('curadmarker',(0,0))
-        c.img=adobj['adchart']['blobname']+","+adobj['adchart']['checksum']
+        c.img=adchart['blobname']+","+adchart['checksum']
         c.flash=None
         c.ad=ad
-        c.mapchecksum=adobj['adchart']['checksum']
+        c.mapchecksum=adchart['checksum']
         
         c.runways=[]
         c.arp=transform.to_pixels(mapper.from_str(adobj['pos']))
@@ -131,6 +154,18 @@ class AirportprojController(BaseController):
         if x<-200 or y<-200 or x>=4000 or y>=4000:
             c.transform_reasonable=False   
         c.revmarkers=[]
+        c.width,c.height=chartobj['render_width'],chartobj['render_height']
+        
+        try:
+            c.base_coords=\
+                [mapper.latlon2merc(transform.to_latlon((0,0)),13),
+                mapper.latlon2merc(transform.to_latlon((c.width,0)),13),
+                mapper.latlon2merc(transform.to_latlon((0,c.height)),13),
+                mapper.latlon2merc(transform.to_latlon((c.width,c.height)),13)]
+        except:
+            print "problem with basecoords:",traceback.format_exc()
+            c.base_coords=[(0,0) for x in xrange(4)]
+
         
         for mark in c.markers:
             lat,lon=transform.to_latlon((mark.x,mark.y))
@@ -158,25 +193,83 @@ class AirportprojController(BaseController):
         
         return render('/airportproj.mako')
                     
-    
+    def invent_matrix(self,cksum):
+        scale=30*1000
+        
+        for ad in ec.get_airfields():
+            if not 'adcharts' in ad: continue
+            dbb=False
+            for adchart in ad['adcharts'].values():
+                if adchart['checksum']==cksum:
+                    lat,lon=mapper.from_str(ad['pos'])
+                    dbb=True
+                    break
+            if dbb:break
+        else:
+            raise Exception("Can't find this chart in aipdata") 
+        
+        matrix=[0,1.0/(scale*math.cos(lat/(180/math.pi))),-1.0/(scale),0,lat+1/40.0,lon-1/30.0/math.cos(lat/(180/math.pi))]
+        print "Fake projection:",matrix
+        return matrix
+        
     def showimg(self):
         adimg,cksum=request.params['adimg'].split(",")
+        maptype=request.params['maptype']
         response.headers['Content-Type'] = 'image/png'
         response.headers['Pragma'] = ''
         response.headers['Cache-Control'] = 'max-age=20'
 
-        return parse_landing_chart.get_chart_png(adimg,cksum)
+        if maptype=='chart':
+            return parse_landing_chart.get_chart_png(adimg,cksum)
+        else:
+            
+            width,height=parse_landing_chart.get_width_height(adimg,cksum)
+            projs=meta.Session.query(AirportProjection).filter(sa.and_(
+                        AirportProjection.user==session['user'],
+                        AirportProjection.mapchecksum==cksum)).all()
+            assert len(projs)<=1
+            if len(projs)==1 and not all([x==0 for x in projs[0].matrix[4:6]]):
+                matrix=projs[0].matrix
+                print "Using real projection",matrix
+            else:
+                #scale = number of pixels per latlon-increment
+                matrix=self.invent_matrix(cksum)
+                
+            A=matrix[0:4]
+            T=matrix[4:6]
+            transform=customproj.Transform(A,T)                
+            
+            llc=transform.to_latlon((width/2,height/2))
+            print "Center of map in pixels is on lat lon",llc
+            
+            ll1=transform.to_latlon((0,0))
+            ll2=transform.to_latlon((0,height))
+            ll3=transform.to_latlon((width,height))
+            ll4=transform.to_latlon((width,0))
+            im=transform_map.get_png(width,height,ll1,ll2,ll3,ll4)
+            io=StringIO.StringIO()
+            im.save(io,format='png')
+            io.seek(0)
+            return io.read()
+        
+                
+    
+    
+    
+    
     def save(self):
+        print request.params
+        
         ad=request.params['ad']        
         for adobj in ec.get_airfields():
-            if adobj['name']==ad and 'adchart' in adobj:
+            if adobj['name']==ad:
                 break
         else:
             self.error("No such airport"+ad)
         mapchecksum=request.params['mapchecksum']
         marks=dict()        
         for param,val in request.params.items():
-            if param in ["save","ad",'mapchecksum']:
+            if param in ["save","ad",'mapchecksum','scroll_x','scroll_y','maptype']:
                 continue
             if param.startswith("del"):
                 continue
@@ -198,6 +291,7 @@ class AirportprojController(BaseController):
                 session['curadmarker']=(maxx,0)
                 session.save()
                 continue
+            
             sx,sy,attrib=re.match(ur"mark_(\d+)_(\d+)_(\w*)",param).groups()
             x=int(sx)
             y=int(sy)
@@ -247,7 +341,31 @@ class AirportprojController(BaseController):
 
         def both_lat_lon(x):
             return x.latitude and x.longitude
-                
+        def neither_lat_lon(x):
+            return not x.latitude and not x.longitude
+        def just_lat(x):
+            return x.latitude and not x.longitude
+        def just_lon(x):
+            return not x.latitude and x.longitude
+        ms=[m for m in ms if not neither_lat_lon(m)]
+        if (len(ms)==4 and
+            len([m for m in ms if just_lat(m)])==2 and
+            len([m for m in ms if just_lon(m)])==2):
+            extra=[]
+            for m in ms:
+                n=AirportMarker()
+                n.x=m.x
+                n.y=m.y                    
+                if just_lat(m):
+                    n.latitude=m.latitude
+                    n.x+=1000
+                    extra.append(n)
+                if just_lon(m):
+                    n.y+=1000                    
+                    n.longitude=m.longitude
+                    extra.append(n)
+            ms.extend(extra)
+            
         if len(ms)==2 and all(both_lat_lon(x) for x in ms):
             mark1,mark2=ms            
             lm1,lm2=[mapper.latlon2merc((mark.latitude,mark.longitude),17) for mark in [mark1,mark2]]
@@ -268,7 +386,14 @@ class AirportprojController(BaseController):
             print "extra end pixels",m.x,m.y
             print "extra end latlon",m.latitude,m.longitude
             
+        eqns=0
+        for m in ms:
+            if both_lat_lon(m): eqns+=2
+            elif just_lat(m): eqns+=1
+            elif just_lon(m): eqns+=1
+            
         try:
+            if eqns<4: raise Exception("Unsolvable")
             error,A,T=customproj.solve(ms)
             matrix=list(A)+list(T)
             if proj.matrix:
@@ -282,12 +407,18 @@ class AirportprojController(BaseController):
                 proj.updated=datetime.utcnow().replace(microsecond=0)
         except Exception,cause:
             print "Couldn't solve projection equation %s"%(cause,)
+            proj.matrix=[1,0,0,1,0,0]
+            proj.updated=datetime.utcnow().replace(microsecond=0)
+            meta.Session.add(proj)
 
         print "About to save",proj,"matrix:",proj.matrix,"time",proj.updated
         meta.Session.flush();
         meta.Session.commit();
-        
-        redirect(h.url_for(controller='airportproj',action='show',ad=ad))
+        scroll_x=request.params['scroll_x']
+        scroll_y=request.params['scroll_y']
+        maptype=request.params['maptype']
+        print "scrolls",scroll_x,scroll_y
+        redirect(h.url_for(controller='airportproj',action='show',ad=ad,checksum=mapchecksum,scroll_x=scroll_x,scroll_y=scroll_y,maptype=maptype))
         
         
     def index(self,flash=None):

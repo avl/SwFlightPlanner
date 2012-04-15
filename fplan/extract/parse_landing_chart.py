@@ -141,6 +141,7 @@ def parse_landing_chart(path,arppos,icao,country='se',variant=''):
     #ret['height']=page.height    
     ret['render_width']=width
     ret['render_height']=height
+    ret['variant']=variant
  
     if country!='raw':
         icao_prefix=get_icao_prefix(country)
@@ -159,13 +160,12 @@ def help_plc(ad,url,icao,arp,country,variant=""):
     f=open("parse_landing_chart.log","a")
     try:
         icao=icao.upper()
-        lc=parse_landing_chart.parse_landing_chart(
+        lc=parse_landing_chart(
                 url,
                 icao=icao,
                 arppos=arp,country=country,variant=variant)
-        ad['adcharturl']=lc['url']
-        ad['adchart']=lc
-        f.write("Succes for airport: %s\n\n",icao)
+        ad.setdefault('adcharts',dict())[variant]=lc
+        f.write("Success for airport: %s\n\n",icao)
     except:
         f.write("Failed for airport: %s\n%s\n\n"%(icao,traceback.format_exc()))
     f.close()

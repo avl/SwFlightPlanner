@@ -157,8 +157,8 @@ class ApiController(BaseController):
                 if metar.text:
                     ap['metar']=metar.text
             
-            if 'adchart' in airp and airp['adchart']['blobname']:
-                ret=airp['adchart']
+            if 'adcharts' in airp and '' in airp['adcharts'] and airp['adcharts'][""]['blobname']:
+                ret=airp['adcharts'][""]
                 try:
                     cksum=ret['checksum']
                     try:
@@ -415,27 +415,27 @@ class ApiController(BaseController):
         print "Old stamp",prevstamp
         for ad in extracted_cache.get_airfields():
             if ad.get('icao','ZZZZ').upper()=='ZZZZ':continue #Ignore non-icao airports 
-            if 'adchart' in ad:
-                adc=ad['adchart']
-                newer=False
-                try:
-                    cksum,proj=self.get_sel_cksum(adc['blobname'])
-                    if proj and proj.updated>datetime.utcfromtimestamp(prevstamp):
-                        newer=True 
-                    #print "selected",cksum,"for",adc
-                    if cksum==None: continue
-                    for level in xrange(5):
-                        cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
-                        print "Read file stamp:",cstamp,"prevstamp:",prevstamp
-                        if cstamp>prevstamp:
-                            newer=True
-                except Exception,cause:
-                    
-                    print traceback.format_exc()
-                    continue
-                if newer:
-                    charts.append((ad['name'],adc['blobname'],ad['icao'],cksum))
-        
+            if 'adcharts' in ad:
+                for adc in ad['adcharts'].values():
+                    newer=False
+                    try:
+                        cksum,proj=self.get_sel_cksum(adc['blobname'])
+                        if proj and proj.updated>datetime.utcfromtimestamp(prevstamp):
+                            newer=True 
+                        #print "selected",cksum,"for",adc
+                        if cksum==None: continue
+                        for level in xrange(5):
+                            cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
+                            print "Read file stamp:",cstamp,"prevstamp:",prevstamp
+                            if cstamp>prevstamp:
+                                newer=True
+                    except Exception,cause:
+                        
+                        print traceback.format_exc()
+                        continue
+                    if newer:
+                        charts.append((ad['name'],adc['blobname'],ad['icao'],cksum))
+            
         response.headers['Content-Type'] = 'application/binary'
            
         writeInt(0xf00d1011)

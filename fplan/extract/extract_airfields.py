@@ -471,6 +471,9 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                 icao=ad['icao'].upper()
             else:
                 icao=ad['fake_icao']
+                
+            parse_landing_chart.help_plc(ad,charturl,icao,arp,country='raw',variant="landing")
+            """
             assert icao!=None
             lc=parse_landing_chart.parse_landing_chart(
                     charturl,
@@ -480,6 +483,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
             if lc:
                 ad['adcharturl']=lc['url']
                 ad['adchart']=lc
+            """
             
     #print ads
     for ad in ads:

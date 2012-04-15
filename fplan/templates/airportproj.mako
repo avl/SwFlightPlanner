@@ -1,8 +1,39 @@
 
 <%inherit file="base.mako"/>
 <script src="/wz_jsgraphics.js" type="text/javascript"></script>
+<script src="/mapmath.js" type="text/javascript"></script>
 
 <script type="text/javascript">
+
+
+width=${c.width};
+height=${c.height};
+map_zoomlevel=13;
+
+base_coords=[
+%for bc in c.base_coords:
+[${bc[0]},${bc[1]}],
+%endfor 
+0
+]
+
+function pixel2merc(x,y)
+{
+	var values=[x,y];
+	var out=[0,0];
+	for(var i=0;i<2;++i)
+	{
+		var cx=x/width;
+		var cy=y/height;
+		
+		var value=values[i];
+		var l=(1-cy)*base_coords[0][i]+(cy)*base_coords[2][i];
+		var r=(1-cy)*base_coords[1][i]+(cy)*base_coords[3][i];
+		out[i]=(1-cx)*l+cx*r;
+	}	
+	return out;
+}
+
 
 function findAbsolutePosition(obj) {
 	var curleft = 0;
@@ -15,6 +46,7 @@ function findAbsolutePosition(obj) {
 	}
 	return [curleft,curtop];
 }
+
 
 cur_idx=null;
 %for num,mark in enumerate(c.markers):
@@ -42,7 +74,7 @@ marks=[
 
 ];
 
-revmarks=[
+	revmarks=[
 %for num,rev in enumerate(c.revmarkers):
 %if num!=0:
 ,
@@ -131,7 +163,7 @@ function domark(x,y)
 	x-=abspos[0];
 	y-=abspos[1];
 	
-	
+%if c.maptype!='base':
 	var mx=document.getElementById('curmarker_x');
 	mx.value=x;
 	var my=document.getElementById('curmarker_y');
@@ -139,9 +171,17 @@ function domark(x,y)
 	marks[cur_idx]=[x,y];	
 	//jg.fillRect(screen_x-3,screen_y-3,6,6);
 	drawall();
-	
 	var m=document.getElementById('curmarker_latitude');
 	if (m) m.focus();	
+%endif
+%if c.maptype=='base':
+	var latlon=merc2latlon(pixel2merc(x,y));
+	var mx=document.getElementById('curmarker_latitude');
+	mx.value=latlon[0];
+	var my=document.getElementById('curmarker_longitude');
+	my.value=latlon[1];
+%endif	
+	
 	
 }
 function navigate_to(where)
@@ -152,11 +192,28 @@ function navigate_to(where)
 	}
 	finish_nav();
 }
+
+
+function update_scroll()
+{
+	var v=document.getElementById('lowerpart');
+	var sx=document.getElementById('scroll_x');
+	var sy=document.getElementById('scroll_y');
+	sx.value=v.scrollLeft;
+	sy.value=v.scrollTop;	
+}
+function select_maptype(maptype)
+{
+	var mt=document.getElementById('maptype');
+	mt.value=maptype;
+	var mf=document.getElementById('mainform');
+	mf.submit();
+}
 function loadproj()
 {
 	var l=document.getElementById('lowerpart');
 	var cont=document.getElementById('content');
-	var rest=cont.offsetHeight-200-10;
+	var rest=cont.offsetHeight;
 	l.style.height=''+rest+'px';
 	
 	var h=l.offsetHeight;
@@ -164,11 +221,26 @@ function loadproj()
 	var left=l.offsetLeft;
 	var top=l.offsetTop;
 	
-	l.innerHTML=
-		'<div id="overlay1" style="position:relative;z-index:1;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;">'+
-'<img id="imageid" src="${h.url_for(controller='airportproj',action='showimg',adimg=c.img)}"/>'+
+	var htm='';
+
+
+	htm+='<div style="position:relative;z-index:0;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;">'+
+	
+
+%if c.maptype=='chart' or c.maptype=='both':	
+'<img style="position:absolute;z-index:2;left:0px;top:0px;${"opacity:0.4;" if c.maptype=='both' else ""}" id="imageid" src="${h.url_for(controller='airportproj',action='showimg',adimg=c.img,maptype='chart')}"/>'+
+%endif			
+%if c.maptype=='base' or c.maptype=='both':	
+'<img style="position:absolute;z-index:1;left:0px;top:0px;" id="imageid" src="${h.url_for(controller='airportproj',action='showimg',adimg=c.img,maptype='base')}"/>'+
+%endif
+	'<div id="overlay1" style="position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;" />'+
 			
 		'</div';
+		
+	l.innerHTML=htm;
+	
+	
+	
 		
 	jg = new jsGraphics("overlay1");
 	jg.setStroke("3");
@@ -179,25 +251,66 @@ function loadproj()
 	if (m)
 		m.focus();
 		
+	var v=document.getElementById('lowerpart');
+	v.scrollTop=${c.initial_scroll_y};
+	v.scrollLeft=${c.initial_scroll_x};
 	
+	v.onscroll=update_scroll;
+	update_scroll();
 	
 }
 addLoadEvent(loadproj);
 
 
 </script>
+<table>
+<tr>
+<td style="width:25%;height:100%;overflow:auto">
 
 <h1>Airport Projection</h1>
 <a href="${h.url_for(controller="airportproj",action="index")}">back</a>
-<div style="height:150px;width:100%;overflow:hidden">
-<form action="${h.url_for(controller='airportproj',action='save')}" method="POST">
 
-<div id="scrollableid" style="height:100px;width:100%;overflow:auto;">
+<div>
+
+
+<form id="mainform" action="${h.url_for(controller='airportproj',action='save')}" method="POST">
+Maptype: 
+<button 
+%if c.maptype=='chart':
+style="background-color:#00ff00"
+%endif
+onClick="select_maptype('chart');return false;"
+>
+chart
+</button>
+
+<button 
+%if c.maptype=='base':
+style="background-color:#00ff00"
+%endif
+onClick="select_maptype('base');return false;"
+>
+base
+</button>
+<button
+%if c.maptype=='both':
+style="background-color:#00ff00"
+%endif
+onClick="select_maptype('both');return false;"
+>
+both
+</button>
+
+
+<div>
 %if c.flash:
 <b>${c.flash}</b>
 %endif
 <input type="hidden" name="ad" value="${c.ad}"/>
 <input type="hidden" name="mapchecksum" value="${c.mapchecksum}"/>
+<input id="scroll_x" type="hidden" name="scroll_x" value=""/>
+<input id="scroll_y" type="hidden" name="scroll_y" value=""/>
+<input id="maptype" type="hidden" name="maptype" value="${c.maptype}"/>
 <table>
 <tr>
 <td></td><td>Image X</td><td>Image Y</td><td>Latitude</td><td>Longitude</td><td>action</td>
@@ -214,7 +327,7 @@ ${'#%d'%(num)}
 </td>
 %for attrib in ['x','y','latitude','longitude']:
 <td>
-<input 
+<input size="3"
 %if c.curadmarker==(mark.x,mark.y):
 id="curmarker_${attrib}";
 %endif
@@ -237,16 +350,21 @@ value="${getattr(mark,attrib)}"
 %endfor
 </table>
 </div>
-<div style="height:45px;width:100%;overflow:hidden;">
+<div>
 <input type="submit" name="save" value="save"/>
 <input type="submit" name="add" value="add marker"/> Add a marker, then click in map below on a point with either a known latitude, a known longitude, or both. Then enter the longitude or latitude above for the newly added mark.
 </div>
 </form>
 </div>
-<div id="lowerpart" onclick="domark(event.clientX,event.clientY);return true;" style="height:0;width:100%;overflow:auto;">
+</td>
+<td style="width:100%;height:100%">
 
+<div id="lowerpart" onclick="domark(event.clientX,event.clientY);return true;" style="height:100%;width:100%;overflow:auto;	">
 
 
 </div>
 
+</td>
+</tr>
+</table>
 

@@ -105,30 +105,36 @@ def ee_parse_airfields2():
                             tr.getchildren()
                         nametxt=alltext(name)
                         print "nametxt:",nametxt,"link:"
-                        if re.match(r"Aerodrome.*Chart.*",nametxt):
-                            for a in page.xpath(".//a"):
-                                print "linklabel",a.text
-                                print "attrib:",a.attrib
-                                href=a.attrib['href']
-                                print "Bef repl",href
-                                if href.lower().endswith("pdf"):
-                                    href=href.replace("../../graphics","/%s/graphics"%(airac_date,))
-                                    print "href:",href,airac_date
-                                    
-                                    parse_landing_chart.help_plc(ad,href,
-                                                    icao,ad['pos'],"ee",variant="")
-                                    """arp=ad['pos']
-                                    lc=parse_landing_chart.parse_landing_chart(
-                                            href,
-                                            icao=icao,
-                                            arppos=arp,country="ee")
-                                    assert lc
-                                    if lc:
-                                        ad['adcharturl']=lc['url']
-                                        ad['adchart']=lc
-                                        hlc=True
-                                        #chartblobnames.append(lc['blobname'])
-                                    """                                                    
+                        for reg,variant in [
+                                           (r"Aerodrome.*Chart.*","") ,
+                                           (r"Landing.*Chart.*","landing"), 
+                                           (r".*Parking.*Chart.*","parking"), 
+                                           (r".*Visual.*Approach.*|.*\bVAC\b.*","vac")
+                                            ]:
+                            if re.match(reg,nametxt):
+                                for a in page.xpath(".//a"):
+                                    print "linklabel",a.text
+                                    print "attrib:",a.attrib
+                                    href=a.attrib['href']
+                                    print "Bef repl",href
+                                    if href.lower().endswith("pdf"):
+                                        href=href.replace("../../graphics","/%s/graphics"%(airac_date,))
+                                        print "href:",href,airac_date
+                                        assert href
+                                        parse_landing_chart.help_plc(ad,href,
+                                                        icao,ad['pos'],"ee",variant=variant)
+                                        """arp=ad['pos']
+                                        lc=parse_landing_chart.parse_landing_chart(
+                                                href,
+                                                icao=icao,
+                                                arppos=arp,country="ee")
+                                        assert lc
+                                        if lc:
+                                            ad['adcharturl']=lc['url']
+                                            ad['adchart']=lc
+                                            hlc=True
+                                            #chartblobnames.append(lc['blobname'])
+                                        """                                                    
         #assert hlc
         for h4 in tree.xpath(".//h4"):
             txt=alltext(h4)
