@@ -49,7 +49,7 @@ def find_free_mem():
     except Exception,cause:
         print "error:",cause
         return 0
-    except:
+    except Exception:
         print "other error"
         return 0
 
@@ -61,7 +61,7 @@ class SplashController(BaseController):
         c.browserwarningheader=None
         try:
             c.mem=find_free_mem()
-        except:
+        except Exception:
             c.mem=0
         
         if ua.count("msie") and not (ua.count("firefox") or ua.count("chrome")):
@@ -88,7 +88,7 @@ class SplashController(BaseController):
             c.aipupdate=None
         try:
             c.mapupdate=datetime.fromtimestamp(get_mtime())
-        except:
+        except Exception:
             c.mapupdate=datetime(1970,1,1)
         
         return render('/about.mako')

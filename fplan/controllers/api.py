@@ -163,7 +163,7 @@ class ApiController(BaseController):
                     cksum=ret['checksum']
                     try:
                         aprojmatrix=get_proj(cksum).matrix
-                    except:
+                    except Exception:
                         print traceback.format_exc()
                         print "Using 0-proj for ",aname
                         aprojmatrix=[0 for x in xrange(6)]
@@ -392,7 +392,7 @@ class ApiController(BaseController):
         #routine started, but ends up with a timestamp 5 minutes earlier in
         #time, but that can't happen.
         nowstamp=utcdatetime2stamp_inexact(datetime.utcnow())-60*5
-        assert version in [1,2]
+        assert version in [1,2,3]
         
         
         def writeInt(x):
@@ -423,18 +423,19 @@ class ApiController(BaseController):
                         if proj and proj.updated>datetime.utcfromtimestamp(prevstamp):
                             newer=True 
                         #print "selected",cksum,"for",adc
+                        if version<=2 and adc['variant']!='':
+                            continue #Don't send all kinds of charts to old clients
                         if cksum==None: continue
                         for level in xrange(5):
                             cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
                             print "Read file stamp:",cstamp,"prevstamp:",prevstamp
                             if cstamp>prevstamp:
                                 newer=True
-                    except Exception,cause:
-                        
+                    except Exception,cause:                        
                         print traceback.format_exc()
                         continue
                     if newer:
-                        charts.append((ad['name'],adc['blobname'],ad['icao'],cksum))
+                        charts.append((ad['name'],adc['blobname'],ad['icao'],cksum,adc['variant']))
             
         response.headers['Content-Type'] = 'application/binary'
            
@@ -443,13 +444,15 @@ class ApiController(BaseController):
         writeLong(nowstamp)
         writeInt(len(charts))
         #TODO: Fix problem with response.write not working
-        for human,blob,icao,cksum in charts:
+        for human,blob,icao,cksum,variant in charts:
             print "New AD-chart not present on device:",human,blob,icao
             writeUTF(blob)
             writeUTF(human)
             if version>=2:
                 writeUTF(icao)
                 writeUTF(cksum)
+            if version>=3:
+                writeUTF(variant)
         writeInt(0xaabbccda)
         #out.seek(0)
         #response.app_iter=out.read()

@@ -95,7 +95,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                     name,lat,lon=m.groups()
                     try:
                         coord=parse_coords(lat,lon)
-                    except:
+                    except Exception:
                         continue
                     points.append(dict(name=name,pos=coord))
                 """
@@ -162,7 +162,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                                 name,lat,lon=m.groups()
                             try:
                                 coord=parse_coords(lat,lon)
-                            except:
+                            except Exception:
                                 print "Couldn't parse:",lat,lon
                                 continue
                             #print name,lat,lon,mapper.format_lfv(*mapper.from_str(coord))

@@ -15,7 +15,7 @@ def ensure_loaded():
         try:
             conf = appconfig('config:%s'%(os.path.join(os.getenv("SWFP_ROOT"),"development.ini"),))    
             load_environment(conf.global_conf, conf.local_conf)
-        except:
+        except Exception:
             loading=False
             raise
         loaded=True  

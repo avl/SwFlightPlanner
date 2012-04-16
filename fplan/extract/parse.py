@@ -250,12 +250,12 @@ class Parser(object):
         page=self.xml.getchildren()[pagenr]
         try:
             width=int(page.attrib['width'])
-        except:
+        except Exception:
             width=None
             raise
         try:
             height=int(page.attrib['height'])
-        except:
+        except Exception:
             height=None
             raise
                     

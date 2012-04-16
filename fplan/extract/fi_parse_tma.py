@@ -9,6 +9,7 @@ import math
 from datetime import datetime
 from fplan.lib.mapper import parse_coord_str,uprint
 from pyshapemerge2d import Polygon,Vertex,vvector
+import ats_routes
 
 """
 class Item(object):
@@ -48,6 +49,7 @@ def filter_head_foot(xs):
         if st.startswith("The LFV Group"): continue            
         out.append(x)
     return out
+
 
 def parse_page(parser,pagenr):   
     page=parser.parse_page_to_items(pagenr)
@@ -105,6 +107,15 @@ def parse_page(parser,pagenr):
         return fullname,"area"
     cury=0
     coordstrs=page.get_by_regex(ur".*\d{6}N \d{7}E.*")
+
+    airway_width=None
+    airway_vlim=None
+    for item in page.get_partially_in_rect(0,0,100,15):
+        if item.text.upper().count("WID NM"):
+            airway_width=(item.x1,item.x2)
+        if item.text.lower().count("vertical limits"):
+            airway_vlim=(item.x1,item.x2) 
+    
     out=[]
     while True:
         found=False
@@ -122,8 +133,38 @@ def parse_page(parser,pagenr):
         name,hkind=findheadingfor(item.y1,headmeta)
         
         if hkind=='airway':
+            assert airway_width and airway_vlim
+            
+            lines=page.get_lines(page.get_partially_in_rect(0,cury,minx+35,100),order_fudge=6)
+            y1=cury
+            y2=100
+            coordlines=[]
+            for idx,line in enumerate(lines):
+                if line.count("AWY") and line.count("EF"): 
+                    y2=line.y1
+                    break            
+                coordlines.append(line.strip())
+            coordstr=" ".join(coordlines)
+            inpoints=[mapper.parse_coords(lat,lon) for lat,lon in re.findall(r"(\d+N) (\d+E)",coordstr)]
                         
-            y2=cury+1
+            for wcand in page.get_partially_in_rect(airway_width[0],y1+0.05,airway_width[1],y2-0.05):
+                width_nm=float(re.match(r"(\d+\.?\d*)",wcand.text).groups()[0])
+                
+            elevs=[]
+            for vcand in page.get_partially_in_rect(airway_vlim[0],y1+0.05,airway_vlim[1],y2-0.05):                
+                elevs.append(re.match(r"(FL\s*\d+)",vcand.text).groups()[0])
+            elevs.sort(key=lambda x:mapper.parse_elev(x))
+            floor,ceiling=elevs
+                
+            out.append(dict(
+                floor=floor,
+                ceiling=ceiling,
+                freqs=[],
+                type="RNAV",
+                name=name,
+                points=ats_routes.get_latlon_outline(inpoints, width_nm)))
+                                    
+            cury=y2          
             continue            
         elif hkind=='deleg':
                         

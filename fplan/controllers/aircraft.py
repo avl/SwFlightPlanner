@@ -60,7 +60,7 @@ class AircraftController(BaseController):
                     if climb_burn<cruise_burn:
                         c.burn_warning="You have entered a fuel consumption for climb that is lower than that for cruise (for altitude %d). Is this right?"%(idx*1000)
                         break
-            except:
+            except Exception:
                 print "Internal error in ac, burn check"
                 pass
             
@@ -169,7 +169,7 @@ class AircraftController(BaseController):
                                     fvalue=float(value)
                                     if fvalue<0:
                                         raise Exception("Too small")
-                                except:
+                                except Exception:
                                     bad_values[(prop,alt)]=u'Must be a non-negative decimal number.'
                                     continue
                                 allvalues[prop][altidx]=fvalue
@@ -198,7 +198,7 @@ class AircraftController(BaseController):
                                 fvalue=float(value)
                                 if fvalue<0:
                                     raise Exception("Too small")
-                            except:
+                            except Exception:
                                 bad_values[(name,0)]=u'Must be a non-negative decimal number, like 42.3, not "%s"'%(value,)
                                 continue
                             setattr(ac,name,fvalue)

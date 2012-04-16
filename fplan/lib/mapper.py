@@ -379,7 +379,7 @@ def anyparse(coord):
                 "%03d%02d%08.5f%s"%(intg(e),intg(f),floatg(g),h)
                 )
                 
-    except:
+    except Exception:
         pass
     try:
         coord=coord.upper()
@@ -395,13 +395,13 @@ def anyparse(coord):
         if lonm=='W':
             lon=neg(lon)
         return lat+","+lon
-    except:
+    except Exception:
         pass
     try:
         coord=coord.upper()
         slat,slon=re.match(ur"(\d{1,2}[\.,]?\d*[NS])\s*(\d{1,3}[\.,]?\d*[EW]\b)",coord).groups()
         return parse_coords(slat.strip(),slon.strip())
-    except:
+    except Exception:
         pass
         
     try:
@@ -415,7 +415,7 @@ def anyparse(coord):
         if NS=='S':lat=-lat
         if EW=='W':lon=-lon
         return to_str((lat,lon))
-    except:
+    except Exception:
         #print traceback.format_exc()
         pass
     raise Exception("Unknown format")

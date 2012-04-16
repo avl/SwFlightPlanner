@@ -47,7 +47,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     points=points#[x for x in points if not x['name'].upper().count("G")]
     try:
         versionnum=int(version.strip())
-    except:
+    except Exception:
         pass
     assert versionnum in [0,1,2,3,4,5,6]
     out=StringIO()

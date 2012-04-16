@@ -93,7 +93,7 @@ def sortit(cats):
 def deltify(user_aipgen,cats):
     try:
         currdata=freeze_top(cats)
-    except:
+    except Exception:
         return True,-1,cats,mkcksum(cats)
     theirs=[]
     if user_aipgen!="":

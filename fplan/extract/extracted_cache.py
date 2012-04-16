@@ -70,7 +70,7 @@ def gen_bsptree_lookup(data):
                 try:
                     bspitems.append(BspTree.Item(                                           
                         mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
-                except:
+                except Exception:
                     print item
                     raise
             #print "Items for bsptree",items
@@ -244,8 +244,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                                     airfields=denmark['airfields'])
                 def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
                 def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
-                def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())
-                def fi_parse_ats_rte(self):"Finnish ATS Routes";return dict(airspaces=fi_parse_ats_rte())
+                def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())                
                 def fi_parse_parse_airfields(self):
                     "Finnish major airfields"
                     fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
@@ -291,7 +290,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         try:
                             d=pickle.load(open(filename))
                             result="Used backup"
-                        except:
+                        except Exception:
                             d=dict()
                             result="Backup restore failed"
                     report[method]=dict(method=method,what=m.__doc__,result=result,msg=msg,date=

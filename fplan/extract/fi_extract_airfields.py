@@ -70,6 +70,19 @@ def fi_parse_airfield(icao=None):
         "/ais/eaip/aipcharts/%s/EF_AD_2_%s_ADC.pdf"%(icao.lower(),icao.upper()),
         icao,ad['pos'],country='fi'
                         )
+    parse_landing_chart.help_plc(ad,
+        "/ais/eaip/aipcharts/%s/EF_AD_2_%s_VAC.pdf"%(icao.lower(),icao.upper()),
+        icao,ad['pos'],country='fi',variant='VAC'
+                        )
+    parse_landing_chart.help_plc(ad,
+        "/ais/eaip/aipcharts/%s/EF_AD_2_%s_LDG.pdf"%(icao.lower(),icao.upper()),
+        icao,ad['pos'],country='fi',variant='landing'
+                        )
+
+    parse_landing_chart.help_plc(ad,
+        "/ais/eaip/aipcharts/%s/EF_AD_2_%s_APDC.pdf"%(icao.lower(),icao.upper()),
+        icao,ad['pos'],country='fi',variant='parking'
+                        )
     
 
                                 

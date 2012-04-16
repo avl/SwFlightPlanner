@@ -16,7 +16,7 @@ def get_notam_for_airport(icao):
         for u in notamupdates:
             out.append(u.text)
         return out
-    except:
+    except Exception:
         print "Exception:",traceback.format_exc()
         return []
     

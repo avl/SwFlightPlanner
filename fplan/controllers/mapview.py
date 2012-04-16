@@ -501,7 +501,7 @@ class MapviewController(BaseController):
                 session.save()
                 try:
                     session['last_pos']=mapper.latlon2merc(mapper.merc2latlon(session['last_pos'],zoomlevel),8)
-                except:
+                except Exception:
                     session['last_pos']=mapper.latlon2merc((59,18),8)
                 zoomlevel=8
                 
@@ -547,7 +547,7 @@ class MapviewController(BaseController):
             c.deg,c.degmin,c.degminsec=mapper.to_all_formats(mapper.from_str(s))
             print "Rendering mako coordpres"            
             return render("/coordpres.mako")        
-        except:        
+        except Exception:        
             print "returning empty string , coordpres"
             return ""
         

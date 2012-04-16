@@ -168,7 +168,7 @@ def get_stuff_near_route(rts,items,dist,vertdist):
     for item in items:
         try:
             itemmerc=mapper.latlon2merc(mapper.from_str(item['pos']),13)
-        except:
+        except Exception:
             print "Bad coord:",item['pos']
             continue
         itemv=Vertex(int(itemmerc[0]),int(itemmerc[1]))

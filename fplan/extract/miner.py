@@ -168,7 +168,7 @@ def parse(path,country,maxcacheage=7200,usecache=True):
         #    try:
         #        for sub in child:
         #            print "Sub-child:",sub
-        #    except:
+        #    except Exception:
         #        pass
         #print list(layout)
         cutup=cutup_textboxes(layout)

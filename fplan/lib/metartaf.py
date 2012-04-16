@@ -170,12 +170,12 @@ def get_some(what,icao):
 def get_metar(icao):
     try:
         return get_some("METAR",icao)
-    except:
+    except Exception:
         return Metar(icao,datetime.utcnow(),"")
 def get_taf(icao):
     try:
         return get_some("TAF",icao)
-    except:
+    except Exception:
         return Taf(icao,datetime.utcnow(),"")
 
 

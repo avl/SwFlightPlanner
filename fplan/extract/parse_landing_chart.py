@@ -165,8 +165,10 @@ def help_plc(ad,url,icao,arp,country,variant=""):
                 icao=icao,
                 arppos=arp,country=country,variant=variant)
         ad.setdefault('adcharts',dict())[variant]=lc
-        f.write("Success for airport: %s\n\n",icao)
-    except:
+        f.write("Success for airport: %s\n\n"%(icao,))
+    except KeyboardInterrupt:
+        raise        
+    except Exception:
         f.write("Failed for airport: %s\n%s\n\n"%(icao,traceback.format_exc()))
     f.close()
     

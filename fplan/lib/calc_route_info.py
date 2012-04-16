@@ -926,7 +926,7 @@ def get_route_impl(tripobj,waypoints,routes,ac,dummyac):
         rt.a.dt=copy(accum_dt)
         try:
             mid_alt=mapper.parse_elev(rt.altitude)
-        except:
+        except Exception:
             mid_alt=1500
         """
         if rt.a.stay:

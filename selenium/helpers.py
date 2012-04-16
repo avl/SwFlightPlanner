@@ -62,13 +62,13 @@ def add_named_wp(sel,name):
     for i in range(60):
         try:
             if sel.is_visible("searchpopup"): break
-        except: pass
+        except Exception: pass
         time.sleep(0.1)
     else: raise Exception("time out")
     for i in range(60):
         try:
             if not sel.is_visible("searchprogtext"): break
-        except: pass
+        except Exception: pass
         time.sleep(0.1)
     else: raise Exception("time out")
     sel.click("//p[@onclick='search_select(0)']")
@@ -78,14 +78,14 @@ def wait_not_visible(sel,what):
     for i in range(60):
         try:
             if not sel.is_visible(what): break
-        except: pass
+        except Exception: pass
         time.sleep(0.1)
     else: self.fail("time out")
 def wait_visible(sel,what):
     for i in range(60):
         try:
             if sel.is_visible(what): break
-        except: pass
+        except Exception: pass
         time.sleep(0.1)
     else: self.fail("time out")
 

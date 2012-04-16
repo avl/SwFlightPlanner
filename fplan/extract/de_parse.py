@@ -6,7 +6,7 @@ import csv
 def coding(x):
     try:
         return unicode(x,'utf8')
-    except:
+    except Exception:
         return unicode(x,'latin1')
 def parse_airspace():
     spaces=[]

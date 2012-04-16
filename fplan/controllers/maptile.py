@@ -69,7 +69,7 @@ class MaptileController(BaseController):
         utcnow=datetime.utcnow()
         try:
             zoomlevel=int(request.params['zoom'])
-        except:
+        except Exception:
             zoomlevel=session.get('zoom',5)
         lat=float(request.params.get('lat'))
         lon=float(request.params.get('lon'))
@@ -248,7 +248,7 @@ class MaptileController(BaseController):
         try:
             varf=geomag.calc_declination((lat,lon),utcnow,(terrelev+1000))
             variation=u"%+.1f°"%(varf,)
-        except:
+        except Exception:
             pass
         return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft, Var: %s</b>"%(", ".join(firs),spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev,variation)
 

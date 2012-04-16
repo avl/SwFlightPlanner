@@ -265,7 +265,7 @@ def getxml(relpath,country="se",maxcacheage=7200):
             print "Failed to fetch  ",relpath,cause
             try:
                 return open(cachenamexml).read()
-            except:
+            except Exception:
                 pdfdata=open(cachenamepdf).read()
         else:
             raise
@@ -284,7 +284,7 @@ def get_raw_aip_sup_page():
     if host==dev_computer:
         try:
             return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()    
-        except:
+        except Exception:
             return open(os.path.join(os.getenv("SWFP_ROOT"),"AIP SUP.html")).read()
     else:
         #TODO: 

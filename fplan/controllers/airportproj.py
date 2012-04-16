@@ -75,10 +75,10 @@ class AirportprojController(BaseController):
                             needwork=True
                         else:
                             needwork=False
-                        worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks,needwork=needwork,variant=adchart['variant']))
+                        worklist.append(dict(current=current,updated=date,airport=airport,url=projurl,marks=marks,needwork=needwork,variant=adchart['variant'],cksum=str(adchart['checksum'])))
                         found=True
                 if not found:
-                    worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[],needwork=True,variant=adchart['variant']))
+                    worklist.append(dict(current=False,updated=None,airport=ad['name'],url=projurl,marks=[],needwork=True,variant=adchart['variant'],cksum=str(adchart['checksum'])))
         return worklist
     def show(self):
         ad=request.params['ad']
@@ -162,7 +162,7 @@ class AirportprojController(BaseController):
                 mapper.latlon2merc(transform.to_latlon((c.width,0)),13),
                 mapper.latlon2merc(transform.to_latlon((0,c.height)),13),
                 mapper.latlon2merc(transform.to_latlon((c.width,c.height)),13)]
-        except:
+        except Exception:
             print "problem with basecoords:",traceback.format_exc()
             c.base_coords=[(0,0) for x in xrange(4)]
 

@@ -369,7 +369,7 @@ def fi_parse_ats_rte():
                     width=float(mapper.approx_scale(coords[0],13,1.25*width_nm))
                     try:
                         outline=get_outline(coords,width)
-                    except:
+                    except Exception:
                         uprint(u"Trouble parsing %s"%(routename,))
                         raise
                     yield dict(name=routename,

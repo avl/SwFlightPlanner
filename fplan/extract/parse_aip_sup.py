@@ -18,7 +18,7 @@ def extract_single_sup(full_url,sup,supname,opening_ours):
     ads=[]
     try:
         p=Parser(sup)
-    except:
+    except Exception:
         print "Could't parse",sup
         #Some AIP SUP's contain invalid XML after conversion from PDF.
         #skip these for now
@@ -52,7 +52,7 @@ def extract_single_sup(full_url,sup,supname,opening_ours):
                         name=name,
                         type='aip_sup',
                         points=coords))
-        except:
+        except Exception:
             pass
 
         #hits=page.get_by_regex(r"[Ee]ntry.*[Ee]xit.*point")

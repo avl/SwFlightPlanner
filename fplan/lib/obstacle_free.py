@@ -30,7 +30,7 @@ def get_obstacle_free_height_on_line(pos1,pos2):
         if not 'elev' in item: continue        
         try:
             itemmerc=mapper.latlon2merc(mapper.from_str(item['pos']),13)            
-        except:
+        except Exception:
             print "Bad coord:",item['pos']
             continue
         itemv=Vertex(int(itemmerc[0]),int(itemmerc[1]))

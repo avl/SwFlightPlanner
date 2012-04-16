@@ -130,31 +130,35 @@ def ev_parse_airfields():
                             
                         nametxt=alltext(tr)
                         print "nametxt:",nametxt,"link:"
-                        st="Aerodrome Chart"
-                        if nametxt.count(st) or prevnametxt.count(st):
-                            for a in namepage.xpath(".//a"):
-                                print "linklabel",a.text
-                                print "attrib:",a.attrib
-                                href=a.attrib['href']
-                                print "Bef repl",href
-                                if href.lower().endswith("pdf"):
-                                    href=href.replace("../../graphics","/eAIPfiles/%s-AIRAC/graphics"%(cur_airac,))
-                                    print "href:",href,cur_airac
-                                    #arp=pos
-                                    parse_landing_chart.help_plc(addummy,href,
-                                                    icao,pos,"ee",variant="")
-                                    """
-                                    lc=parse_landing_chart.parse_landing_chart(
-                                            href,
-                                            icao=icao,
-                                            arppos=arp,country="ev")
-                                    assert lc
-                                    if lc:
-                                        adcharturl=lc['url']
-                                        adchart=lc
-                                        #chartblobnames.append(lc['blobname'])
-                                    """
-                                    nametxt=""
+                        variantlist=[("Aerodrome Chart",''),
+                                     ("Visual Approach Chart",'VAC'),
+                                     ('Aerodrome Ground Movement Chart','parking')]
+                        
+                        for st,variant in variantlist:
+                            if nametxt.count(st) or prevnametxt.count(st):
+                                for a in namepage.xpath(".//a"):
+                                    print "linklabel",a.text
+                                    print "attrib:",a.attrib
+                                    href=a.attrib['href']
+                                    print "Bef repl",href
+                                    if href.lower().endswith("pdf"):
+                                        href=href.replace("../../graphics","/eAIPfiles/%s-AIRAC/graphics"%(cur_airac,))
+                                        print "href:",href,cur_airac
+                                        #arp=pos
+                                        parse_landing_chart.help_plc(addummy,href,
+                                                        icao,pos,"ev",variant=variant)
+                                        """
+                                        lc=parse_landing_chart.parse_landing_chart(
+                                                href,
+                                                icao=icao,
+                                                arppos=arp,country="ev")
+                                        assert lc
+                                        if lc:
+                                            adcharturl=lc['url']
+                                            adchart=lc
+                                            #chartblobnames.append(lc['blobname'])
+                                        """
+                                        nametxt=""
                         prevnametxt=nametxt
                     
 

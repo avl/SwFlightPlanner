@@ -44,7 +44,7 @@ def strip_accents(s):
             if cat[0]=='Z':
                 return " "
             return ""
-        except:
+        except Exception:
             return "" 
     t=''.join((alnum(c) for c in unicodedata.normalize('NFKD', s))).encode('ASCII','ignore')
     ts=t.split()
@@ -159,7 +159,7 @@ class FlightplanController(BaseController):
                         
                     try:
                         way.stay.nr_persons=int(request.params[persons_s])
-                    except:
+                    except Exception:
                         way.stay.nr_persons=None
                     way.stay.fuel=None
                     way.stay.fueladjust=None
@@ -169,7 +169,7 @@ class FlightplanController(BaseController):
                             way.stay.fueladjust=float(fuelstr)
                         else:
                             way.stay.fuel=float(fuelstr)
-                    except:
+                    except Exception:
                         pass                
                     way.altitude=unicode(int(get_terrain_elev.get_terrain_elev(mapper.from_str(way.pos))))
                 else:
@@ -204,7 +204,7 @@ class FlightplanController(BaseController):
                     else:
                         try:
                             setattr(route,att,int(val))
-                        except:
+                        except Exception:
                             setattr(route,att,0)
                     #print "Setting attrib '%s' of object %s to '%s'"%(att,route,val)
             
@@ -530,7 +530,7 @@ class FlightplanController(BaseController):
                             return "F%03d"%(ialt,)
                         ialt=int(float(alt))/100
                         return "A%03d"%(ialt,)
-                    except:
+                    except Exception:
                         raise AtsException("Bad altitude specification for some leg: <%s>"%(alt))
                 fir_whenposname.sort()
                 dummy=u"""
@@ -760,7 +760,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                     marks.append("%.1f"%mapcm)
                     curdt+=timedelta(0,60)
                 r.marks=", ".join(marks)+" cm"
-            except:
+            except Exception:
                 r.marks="-"
             
         return render("/minutemarkings.mako")
@@ -799,7 +799,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 vertlimit=500                
             try:
                 margin=item['closestalt']-mapper.parse_elev(item['elev'])
-            except:
+            except Exception:
                 return "#0000ff" #Unknown margin, unknown height
             if item['dist']>0.6/1.852:
                 return None #Not really too close anyway
@@ -887,7 +887,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         if len(c.route)>0:
             try:
                 c.startfuel=c.route[0].a.stay.fuel
-            except:
+            except Exception:
                 pass
             if c.startfuel==None:
                 c.startfuel=0

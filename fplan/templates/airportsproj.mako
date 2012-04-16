@@ -21,7 +21,7 @@ function navigate_to(where)
 <div style="height:100%;width:100%;overflow:auto;">
 <table>
 <tr>
-<td>Airport</td><td>Variant</td><td>Last updated</td><td>Current</td><td>Marks</td>
+<td>Airport</td><td>Variant</td><td>Last updated</td><td>Current</td><td>Checksum</td><td>Marks</td>
 </tr>
 %for work in c.worklist:
 <tr ${'style="background-color:#ffc0c0"' if work['needwork'] else ""|n}}>
@@ -29,6 +29,7 @@ function navigate_to(where)
 <td>${work['variant']}</td>
 <td>${work['updated']}</td>
 <td>${work['current']}</td>
+<td>${work['cksum']}</td>
 <td>${len(work['marks'])},${work['needwork']}</td>
 </tr>
 %endfor

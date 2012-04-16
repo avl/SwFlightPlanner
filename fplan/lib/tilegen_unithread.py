@@ -27,7 +27,7 @@ def update_unithread(zoomlevel=13):
         try:
             destpath=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/airspace/level%d"%(zl,))
             oldsize=os.stat(destpath)[stat.ST_SIZE]
-        except:
+        except Exception:
             oldsize=0            
         newsize=os.stat(newpath)[stat.ST_SIZE]
             

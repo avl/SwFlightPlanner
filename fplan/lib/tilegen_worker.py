@@ -21,7 +21,7 @@ try:
     import mapnik
     have_mapnik=True
     prj = mapnik.Projection("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over")
-except:
+except Exception:
     have_mapnik=False
 
 
@@ -146,7 +146,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                 ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)
             try:
                 areacol,solidcol=get_airspace_color(space['type'])
-            except:
+            except Exception:
                 print space
                 raise   
                         
@@ -308,7 +308,7 @@ def do_work_item(planner,coord,descr):
             #if not os.path.exists(dirpath):
             #    try:
             #        os.makedirs(dirpath)
-            #    except:
+            #    except Exception:
             #        pass #probably raise, dir now exists
             
             #p=get_path(cadir,zoomlevel,mx1+i,my1+j)
