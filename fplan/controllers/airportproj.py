@@ -18,7 +18,7 @@ from fplan.lib import customproj
 import fplan.lib.transform_map as transform_map
 import math
 import StringIO
-
+idx=0
 log = logging.getLogger(__name__)
 def parselatlon(latlon,arplatlon,rwyends,which):
     print "Interpreting",repr(latlon),"as latlon"
@@ -136,7 +136,8 @@ class AirportprojController(BaseController):
         c.flash=None
         c.ad=ad
         c.mapchecksum=adchart['checksum']
-        
+        c.random=idx
+        idx+=1
         c.runways=[]
         c.arp=transform.to_pixels(mapper.from_str(adobj['pos']))
         arp1m=mapper.latlon2merc(mapper.from_str(adobj['pos']),17)
