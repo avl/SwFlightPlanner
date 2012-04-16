@@ -206,7 +206,18 @@ class AirportprojController(BaseController):
                     break
             if dbb:break
         else:
-            raise Exception("Can't find this chart in aipdata") 
+            raise Exception("Can't find this chart in aipdata")
+        
+        
+        n=AirportMarker()
+        n.x=m.x
+        n.y=m.y                    
+        if just_lat(m):
+            n.latitude=m.latitude
+            n.x+=1000
+            error,A,T=customproj.solve(ms)
+            matrix=list(A)+list(T)
+
         
         matrix=[0,1.0/(scale*math.cos(lat/(180/math.pi))),-1.0/(scale),0,lat+1/40.0,lon-1/30.0/math.cos(lat/(180/math.pi))]
         print "Fake projection:",matrix
