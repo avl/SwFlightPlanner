@@ -1,5 +1,7 @@
 #manual import controller
 import logging
+import md5
+import pickle
 import traceback
 from datetime import datetime
 from pylons import request, response, session, tmpl_context as c
@@ -18,7 +20,6 @@ from fplan.lib import customproj
 import fplan.lib.transform_map as transform_map
 import math
 import StringIO
-idx=0
 log = logging.getLogger(__name__)
 def parselatlon(latlon,arplatlon,rwyends,which):
     print "Interpreting",repr(latlon),"as latlon"
@@ -136,8 +137,6 @@ class AirportprojController(BaseController):
         c.flash=None
         c.ad=ad
         c.mapchecksum=adchart['checksum']
-        c.random=idx
-        idx+=1
         c.runways=[]
         c.arp=transform.to_pixels(mapper.from_str(adobj['pos']))
         arp1m=mapper.latlon2merc(mapper.from_str(adobj['pos']),17)
@@ -191,6 +190,8 @@ class AirportprojController(BaseController):
                               (int(p1[0]),int(p1[1])),
                               (int(p2[0]),int(p2[1]))
                               ))
+
+        c.random=md5.md5(pickle.dumps(projmatrix)).hexdigest()
         
         return render('/airportproj.mako')
                     
@@ -246,7 +247,7 @@ class AirportprojController(BaseController):
         variant=request.params['variant']
         response.headers['Content-Type'] = 'image/png'
         response.headers['Pragma'] = ''
-        response.headers['Cache-Control'] = 'max-age=20'
+        response.headers['Cache-Control'] = 'max-age=120'
 
         if maptype=='chart':
             return parse_landing_chart.get_chart_png(adimg,cksum)
