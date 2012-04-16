@@ -201,30 +201,41 @@ class AirportprojController(BaseController):
             for adchart in ad['adcharts'].values():
                 if adchart['checksum']==cksum:
                     lat,lon=mapper.from_str(ad['pos'])
+                    w,h=adchart['render_width'],adchart['render_height']
+                    print "adpos:",ad['pos'],lat,lon
                     dbb=True
                     break
             if dbb:break
         else:
             raise Exception("Can't find this chart in aipdata")
         
+      
         
-        n=AirportMarker()
-        n.x=m.x
-        n.y=m.y                    
-        if just_lat(m):
-            n.latitude=m.latitude
-            n.x+=1000
-            error,A,T=customproj.solve(ms)
-            matrix=list(A)+list(T)
-
         
-        w=
         if variant=='.VAC':
-            scale=2*1000
+            mercsizex=w
+            mercsizey=h
+            scale=5
         else:
-            scale=30*1000
-
-        matrix=[0,1.0/(scale*math.cos(lat/(180/math.pi))),-1.0/(scale),0,lat+1/(scale/1000.0),lon-1/(scale/1000.0)/math.cos(lat/(180/math.pi))]
+            mercsizex=w
+            mercsizey=h
+            scale=1
+        
+        print "lat,lon",lat,lon
+        m1=mapper.latlon2merc((lat,lon),13)
+        print "corner merc",m1
+        ns=[]
+        for offx,offy in [(0,0),
+                          (mercsizex,0),
+                          (0,mercsizey),
+                          (mercsizex,mercsizey)]:
+            merc2=(m1[0]+(offx-mercsizex/2)*scale,m1[1]+(offy-mercsizey/2)*scale)
+            n=AirportMarker()
+            n.latitude,n.longitude=mapper.merc2latlon(merc2,13)
+            n.x,n.y=(offx,offy)
+            ns.append(n)
+        error,A,T=customproj.solve(ns)
+        matrix=list(A)+list(T)            
         print "Fake projection:",matrix
         return matrix
         
