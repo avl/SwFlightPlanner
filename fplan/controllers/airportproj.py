@@ -118,7 +118,7 @@ class AirportprojController(BaseController):
             proj.mapchecksum=str(proj.mapchecksum)
             
         if all([x==0 for x in proj.matrix[4:6]]):
-            projmatrix=self.invent_matrix(proj.mapchecksum)
+            projmatrix=self.invent_matrix(proj.mapchecksum,adchart['variant'])
         else:            
             projmatrix=proj.matrix
             
@@ -130,7 +130,7 @@ class AirportprojController(BaseController):
         c.initial_scroll_y=request.params.get("scroll_y",0)
         c.maptype=request.params.get("maptype","chart")
         
-                
+        c.variant=adchart['variant']
         c.curadmarker=session.get('curadmarker',(0,0))
         c.img=adchart['blobname']+","+adchart['checksum']
         c.flash=None
@@ -193,9 +193,8 @@ class AirportprojController(BaseController):
         
         return render('/airportproj.mako')
                     
-    def invent_matrix(self,cksum):
-        scale=30*1000
-        
+    def invent_matrix(self,cksum,variant):
+        print "Variant:",variant
         for ad in ec.get_airfields():
             if not 'adcharts' in ad: continue
             dbb=False
@@ -208,13 +207,20 @@ class AirportprojController(BaseController):
         else:
             raise Exception("Can't find this chart in aipdata") 
         
-        matrix=[0,1.0/(scale*math.cos(lat/(180/math.pi))),-1.0/(scale),0,lat+1/40.0,lon-1/30.0/math.cos(lat/(180/math.pi))]
+        w=
+        if variant=='.VAC':
+            scale=2*1000
+        else:
+            scale=30*1000
+
+        matrix=[0,1.0/(scale*math.cos(lat/(180/math.pi))),-1.0/(scale),0,lat+1/(scale/1000.0),lon-1/(scale/1000.0)/math.cos(lat/(180/math.pi))]
         print "Fake projection:",matrix
         return matrix
         
     def showimg(self):
         adimg,cksum=request.params['adimg'].split(",")
         maptype=request.params['maptype']
+        variant=request.params['variant']
         response.headers['Content-Type'] = 'image/png'
         response.headers['Pragma'] = ''
         response.headers['Cache-Control'] = 'max-age=20'
@@ -233,7 +239,7 @@ class AirportprojController(BaseController):
                 print "Using real projection",matrix
             else:
                 #scale = number of pixels per latlon-increment
-                matrix=self.invent_matrix(cksum)
+                matrix=self.invent_matrix(cksum,variant)
                 
             A=matrix[0:4]
             T=matrix[4:6]
