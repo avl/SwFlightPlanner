@@ -73,6 +73,7 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />
 <b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
 <b>Updated 2012-03-17: </b>The NOTAM fetch script was broken recently, fixed now, but only for Sweden.<br />
 <b>Updated 2011-11-01: </b>Now support for automatically calculating optimum cruise altitudes. See <a href="/splash/about"><u>"about"</u></a> and use with caution..<br />

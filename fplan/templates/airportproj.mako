@@ -228,10 +228,10 @@ function loadproj()
 	
 
 %if c.maptype=='chart' or c.maptype=='both':	
-'<img style="position:absolute;z-index:2;left:0px;top:0px;${"opacity:0.4;" if c.maptype=='both' else ""}" id="imageid" src="${h.url_for(controller='airportproj',action='showimg',adimg=c.img,maptype='chart')}"/>'+
+'<img style="position:absolute;z-index:2;left:0px;top:0px;${"opacity:0.4;" if c.maptype=='both' else ""}" id="imageid" src="${h.url_for(controller='airportproj',action='showimg',variant=c.variant,adimg=c.img,maptype='chart')}"/>'+
 %endif			
 %if c.maptype=='base' or c.maptype=='both':	
-'<img style="position:absolute;z-index:1;left:0px;top:0px;" id="imageid" src="${h.url_for(controller='airportproj',action='showimg',adimg=c.img,maptype='base')}"/>'+
+'<img style="position:absolute;z-index:1;left:0px;top:0px;" id="imageid" src="${h.url_for(controller='airportproj',action='showimg',variant=c.variant,adimg=c.img,maptype='base')}"/>'+
 %endif
 	'<div id="overlay1" style="position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;" />'+
 			
