@@ -1,8 +1,12 @@
 from struct import pack
 from StringIO import StringIO
+import traceback
+import mapper
 import zlib
 from fplan.lib.tilegen_worker import get_airspace_color
 from deltify import deltify
+import helpers
+import fplan.extract.aip_text_documents as aip_text_documents 
 
 def android_fplan_bitmap_format(hmap):
     out=StringIO()
@@ -39,7 +43,8 @@ def android_fplan_bitmap_format(hmap):
 
 
     
-def android_fplan_map_format(airspaces,points,version,user_aipgen):
+def android_fplan_map_format(airspaces,points,aiptexts,version,user_aipgen):
+    assert type(aiptexts)==list
     print "fplan_map_format, version: ",version,"aipgen",user_aipgen
     versionnum=1
     
@@ -49,7 +54,7 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
         versionnum=int(version.strip())
     except Exception:
         pass
-    assert versionnum in [0,1,2,3,4,5,6]
+    assert versionnum>=1 and versionnum<=7
     out=StringIO()
     print "Binary download in progress"
 
@@ -59,6 +64,8 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
         out.write(pack(">d",f))
     def writeInt(i):
         out.write(pack(">I",i))
+    def writeLong(i):
+        out.write(pack(">Q",i))
     def writeByte(b):
         if b<0: b=0
         if b>255: b=255
@@ -73,16 +80,26 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
         l=len(encoded)
         out.write(pack(">H",l)) #short
         out.write(encoded)
+    def writeBlob(b):
+        assert type(b)==str and type(b)!=unicode
+        writeInt(len(b))
+        out.write(b)
         
     writeInt(0x8A31CDA)
     
-    if versionnum>=5:
+    if versionnum>=5:        
         print "User aipgen",user_aipgen
-        clearall,new_aipgen,data,new_namechecksum=deltify(user_aipgen,
-                dict(airspaces=airspaces,points=points))
-        print "clearall",clearall,"new_namechecksum;",new_namechecksum
-        airspaces=data['airspaces']
-        points=data['points']
+        print "AIptexts",type(aiptexts),repr(aiptexts)
+        try:
+            clearall,new_aipgen,data,new_namechecksum=deltify(user_aipgen,
+                    dict(airspaces=airspaces,points=points,aiptexts=aiptexts))
+            print "clearall",clearall,"new_namechecksum;",new_namechecksum
+            airspaces=data['airspaces']
+            points=data['points']
+            aiptexts=data['aiptexts']
+        except Exception:
+            print traceback.format_exc()
+            
         
     
     writeInt(versionnum)
@@ -100,12 +117,12 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     for space in airspaces:
         if versionnum>=5:
             if 'kill' in space:
-                print "Killing space index",space['idx']
+                #print "Killing space index",space['idx']
                 writeByte(0)
                 writeInt(space['idx'])
                 continue
             writeByte(1)
-        print "Sending space",space['name']
+        #print "Sending space",space['name']
         writeUTF(space['name'])
         if versionnum>=2:
             (r,g,b,a),dummy_edge_col=get_airspace_color(space['type'])
@@ -129,12 +146,12 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
     for point in points:
         if versionnum>=5:
             if 'kill' in point:
-                print "Killing points index",point['idx']
+                #print "Killing points index",point['idx']
                 writeByte(0)
                 writeInt(point['idx'])
                 continue
             writeByte(1)
-        print "Sending point",point['name']
+        #print "Sending point",point['name']
         writeUTF(point['name'])
         writeUTF(point['kind'])
         if versionnum>=5:
@@ -160,6 +177,21 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                 writeUTF(point['metar'])
             else:
                 writeByte(0)
+            """
+            Format is: (key
+            [{'ends': [{'pos': '61.8552555556,24.7619638889', 'thr': u'08'},
+    {'pos': '61.8568416667,24.8112611111', 'thr': u'26'}]}
+            """
+            if versionnum>=7:
+                runways=point.get('runways',[])
+                writeByte(len(runways))
+                if runways: print "Writing runways,",runways
+                for runway in runways:                    
+                    for end in runway['ends']:
+                        writeUTF(end['thr'])
+                        lat,lon=mapper.from_str(end['pos'])
+                        writeFloat(lat)
+                        writeFloat(lon)
                 
             
         writeFloat(float(point['alt']))
@@ -181,6 +213,30 @@ def android_fplan_map_format(airspaces,points,version,user_aipgen):
                         writeFloat(f)
             else:
                 writeByte(0)
+                
+                
+    if versionnum>=6:
+        writeInt(len(aiptexts))
+        print "Writing",len(aiptexts),"aiptexts"
+        for aipd in aiptexts:
+            if 'kill' in aipd:
+                print "Killing aip index",aipd['idx']
+                writeByte(0)
+                writeInt(aipd['idx'])
+                continue
+            aip=dict(aipd['data']) 
+            print "Sending aiptext",aipd['icao'],aip['category']
+            writeByte(1)
+            writeUTF(aipd['icao'])
+            writeUTF(aipd['name'])
+            writeUTF(aip['category'])
+            writeUTF(aip['checksum'])
+            writeLong(helpers.utcdatetime2stamp_inexact(aip['date']))            
+            doc=aip_text_documents.get_doc(aip['icao'],aip['category'],aip['checksum'])
+            writeByte(1) #Contains doc blob
+            writeBlob(doc)
+
+    
     if versionnum>=5:
         print "New namechecksum;",new_namechecksum
         writeInt(0x1eedbaa5)

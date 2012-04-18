@@ -118,6 +118,7 @@ class ApiController(BaseController):
                     ceiling=space.get('ceiling',""),
                     points=[dict(lat=p[0],lon=p[1]) for p in clnd]))
             
+        aiptexts=[]
         points=[]
         version=request.params.get("version",None)
         print "version",version
@@ -150,6 +151,8 @@ class ApiController(BaseController):
                 kind=kind,
                 notams=notams,
                 alt=float(airp.get('elev',0)))
+            if 'runways' in airp:
+                ap['runways']=airp['runways']
             if icao:
                 ap['icao']=icao
                 if taf.text:
@@ -157,6 +160,13 @@ class ApiController(BaseController):
                 if metar.text:
                     ap['metar']=metar.text
             
+                if 'aiptext' in airp:
+                    for aiptext in airp['aiptext']:
+                        aiptexts.append(
+                            dict(name=icao+"_"+aiptext['category'],
+                                 icao=icao,
+                                 data=aiptext))
+                    
             if 'adcharts' in airp and '' in airp['adcharts'] and airp['adcharts'][""]['blobname']:
                 ret=airp['adcharts'][""]
                 try:
@@ -164,8 +174,8 @@ class ApiController(BaseController):
                     try:
                         aprojmatrix=get_proj(cksum).matrix
                     except Exception:
-                        print traceback.format_exc()
-                        print "Using 0-proj for ",aname
+                        #print traceback.format_exc()
+                        #print "Using 0-proj for ",aname
                         aprojmatrix=[0 for x in xrange(6)]
                         
                     ap['adchart_matrix']=list(aprojmatrix)
@@ -231,8 +241,8 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'text/plain'           
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
-            response.headers['Content-Type'] = 'application/binary'                 
-            ret=android_fplan_map_format(airspaces=out,points=points,version=version,user_aipgen=user_aipgen)
+            response.headers['Content-Type'] = 'application/binary'
+            ret=android_fplan_map_format(airspaces=out,points=points,aiptexts=aiptexts,version=version,user_aipgen=user_aipgen)
             
             meta.Session.flush()
             meta.Session.commit()
@@ -254,6 +264,7 @@ class ApiController(BaseController):
                 response.headers['Content-Type'] = 'text/plain'            
                 return rawtext
                     
+    
 
     def get_trips(self):
         try:
@@ -428,7 +439,7 @@ class ApiController(BaseController):
                         if cksum==None: continue
                         for level in xrange(5):
                             cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
-                            print "Read file stamp:",cstamp,"prevstamp:",prevstamp
+                            #print "Read file stamp:",cstamp,"prevstamp:",prevstamp
                             if cstamp>prevstamp:
                                 newer=True
                     except Exception,cause:                        

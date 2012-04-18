@@ -141,7 +141,6 @@ def parse_landing_chart(path,arppos,icao,country='se',variant=''):
     #ret['height']=page.height    
     ret['render_width']=width
     ret['render_height']=height
-    ret['variant']=variant
  
     if country!='raw':
         icao_prefix=get_icao_prefix(country)
@@ -151,7 +150,10 @@ def parse_landing_chart(path,arppos,icao,country='se',variant=''):
         hashpath=os.path.join(tmppath,"%s.%s-%d.bin"%(blobname,cksum,level))
         fetchdata.getcreate_local_data_raw(
                     outpath2,hashpath,lambda input,output:chop_up(input,output,level))    
+
+    
     ret['blobname']=blobname
+    ret['variant']=variant
     
     return ret
 
@@ -178,20 +180,6 @@ def get_fileage(path):
     d=get_filedate(path)
     return datetime.utcnow()-d
 
-def purge_all_old(chartblobnames):
-    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")    
-    for adir in list(os.listdir(tmppath)):
-        tmppath2=os.path.join(tmppath,adir)
-        if not os.path.isdir(tmppath2):
-            print "ignoring non-directory entry",tmppath2
-            continue
-        for afile in list(os.listdir(tmppath2)):
-            tmppath3=os.path.join(tmppath2,afile)
-            if get_fileage(tmppath3)>timedelta(31,0):
-                os.unlink(tmppath3)
-                print "Removing file",afile
-            else:
-                print "Keeping",afile
                 
         
 

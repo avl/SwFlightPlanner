@@ -468,12 +468,17 @@ def run_update_iteration():
                 print "Yes exit"
                 sys.exit()
             print "Now re-rendering maps"
-            update_unithread()
+            if not debug:
+                update_unithread()
             print "Finished re-rendering maps"
             time.sleep(2)
             print "Now deleteting old unregistered users"
             fplan.lib.remove_unused_users.run()
             fplan.lib.delete_old_notams.run()
+            fplan.lib.purge_temp_dirs.purge_all_old_basic()
+            if debug:
+                print "Yes exit"
+                sys.exit()
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
             pass # No longer constantly re-rendering #os.system("nice python fplan/lib/tilegen_unithread.py 9")

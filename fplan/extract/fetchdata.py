@@ -315,10 +315,10 @@ def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400
     outputpathtmp=outputpath+".tmp"
     outputpathdate=outputpath+".date"
     inputdate=get_filedate(inputpath)
-    if os.path.exists(outputpathdate):
+    if os.path.exists(outputpathdate) and os.path.exists(outputpath):
         cacheddate=get_filedate(outputpathdate)
         if cacheddate>inputdate and (datetime.utcnow()-cacheddate<timedelta(0,maxcachetime)):
-            return 
+            return inputdate 
     if os.path.exists(outputpathtmp):
         os.unlink(outputpathtmp)
     callback(inputpath,outputpathtmp)
@@ -327,12 +327,12 @@ def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400
         if os.system("cmp %s %s"%(outputpathtmp,outputpath))==0:
             #identical
             open(outputpathdate,"w").write("1")
-            return
+            return inputdate
         os.unlink(outputpath)
     shutil.move(outputpathtmp,outputpath)
     open(outputpathdate,"w").write("1")
     
-    
+    return inputdate
     
     
 def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=True,cachetime=3600,country='se'):

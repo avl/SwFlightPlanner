@@ -9,6 +9,7 @@ from datetime import datetime
 from fplan.extract.ev_parse_airac import get_cur_airac
 import fplan.extract.parse_landing_chart as parse_landing_chart 
 import rwy_constructor
+import aip_text_documents
 #   #CURRENTLY EFFECTIVE eAIP:
 #05-APR-2012-AIRAC (open in new window) 
 
@@ -179,6 +180,10 @@ def ev_parse_airfields():
             ad['adcharturl']=adcharturl
         if 'adcharts' in addummy:
             ad['adcharts']=addummy['adcharts']
+            
+        aip_text_documents.help_parse_doc(ad,url,
+                        icao,"ev",title="General Information",category="general")
+            
         ads.append(ad)            
         spaces.append(dict(
             name=ctrname,

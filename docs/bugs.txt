@@ -162,3 +162,12 @@
 160: Add an option to "quick-sync", just syncing nOtam,metar, airspaces etc.
 161: We could draw the runway in the android app.
 162: Fix Finnish airspaces, they're now in the TMA PDF, looks parseable!
+163: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
+164: Bra idéer: 
+ - Nearest funktion
+ - Visa landningsbanor i vanlig kartvy
+ - AIP PDF -> html, attacha till flygplatser
+ - "Var är jag"-funktion.
+ 165: Need to clean the adcharts-directory
+ 166: Verify that deltify data tables are cleaned.
+ 

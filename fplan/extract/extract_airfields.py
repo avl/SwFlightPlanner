@@ -16,7 +16,7 @@ import fplan.extract.rwy_constructor as rwy_constructor
 import md5    
 import codecs
 import parse_landing_chart
-    
+import aip_text_documents
 def extract_airfields(filtericao=lambda x:True,purge=True):
     #print getxml("/AIP/AD/AD 1/ES_AD_1_1_en.pdf")
     ads=[]
@@ -415,7 +415,14 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
         if icao in big_ad:          
             parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
                             icao,ad['pos'],"se",variant="")
+            
+            
+        aip_text_documents.help_parse_doc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao),
+                        icao,"se",title="General Information",category="general")
+            
                   
+
+    
     #if purge:
     #    parse_landing_chart.purge_old(chartblobnames,country="se")        
     
@@ -490,6 +497,10 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
         print "%s: %s - %s (%s ft) (%s)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'],ad.get('flygkartan_id','inte i flygkartan'))
         if 'spaces' in ad:
             print "   spaces: %s"%(ad['spaces'],)
+        if 'aiptext' in ad:
+            print "Aip texts:",ad['aiptext']
+        else:
+            print "No aiptext"
         
     f=codecs.open("extract_airfields.regress.txt","w",'utf8')    
     for ad in ads:
