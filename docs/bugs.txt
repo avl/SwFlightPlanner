@@ -170,4 +170,7 @@
  - "Var är jag"-funktion.
  165: Need to clean the adcharts-directory
  166: Verify that deltify data tables are cleaned.
- 
+ 167: Trips aren't deterministic, calc_routes uses current date
+ 168: Write manual
+ 169: Fallback when calc_route doesn't work, so trip still loads in device.
+ 170: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix! 

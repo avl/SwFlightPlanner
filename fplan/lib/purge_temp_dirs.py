@@ -20,4 +20,4 @@ def purge_all_old(tempdir,maxage=86400*30*2):
             print p,"age",age,"maxage",maxage
             if age>maxage:
                 print "Removing",p,"age:",age,"(=",age/86400," days)"                
-                #os.remove(p)
+                os.remove(p)

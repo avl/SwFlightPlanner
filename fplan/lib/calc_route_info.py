@@ -1,6 +1,7 @@
 #encoding=utf8
 from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft
 import fplan.lib.mapper as mapper
+import pickle
 import math
 import sqlalchemy as sa
 from fplan.lib.get_terrain_elev import get_terrain_elev
@@ -458,15 +459,16 @@ def max_revclimb_feet(end_alt,dist_nm,ac,rt):
 class DummyAircraft(object):pass
 
 def get_route(user,trip):
-    return get_route_prepare(user,trip,get_route_impl)
+    return get_route_prepare(user,trip,get_route_impl,"get_route_impl")
 
-def get_route_prepare(user,trip,action):
+def get_route_prepare(user,trip,action,actionstr):
     start=time()
     tripobj=meta.Session.query(Trip).filter(sa.and_(
             Trip.user==user,Trip.trip==trip)).one()
 
     waypoints=list(meta.Session.query(Waypoint).filter(sa.and_(
              Waypoint.user==user,Waypoint.trip==trip)).order_by(Waypoint.ordering).all())
+    
     
     routes=[]
     for a,b in zip(waypoints[:-1],waypoints[1:]):
@@ -503,6 +505,8 @@ def get_route_prepare(user,trip,action):
         ac.descent_burn=0
         dummyac=True
 
+
+    print "pickled:",repr(pickle.dumps((tripobj,routes,ac,dummyac,actionstr)))
     
     
     for prev,next in zip(routes[:-1],routes[1:]):
@@ -560,7 +564,7 @@ def get_route_prepare(user,trip,action):
         cone_min=max_revclimb_feet(cone_start,cone_dist,ac,rt)
         
     
-    return action(tripobj,waypoints,routes,ac,dummyac)
+    return action(tripobj,routes,ac,dummyac)
     
 
             
@@ -699,7 +703,7 @@ class Nodes(object):
         alt2=startalt
         a2=int(alt2)/altstep
         startnode=Node(-1,a1)
-        startnode.accum_dt=datetime.utcnow()
+        startnode.accum_dt=datetime(2000,1,1)
         startnode.accum_time=0.0
         startnode.accum_fuel_used=0.0
         self.breadth.append(startnode)
@@ -861,12 +865,12 @@ def get_optimized(user,trip,strategy):
     or headwind greater than TAS).
     """
     assert strategy in ['fuel','time']
-    def action(tripobj,waypoints,routes,ac,dummyac):
+    def action(tripobj,routes,ac,dummyac):
 
         nodes=Nodes(routes,ac,strategy)
         
         return nodes.optimize(0,0) #TODO: Use real start alt and end altinstead of 0
-    return get_route_prepare(user,trip,action)
+    return get_route_prepare(user,trip,action,"optimize_"+strategy)
     
 
 
@@ -898,13 +902,13 @@ def calc_stay(rt,accum_fuel,accum_dt):
     #print "calc_stay: dt:",accum_dt
     return accum_fuel,accum_dt
 
-def get_route_impl(tripobj,waypoints,routes,ac,dummyac):        
+def get_route_impl(tripobj,routes,ac,dummyac):        
         
     res=[]
     accum_fuel=0
     accum_fuel_used=0
     accum_time=0
-    accum_dt=datetime.utcnow()
+    accum_dt=datetime(2000,1,1)
     tot_dist=0
     prev_alt=None    
     numroutes=len(routes)
@@ -1175,6 +1179,7 @@ def calc_one_leg(idx,rt,
         out.legpart="mid"
         out.fuel_burn=None
         out.lastsub=0
+        out.altitude=rt.altitude
         sub.append(out)
     else:
         if abs(begintime)>1e-5:
@@ -1207,6 +1212,7 @@ def calc_one_leg(idx,rt,
             out.what=beginwhat
             out.legpart="begin"
             out.lastsub=0
+            out.altitude=rt.altitude
             sub.append(out)
         if abs(midtime)>1e-5:
             out=TechRoute()
@@ -1237,6 +1243,7 @@ def calc_one_leg(idx,rt,
             out.what="cruise"
             out.legpart="mid"
             out.lastsub=0
+            out.altitude=rt.altitude
             sub.append(out)
         if abs(endtime)>1e-5:
             out=TechRoute()
@@ -1270,6 +1277,7 @@ def calc_one_leg(idx,rt,
             out.legpart="end"
             out.fuel_burn=endtime*endburn
             out.lastsub=0
+            out.altitude=rt.altitude
             sub.append(out)
     if len(sub):
         sub[-1].lastsub=1        
@@ -1298,6 +1306,7 @@ def calc_one_leg(idx,rt,
         out.legpart="mid"
         out.fuel_burn=0
         out.lastsub=0
+        out.altitude=rt.altitude
         sub.append(out)
     
     

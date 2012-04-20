@@ -43,9 +43,10 @@ def android_fplan_bitmap_format(hmap):
 
 
     
-def android_fplan_map_format(airspaces,points,aiptexts,version,user_aipgen):
+def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen,correct_pass):
+    
     assert type(aiptexts)==list
-    print "fplan_map_format, version: ",version,"aipgen",user_aipgen
+    print "fplan_map_format, version: ",version,"aipgen",user_aipgen,"corr pass",correct_pass
     versionnum=1
     
     airspaces=airspaces    
@@ -88,15 +89,16 @@ def android_fplan_map_format(airspaces,points,aiptexts,version,user_aipgen):
     writeInt(0x8A31CDA)
     
     if versionnum>=5:        
-        print "User aipgen",user_aipgen
-        print "AIptexts",type(aiptexts),repr(aiptexts)
+        #print "User aipgen",user_aipgen
+        #print "AIptexts",type(aiptexts),repr(aiptexts)
         try:
             clearall,new_aipgen,data,new_namechecksum=deltify(user_aipgen,
-                    dict(airspaces=airspaces,points=points,aiptexts=aiptexts))
+                    dict(airspaces=airspaces,points=points,aiptexts=aiptexts,trips=trips))
             print "clearall",clearall,"new_namechecksum;",new_namechecksum
             airspaces=data['airspaces']
             points=data['points']
             aiptexts=data['aiptexts']
+            trips=data['trips']
         except Exception:
             print traceback.format_exc()
             
@@ -104,6 +106,9 @@ def android_fplan_map_format(airspaces,points,aiptexts,version,user_aipgen):
     
     writeInt(versionnum)
     
+    if versionnum>=7:
+        print "Writing corr pass",correct_pass
+        writeByte(1 if correct_pass else 0)
         
     if versionnum>=5:
         print "Wrote aipgen:",new_aipgen
@@ -235,7 +240,40 @@ def android_fplan_map_format(airspaces,points,aiptexts,version,user_aipgen):
             doc=aip_text_documents.get_doc(aip['icao'],aip['category'],aip['checksum'])
             writeByte(1) #Contains doc blob
             writeBlob(doc)
-
+    if versionnum>=7:
+        writeInt(len(trips))
+        
+        for trip in trips:
+            if 'kill' in trip:
+                print "Killing trip index",trip['idx']
+                writeByte(0)
+                writeInt(trip['idx'])
+                continue
+            writeByte(1)
+            writeUTF(trip['name'])
+            writeInt(len(trip['waypoints']))
+            for way in trip['waypoints']:
+                way=dict(way)
+                writeInt(0xbeef)
+                writeUTF(way['name'])
+                writeFloat(way['lat'])
+                writeFloat(way['lon'])
+                writeUTF(way['altitude'])
+                writeFloat(way['startalt'])
+                writeFloat(way['endalt'])
+                writeFloat(way['winddir'])
+                writeFloat(way['windvel'])
+                writeFloat(way['gs'])
+                writeUTF(way['what'])
+                writeUTF(way['legpart'])
+                writeFloat(way['d'])
+                writeFloat(way['tas'])
+                writeByte(1 if way['land_at_end'] else 0)
+                writeFloat(way['endfuel'])
+                writeFloat(way['fuelburn'])
+                writeLong(helpers.utcdatetime2stamp_inexact(way['depart_dt']))
+                writeLong(helpers.utcdatetime2stamp_inexact(way['arrive_dt']))
+                
     
     if versionnum>=5:
         print "New namechecksum;",new_namechecksum

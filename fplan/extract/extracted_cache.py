@@ -40,6 +40,7 @@ from fplan.extract.ey_parse_sigpoints import ey_parse_sigpoints
 from fplan.extract.ep_parse_restrict import ep_parse_tra
 from fplan.extract.ep_parse_tma import ep_parse_tma
 from fplan.extract.ep_parse_airfields import ep_parse_airfields
+import fplan.lib.purge_temp_dirs
 
 import pickle
 import os
@@ -464,9 +465,6 @@ def run_update_iteration():
             get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
-            if debug:
-                print "Yes exit"
-                sys.exit()
             print "Now re-rendering maps"
             if not debug:
                 update_unithread()
