@@ -42,8 +42,9 @@ def get_user_trips(user):
     trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user)).order_by(Trip.trip).all()
     out=[]
     for trip in trips:
+        meta.Session.flush()
         try:
-            print "Processing trip",trip.trip
+            #print "Processing trip",trip.trip
             tripobj=dict()
             tripobj['name']=trip.trip
             waypoints=[]
@@ -95,6 +96,7 @@ def get_user_trips(user):
 
                 rts,dummy=calc_route_info.get_route(user.user,trip.trip)
             except Exception:
+                print traceback.format_exc()
                 wpy=list(meta.Session.query(Waypoint).filter(sa.and_(
                          Waypoint.user==user.user,Waypoint.trip==trip.trip)).order_by(Waypoint.ordering).all())
 
@@ -130,7 +132,7 @@ def get_user_trips(user):
                         startfuel=rt0.accum_fuel_left-rt0.fuel_burn
                     except Exception:
                         startfuel=None
-                    add_wp(rt0.waypoint,rt0.startpos,rt0.startalt,rt0.endalt,rt0.winddir,rt0.windvel,rt0.gs,
+                    add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.endalt,rt0.winddir,rt0.windvel,rt0.gs,
                             "start","start",1,0,rt0.tas,False,startfuel,0,
                             rt0.depart_dt,rt0.depart_dt,rt0.altitude)
                     del rt0
@@ -376,6 +378,7 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'application/binary'
             ret=android_fplan_map_format(airspaces=out,points=points,aiptexts=aiptexts,trips=trips,version=version,user_aipgen=user_aipgen,correct_pass=correct_pass)
             
+            print "meta.Session.flush/commit"
             meta.Session.flush()
             meta.Session.commit()
             if 'zip' in request.params:
@@ -388,7 +391,9 @@ class ApiController(BaseController):
             meta.Session.flush()
             meta.Session.commit()
             
-            rawtext=json.dumps(dict(airspaces=out,points=points))
+            rawkey=json.dumps(dict(airspaces=out,points=points))
+            
+            
             if 'zip' in request.params:
                 response.headers['Content-Type'] = 'application/x-gzip-compressed'            
                 return zlib.compress(rawtext)

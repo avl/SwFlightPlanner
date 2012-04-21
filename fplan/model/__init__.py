@@ -170,7 +170,7 @@ trip_table = sa.Table("trip",meta.metadata,
 tripcache_table = sa.Table("tripcache",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
-                        sa.Column('key',Binary(),primary_key=False,nullable=False),
+                        sa.Column('key',Unicode(32),primary_key=False,nullable=False),
                         sa.Column('value',Binary(),primary_key=False,nullable=False),
                         sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE")
                         )

@@ -173,4 +173,7 @@
  167: Trips aren't deterministic, calc_routes uses current date
  168: Write manual
  169: Fallback when calc_route doesn't work, so trip still loads in device.
- 170: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix! 
+ 170: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix!
+ 171: Route info cache
+ 172: Should changes to trip cut through even to active trip? I guess so?
+  

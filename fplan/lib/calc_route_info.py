@@ -1,7 +1,7 @@
 #encoding=utf8
-from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft
+from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,TripCache
 import fplan.lib.mapper as mapper
-import pickle
+import cPickle
 import math
 import sqlalchemy as sa
 from fplan.lib.get_terrain_elev import get_terrain_elev
@@ -14,6 +14,7 @@ from datetime import datetime,timedelta
 from copy import copy
 from time import time
 from fplan.lib.obstacle_free import get_obstacle_free_height_on_line
+import md5
 
 def parse_date(s):
     if s.count("-")==2:
@@ -505,8 +506,18 @@ def get_route_prepare(user,trip,action,actionstr):
         ac.descent_burn=0
         dummyac=True
 
-
-    print "pickled:",repr(pickle.dumps((tripobj,routes,ac,dummyac,actionstr)))
+    stays=[]
+    for idx,wp in enumerate(waypoints):
+        #print "stay:",wp.stay
+        stays.append((idx,wp.stay))
+    cachekey=md5.md5(cPickle.dumps((tripobj,routes,ac,dummyac,actionstr,stays))).hexdigest()
+    hits=meta.Session.query(TripCache).filter(TripCache.user==user,
+                                              TripCache.trip==trip,
+                                              TripCache.key==cachekey).all()
+    if len(hits)>0:
+        #print "Cache hit for",repr(cachekey)
+        return cPickle.loads(hits[0].value)
+    print "cachemiss pickled:",trip,repr(cachekey)
     
     
     for prev,next in zip(routes[:-1],routes[1:]):
@@ -564,7 +575,25 @@ def get_route_prepare(user,trip,action,actionstr):
         cone_min=max_revclimb_feet(cone_start,cone_dist,ac,rt)
         
     
-    return action(tripobj,routes,ac,dummyac)
+    result=action(tripobj,routes,ac,dummyac)
+    print "Done"
+    respick=cPickle.dumps(result)
+    
+    olds=meta.Session.query(TripCache).filter(TripCache.user==user,
+                                              TripCache.trip==trip).all()
+    if len(olds)==0:    
+        tripcache=TripCache(user, trip, cachekey,respick)        
+        print "Storing cache for cachekey",cachekey,md5.md5(respick).hexdigest()
+        meta.Session.add(tripcache)
+    else:
+        old,=olds
+        old.key=cachekey
+        old.value=respick
+        print "Updating cache for cachekey",cachekey,md5.md5(respick).hexdigest()
+        meta.Session.add(old)
+        
+    print "stored"
+    return result
     
 
             
