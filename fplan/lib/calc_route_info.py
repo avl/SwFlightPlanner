@@ -1359,10 +1359,10 @@ def calc_one_leg(idx,rt,
         else:
             out.tas=0
             out.wca=0
-        if out.what=='cruise':
-            out.altitude=rt.altitude
-        else:
-            out.altitude="%d -> %d ft"%(int(out.startalt+0.1),int(out.endalt+0.1))
+        #if out.what=='cruise':
+        out.altitude=rt.altitude
+        #else:
+        #    out.altitude="%d -> %d ft"%(int(out.startalt+0.1),int(out.endalt+0.1))
         tot_dist+=out.d
         out.total_d=tot_dist
         out.accum_dist=tot_dist

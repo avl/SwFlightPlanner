@@ -49,8 +49,11 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
     print "fplan_map_format, version: ",version,"aipgen",user_aipgen,"corr pass",correct_pass
     versionnum=1
     
-    airspaces=airspaces    
-    points=points#[x for x in points if not x['name'].upper().count("G")]
+    
+    #airspaces=airspaces[:10]    
+    #points=points[:10]#[x for x in points if not x['name'].upper().count("G")]
+    #trips=trips[:10]
+    #aiptexts=aiptexts[:10]
     try:
         versionnum=int(version.strip())
     except Exception:
@@ -275,6 +278,7 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
                 writeFloat(way['fuelburn'])
                 writeLong(helpers.utcdatetime2stamp_inexact(way['depart_dt']))
                 writeLong(helpers.utcdatetime2stamp_inexact(way['arrive_dt']))
+                writeByte(way['lastsub'])
                 
     
     if versionnum>=5:

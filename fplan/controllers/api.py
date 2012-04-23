@@ -87,7 +87,7 @@ def get_user_trips(user):
                 assert type(pos[1])in [float,int]
                 d=dict(lat=pos[0],lon=pos[1],
                     name=name,startalt=f(startalt),endalt=f(endalt),winddir=f(winddir),windvel=f(windvel),
-                        gs=eitherf(gs,75),what=s(what),legpart=s(legpart),lastsub=lastsub,d=f(d),tas=eitherf(tas,75),land_at_end=i(land_at_end),
+                        gs=eitherf(gs,75),what=s(what),legpart=s(legpart),lastsub=i(lastsub),d=f(d),tas=eitherf(tas,75),land_at_end=i(land_at_end),
                         endfuel=f(endfuel),fuelburn=f(fuelburn),depart_dt=da(depart_dt),arrive_dt=da(arrive_dt),altitude=s(altitude)
                         )
                 waypoints.append(d)
