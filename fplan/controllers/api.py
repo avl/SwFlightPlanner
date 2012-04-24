@@ -307,6 +307,8 @@ class ApiController(BaseController):
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
             kind=sigp.get('kind','sigpoint')
+            if kind=='sig. point':
+                kind='sigpoint'
             if not kind in ['sigpoint','city','town']:
                 kind='sigpoint'
             points.append(dict(
