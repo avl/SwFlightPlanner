@@ -124,7 +124,9 @@ def parse_page(parser,pagenr,kind="TMA"):
             lines=page.get_lines(page.get_partially_in_rect(x1,y1,x2,y2,xsort=True,ysort=True))
             #print ("Parsed %s y,%d-%d, %s: <%s>\n\n"%(cand.text,y1,y2,head.text,lines)).encode('utf8')
             d[head.text]=lines        
+        
         if kind=="R":
+            if y2==100: y2=y1+3
             d['name']=" ".join(x.strip() for x in filter_head_foot(page.get_lines(page.get_partially_in_rect(0,y1,10,y2,xsort=True,ysort=True))))
         else:
             d['name']=cand.text.strip()
