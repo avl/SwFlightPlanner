@@ -129,9 +129,10 @@ def get_user_trips(user):
                 if len(rts):
                     rt0=rts[0]                    
                     try:
-                        startfuel=rt0.accum_fuel_left-rt0.fuel_burn
+                        startfuel=rt0.accum_fuel_left+rt0.fuel_burn
                     except Exception:
                         startfuel=None
+                    print "Startfuel:",startfuel
                     add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.endalt,rt0.winddir,rt0.windvel,rt0.gs,
                             "start","start",1,0,rt0.tas,False,startfuel,0,
                             rt0.depart_dt,rt0.depart_dt,rt0.altitude)
@@ -779,7 +780,7 @@ class ApiController(BaseController):
         def writeInt(x):
             response.write(struct.pack(">I",x))
         
-        print "upload trip",request.params
+        #print "upload trip",request.params
         try:
             f=request.POST['upload'].file
             def readShort():
@@ -800,7 +801,7 @@ class ApiController(BaseController):
             if user.password!=password and user.password!=md5str(password):
                 raise BadCredentials("bad password")
             
-            print "POST:",request.POST
+            #print "POST:",request.params
             newrec=parseRecordedTrip(user.user,f)
             
             meta.Session.query(Recording).filter(
@@ -811,7 +812,7 @@ class ApiController(BaseController):
             meta.Session.commit()
             
             #print "GOt bytes: ",len(cont)
-            print "Upload!",request.params
+            #print "Upload!",request.params
         except BadCredentials,cause:
             response.headers['Content-Type'] = 'application/binary'        
             writeInt(0xf00db00f)
