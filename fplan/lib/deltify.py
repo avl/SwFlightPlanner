@@ -2,10 +2,11 @@ from fplan.model import meta,AipHistory
 import md5
 from datetime import datetime,timedelta
 import pickle
+import traceback
 from copy import deepcopy
 
 def freeze(inp):
-    if type(inp) in [int,float,str,unicode,frozenset]:
+    if type(inp) in [int,float,str,unicode,frozenset,datetime]:
         return inp
     if type(inp)==dict:
         return frozenset([(k,freeze(v)) for k,v in inp.items()])
@@ -15,7 +16,7 @@ def freeze(inp):
         return frozenset(inp)
     if type(inp)==tuple:
         return tuple(freeze(x) for x in inp)
-    #print "Type:",type(inp),repr(inp)
+    print "Type:",type(inp),repr(inp)
     assert 0
 def freeze_top(inp):
     out=dict()
@@ -40,6 +41,7 @@ def deltify_sub(prev,next):
     #assert type(prev)==frozenset
     #assert type(next)==frozenset
     nextset=set(freeze(next))
+    #print "Prev:",repr(prev)
     assert type(prev)==list
     out=[]
     numdelta=0
@@ -70,7 +72,7 @@ def deltify_toplevel(prevs,nexts):
     newcurr=dict()
     for k,v in nexts.items():
         if not k in prevs:            
-            delta,numd,nc=deltify_sub(frozenset([]),v)
+            delta,numd,nc=deltify_sub([],v)
         else:
             delta,numd,nc=deltify_sub(prevs[k],v)
         numdiff+=numd
@@ -94,7 +96,8 @@ def deltify(user_aipgen,cats):
     try:
         currdata=freeze_top(cats)
     except Exception:
-        return True,-1,cats,mkcksum(cats)
+        print traceback.format_exc()
+        return True,"",cats,mkcksum(cats)
     theirs=[]
     if user_aipgen!="":
         theirs=meta.Session.query(AipHistory).filter(AipHistory.aipgen==user_aipgen).all()

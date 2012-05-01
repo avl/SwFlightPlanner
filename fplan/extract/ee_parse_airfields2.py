@@ -10,6 +10,9 @@ from datetime import datetime
 from ee_common import get_airac_date
 import rwy_constructor
 import fplan.extract.parse_landing_chart as parse_landing_chart
+import aip_text_documents
+
+
 def ee_parse_airfields2():
     ads=[]
     spaces=[]
@@ -196,6 +199,10 @@ def ee_parse_airfields2():
             spaces.append(space)
         if thrs:
             ad['runways']=rwy_constructor.get_rwys(thrs)
+            
+        aip_text_documents.help_parse_doc(ad,url,
+                        icao,"ee",title="General Information",category="general")
+            
         ad['date']=date
         ad['url']=fetchdata.getrawurl(url,'ee')   
         print "AD:",ad

@@ -40,6 +40,7 @@ from fplan.extract.ey_parse_sigpoints import ey_parse_sigpoints
 from fplan.extract.ep_parse_restrict import ep_parse_tra
 from fplan.extract.ep_parse_tma import ep_parse_tma
 from fplan.extract.ep_parse_airfields import ep_parse_airfields
+import fplan.lib.purge_temp_dirs
 
 import pickle
 import os
@@ -464,16 +465,18 @@ def run_update_iteration():
             get_aipdata("aipdata.cache.new",generate_if_missing=True)
             shutil.move("aipdata.cache.new","aipdata.cache")
             print "moved new aipdata to aipdata.cache"            
-            if debug:
-                print "Yes exit"
-                sys.exit()
             print "Now re-rendering maps"
-            update_unithread()
+            if not debug:
+                update_unithread()
             print "Finished re-rendering maps"
             time.sleep(2)
             print "Now deleteting old unregistered users"
             fplan.lib.remove_unused_users.run()
             fplan.lib.delete_old_notams.run()
+            fplan.lib.purge_temp_dirs.purge_all_old_basic()
+            if debug:
+                print "Yes exit"
+                sys.exit()
         else:
             print "Chose to not update aipdata. Cur hour: %d, last_update: %s, now: %s"%(d.hour,last_update,datetime.utcnow())
             pass # No longer constantly re-rendering #os.system("nice python fplan/lib/tilegen_unithread.py 9")

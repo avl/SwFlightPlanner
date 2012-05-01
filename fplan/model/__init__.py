@@ -165,8 +165,16 @@ trip_table = sa.Table("trip",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),nullable=True,primary_key=False),
-                        sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="RESTRICT"),                                                        
+                        sa.ForeignKeyConstraint(['user', 'aircraft'], ['aircraft.user', 'aircraft.aircraft'],onupdate="CASCADE",ondelete="RESTRICT")
                         )
+tripcache_table = sa.Table("tripcache",meta.metadata,
+                        sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
+                        sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
+                        sa.Column('key',Unicode(32),primary_key=False,nullable=False),
+                        sa.Column('value',Binary(),primary_key=False,nullable=False),
+                        sa.ForeignKeyConstraint(['user', 'trip'], ['trip.user', 'trip.trip'],onupdate="CASCADE",ondelete="CASCADE")
+                        )
+
 
 download_table = sa.Table("download",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
@@ -315,6 +323,13 @@ class Trip(object):
         self.user=user
         self.trip=trip
         self.aircraft=aircraft
+class TripCache(object):
+    def __init__(self, user, trip, key,value):
+        self.user=user
+        self.trip=trip
+        self.key=key
+        self.value=value
+        
 class Download(object):
     def __init__(self, user, bytes):
         self.user=user
@@ -405,6 +420,8 @@ orm.mapper(Stay, stay_table)
 orm.mapper(SharedTrip, shared_trip_table)
 orm.mapper(Trip, trip_table, properties=dict(
     acobj=orm.relation(Aircraft,lazy=True)))
+
+orm.mapper(TripCache, tripcache_table)
 
 orm.mapper(Waypoint, waypoint_table,
     properties=dict(

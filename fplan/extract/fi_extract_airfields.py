@@ -7,7 +7,7 @@ import fplan.lib.mapper as mapper
 from fplan.lib.mapper import uprint
 import fplan.extract.rwy_constructor as rwy_constructor
 import parse_landing_chart
-
+import aip_text_documents
 def fi_parse_airfield(icao=None):
     spaces=[]
     ad=dict()
@@ -84,6 +84,8 @@ def fi_parse_airfield(icao=None):
         icao,ad['pos'],country='fi',variant='parking'
                         )
     
+    aip_text_documents.help_parse_doc(ad,"/ais/eaip/pdf/aerodromes/EF_AD_2_%s_EN.pdf"%(icao.upper(),),
+                        icao,"fi",title="General Information",category="general")
 
                                 
     ad['runways']=[]

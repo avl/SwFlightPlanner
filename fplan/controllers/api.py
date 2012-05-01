@@ -33,6 +33,123 @@ import struct
 import os
 class BadCredentials(Exception):pass
 
+def get_user_trips(user):
+    users=meta.Session.query(User).filter(User.user==user).all()
+    if len(users)==0:
+        return []
+    user,=users
+    
+    trips=meta.Session.query(Trip).filter(sa.and_(Trip.user==user.user)).order_by(Trip.trip).all()
+    out=[]
+    for trip in trips:
+        meta.Session.flush()
+        try:
+            #print "Processing trip",trip.trip
+            tripobj=dict()
+            tripobj['name']=trip.trip
+            waypoints=[]
+            def eitherf(x,fallback):
+                try:
+                    if x==None: return fallback
+                    return float(x)
+                except Exception:
+                    return 0.0
+            def da(x):
+                try:
+                    if x==None: return datetime(1970,1,1)
+                    if type(x)==datetime: return x
+                    return datetime(1970,1,1)
+                except Exception:
+                    return datetime(1970,1,1)
+            def f(x):
+                try:
+                    if x==None: return 0.0
+                    return float(x)
+                except Exception:
+                    return 0.0
+            def i(x):
+                try:
+                    if x==None: return 0
+                    return int(x)
+                except Exception:
+                    return 0
+            def s(x):
+                try:
+                    if x==None: return ""
+                    if type(x)==unicode: return x
+                    return unicode(x,'utf8')
+                except Exception:
+                    return ""
+            def add_wp(name,pos,startalt,endalt,winddir,windvel,gs,what,legpart,lastsub,d,tas,land_at_end,
+                       endfuel,fuelburn,depart_dt,arrive_dt,altitude):
+                assert depart_dt==None or type(depart_dt)==datetime                
+                assert type(pos[0])in [float,int]
+                assert type(pos[1])in [float,int]
+                d=dict(lat=pos[0],lon=pos[1],
+                    name=name,startalt=f(startalt),endalt=f(endalt),winddir=f(winddir),windvel=f(windvel),
+                        gs=eitherf(gs,75),what=s(what),legpart=s(legpart),lastsub=i(lastsub),d=f(d),tas=eitherf(tas,75),land_at_end=i(land_at_end),
+                        endfuel=f(endfuel),fuelburn=f(fuelburn),depart_dt=da(depart_dt),arrive_dt=da(arrive_dt),altitude=s(altitude)
+                        )
+                waypoints.append(d)
+            
+            try:
+
+                rts,dummy=calc_route_info.get_route(user.user,trip.trip)
+            except Exception:
+                print traceback.format_exc()
+                wpy=list(meta.Session.query(Waypoint).filter(sa.and_(
+                         Waypoint.user==user.user,Waypoint.trip==trip.trip)).order_by(Waypoint.ordering).all())
+
+                rts=[]                
+                for wp1,wp2 in zip(wpy,wpy[1:]):
+                    trts=meta.Session.query(Route).filter(sa.and_(
+                        Route.user==user.user,Route.trip==trip.trip,
+                        Route.waypoint1==wp1.id,Route.waypoint2==wp2.id)).all()
+                    dummy,d=mapper.bearing_and_distance(wp1.pos,wp2.pos)                        
+                    if len(trts)==0:
+                        rts.append(Route(user=user.user,trip=trip.trip,waypoint1=wp1.id,waypoint2=wp2.id,winddir=None,windvel=None,tas=None,variation=None,altitude="1500"))
+                    else:
+                        rts.append(trts[0])
+                
+                if len(rts):
+                    rt0=rts[0]                    
+                    add_wp(rt0.a.waypoint,mapper.from_str(rt0.a.pos),1500,1500,rt0.winddir,rt0.windvel,0,
+                            "start","start",1,0,rt0.tas,False,0,0,
+                            None,None,rt0.altitude)
+                    del rt0
+                    for rt in rts:                        
+                        land_at_end=not not (rt.b.stay)
+                        #print "Land at end of leg:",rt.b.waypoint,":",land_at_end
+                        dummy,d=mapper.bearing_and_distance(rt.a.pos,rt.b.pos)
+                        add_wp(rt.a.waypoint,mapper.from_str(rt.a.pos),1500,1500,rt.winddir,rt.windvel,0,
+                            "cruise","mid",1,d,rt.tas,land_at_end,0,0,
+                            None,None,rt.altitude)
+            
+            else:
+                if len(rts):
+                    rt0=rts[0]                    
+                    try:
+                        startfuel=rt0.accum_fuel_left+rt0.fuel_burn
+                    except Exception:
+                        startfuel=None
+                    print "Startfuel:",startfuel
+                    add_wp(rt0.a.waypoint,rt0.startpos,rt0.startalt,rt0.endalt,rt0.winddir,rt0.windvel,rt0.gs,
+                            "start","start",1,0,rt0.tas,False,startfuel,0,
+                            rt0.depart_dt,rt0.depart_dt,rt0.altitude)
+                    del rt0
+                    for rt in rts:                        
+                        land_at_end=not not (rt.b.stay and rt.lastsub)
+                        #print "Land at end of leg:",rt.b.waypoint,":",land_at_end
+                        add_wp(rt.b.waypoint,rt.endpos,rt.startalt,rt.endalt,rt.winddir,rt.windvel,rt.gs,rt.what,rt.legpart,rt.lastsub,rt.d,rt.tas,land_at_end,
+                               rt.accum_fuel_left,rt.fuel_burn,rt.depart_dt,rt.arrive_dt,rt.altitude)
+            
+            tripobj['waypoints']=waypoints
+        except Exception:
+            print "While processing trip",trip.trip,":",traceback.format_exc()
+            continue
+        out.append(tripobj)
+    return out
+
 def cleanup_poly(latlonpoints):
     
     for minstep in [0,10,100,1000,10000,100000]:
@@ -118,6 +235,7 @@ class ApiController(BaseController):
                     ceiling=space.get('ceiling',""),
                     points=[dict(lat=p[0],lon=p[1]) for p in clnd]))
             
+        aiptexts=[]
         points=[]
         version=request.params.get("version",None)
         print "version",version
@@ -150,6 +268,8 @@ class ApiController(BaseController):
                 kind=kind,
                 notams=notams,
                 alt=float(airp.get('elev',0)))
+            if 'runways' in airp:
+                ap['runways']=airp['runways']
             if icao:
                 ap['icao']=icao
                 if taf.text:
@@ -157,6 +277,13 @@ class ApiController(BaseController):
                 if metar.text:
                     ap['metar']=metar.text
             
+                if 'aiptext' in airp:
+                    for aiptext in airp['aiptext']:
+                        aiptexts.append(
+                            dict(name=icao+"_"+aiptext['category'],
+                                 icao=icao,
+                                 data=aiptext))
+                    
             if 'adcharts' in airp and '' in airp['adcharts'] and airp['adcharts'][""]['blobname']:
                 ret=airp['adcharts'][""]
                 try:
@@ -164,8 +291,8 @@ class ApiController(BaseController):
                     try:
                         aprojmatrix=get_proj(cksum).matrix
                     except Exception:
-                        print traceback.format_exc()
-                        print "Using 0-proj for ",aname
+                        #print traceback.format_exc()
+                        #print "Using 0-proj for ",aname
                         aprojmatrix=[0 for x in xrange(6)]
                         
                     ap['adchart_matrix']=list(aprojmatrix)
@@ -181,6 +308,8 @@ class ApiController(BaseController):
         for sigp in extracted_cache.get_sig_points():
             lat,lon=mapper.from_str(sigp['pos'])
             kind=sigp.get('kind','sigpoint')
+            if kind=='sig. point':
+                kind='sigpoint'
             if not kind in ['sigpoint','city','town']:
                 kind='sigpoint'
             points.append(dict(
@@ -190,6 +319,24 @@ class ApiController(BaseController):
                 kind=kind,
                 alt=-9999.0
                 ))
+        
+        user=request.params.get('user',None)
+        correct_pass=False
+        if user:
+            try:
+                print "Received password",request.params['password']
+                userobj,=meta.Session.query(User).filter(User.user==user).all()
+                if userobj.password!=request.params['password'] and userobj.password!=md5str(request.params['password']):
+                    raise Exception("Bad password")
+                correct_pass=True
+                trips=get_user_trips(user)
+            except Exception:
+                print traceback.format_exc()
+                trips=[]
+        else:
+            trips=[]
+        
+        
             #print "Just added:",points[-1]
         #add sig. points!
         if 1:
@@ -231,9 +378,10 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'text/plain'           
             return buf.getvalue()
         elif request.params.get('binary','').strip()!='':
-            response.headers['Content-Type'] = 'application/binary'                 
-            ret=android_fplan_map_format(airspaces=out,points=points,version=version,user_aipgen=user_aipgen)
+            response.headers['Content-Type'] = 'application/binary'
+            ret=android_fplan_map_format(airspaces=out,points=points,aiptexts=aiptexts,trips=trips,version=version,user_aipgen=user_aipgen,correct_pass=correct_pass)
             
+            print "meta.Session.flush/commit"
             meta.Session.flush()
             meta.Session.commit()
             if 'zip' in request.params:
@@ -246,7 +394,9 @@ class ApiController(BaseController):
             meta.Session.flush()
             meta.Session.commit()
             
-            rawtext=json.dumps(dict(airspaces=out,points=points))
+            rawkey=json.dumps(dict(airspaces=out,points=points))
+            
+            
             if 'zip' in request.params:
                 response.headers['Content-Type'] = 'application/x-gzip-compressed'            
                 return zlib.compress(rawtext)
@@ -254,6 +404,7 @@ class ApiController(BaseController):
                 response.headers['Content-Type'] = 'text/plain'            
                 return rawtext
                     
+    
 
     def get_trips(self):
         try:
@@ -306,6 +457,7 @@ class ApiController(BaseController):
         response.headers['Content-Type'] = 'application/binary'                            
         return android_fplan_bitmap_format(map_tiles_near(rts,10))
         
+
                     
     def get_trip(self):
         try:
@@ -428,7 +580,7 @@ class ApiController(BaseController):
                         if cksum==None: continue
                         for level in xrange(5):
                             cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
-                            print "Read file stamp:",cstamp,"prevstamp:",prevstamp
+                            #print "Read file stamp:",cstamp,"prevstamp:",prevstamp
                             if cstamp>prevstamp:
                                 newer=True
                     except Exception,cause:                        
@@ -628,7 +780,7 @@ class ApiController(BaseController):
         def writeInt(x):
             response.write(struct.pack(">I",x))
         
-        print "upload trip",request.params
+        #print "upload trip",request.params
         try:
             f=request.POST['upload'].file
             def readShort():
@@ -649,7 +801,7 @@ class ApiController(BaseController):
             if user.password!=password and user.password!=md5str(password):
                 raise BadCredentials("bad password")
             
-            print "POST:",request.POST
+            #print "POST:",request.params
             newrec=parseRecordedTrip(user.user,f)
             
             meta.Session.query(Recording).filter(
@@ -660,7 +812,7 @@ class ApiController(BaseController):
             meta.Session.commit()
             
             #print "GOt bytes: ",len(cont)
-            print "Upload!",request.params
+            #print "Upload!",request.params
         except BadCredentials,cause:
             response.headers['Content-Type'] = 'application/binary'        
             writeInt(0xf00db00f)
