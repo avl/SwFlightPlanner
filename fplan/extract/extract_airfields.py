@@ -415,7 +415,15 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
         if icao in big_ad:          
             parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
                             icao,ad['pos'],"se",variant="")
-            
+            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao),
+                            icao,ad['pos'],"se",variant="vac")
+            if icao!='ESSA':
+                parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_3_en.pdf"%(icao,icao),
+                                icao,ad['pos'],"se",variant="parking")
+            else:
+                parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_7_en.pdf"%(icao,icao),                                             
+                                icao,ad['pos'],"se",variant="parking")
+                                    
             
         aip_text_documents.help_parse_doc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao),
                         icao,"se",title="General Information",category="general")
