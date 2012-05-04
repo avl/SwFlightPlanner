@@ -185,10 +185,9 @@ def ee_parse_airfields2():
                             continue
                         ftext=alltext(frequency)
                         print "matching freq",ftext
-                        freq,=re.match(ur"\s*(\d+\.\d+)\s*MHz\s*",ftext).groups()
-                        freqmhz=float(freq)
-                        
-                        space['freqs'].append((callsigntxt.strip(),freqmhz))
+                        for freq in re.findall(ur"\b\d{3}\.\d{1,3}",ftext):
+                            freqmhz=float(freq)                            
+                            space['freqs'].append((callsigntxt.strip(),freqmhz))
                               
         if space and 'points' in space:
             assert 'freqs' in space

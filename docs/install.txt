@@ -9,7 +9,7 @@ First, install the following dependencies:
 
 sudo apt-get install python-cairo python-mapnik python-numpy poppler-utils \
 pylons proj postgresql python-elementtree python-dev python-psycopg2 pyro authbind swig \
-proj-bin scons swig
+proj-bin scons swig libopenjpeg
 
 If python-elementtree doesn't exist, you can try "python-xml" instead.
 
@@ -28,6 +28,10 @@ modern linux distributions)
 There is a 'configure'-script in shapemerge2d, but it doesn't build
 the python bindings for shapemerge2d, so it cannot be used. (Or rather,
 you may use it, but it doesn't help).
+
+Then, in order to have reasonably beautiful pdf-to-html conversion for AIP,
+make sure you have poppler versoin 0.16 or above. Download and install
+a newer local version else. The tool you need is "pdftohtml" .
 
 You need to manage postgresql user authentication somehow.
 The simplest way is probably to edit 

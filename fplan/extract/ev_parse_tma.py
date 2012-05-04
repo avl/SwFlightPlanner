@@ -9,6 +9,15 @@ from fplan.extract.ev_parse_airac import get_cur_airac
 from datetime import datetime
 def s(r):
     return r.replace(" ","\s*")
+def strangefix(x):
+    m=re.match(ur"\s*FL\s*(\d+)\s+FL\s*(\d+)\s*",x)
+    if m:
+        a1,a2=m.groups()
+        if int(a1)==int(a2):
+            x="FL%s"%(a1)
+        else:
+            raise Exception("Very strange altitude:"+x)
+    return x
 
 def ev_parse_obst():
     cur_airac=get_cur_airac()
@@ -92,7 +101,11 @@ def ev_parse_x(url):
             for altc in alltext(alt).split("\n"):
                 if altc.count("Real-time"): continue
                 altcand.append(altc.strip())
+            print "Altcands:",altcand
             ceiling,floor=[x.strip() for x in " ".join(altcand).split("/")]
+            ceiling=strangefix(ceiling)
+            floor=strangefix(floor)
+                        
             mapper.parse_elev(ceiling)
             ifloor=mapper.parse_elev(floor)
             iceiling=mapper.parse_elev(ceiling)            
@@ -203,6 +216,9 @@ def ev_parse_tma():
                     floor=lines[classidx-1]
                     ceiling=lines[classidx-2]
                     lastspaceidx=classidx-2
+                ceiling=strangefix(ceiling)
+                floor=strangefix(floor)
+                
                 mapper.parse_elev(ceiling)
                 mapper.parse_elev(floor)
                 type_="TMA"
