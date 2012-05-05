@@ -19,9 +19,9 @@ def latlon_limits():
     return lat1,lon1,lat2,lon2
 
 def latlon_limits_hd():
-    lat1=75
+    lat1=10
     lon1=-140
-    lat2=10
+    lat2=75
     lon2=40
     return lat1,lon1,lat2,lon2
 
