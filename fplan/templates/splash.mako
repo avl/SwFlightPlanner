@@ -14,14 +14,28 @@
 
 <div id="left-nav">
 	<dl>
-<dt><a href="http://swflightplanner.se:8080/phpBB3"><b><u>Forum</u></b></a></dt>
-<dt><a href="/splash/about"><b><u>About/FAQ</u></b></a></dt>
+		<dt><a href="http://swflightplanner.se:8080/phpBB3"><b><u>Forum</u></b></a></dt>
+		<dt><a href="/splash/about"><b><u>About/FAQ</u></b></a></dt>
 	</dl>
 </div>
-<table style="height:30%;vertical-align:middle;margin: 0 auto;">
+<table>
+<tr><td>&nbsp;</td>
+</tr>
+</table>
+<table style="height:25%;vertical-align:middle;margin: 0 auto;">
 <tr>
 <td style="width:100%;text-align:center">
-<h1>Welcome to SwFlightPlanner (BETA)!</h1>
+<p>Welcome to</p>
+<table>
+<tr><td>
+<img src="/bigicon.png" />
+</td>
+<td>&nbsp;</td>
+<td>
+<h1>SWFlightPlanner</h1>
+</td></tr>
+</table>
+<p>– Free flight planning for VFR pilots in Sweden.</p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
 <div style="font-size:15px;">${c.browserwarning|n}</div>
@@ -73,19 +87,9 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
 <b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />
 <b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
-<b>Updated 2012-03-17: </b>The NOTAM fetch script was broken recently, fixed now, but only for Sweden.<br />
-<b>Updated 2011-11-01: </b>Now support for automatically calculating optimum cruise altitudes. See <a href="/splash/about"><u>"about"</u></a> and use with caution..<br />
-<b>Updated 2011-10-11: </b>Support for Internet Explorer! The site is now tested using IE6, although later versions should also work.<br />
-<b>Updated 2011-10-02: </b>AIP SUP 38/2011 contained some invisible white text on white background, which threw off our parser. The problem has been fixed, but a few android map downloads failed on Saturday because of this.<br />
-<b>Updated 2011-08-27: </b>
-New version! New features include: Automatic determination of variation (magnetic declination), a new optional advanced
-aircraft performance model for more accurate fuel consumption figures, a 'forgot password' feature, and a few minor 
-improvements. If there are bugs, I really do want to know! Write in the forum, send me mail! 
-<br />
-<b>Updated 2011-03-14: </b>Some support for Danish airspace. The data is old, however.<br />
-<b>Updated 2010-10-09: </b>Support for creating complete ATS flightplans which can be copy-pasted to www.aro.lfv.se.<br />
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br />
 <br />

@@ -503,8 +503,10 @@ class MapviewController(BaseController):
                     session['last_pos']=mapper.latlon2merc(mapper.merc2latlon(session['last_pos'],zoomlevel),8)
                 except Exception:
                     session['last_pos']=mapper.latlon2merc((59,18),8)
+                    print "Setting session last pos to 59,18",session['last_pos']
                 zoomlevel=8
                 
+        print "Last pos is:",mapper.merc2latlon(session['last_pos'],zoomlevel)
         c.merc_x,c.merc_y=session['last_pos']
         
         c.merc5_limx1,c.merc5_limy1,c.merc5_limx2,c.merc5_limy2=merc_limits(5,conservative=False,hd=True)

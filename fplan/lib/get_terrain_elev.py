@@ -1,98 +1,112 @@
 from struct import unpack
 from math import floor
 import math
-
+from fplan.lib import mapper
 import os
+import maptilereader
+import struct
 
-terrain_files=[]
+#terrain_files=[]
+#
+#def init_terrain():
+#    terrain_files.append(dict(
+#        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/E020N90.DEM"),
+#        west=20.0,#-1e-5,
+#        east=60.0,
+#        north=90.0,
+#        south=40.0))
+#    terrain_files.append(dict(
+#        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/W020N90.DEM"),
+#        west=-20.0,
+#        east=20.0,#+1e-5,
+#        north=90.0,
+#        south=40.0))
 
-def init_terrain():
-    terrain_files.append(dict(
-        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/E020N90.DEM"),
-        west=20.0,#-1e-5,
-        east=60.0,
-        north=90.0,
-        south=40.0))
-    terrain_files.append(dict(
-        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/W020N90.DEM"),
-        west=-20.0,
-        east=20.0,#+1e-5,
-        north=90.0,
-        south=40.0))
 
-
-base_xres=4800
-base_yres=6000
-res_for_level=dict()
-def initreslevel():
-    xres=base_xres
-    yres=base_yres
-    for level in xrange(15):
-        res_for_level[level]=(xres,yres)
-        xres/=2
-        yres/=2    
-    
-initreslevel()    
+#base_xres=4800
+##base_yres=6000
+#res_for_level=dict()
+#def initreslevel():
+#    xres=base_xres
+#    yres=base_yres
+#    for level in xrange(15):
+#        res_for_level[level]=(xres,yres)
+#        xres/=2
+#        yres/=2    
+#    
+#initreslevel()    
 
      
 def get_terrain_elev_in_box_approx(latlon,nautmiles):
-    pixels=nautmiles/0.5
-    lat,lon=latlon
-    ypixels=pixels
-    f=math.cos(lat*math.pi/180.0)
-    if f<0.1: f=0.1
-    xpixels=pixels/f
-    resolutionlevel=0
-    while ypixels>5:
-        ypixels/=2
-        xpixels/=2
-        resolutionlevel+=1
-    return get_terrain_elev(latlon,resolutionlevel,(xpixels,ypixels))
+    #nautmiles/=2
+    zoomlevel=8
+    merc_=mapper.latlon2merc(latlon,zoomlevel)
+    merc=(int(merc_[0]),int(merc_[1]))
+    pixels=mapper.approx_scale(merc, zoomlevel, nautmiles)
+    #print "Num pixels on zoomlevel 8",pixels," naut",nautmiles
+    del merc
+    del merc_
+    while pixels>4 and zoomlevel>0:
+        zoomlevel-=1
+        pixels/=2
+        #print "Pixels on zoom",zoomlevel,": ",pixels
+    pixels=int(pixels+0.5)
+    if pixels<=1: pixels=1
+    if zoomlevel>=8: zoomlevel=8
+
+    merc_=mapper.latlon2merc(latlon,zoomlevel)
+    merc=(int(merc_[0]),int(merc_[1]))
+    #print "Getting terrain zoomlevel ",zoomlevel
+    return get_terrain_elev_merc(merc,zoomlevel,(pixels,pixels))
     
-def get_terrain_elev(latlon,resolutionlevel=0,samplebox=(1,1)):
-    if resolutionlevel>12:
+def get_terrain_elev(latlon,zoomlevel=8):
+    if zoomlevel>=8: zoomlevel=8
+    if zoomlevel<=0: zoomlevel=0
+    merc=mapper.latlon2merc(latlon,zoomlevel)
+    ret=int(get_terrain_elev_merc(merc,zoomlevel))
+    return ret
+    
+def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
+    if zoomlevel>8:
         raise Exception("Invalid (too high) resolution level")
-    global terrain_files
-    lat,lon=latlon
-    if terrain_files==[]:
-        init_terrain()
-    elevs=[-9999]
-    for terr in terrain_files:        
-        if lat>=terr['south'] and lat<=terr['north'] and lon>=terr['west'] and lon<=terr['east']:
-            logicalxres,logicalyres=4800,6000#res_for_level[resolutionlevel]            
-            xres,yres=res_for_level[resolutionlevel]            
-            #print "reading lat/lon:",lat,lon,"size:",xres,yres
-            y=int(floor(float(logicalyres)*(terr['north']-lat)/float(terr['north']-terr['south'])))
-            x=int(floor(float(logicalxres)*(lon-terr['west'])/float(terr['east']-terr['west'])))
-            for i in xrange(resolutionlevel):
-                x/=2
-                y/=2
-            if resolutionlevel==0:
-                filename=terr['fname']
-            else:
-                filename="%s-%d"%(terr['fname'],resolutionlevel)
-            x1=x-samplebox[0]/2
-            x2=x1+samplebox[0]
-            y1=y-samplebox[1]/2
-            y2=y1+samplebox[1]
-            f=open(filename)
-            for y in xrange(y1,y2):
-                for x in xrange(x1,x2):
-                    #print "reading from ",filename,x,y
-                    if x>=xres: x=xres-1
-                    if x<0: x=0
-                    if y>=yres: y=yres-1
-                    if y<0: y=0
-                    idx=int(y*xres+x)
-                    if idx<0: idx=0
-                    if idx>=xres*yres: idx=xres*yres-1
-                    f.seek(2*idx)
-                    bytes=f.read(2)
-                    elev,=unpack(">h",bytes)
-                    elevs.append(elev/0.3048)
-    if len(elevs)==1:
-        print "Missing elev:",lat,lon
-    return max(elevs)
+    if zoomlevel<0:
+        raise Exception("Invalid (too low) resolution level")
+    merc=(int(merc[0]),int(merc[1]))
+    tilex,tiley=None,None
+    heights=[]
+    for y in xrange(merc[1],merc[1]+samplebox[1]):
+        for x in xrange(merc[0],merc[0]+samplebox[0]):
+            mx=x&(~63)
+            my=y&(~63)
+            if mx!=tilex or my!=tiley:
+                raw,status=maptilereader.getmaptile('elev',zoomlevel,mx,my)
+                tilex=mx
+                tiley=my
+                if status.get('status','nok')!="ok":
+                    return 9999
+            dx=x-mx
+            dy=y-my
+            assert not (dx<0 or dy<0 or dx>=64 or dy>=64)
+            #for rownr in range(64):
+            #    row=[]
+            #    for colnr in range(64):
+            #        idx=4*(64*rownr+colnr)
+            #        rawheight=raw[idx:idx+2]
+            #        height=struct.unpack(">h",rawheight)[0]/100
+            #        row.append(chr(ord('0')+height%10))
+            #    print "#"+str(rownr)+": "+"".join(row)
+
+            idx=4*(64*dy+dx)
+            rawheight=raw[idx:idx+4]
+            #minheight=struct.unpack(">h",rawheight[0:2])[0]
+            maxheight=struct.unpack(">h",rawheight[2:4])[0]
+            #print "Minheight,maxheight",minheight,maxheight
+            height=maxheight
+            #print "Adding x,y %d,%d dx,dy %d,%d : h: %d"%(
+            #    x,y,dx,dy,height)
+            heights.append(height)
+    #print "Returning",(heights)
+    return max(heights)
 
 if __name__=='__main__':
     import Image
