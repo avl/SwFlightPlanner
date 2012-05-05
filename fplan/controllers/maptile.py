@@ -259,6 +259,8 @@ class MaptileController(BaseController):
         my=int(request.params.get('mercy'))
         mx=int(request.params.get('mercx'))
         zoomlevel=int(request.params.get('zoom'))
+        
+        
         #print request.params
         #print "dynid: ",request.params.get('dynamic_id','None')
         if 'showairspaces' in request.params and request.params['showairspaces']:
@@ -266,6 +268,12 @@ class MaptileController(BaseController):
         else:
             variant="plain"
         variant=request.params.get('mapvariant',variant)
+        
+        merc_limx1,merc_limy1,merc_limx2,merc_limy2=maptilereader.merc_limits(zoomlevel)
+        if mx>merc_limx2 or my>merc_limy2 or mx<merc_limx1 or my<merc_limy1:
+            if variant=='airspace': 
+                variant="plain"
+        
         
 
         neededit=False
@@ -282,7 +290,7 @@ class MaptileController(BaseController):
             im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    
             tilemeta=dict(status="ok")
         else:
-            #print "Getting %s,%s,%s,%d,%d"%(mx,my,zoomlevel,mx%256,my%256)
+            #print "Getting %s,%s,%s,%d,%d"%(mx,my,zoomlevel,mx%256,my%256)            
             rawtile,tilemeta=maptilereader.gettile(variant,zoomlevel,mx,my,mtime)
             if not neededit:
                 response.headers['Pragma'] = ''

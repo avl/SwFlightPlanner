@@ -180,5 +180,6 @@
  174: Persist clearances.
  175: FIXED: Don't re-layout airspace overview while interacting
  176: Airspace warning, buzzing and stuff.
+ 177: Test map drawer intensely, now that it support dynamic level of detail (more details on some parts of map).
  
   

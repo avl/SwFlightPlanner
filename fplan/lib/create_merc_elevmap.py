@@ -1,9 +1,8 @@
 from struct import pack,unpack
-from maptilereader import latlon_limits,merc_limits
+from maptilereader import merc_limits
 from StringIO import StringIO
 from blobfile import BlobFile
 from fplan.lib import mapper
-from fplan.lib.get_terrain_elev import get_terrain_elev
 from itertools import product
 import sys
 import numpy
@@ -11,10 +10,74 @@ import Image
 import md5
 import os
 tilesize=64
+from math import floor
+import math
+
+
+terrain_files=[]
+
+def init_terrain():
+    for lat in [90,40]:
+        for lon in range(-140,80,40):    
+                    
+            terrain_files.append(dict(
+                fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/%s%03d%s%02d.DEM"%(
+                    "W" if lon<0 else "E",abs(lon),
+                    "N" if lat>0 else 'S',abs(lat))),
+                west=lon,
+                east=lon+40,
+                north=lat,
+                south=lat-50))
+init_terrain()
+    
+"""        
+    terrain_files.append(dict(
+        fname=os.path.join(os.getenv("SWFP_DATADIR"),"srtp/W020N90.DEM"),
+        west=-20.0,
+        east=20.0,#+1e-5,
+        north=90.0,
+        south=40.0))
+"""
+
+base_xres=4800
+base_yres=6000
+    
+
+    
+def get_terrain_elev(latlon):
+    global terrain_files
+    lat,lon=latlon
+    if terrain_files==[]:
+        init_terrain()
+    for terr in terrain_files:        
+        if lat>=terr['south'] and lat<=terr['north'] and lon>=terr['west'] and lon<=terr['east']:
+            xres,yres=4800,6000#res_for_level[resolutionlevel]            
+            #xres,yres=res_for_level[resolutionlevel]            
+            #print "reading lat/lon:",lat,lon,"size:",xres,yres
+            y=int(floor(float(yres)*(terr['north']-lat)/float(terr['north']-terr['south'])))
+            x=int(floor(float(xres)*(lon-terr['west'])/float(terr['east']-terr['west'])))
+            filename=terr['fname']
+            f=open(filename)
+            if x>=xres: x=xres-1
+            if x<0: x=0
+            if y>=yres: y=yres-1
+            if y<0: y=0
+            
+            idx=int(y*xres+x)
+            if idx<0: idx=0
+            if idx>=xres*yres: idx=xres*yres-1
+            f.seek(2*idx)
+            bytes=f.read(2)
+            elev,=unpack(">h",bytes)
+            return elev/0.3048
+    print "No elev for: ",latlon
+    return -9999
+
+
 
 def create_merc_elevmap(dest):    
     zoomlevel=8
-    limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel)
+    limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel,hd=True)
     tilesizemask=tilesize-1
 
     #a,b=mapper.latlon2merc((61,15),zoomlevel)
@@ -57,7 +120,7 @@ def create_merc_elevmap(dest):
     
 def refine_merc_elevmap(src,srczoomlevel):
     zoomlevel=srczoomlevel-1
-    limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel)
+    limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel,hd=True)
 
     tilesizemask=tilesize-1
     assert (limitx1&tilesizemask)==0
@@ -151,6 +214,24 @@ def verify(src,zoomlevel):
         basey+=tilesize
     im.save("out-%d.png"%(zoomlevel,))
 
+
+def gen_basic_test():
+    import Image
+    xs=1000
+    ys=1000
+    im=Image.new("RGB",(xs,ys))
+    for x in xrange(0,xs):
+        for y in xrange(0,ys):
+            lat=80-y/float(ys)*80.0
+            lon=-100.0+x/float(xs)*150.0
+            elev=get_terrain_elev((lat,lon))
+            e=int(elev/25.0)%255
+            #print lat,lon,e
+            im.putpixel((x,y),(e,e,e))
+    im.save("test.png")
+   
+
+
 if __name__=='__main__':
     print sys.argv
     task=sys.argv[1]
@@ -158,7 +239,9 @@ if __name__=='__main__':
         dest=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/elev/level")
     else:
         dest=sys.argv[2]
-    if task=='refine':
+    if task=='test':
+        gen_basic_test()        
+    elif task=='refine':
         zoomlevel=8
         while zoomlevel>=0:
             refine_merc_elevmap(dest,zoomlevel)

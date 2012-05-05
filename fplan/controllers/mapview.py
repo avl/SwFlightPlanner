@@ -42,7 +42,7 @@ class MapviewController(BaseController):
                 if zoomlevel>13: zoomlevel=13
             merc_x,merc_y=mapper.latlon2merc(latlon,zoomlevel)
             
-        merc_limx1,merc_limy1,merc_limx2,merc_limy2=merc_limits(zoomlevel,conservative=False)
+        merc_limx1,merc_limy1,merc_limx2,merc_limy2=merc_limits(zoomlevel,conservative=False,hd=True)
         if merc_x>merc_limx2: merc_x=merc_limx2
         if merc_y>merc_limy2: merc_y=merc_limy2
         if merc_x<merc_limx1: merc_x=merc_limx1
@@ -507,7 +507,7 @@ class MapviewController(BaseController):
                 
         c.merc_x,c.merc_y=session['last_pos']
         
-        c.merc5_limx1,c.merc5_limy1,c.merc5_limx2,c.merc5_limy2=merc_limits(5,conservative=False)
+        c.merc5_limx1,c.merc5_limy1,c.merc5_limx2,c.merc5_limy2=merc_limits(5,conservative=False,hd=True)
 
         
                                         

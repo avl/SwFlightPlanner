@@ -26,7 +26,10 @@ def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
     for zoomlevel in xrange(maxzoomlevel+1):
         maxy=mapper.max_merc_y(zoomlevel)
         maxx=mapper.max_merc_x(zoomlevel)
-        limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel)
+        hd=False
+        if zoomlevel<=8:
+            hd=True
+        limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel,hd=hd)
         assert limitx2>limitx1
         assert limity2>limity1
         print "Limits: %f,%f - %f,%f"%(limitx1,limity1,limitx2,limity2)

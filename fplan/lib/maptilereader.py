@@ -18,12 +18,26 @@ def latlon_limits():
     lon2=31.8
     return lat1,lon1,lat2,lon2
 
-def merc_limits(zoomlevel,conservative=False):
+def latlon_limits_hd():
+    lat1=75
+    lon1=-140
+    lat2=10
+    lon2=40
+    return lat1,lon1,lat2,lon2
+
+mlim={}
+def merc_limits(zoomlevel,conservative=False,hd=False):
     def ints(xs): return [int(x) for x in xs]
-    lat1,lon1,lat2,lon2=latlon_limits()
+    if (zoomlevel,conservative,hd) in mlim:
+        return mlim[(zoomlevel,conservative,hd)]
+    if hd:
+        lat1,lon1,lat2,lon2=latlon_limits_hd()
+    else:
+        lat1,lon1,lat2,lon2=latlon_limits()
     limitx1,limity1=ints(mapper.latlon2merc((lat2,lon1),zoomlevel))
     limitx2,limity2=ints(mapper.latlon2merc((lat1,lon2),zoomlevel))
     if conservative:
+        mlim[(zoomlevel,conservative,hd)]=(limitx1,limity1,limitx2,limity2)
         return limitx1,limity1,limitx2,limity2
     else:
         tilesize=256
@@ -34,6 +48,7 @@ def merc_limits(zoomlevel,conservative=False):
         limity2&=~tilesizemask
         limitx2+=tilesize
         limity2+=tilesize
+        mlim[(zoomlevel,conservative,hd)]=(limitx1,limity1,limitx2,limity2)
         return limitx1,limity1,limitx2,limity2
 
     
