@@ -43,7 +43,7 @@ def parse_doc(path,icao,country,title,category):
     if path.lower().endswith("pdf"):
         outpath_inter=os.path.join(tmppath,blobname+".tmp.html")
         def render(inputfile,outputfile):
-            r="pdftohtml -i -zoom 2 -noframes  -s -nodrm %s %s"%(inputfile,outputfile)
+            r="pdftohtml -i -zoom 2 -noframes -nodrm %s %s"%(inputfile,outputfile)  #-s is not supported on older pdftohtml, and doesn't appear necessary either.
             print "running",r
             assert 0==os.system(r)
                 

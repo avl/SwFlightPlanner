@@ -37,12 +37,14 @@ def ee_parse_tma2():
             return True
         return nested(tab.getparent())
     for tab in tree.xpath(".//table"):
+        print "table alltext:",alltext(tab)
         if nested(tab.getparent()): continue
         firsttr=tab.xpath(".//tr")[0]
-        print "firsttr",firsttr
         ntext=alltext(firsttr)
+        print "firsttr",firsttr
         print "ntext",ntext
-        if re.match(ur".*FIR\s*/\s*CTA\s*/\s*UIR\s*/\s*UTA.*",ntext):
+        if re.match(ur".*FIR\s*/\s*CTA.*",ntext):
+            print "Matches Tallin FIR"
             name='TALLIN FIR'
             points=mapper.parse_coord_str(firtxt,context='estonia')
             floor,ceiling="GND","FL195"
