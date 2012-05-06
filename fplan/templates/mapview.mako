@@ -31,7 +31,6 @@ dynamic_id='${c.dynamic_id}'; /*Id to keep different tiles uniquely named - need
 uploadtrackurl='${h.url_for(controller="mapview",action="upload_track")}';
 fastmap=${"1" if c.fastmap else "0"};
 mapvariant='${c.mapvariant}';
-tiles=[];
 overlay_left=0;
 overlay_top=0;
 
@@ -82,46 +81,12 @@ function loadmap()
 	map_topleft_merc=clip_mappos(map_topleft_merc[0],map_topleft_merc[1]);
 
 
-	var tilestart=[map_topleft_merc[0],map_topleft_merc[1]];
-	tilestart[0]=parseInt(tilestart[0]-(tilestart[0]%tilesize));
-	tilestart[1]=parseInt(tilestart[1]-(tilestart[1]%tilesize));
-	//alert('topleft merc x: '+map_topleft_merc[0]+' tilestart x: '+tilestart[0]);
-	var tileoffset_x=tilestart[0]-map_topleft_merc[0];
-	var tileoffset_y=tilestart[1]-map_topleft_merc[1];
-	//alert('tileoffset x: '+tileoffset_x);
-	var imgs='';
-	xsegcnt=parseInt(Math.floor(w/tilesize+2.5));
-	ysegcnt=parseInt(Math.floor(h/tilesize+2.5));
-	var offy1=tileoffset_y;
-	var mercy=tilestart[1];
-	for(var iy=0;iy<ysegcnt;++iy)
-	{
-		var row=[];
-		var offx1=tileoffset_x;
-		var mercx=tilestart[0];
-		for(var ix=0;ix<xsegcnt;++ix)
-		{
-			imgs+='<img  galleryimg="no" style="border:0px;margin:0px;padding:0px;position:absolute;z-index:0;left:'+(offx1)+'px;top:'+
-				(offy1)+'px;width:'+(tilesize)+'px;height:'+(tilesize)+'px" '+
-				'id="mapid'+iy+''+ix+
-				'" src="'+calctileurl(${c.zoomlevel},mercx,mercy)+'"/>';
-			offx1+=tilesize
-			mercx+=tilesize;
-		}
-		offy1+=tilesize;
-		mercy+=tilesize;
-	}
-
 	content.innerHTML=''+
-	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;" '+
-	'onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">'+	
-	imgs+
-	'<div id="overlay1" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div id="overlay2" style="overflow:hidden;position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
-	'<div id="overlay3" '+ 
-	'style="overflow:hidden;position:absolute;z-index:4;left:'+0+'px;top:'+0+'px;width:'+w+'px;height:'+h+'px;"></div>'+
+	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"'+
+    'onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">'+
 	'</div>'+	
-	'<div id="mmenu" class="popup">'+
+	
+	'<div id="mmenu" class="popup">'+	
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+
 	'<div class="popopt" id="menu-move" onclick="move_waypoint()">Move Waypoint</div>'+
@@ -243,41 +208,13 @@ function loadmap()
 	;
 	
 	
+	
 	map_ysize=h;
 	map_xsize=w;
-
-	var mercy=tilestart[1];
-	var offy=tileoffset_y;
-	for(var iy=0;iy<ysegcnt;++iy)
-	{
-		var mercx=tilestart[0];
-		var offx=tileoffset_x;
-		for(var ix=0;ix<xsegcnt;++ix)
-		{
-			var tile=new Object();
-			tile.img=document.getElementById('mapid'+iy+''+ix);
-			tile.mercx=parseInt(mercx);
-			tile.mercy=parseInt(mercy);
-			tile.x1=parseInt(offx);	
-			tile.y1=parseInt(offy);	
-			tiles.push(tile);
-			offx+=tilesize;
-			mercx+=tilesize;				
-		}
-		offy+=tilesize;
-		mercy+=tilesize;
-	}	
+    
 	
 	
 	
-	jgq = new jsGraphics("overlay1");
-	jgq.setStroke("3");
-	jgq.setColor("#00ff00"); // green
-	
-
-	jg = new jsGraphics("overlay2");
-	jg.setStroke("3");
-	jg.setColor("#00d000"); 
 	
 	var idx=0;	
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordering):	
@@ -286,10 +223,14 @@ function loadmap()
 	tab_add_waypoint(idx,me,${wp.id},'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
 	idx++;
 	%endfor
+	
+	reload_map();
+	
 	draw_jg();
 	setInterval("if (getisdirty()) save_data(null)", 5*1000);
 	
 	register_foldedlink_hook(save_data);
+
 	
 }
 

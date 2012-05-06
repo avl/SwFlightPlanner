@@ -9,25 +9,29 @@ import Pyro.naming
 from struct import pack
 
 from blobfile import BlobFile
-from maptilereader import latlon_limits,merc_limits
+from maptilereader import latlon_limits,latlon_limits_hd,merc_limits
         
 
 def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
-    lat1,lon1,lat2,lon2=latlon_limits()
-    lat1=float(lat1)
-    lat2=float(lat2)
-    lon1=float(lon1)
-    lon2=float(lon2)
-    
     meta=0 #Change back to if using mapnik
     #if meta==0:
     #    print "\n\n\n\n\n=====================================================================\nWARNING! meta==0!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n"
     packcnt=0
     for zoomlevel in xrange(maxzoomlevel+1):
+        if zoomlevel<=9:
+            lat1,lon1,lat2,lon2=latlon_limits_hd()
+        else:
+            lat1,lon1,lat2,lon2=latlon_limits()
+        
+        lat1=float(lat1)
+        lat2=float(lat2)
+        lon1=float(lon1)
+        lon2=float(lon2)
+        
         maxy=mapper.max_merc_y(zoomlevel)
         maxx=mapper.max_merc_x(zoomlevel)
         hd=False
-        if zoomlevel<=8:
+        if zoomlevel<=9:
             hd=True
         limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel,hd=hd)
         assert limitx2>limitx1
@@ -48,7 +52,7 @@ def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
                 if already:
                     print "Already have %d,%d,%d"%(mx1,my1,zoomlevel)
                     continue
-                print "Creating new tile %d,%d,%d"%(mx1,my1,zoomlevel)
+                print "Creating new tile %d,%d,%d (tma=%s)"%(mx1,my1,zoomlevel,tma)
                                 
                 mx2=mx1+2048
                 my2=my1+2048
@@ -108,7 +112,7 @@ class TilePlanner(Pyro.core.ObjBase):
             return None #Finished
         coord,descr=self.work.popitem()
         self.inprog[coord]=descr
-        print "Handing out work: %s"%(coord,)
+        print "Handing out work: %s %s"%(coord,descr)
         cprog=len(self.inprog)
         ctot=len(self.work)
         print "Work left: %d (in progress: %d)"%(cprog+ctot,cprog)
