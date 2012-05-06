@@ -19,7 +19,7 @@ Welcome to Flightplanner
 <table style="height:15%;vertical-align:middle;margin: 0 auto;">
 <tr>
 <td style="width:100%;text-align:center">
-<h1>Flightplanner</h1>
+<h1>SwFlightplanner</h1>
 </td>
 </tr>
 </table>
@@ -149,7 +149,7 @@ Forecast) is available from LFV; and it is always just the current prognosis tha
 <li>
 To make really optimal routes, power settings and speeds should be varied 
 along the route depending on wind. This would require an even more detailed 
-performance model, to the point that validating it way beyond the reach of 
+performance model, to the point that validating it is way beyond the reach of 
 most enthusiasts (such as myself).
 </li> 
 </ul>

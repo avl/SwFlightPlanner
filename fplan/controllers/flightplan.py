@@ -1019,7 +1019,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             c.ac=None
             c.endfuel=0
         else:        
-            c.routes,dummy=get_route(tripuser(),session['current_trip'])
+            c.routes=c.techroute
             c.acwarn=False
             c.ac=c.tripobj.acobj
             if len(c.routes)>0:
@@ -1031,5 +1031,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
         for rt in c.routes:
             if rt.performance!="ok":
                 c.performance="notok"
+        meta.Session.flush();
+        meta.Session.commit()   
         return render('/fuel.mako')
         

@@ -168,18 +168,23 @@
  - Visa landningsbanor i vanlig kartvy
  - AIP PDF -> html, attacha till flygplatser
  - "Var är jag"-funktion.
- 165: Need to clean the adcharts-directory
- 166: Verify that deltify data tables are cleaned.
- 167: Trips aren't deterministic, calc_routes uses current date
- 168: Write manual
- 169: Fallback when calc_route doesn't work, so trip still loads in device.
- 170: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix!
- 171: Fixed: Route info cache
- 172: WONTFIX: Should changes to trip cut through even to active trip? I guess so? They should not.
- 173: Test new server version intensively. 
- 174: Persist clearances.
- 175: FIXED: Don't re-layout airspace overview while interacting
- 176: Airspace warning, buzzing and stuff.
- 177: Test map drawer intensely, now that it support dynamic level of detail (more details on some parts of map).
+165: FIED: Need to clean the adcharts-directory
+166: Verify that deltify data tables are cleaned.
+167: FIXED? Trips aren't deterministic, calc_routes uses current date
+168: Write manual
+169: FIXED: Fallback when calc_route doesn't work, so trip still loads in device.
+170: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix!
+171: FIXED: Route info cache
+172: WONTFIX: Should changes to trip cut through even to active trip? I guess so? They should not.
+173: Test new server version intensively. 
+174: Persist clearances.
+175: FIXED: Don't re-layout airspace overview while interacting
+176: Airspace warning, buzzing and stuff.
+177: Test map drawer intensely, now that it support dynamic level of detail (more details on some parts of map).
+178: Make it possible to set altitude/FL in nearby airspaces.
+179: FIXED: Ny ikon.
+180: Describe-position borde klara att göra ICAO-positions-angivelser, typ expecting NOSLI 52, PEBAX 08.
+181: Hysteres i airspeed-ahead-varningen. Om den varnat för 5-min gräns, så måste det bli mer än 7 min innan den slutar varna, eller nåt sånt.
+182: 
+
  
-  
