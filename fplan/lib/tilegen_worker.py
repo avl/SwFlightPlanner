@@ -14,6 +14,7 @@ from fplan.lib.notam_geo_search import get_notam_objs_cached
 import socket
 import maptilereader
 from itertools import izip,chain
+import sys
 #have_mapnik=True
 
 #If changing this - also change 'meta=x' in tilegen_planner .
@@ -62,11 +63,12 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
     in order to draw using mapnik. If false, a basemap must already have been drawn, and all that can
     be done is that new airspaces etc an be filled in.
     """
+    print "TMA:",tma
     imgx,imgy=pixelsize
     assert osmdraw in [True,False]
     if not osmdraw:
-        #print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
-        #print "Generating tile"
+        print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
+        print "Generating tile"
         mapfile = os.path.join(os.getenv("SWFP_DATADIR"),"mapnik_render/osm.xml")
         
         #---------------------------------------------------
@@ -101,7 +103,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         assert len(as_array)==len(buf)
         r,g,b,a=numpy.hsplit(as_array.reshape(num_pixels,4),(1,2,3))
         assert len(r)==num_pixels
-        #print "Num pixels: ",num_pixels
+        print "Num pixels: ",num_pixels
         swapped=numpy.column_stack((b,g,r,a)).reshape(4*num_pixels)
         assert len(swapped)==num_pixels*4   
         assert num_pixels==imgx*imgy
@@ -109,6 +111,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         #as_array=numpy.fromstring(buf,numpy.dtype("u4"))
         #as_array.byteswap(True)
     else:
+        print "Reading existing map instead"
         im=Image.new("RGBA",(imgx,imgy))
         for i in xrange(0,pixelsize[0],256):
             for j in xrange(0,pixelsize[1],256):
@@ -260,7 +263,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
     return im
 
 def test_stockholm_tile():
-    im=generate_big_tile((2048,2048),71936-256*4,38400-256*4,9,osmdraw=False,tma=True)
+    im=generate_big_tile((2048,2048),71936-256*4,38400-256*4,9,osmdraw=False,tma=False)
     p="output.png"
     if hasattr(im,'crop'):
         #print "PIL-image"
@@ -337,6 +340,9 @@ def run(planner):
             raise
             
 if __name__=="__main__":
+    if len(sys.argv)>1 and sys.argv[1]=="test":
+        test_stockholm_tile()
+        sys.exit()
     planner=Pyro.core.getProxyForURI("PYRONAME://planner")
     run(planner)
     
