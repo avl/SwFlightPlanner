@@ -33,7 +33,17 @@ class BlobFile(object):
             if os.path.exists(name):
                 print "File %s already existed"%(name,)
                 self.f=open(name,"r+")
-                self.size=os.path.getsize(name)            
+                self.size=os.path.getsize(name)   
+                self.f.seek(0) 
+                buf=self.f.read(5*4)
+                params=[]
+                for i in xrange(5):
+                    params.append(unpack('>I',buf[4*i:4*i+4])[0])
+                #print "unpaked:",params
+                self.x1,self.y1,self.x2,self.y2,self.zoomlevel=params
+                if x1!=self.x1 or x2!=self.x2 or y1!=self.y1 or y2!=self.y2 or zoomlevel!=self.zoomlevel:
+                    raise Exception("Attempt to change limits of existing blobfile. This is not supported. File: "+name)
+                        
             else:            
                 print "File did not exist"
                 self.f=open(name,"w+")
@@ -112,7 +122,7 @@ class BlobFile(object):
                 self.f.seek(0,2) #seek to end of file        
                 p=self.f.tell()
                 print "writing %d bytes to %d (coords: %d,%d zoom: %d)"%(len(data),p,x,y,self.zoomlevel)
-                if p>(1<<32-1):
+                if p>((1<<32)-1):
                     raise Exception("Blobfile is larger than 2^32, which is embarassingly enough the maximum size!")
                 self.f.write(pack(">I",len(data)))
                 self.f.write(data)

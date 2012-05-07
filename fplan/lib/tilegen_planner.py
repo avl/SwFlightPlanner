@@ -12,13 +12,13 @@ from blobfile import BlobFile
 from maptilereader import latlon_limits,latlon_limits_hd,merc_limits
         
 
-def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
-    meta=0 #Change back to if using mapnik
+def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13,meta=0,cutoff=8):
+    meta=meta #Change back to if using mapnik
     #if meta==0:
     #    print "\n\n\n\n\n=====================================================================\nWARNING! meta==0!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n"
     packcnt=0
     for zoomlevel in xrange(maxzoomlevel+1):
-        if zoomlevel<=9:
+        if zoomlevel<=cutoff:
             lat1,lon1,lat2,lon2=latlon_limits_hd()
         else:
             lat1,lon1,lat2,lon2=latlon_limits()
@@ -31,7 +31,7 @@ def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
         maxy=mapper.max_merc_y(zoomlevel)
         maxx=mapper.max_merc_x(zoomlevel)
         hd=False
-        if zoomlevel<=9:
+        if zoomlevel<=cutoff:
             hd=True
         limitx1,limity1,limitx2,limity2=merc_limits(zoomlevel,hd=hd)
         assert limitx2>limitx1
@@ -95,12 +95,12 @@ def generate_work_packages(tma,blobs,cachedir,maxzoomlevel=13):
                            metay2=metay2,
                            render_tma=tma
                            ))
-    print "Finished initializing work. Created %d work items."%(packcnt,)
+    print "Finished initializing work. Created %d work items. Cutoff=%d"%(packcnt,cutoff)
 class TilePlanner(Pyro.core.ObjBase):
-    def init(self,cachedir,tma,maxzoomlevel=13):
+    def init(self,cachedir,tma,maxzoomlevel=13,meta=0,cutoff=8):
         self.tma=int(tma)
         self.blobs=dict()
-        self.work=dict(generate_work_packages(self.tma,self.blobs,cachedir,maxzoomlevel))
+        self.work=dict(generate_work_packages(self.tma,self.blobs,cachedir,maxzoomlevel,meta,cutoff))
         self.inprog=dict()
         self.cachedir=cachedir
     def close(self):
@@ -160,7 +160,8 @@ if __name__=='__main__':
         tma=sys.argv[2]
     else:
         tma='0'
-    p.init(sys.argv[1],tma)
+    cutoff=int(sys.argv[3])
+    p.init(sys.argv[1],tma,13,50,cutoff)
     uri=daemon.connect(p,"planner")
     daemon.requestLoop()
 
