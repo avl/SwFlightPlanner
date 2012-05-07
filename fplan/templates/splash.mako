@@ -32,14 +32,13 @@
 </td>
 <td>&nbsp;</td>
 <td>
-<h1>SWFlightPlanner</h1>
+<h1>SWFlightplanner</h1>
 </td></tr>
 </table>
-<p>– Free flight planning for VFR pilots in Sweden.</p>
+<p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
 <div style="font-size:15px;">${c.browserwarning|n}</div>
-
 %endif
 </td>
 </tr>
@@ -87,6 +86,9 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
+<span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner&hl=en">SwFlightplanner Android-app!</a></u></span>
+<br/><br/>
+<b>News:</b><br/>
 <b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
 <b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />
 <b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
