@@ -187,6 +187,6 @@
 181: FIXED: Hysteres i airspeed-ahead-varningen. Om den varnat för 5-min gräns, så måste det bli mer än 7 min innan den slutar varna, eller nåt sånt.
 182: FIXED: Show altitudes in airspace ahead-varningar
 183: Phrases should support icao-position-reports.
-184: Get plain api funkar inte
-185: 
+184: FIXED: Get plain api funkar inte
+185: Figure out why there is no ETA in route info in describe position.
  
