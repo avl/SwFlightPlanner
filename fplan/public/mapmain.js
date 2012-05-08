@@ -47,6 +47,9 @@ function reload_map()
 
 	imgs+='<div id="overlay1" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;"></div>';
 	imgs+='<div id="overlay2" style="overflow:hidden;position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;"></div>';
+	imgs+='<div id="clicklayer" style="overflow:hidden;position:absolute;z-index:4;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;" ';
+	imgs+='onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">';
+	imgs+='</div>';
 
     var imgcont=document.getElementById('mapcontainer');
     imgcont.innerHTML=imgs;
@@ -1518,7 +1521,7 @@ function on_mousemovemap(event)
 		{
 			var dx=Math.abs(event.clientX-initial_mouse_down[0]);
 			var dy=Math.abs(event.clientY-initial_mouse_down[1]);
-			if (Math.max(dx,dy)>20)
+			if (Math.max(dx,dy)>5)
 			{
 				dragmode=1;
 				accum_pan_dx=0;

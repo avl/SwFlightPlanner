@@ -82,11 +82,10 @@ function loadmap()
 
 
 	content.innerHTML=''+
-	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;"'+
-    'onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">'+
-	'</div>'+	
-	
-	'<div id="mmenu" class="popup">'+	
+	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;" '+
+	'onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">'+
+	'</div>'+
+	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+
 	'<div class="popopt" id="menu-del" onclick="remove_waypoint()">Remove Waypoint</div>'+
 	'<div class="popopt" id="menu-move" onclick="move_waypoint()">Move Waypoint</div>'+
