@@ -151,40 +151,42 @@
 149: FIXED: If no aircraft, and thus no fuel calc, fuel shouldn't be shown in printable.
 150: FIXED: The user field should be more than 32 characters wide, or maybe rather it should be possible to enter email as a separate field.
 151: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
-152: Rate-limit error-emails.
+152: TRIAGED: Rate-limit error-emails.
 153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
 154: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
 155: Show cruise GS on the average-legs.
 156: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
-157: Estonian AIRAC not selected correctly
+157: FIXED: Estonian AIRAC not selected correctly
 158: Se till att man inte kan skriva in datum för långt tillbaka i tiden.
 159: FIXED: Should get airport NOTAMS/TAF/METAR when clicking on them, both in android app and online. ALso, downloading notams to app should be super-quick.
-160: Add an option to "quick-sync", just syncing nOtam,metar, airspaces etc.
-161: We could draw the runway in the android app.
-162: Fix Finnish airspaces, they're now in the TMA PDF, looks parseable!
+160: FIXED: Add an option to "quick-sync", just syncing nOtam,metar, airspaces etc.
+161: FIXED: We could draw the runway in the android app.
+162: FIXED: Fix Finnish airspaces, they're now in the TMA PDF, looks parseable!
 163: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
 164: Bra idéer: 
  - Nearest funktion
- - Visa landningsbanor i vanlig kartvy
- - AIP PDF -> html, attacha till flygplatser
- - "Var är jag"-funktion.
-165: FIED: Need to clean the adcharts-directory
-166: Verify that deltify data tables are cleaned.
+ - FIXED: Visa landningsbanor i vanlig kartvy
+ - FIXED: AIP PDF -> html, attacha till flygplatser
+ - FIXED: "Var är jag"-funktion.
+165: FIXED: Need to clean the adcharts-directory
+166: TRIAGED: Verify that deltify data tables are cleaned. Probably fixed, but not very important since we're talking at most one per trip.
 167: FIXED? Trips aren't deterministic, calc_routes uses current date
 168: Write manual
 169: FIXED: Fallback when calc_route doesn't work, so trip still loads in device.
-170: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix!
+170: TRIAGED: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix!
 171: FIXED: Route info cache
 172: WONTFIX: Should changes to trip cut through even to active trip? I guess so? They should not.
-173: Test new server version intensively. 
-174: Persist clearances.
+173: FIXED: Test new server version intensively. 
+174: FIXED: Persist clearances.
 175: FIXED: Don't re-layout airspace overview while interacting
-176: Airspace warning, buzzing and stuff.
-177: Test map drawer intensely, now that it support dynamic level of detail (more details on some parts of map).
-178: Make it possible to set altitude/FL in nearby airspaces.
+176: FIXED: Airspace warning, buzzing and stuff.
+177: FIXED: Test map drawer intensely, now that it support dynamic level of detail (more details on some parts of map).
+178: TRIAGED: Make it possible to set altitude/FL in nearby airspaces.
 179: FIXED: Ny ikon.
-180: Describe-position borde klara att göra ICAO-positions-angivelser, typ expecting NOSLI 52, PEBAX 08.
-181: Hysteres i airspeed-ahead-varningen. Om den varnat för 5-min gräns, så måste det bli mer än 7 min innan den slutar varna, eller nåt sånt.
-182: 
-
+180: FIXED: Describe-position borde klara att göra ICAO-positions-angivelser, typ expecting NOSLI 52, PEBAX 08.
+181: FIXED: Hysteres i airspeed-ahead-varningen. Om den varnat för 5-min gräns, så måste det bli mer än 7 min innan den slutar varna, eller nåt sånt.
+182: FIXED: Show altitudes in airspace ahead-varningar
+183: Phrases should support icao-position-reports.
+184: Get plain api funkar inte
+185: 
  
