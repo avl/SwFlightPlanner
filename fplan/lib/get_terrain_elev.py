@@ -66,6 +66,8 @@ def get_terrain_elev(latlon,zoomlevel=8):
     ret=int(get_terrain_elev_merc(merc,zoomlevel))
     return ret
     
+elev_tilesize=256
+    
 def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
     if zoomlevel>8:
         raise Exception("Invalid (too high) resolution level")
@@ -76,8 +78,8 @@ def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
     heights=[]
     for y in xrange(merc[1],merc[1]+samplebox[1]):
         for x in xrange(merc[0],merc[0]+samplebox[0]):
-            mx=x&(~63)
-            my=y&(~63)
+            mx=x&(~(elev_tilesize-1))
+            my=y&(~(elev_tilesize-1))
             if mx!=tilex or my!=tiley:
                 raw,status=maptilereader.getmaptile('elev',zoomlevel,mx,my)
                 tilex=mx
@@ -86,17 +88,17 @@ def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
                     return 9999
             dx=x-mx
             dy=y-my
-            assert not (dx<0 or dy<0 or dx>=64 or dy>=64)
-            #for rownr in range(64):
+            assert not (dx<0 or dy<0 or dx>=elev_tilesize or dy>=elev_tilesize)
+            #for rownr in range(elev_tilesize):
             #    row=[]
-            #    for colnr in range(64):
-            #        idx=4*(64*rownr+colnr)
+            #    for colnr in range(elev_tilesize):
+            #        idx=4*(elev_tilesize*rownr+colnr)
             #        rawheight=raw[idx:idx+2]
             #        height=struct.unpack(">h",rawheight)[0]/100
             #        row.append(chr(ord('0')+height%10))
             #    print "#"+str(rownr)+": "+"".join(row)
 
-            idx=4*(64*dy+dx)
+            idx=4*(elev_tilesize*dy+dx)
             rawheight=raw[idx:idx+4]
             #minheight=struct.unpack(">h",rawheight[0:2])[0]
             maxheight=struct.unpack(">h",rawheight[2:4])[0]

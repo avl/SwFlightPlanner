@@ -117,6 +117,10 @@ def create_merc_elevmap(dest):
             print "Perc complete: %.1f%%"%(100.0*(by-limity1)/float(limity2-limity1))
     blob.close()  
     
+out=[]
+for x in xrange(tilesize*tilesize*4):
+    out.append(chr(0xff))
+onebuf="".join(out)
     
 def refine_merc_elevmap(src,srczoomlevel):
     zoomlevel=srczoomlevel-1
@@ -144,7 +148,8 @@ def refine_merc_elevmap(src,srczoomlevel):
                     srcy=2*(by)+suby*tilesize   
                     buf=srcblob.get_tile(srcx,srcy)
                     if buf==None:
-                        continue #It'll be all-zeroes...
+                        buf=onebuf
+                        print "Using onebuf"
                     #print "Got buf:",md5.md5(buf).hexdigest()
                     #print "got at %d,%d: %d bytes"%(srcx,srcy,len(buf) if buf else 0)
                     assert(len(buf)==tilesize*tilesize*4)

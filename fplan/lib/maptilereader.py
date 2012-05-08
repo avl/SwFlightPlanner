@@ -81,17 +81,16 @@ def gettile(variant,zoomlevel,mx,my,mtime=None):
     
 def getelevtile(zoomlevel,mx,my,mtime): 
     assert zoomlevel>=5   
-    raws=[]
-    for dy in xrange(0,256,64):
-        for dx in xrange(0,256,64):            
-            raw,status=getmaptile('elev',zoomlevel,mx+dx,my+dy,mtime)
-            if status['status']!="ok":
-                return open("fplan/public/nodata.png").read(),dict(status="underlying getmaptile failed: "+status['status'])
-            assert type(raw)==str
-            raws.append(raw)
+    raw,status=getmaptile('elev',zoomlevel,mx,my,mtime)
+    if status['status']!="ok":
+        return open("fplan/public/nodata.png").read(),dict(status="underlying getmaptile failed: "+status['status'])
+    assert type(raw)==str
+    raws=[raw]
+    #print "About to call colorize"
     rawimg=fplanquick.colorize_combine_heightmap(svector(raws))
+    #print "colorize returned"
     if len(rawimg)==0:
-        print "Colorize found nothing"
+        #print "Colorize found nothing"
         return open("fplan/public/nodata.png").read(),dict(status="colorize returned 0-len")
     assert len(rawimg)==256*256*3
     img=Image.fromstring("RGB",(256,256),rawimg)
@@ -137,7 +136,7 @@ def getmaptile(variant,zoomlevel,mx,my,mtime=None):
                     if os.path.exists(path):
                         #print "Reopening "+path
                         ltilesize=256
-                        if loadvariant=="elev": ltilesize=64
+                        if loadvariant=="elev": ltilesize=256
                         blobcache[(loadvariant,loadzoomlevel)]=BlobFile(path,tilesize=ltilesize)
         loaded_mtime=mtime
     finally:

@@ -48,20 +48,21 @@ std::string colorize_combine_heightmap(std::vector<std::string>& arr)
     try{
         //float d=2000.0/256.0;
         int idx=0;
-        for(int y=0;y<256;y+=64)
+        for(int y=0;y<256;y+=256)
         {
-            for(int x=0;x<256;x+=64)
+            for(int x=0;x<256;x+=256)
             {
+            	//printf("Indexing into array of length %d, index %d\n",(int)arr.size(),idx);
                 std::string& s=arr[idx];
-                if (s.length()!=2*64*64*2)
+                if (s.length()!=2*256*256*2)
                     return "";
                 const char* buf=s.data();
                 const short* elev=(const short*)buf;
-                const short* elev_end=elev+64*64*2;
+                const short* elev_end=elev+256*256*2;
                 unsigned char* outp=out+x*3+256*3*y;
-                for(int i=0;i<64;++i)
+                for(int i=0;i<256;++i)
                 {
-                    for(int j=0;j<64;++j)
+                    for(int j=0;j<256;++j)
                     {
                         int height=ntohs(*elev);
                         if (height<0 || height>20000) height=0;
@@ -69,13 +70,15 @@ std::string colorize_combine_heightmap(std::vector<std::string>& arr)
                         colorfun(height,outp[0],outp[1],outp[2]);
                         outp+=3;
                     }
-                    outp+=(64*3)*3;
+                    //outp+=(256*3)*3;
                 }
                 if (elev!=elev_end) return "";
                 ++idx;            
             }
         }
         ret.assign((const char*)out,256*256*3);
+    	//printf("Assigning return\n");
+        
     }
     catch(...)
     {
