@@ -15,7 +15,7 @@ from copy import copy
 from time import time
 from fplan.lib.obstacle_free import get_obstacle_free_height_on_line
 import md5
-
+import sqlalchemy as sa
 def parse_date(s):
     if s.count("-")==2:
         y,m,d=s.split("-")
@@ -511,9 +511,9 @@ def get_route_prepare(user,trip,action,actionstr):
         #print "stay:",wp.stay
         stays.append((idx,wp.stay))
     cachekey=md5.md5(cPickle.dumps((tripobj,routes,ac,dummyac,actionstr,stays))).hexdigest()
-    hits=meta.Session.query(TripCache).filter(TripCache.user==user,
+    hits=meta.Session.query(TripCache).filter(sa.and_(TripCache.user==user,
                                               TripCache.trip==trip,
-                                              TripCache.key==cachekey).all()
+                                              TripCache.key==cachekey)).all()
     if len(hits)>0:
         #print "Cache hit for",repr(cachekey)
         return cPickle.loads(hits[0].value)
@@ -579,8 +579,8 @@ def get_route_prepare(user,trip,action,actionstr):
     print "Done"
     respick=cPickle.dumps(result)
     
-    olds=meta.Session.query(TripCache).filter(TripCache.user==user,
-                                              TripCache.trip==trip).all()
+    olds=meta.Session.query(TripCache).filter(sa.and_(TripCache.user==user,
+                                              TripCache.trip==trip)).all()
     if len(olds)==0:    
         tripcache=TripCache(user, trip, cachekey,respick)        
         print "Storing cache for cachekey",cachekey,md5.md5(respick).hexdigest()
