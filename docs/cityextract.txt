@@ -1,2 +1,8 @@
 
 copy (select st_X(st_transform(way,4326)),st_Y(st_transform(way,4326)),place,name from planet_osm_point where place='city' or place='town') to '/tmp/cities.csv' csv;
+
+
+if not superuser:
+echo "copy (select st_X(st_transform(way,4326)),st_Y(st_transform(way,4326)),place,name from planet_osm_point where place='city' or place='town') to stdout csv;" |psql -h localhost -U gisuser gis >city.txt
+
+
