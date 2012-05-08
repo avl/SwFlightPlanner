@@ -189,4 +189,4 @@
 183: Phrases should support icao-position-reports.
 184: FIXED: Get plain api funkar inte
 185: Figure out why there is no ETA in route info in describe position.
- 
+185: FIXED: Tracks disappear when zooming.

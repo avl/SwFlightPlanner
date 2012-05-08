@@ -58,7 +58,7 @@ def approx_scale_lat(lat,zoomlevel,length_in_nautical_miles):
     
 def _from_decimal(x):
     """From decimal lat/lon tuple to to format: N47-13'30" E12-49'37" """
-    if x<0: return "-"+from_decimal(-x)
+    if x<0: return "-"+_from_decimal(-x)
     tot_micros=int(1000000.0*60.0*60.0*x+0.5)
     factors=[
         (180,1000000*60*60),
