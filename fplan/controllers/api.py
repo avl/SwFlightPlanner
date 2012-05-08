@@ -709,7 +709,7 @@ class ApiController(BaseController):
             user,=users
             if user.password!=request.params['password'] and user.password!=md5str(request.params['password']):
                 badpass=True
-                
+        maptype=request.params.get('maptype','nolabel')
         def writeInt(x):
             response.write(struct.pack(">I",x))
         def writeLong(x):
@@ -730,11 +730,11 @@ class ApiController(BaseController):
         totalsize=0
         stamp=0
         for lev in xrange(maxlevel+1):
-            tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(lev))
+            tlevelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/"+maptype+"/level"+str(lev))
             totalsize+=os.path.getsize(tlevelfile)
             stamp=max(stamp,os.stat(tlevelfile)[stat.ST_MTIME])
         #print "Maxlevel: %d, stamp: %d"%(maxlevel,stamp)
-        levelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/nolabel/level"+str(level))
+        levelfile=os.path.join(os.getenv("SWFP_DATADIR"),"tiles/"+maptype+"/level"+str(level))
         curlevelsize=os.path.getsize(levelfile)    
         cursizeleft=curlevelsize-offset
         #print "cursize left:",cursizeleft

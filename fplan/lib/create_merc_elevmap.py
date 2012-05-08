@@ -9,7 +9,7 @@ import numpy
 import Image
 import md5
 import os
-tilesize=64
+tilesize=256
 from math import floor
 import math
 
@@ -112,7 +112,7 @@ def create_merc_elevmap(dest):
                     f.write(pack(">h",elev)) #min
                     f.write(pack(">h",elev)) #max
             buf=f.getvalue()
-            assert(len(buf)==64*64*4)
+            assert(len(buf)==tilesize*tilesize*4)
             blob.add_tile(bx,by,buf)
             print "Perc complete: %.1f%%"%(100.0*(by-limity1)/float(limity2-limity1))
     blob.close()  
@@ -147,7 +147,7 @@ def refine_merc_elevmap(src,srczoomlevel):
                         continue #It'll be all-zeroes...
                     #print "Got buf:",md5.md5(buf).hexdigest()
                     #print "got at %d,%d: %d bytes"%(srcx,srcy,len(buf) if buf else 0)
-                    assert(len(buf)==64*64*4)
+                    assert(len(buf)==tilesize*tilesize*4)
                     fi=StringIO(buf)                  
                     losub=numpy.zeros((tilesize,tilesize))
                     hisub=numpy.zeros((tilesize,tilesize))
