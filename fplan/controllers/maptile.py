@@ -269,10 +269,10 @@ class MaptileController(BaseController):
             variant="plain"
         variant=request.params.get('mapvariant',variant)
         
-        merc_limx1,merc_limy1,merc_limx2,merc_limy2=maptilereader.merc_limits(zoomlevel)
-        if mx>merc_limx2 or my>merc_limy2 or mx<merc_limx1 or my<merc_limy1:
-            if variant=='airspace': 
-                variant="plain"
+        #merc_limx1,merc_limy1,merc_limx2,merc_limy2=maptilereader.merc_limits(zoomlevel)
+        #if mx>merc_limx2 or my>merc_limy2 or mx<merc_limx1 or my<merc_limy1:
+        #    if variant=='airspace': 
+        #        variant="plain"
         
         
 

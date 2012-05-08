@@ -82,6 +82,8 @@ function reload_map()
 	jg = new jsGraphics("overlay2");
 	jg.setStroke("3");
 	jg.setColor("#00d000"); 
+	jgq.clear();
+	draw_jg();
 
 }
 

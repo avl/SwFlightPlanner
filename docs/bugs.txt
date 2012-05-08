@@ -188,5 +188,5 @@
 182: FIXED: Show altitudes in airspace ahead-varningar
 183: Phrases should support icao-position-reports.
 184: Get plain api funkar inte
-185: 
+185: Tracks disappear when zooming.
  
