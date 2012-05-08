@@ -14,6 +14,7 @@ from fplan.lib.notam_geo_search import get_notam_objs_cached
 import socket
 import maptilereader
 from itertools import izip,chain
+import sys
 #have_mapnik=True
 
 #If changing this - also change 'meta=x' in tilegen_planner .
@@ -67,7 +68,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
     if not osmdraw:
         #print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
         #print "Generating tile"
-        mapfile = os.path.join(os.getenv("SWFP_DATADIR"),"mapnik_render/osm.xml")
+        print "mapnikstyle file:",os.getenv("SWFP_MAPNIK_STYLE")
+        mapfile = os.path.join(os.getenv("SWFP_MAPNIK_STYLE"),"osm.xml")
         
         #---------------------------------------------------
         #  Change this to the bounding box you want
@@ -337,6 +339,9 @@ def run(planner):
             raise
             
 if __name__=="__main__":
+    if sys.argv[1]=="test":
+        test_stockholm_tile()
+        sys.exit()
     planner=Pyro.core.getProxyForURI("PYRONAME://planner")
     run(planner)
     
