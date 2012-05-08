@@ -9,7 +9,7 @@ First, install the following dependencies:
 
 sudo apt-get install python-cairo python-mapnik python-numpy poppler-utils \
 pylons proj postgresql python-elementtree python-dev python-psycopg2 pyro authbind swig \
-proj-bin scons swig libopenjpeg
+proj-bin scons swig libopenjpeg python-mechanize libboost-dev
 
 If python-elementtree doesn't exist, you can try "python-xml" instead.
 

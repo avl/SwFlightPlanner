@@ -394,7 +394,7 @@ class ApiController(BaseController):
             meta.Session.flush()
             meta.Session.commit()
             
-            rawkey=json.dumps(dict(airspaces=out,points=points))
+            rawtext=json.dumps(dict(airspaces=out,points=points))
             
             
             if 'zip' in request.params:

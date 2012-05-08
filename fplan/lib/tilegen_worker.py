@@ -66,10 +66,11 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
     print "TMA:",tma
     imgx,imgy=pixelsize
     assert osmdraw in [True,False]
-    if not osmdraw:
+    if not osmdraw: #osmdraw should probably be renamed use 'use_existing_basemap'
         print "Making %dx%d tile at %s/%s, zoomlevel: %d"%(pixelsize[0],pixelsize[1],x1,y1,zoomlevel)
         print "Generating tile"
-        mapfile = os.path.join(os.getenv("SWFP_DATADIR"),"mapnik_render/osm.xml")
+        print "mapnikstyle file:",os.getenv("SWFP_MAPNIK_STYLE")
+        mapfile = os.path.join(os.getenv("SWFP_MAPNIK_STYLE"),"osm.xml")
         
         #---------------------------------------------------
         #  Change this to the bounding box you want

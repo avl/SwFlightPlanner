@@ -31,6 +31,7 @@ fplan/controllers/profile.py
 fplan/controllers/recordings.py
 fplan/controllers/splash.py
 fplan/extract/__init__.py
+fplan/extract/aip_text_documents.py
 fplan/extract/area_parse_helper.py
 fplan/extract/ats_routes.py
 fplan/extract/border_follower.py
@@ -39,7 +40,6 @@ fplan/extract/coords_from_map.py
 fplan/extract/de_parse.py
 fplan/extract/ee_common.py
 fplan/extract/ee_extract_airfields.py
-fplan/extract/ee_parse_airfields.py
 fplan/extract/ee_parse_airfields2.py
 fplan/extract/ee_parse_r2.py
 fplan/extract/ee_parse_restrictions.py
@@ -124,6 +124,7 @@ fplan/lib/obstacle_free.py
 fplan/lib/octree.py
 fplan/lib/parse_gpx.py
 fplan/lib/poly_cleaner.py
+fplan/lib/purge_temp_dirs.py
 fplan/lib/recordings.py
 fplan/lib/remove_unused_users.py
 fplan/lib/sunrise.py
