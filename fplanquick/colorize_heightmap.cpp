@@ -37,7 +37,16 @@ void colorfun(unsigned int height,unsigned char& r,unsigned char& g,unsigned cha
         b=g=c;r=255;
         return;        
     }
-    r=g=b=255;
+    c-=256;
+    c/=12;	
+    b=255;
+    if (c<128)
+    {
+    	r=255-c;
+    	g=255-c;
+    	return;
+    }
+	r=128;g=128;b=255;    
     return;
 }
 
@@ -54,11 +63,11 @@ std::string colorize_combine_heightmap(std::vector<std::string>& arr)
             {
             	//printf("Indexing into array of length %d, index %d\n",(int)arr.size(),idx);
                 std::string& s=arr[idx];
-                if (s.length()!=2*256*256*2)
+                if (s.length()!=2*256*256)
                     return "";
                 const char* buf=s.data();
                 const short* elev=(const short*)buf;
-                const short* elev_end=elev+256*256*2;
+                const short* elev_end=elev+256*256;
                 unsigned char* outp=out+x*3+256*3*y;
                 for(int i=0;i<256;++i)
                 {
@@ -66,7 +75,7 @@ std::string colorize_combine_heightmap(std::vector<std::string>& arr)
                     {
                         int height=ntohs(*elev);
                         if (height<0 || height>20000) height=0;
-                        elev+=2;
+                        elev+=1;
                         colorfun(height,outp[0],outp[1],outp[2]);
                         outp+=3;
                     }

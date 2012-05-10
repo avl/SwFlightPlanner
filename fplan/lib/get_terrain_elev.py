@@ -98,10 +98,10 @@ def get_terrain_elev_merc(merc,zoomlevel,samplebox=(1,1)):
             #        row.append(chr(ord('0')+height%10))
             #    print "#"+str(rownr)+": "+"".join(row)
 
-            idx=4*(elev_tilesize*dy+dx)
-            rawheight=raw[idx:idx+4]
+            idx=2*(elev_tilesize*dy+dx)
+            rawheight=raw[idx:idx+2]
             #minheight=struct.unpack(">h",rawheight[0:2])[0]
-            maxheight=struct.unpack(">h",rawheight[2:4])[0]
+            maxheight=struct.unpack(">h",rawheight[0:2])[0]
             #print "Minheight,maxheight",minheight,maxheight
             height=maxheight
             #print "Adding x,y %d,%d dx,dy %d,%d : h: %d"%(

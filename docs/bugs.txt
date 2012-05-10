@@ -191,3 +191,13 @@
 185: Figure out why there is no ETA in route info in describe position.
 185: FIXED: Tracks disappear when zooming.
 186: Upload new maptiles to server
+187: Try out the new elevation warning stuff
+188: WORKSFORME: Negativ planned fuel - varför (För att det inte var planerat med tillräckligt med bränsle ombord)
+189: FIXED: Prev-next knappar på DetailedPlace borde finnas högst upp.
+190: AIP-SUP in i mobilappen?
+191: WONTFIX: Zooma mot blå cirkeln? Nää...?
+192: WONTFIX: Höjdkartan borde kanske inte vara så högupplöst, tänk om man missar en en-pixel-bergstopp? Bäst att inte göra det! Dessutom är den inte så högupplöst hur som helst.
+193: FIXED: DescribePosition top-nivå kontrollen borde vara scrollbar, så man kan se alla beskrivningar
+194: Synk-funktionen borde säga när man synkat senast, samt synka automatiskt 1h innan och 15min innan varje planerad trip.
+195: Bug to steer for
+196: Color-coded backgrounds for speed, alt, hdg, gps etc.
