@@ -82,6 +82,7 @@ def gettile(variant,zoomlevel,mx,my,mtime=None):
 def getelevtile(zoomlevel,mx,my,mtime): 
     assert zoomlevel>=5   
     raw,status=getmaptile('elev',zoomlevel,mx,my,mtime)
+    #print "get tile",status,len(raw)
     if status['status']!="ok":
         return open("fplan/public/nodata.png").read(),dict(status="underlying getmaptile failed: "+status['status'])
     assert type(raw)==str

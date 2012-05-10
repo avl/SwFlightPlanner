@@ -109,16 +109,16 @@ def create_merc_elevmap(dest):
                     my=by+y
                     latlon=mapper.merc2latlon((mx,my),zoomlevel)
                     elev=int(get_terrain_elev(latlon))
-                    f.write(pack(">h",elev)) #min
+                    #f.write(pack(">h",elev)) #min
                     f.write(pack(">h",elev)) #max
             buf=f.getvalue()
-            assert(len(buf)==tilesize*tilesize*4)
+            assert(len(buf)==tilesize*tilesize*2)
             blob.add_tile(bx,by,buf)
             print "Perc complete: %.1f%%"%(100.0*(by-limity1)/float(limity2-limity1))
     blob.close()  
     
 out=[]
-for x in xrange(tilesize*tilesize*4):
+for x in xrange(tilesize*tilesize*2):
     out.append(chr(0xff))
 onebuf="".join(out)
     
@@ -152,13 +152,13 @@ def refine_merc_elevmap(src,srczoomlevel):
                         print "Using onebuf"
                     #print "Got buf:",md5.md5(buf).hexdigest()
                     #print "got at %d,%d: %d bytes"%(srcx,srcy,len(buf) if buf else 0)
-                    assert(len(buf)==tilesize*tilesize*4)
+                    assert(len(buf)==tilesize*tilesize*2)
                     fi=StringIO(buf)                  
-                    losub=numpy.zeros((tilesize,tilesize))
+                    #losub=numpy.zeros((tilesize,tilesize))
                     hisub=numpy.zeros((tilesize,tilesize))
                     for j in xrange(tilesize):
                         for i in xrange(tilesize):
-                            losub[j,i]=unpack(">h",fi.read(2))[0]
+                            #losub[j,i]=unpack(">h",fi.read(2))[0]
                             hisub[j,i]=unpack(">h",fi.read(2))[0]                            
                     fi.close()
                     del fi
@@ -167,22 +167,22 @@ def refine_merc_elevmap(src,srczoomlevel):
                         for i in xrange(tilesize/2):
                             def s(sub,fn):
                                 return fn(sub[2*j+a,2*i+b] for (a,b) in product(xrange(2),xrange(2)))
-                            losum=s(losub,min)
+                            #losum=s(losub,min)
                             hisum=s(hisub,max)
                             #print "losum: %d from %s"%(losum,losub[2*j,2*i])
                             crd=(j+suby*tsh,i+subx*tsh)
                             #losum=suby*500+subx*2000
                             #hisum=suby*100+subx*500
-                            loout[crd]=losum
+                            #loout[crd]=losum
                             hiout[crd]=hisum
-                    del losub
+                    #del losub
                     del hisub                    
             #print "loout:",loout
             #print "hiout:",hiout
             f=StringIO()
             for j in xrange(tilesize):
                 for i in xrange(tilesize):                    
-                    f.write(pack(">h",loout[j,i])) #min
+                    #f.write(pack(">h",loout[j,i])) #min
                     f.write(pack(">h",hiout[j,i])) #max
             trgblob.add_tile(bx,by,f.getvalue())
         
@@ -212,7 +212,7 @@ def verify(src,zoomlevel):
             fi=StringIO(b)
             for i in xrange(tilesize):
                 for j in xrange(tilesize):
-                    lo=unpack(">h",fi.read(2))[0]
+                    #lo=unpack(">h",fi.read(2))[0]
                     hi=unpack(">h",fi.read(2))[0]
                     im.putpixel((basex+j,basey+i),(hi/6,hi/6,hi/6.0))
             basex+=tilesize
