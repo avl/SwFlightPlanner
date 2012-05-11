@@ -1,5 +1,6 @@
 
 use_great_circles=0;
+right_button_down=0;
 
 /* Used by show-area feature. Set to the area, then
 save is called. Save saves this variable */
@@ -48,7 +49,14 @@ function reload_map()
 	imgs+='<div id="overlay1" style="overflow:hidden;position:absolute;z-index:2;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;"></div>';
 	imgs+='<div id="overlay2" style="overflow:hidden;position:absolute;z-index:3;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;"></div>';
 	imgs+='<div id="clicklayer" style="overflow:hidden;position:absolute;z-index:4;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;" ';
-	imgs+='onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">';
+	if (is_ie==0)
+	{	
+		imgs+='onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">';
+	}
+	else
+	{
+		imgs+='>';
+	}
 	imgs+='</div>';
 
     var imgcont=document.getElementById('mapcontainer');
@@ -897,6 +905,7 @@ lastrightclicky=0;
 lastrightclickwaypoint=-1;
 function on_rightclickmap(event)
 {
+	right_button_down=1;
 	jgq.clear();
 	var relx=client2merc_x(event.clientX);
 	var rely=client2merc_y(event.clientY);
@@ -1318,12 +1327,16 @@ function show_mapinfo(mercx,mercy)
 	def.addCallback(on_get_mapinfo);
 
 }
+
+
+
 function on_mouseup(event)
 {
 	event=event || window.event;
 	var button=event.which || event.button;
 	if (button!=1)
 	{	 //not left button
+		right_button_down=0;
 		return true;
 	}
 	mouse_is_down=0;
@@ -1406,11 +1419,20 @@ function on_mouseup(event)
 }
 function on_mousedown(event)
 {
-//	alert('Mousedown');
+	//alert('Mousedown');
 	event=event || window.event;
 	var button=event.which || event.button;
 	if (button!=1)
 	{	 //not left button
+		if (right_button_down==0)
+		{
+			right_button_down=1;
+			on_rightclickmap(event);
+		}
+		else
+		{
+			right_button_down=0; //to avoid forever disabling right click if we miss an mouse-up
+		}
 		return true;
 	}
 	if (event.stopPropagation)

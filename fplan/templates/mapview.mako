@@ -55,6 +55,7 @@ function clip_mappos(mercx,mercy)
 
     return [mercx,mercy];
 }
+is_ie=${1 if c.ie else 0};
 
 function loadmap()
 {
@@ -83,7 +84,12 @@ function loadmap()
 
 	content.innerHTML=''+
 	'<div id="mapcontainer" style="overflow:hidden;position:absolute;z-index:1;left:'+left+'px;top:'+top+'px;width:'+w+'px;height:'+h+'px;" '+
+%if c.ie:	
 	'onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">'+
+%endif
+%if not c.ie:	
+ 	'>'+
+%endif	
 	'</div>'+
 	'<div id="mmenu" class="popup">'+
 	'<div class="popopt" id="menu-insert" onclick="menu_insert_waypoint_mode()">Insert Waypoint</div>'+

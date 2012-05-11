@@ -198,6 +198,12 @@
 191: WONTFIX: Zooma mot blå cirkeln? Nää...?
 192: WONTFIX: Höjdkartan borde kanske inte vara så högupplöst, tänk om man missar en en-pixel-bergstopp? Bäst att inte göra det! Dessutom är den inte så högupplöst hur som helst.
 193: FIXED: DescribePosition top-nivå kontrollen borde vara scrollbar, så man kan se alla beskrivningar
-194: Synk-funktionen borde säga när man synkat senast, samt synka automatiskt 1h innan och 15min innan varje planerad trip.
-195: Bug to steer for
+194: FIXED: Synk-funktionen borde säga när man synkat senast,
+194b:synka automatiskt 1h innan och 15min innan varje planerad trip.
+195: FIXED: Bug to steer for
 196: Color-coded backgrounds for speed, alt, hdg, gps etc.
+197: Describe position, route funkar skumt
+198: Phrases, gör klart
+199: FIXED: Estimating 18, vilseledande om det inte ens är nästa gång klockan blir 18.
+200: Inhibit invalidates to main map when a dialog is open.
+201: Check the bug intercept code better, and make the bug have black border
