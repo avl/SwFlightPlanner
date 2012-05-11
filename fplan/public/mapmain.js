@@ -51,7 +51,7 @@ function reload_map()
 	imgs+='<div id="clicklayer" style="overflow:hidden;position:absolute;z-index:4;left:'+0+'px;top:'+0+'px;width:'+(w+left)+'px;height:'+(h+top)+'px;" ';
 	if (is_ie==0)
 	{	
-		imgs+='onmouseout="on_mouseout();return false;" oncontextmenu="return on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">';
+		imgs+='onmouseout="on_mouseout();return false;" oncontextmenu="on_rightclickmap(event);return false;" onmousemove="on_mousemovemap(event);return false;" onmouseup="on_mouseup(event);return false;" onmousedown="on_mousedown(event);return false;">';
 	}
 	else
 	{
@@ -61,6 +61,7 @@ function reload_map()
 
     var imgcont=document.getElementById('mapcontainer');
     imgcont.innerHTML=imgs;
+    
 	
     tiles=[];    
 	var mercy=tilestart[1];
@@ -905,7 +906,22 @@ lastrightclicky=0;
 lastrightclickwaypoint=-1;
 function on_rightclickmap(event)
 {
-	right_button_down=1;
+	event=event || window.event;
+	if (event.preventDefault)
+        event.preventDefault();
+    else
+        event.returnValue= false;
+	if (event.stopPropagation)
+		event.stopPropagation();
+        
+	var now=(new Date()).getTime();
+	if (right_button_down>=now-1000)
+	{
+		right_button_down=0;
+		return false;
+	}
+	
+	right_button_down=now;
 	jgq.clear();
 	var relx=client2merc_x(event.clientX);
 	var rely=client2merc_y(event.clientY);
@@ -986,8 +1002,8 @@ function as_if_rightclick(relx,rely,event)
 	cm.style.display="block";
 	popupvisible=1;
 	
-	cm.style.left=''+event.clientX+'px';
-	cm.style.top=''+event.clientY+'px';
+	cm.style.left=''+(event.clientX+2)+'px';
+	cm.style.top=''+(event.clientY+2)+'px';
 	return false;
 }
 
@@ -1333,11 +1349,18 @@ function show_mapinfo(mercx,mercy)
 function on_mouseup(event)
 {
 	event=event || window.event;
+	if (event.preventDefault)
+        event.preventDefault();
+    else
+        event.returnValue= false;
+	if (event.stopPropagation)
+		event.stopPropagation();
+
 	var button=event.which || event.button;
 	if (button!=1)
 	{	 //not left button
 		right_button_down=0;
-		return true;
+		return false;
 	}
 	mouse_is_down=0;
 	if (end_drag_mode(event.clientX,event.clientY))
@@ -1419,34 +1442,22 @@ function on_mouseup(event)
 }
 function on_mousedown(event)
 {
+
 	//alert('Mousedown');
-	event=event || window.event;
+	event=event || window.event;	
+		
 	var button=event.which || event.button;
 	if (button!=1)
 	{	 //not left button
-		if (right_button_down==0)
-		{
-			right_button_down=1;
-			on_rightclickmap(event);
-		}
-		else
-		{
-			right_button_down=0; //to avoid forever disabling right click if we miss an mouse-up
-		}
-		return true;
+		return on_rightclickmap(event);
 	}
+	if (event.preventDefault)
+        event.preventDefault();
+    else
+        event.returnValue= false;
 	if (event.stopPropagation)
-	{
 		event.stopPropagation();
-	}
-	if(event.preventDefault) //prevent imagedrag on firefox
-	{
-		event.preventDefault();
-	}
-	else
-	{
-		event.returnValue = false;
-	}
+	
 	mouse_is_down=1;
 	end_drag_mode(event.clientX,event.clientY);
 	initial_mouse_down=[event.clientX,event.clientY];

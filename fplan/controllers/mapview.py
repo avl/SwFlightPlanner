@@ -461,9 +461,9 @@ class MapviewController(BaseController):
                 
         ua=request.headers.get('User-Agent','').lower()
         c.ie=False    
-        if ua.count("msie") and not (ua.count("firefox") or ua.count("chrome") or ua.count("safari")):
+        if ua.count("msie") and not (ua.count("firefox") or ua.count("chrom") or ua.count("safari")):
             c.ie=True
-                
+        #print "IE mode:",c.ie
         
         c.all_trips=list(meta.Session.query(Trip).filter(Trip.user==session['user']).all())
         print "current trip:",session.get('current_trip',None)
