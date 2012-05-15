@@ -6,6 +6,8 @@ import traceback
 from copy import deepcopy
 
 def freeze(inp):
+    if inp==None:
+        return inp
     if type(inp) in [int,float,str,unicode,frozenset,datetime]:
         return inp
     if type(inp)==dict:
@@ -97,6 +99,8 @@ def deltify(user_aipgen,cats):
         currdata=freeze_top(cats)
     except Exception:
         print traceback.format_exc()
+        cats=deepcopy(cats)        
+        sortit(cats)
         return True,"",cats,mkcksum(cats)
     theirs=[]
     if user_aipgen!="":

@@ -193,7 +193,7 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
             if versionnum>=7:
                 runways=point.get('runways',[])
                 writeByte(len(runways))
-                if runways: print "Writing runways,",runways
+                #if runways: print "Writing runways,",runways
                 for runway in runways:     
                     runway=dict(runway)               
                     for end in runway['ends']:
