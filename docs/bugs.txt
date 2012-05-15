@@ -217,8 +217,11 @@
 209: Borde ha tid för landning på destination på huvudskärmen - det är bra att ha.
 210: FIXED?: Om man backar till waypointen som är precis innan target_wp och tittar på den, så hoppar den automatiskt till target_wp.
 211: FIXED: Passed visas inte.
-212: FIXED? NO GPS-varningen dyker upp så fort man står still.
+212: FIXED: NO GPS-varningen dyker upp så fort man står still.
 213: FIXED: Android-appen visar alla cities i zoomnivå 4. Blir på tok för många ute i europa.
 214: Ibland funkar fortfarande inte ETA på nextwaypoint systemet.
 215: Could automate phraseology some more
+216: När man klickar i kartan borde den visa högsta terrängen någonstans i närheten av markören, inte just den pixeln.
+217: Måste visa altitude MSL på huvudskärmen, annars har man ingen aning om terrängvarningen går att lita på.
+
 
