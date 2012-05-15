@@ -157,7 +157,7 @@ class AircraftController(BaseController):
                 
                 for name,value in request.params.items():
                     if name in ('orig_aircraft','advanced_model','aircraft'): continue
-                    if name in ['atstype','markings']:
+                    if name in ['atstype','markings','atsradiotype']:
                         setattr(ac,name,value)
                     else:
                         if not add_from_text and name.count("_"):
@@ -191,7 +191,7 @@ class AircraftController(BaseController):
                 for name,value in request.params.items():            
                     if name in ('orig_aircraft','advanced_model','aircraft'): continue
                     if hasattr(ac,name):
-                        if name in ['atstype','markings']:
+                        if name in ['atstype','markings','atsradiotype']:
                             setattr(ac,name,value)
                         else:
                             try:

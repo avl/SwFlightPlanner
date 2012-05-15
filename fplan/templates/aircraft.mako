@@ -67,8 +67,14 @@ ${c.aircraft_name_error if c.aircraft_name_error else '(Example: SE-ABC)'}
 </tr>
 
 <tr>
-<td>Aircraft Type :</td><td>
+<td>Aircraft Type:</td><td>
     <input type="text" name="atstype" value="${c.ac.atstype}" />(Type-designator as used in ATS-flight plans)</td>
+</tr>
+</tr>
+
+<tr>
+<td>Aircraft Type Long:</td><td>
+    <input type="text" name="atsradiotype" value="${c.ac.atsradiotype}" />(Type-designator as used in communications over radio.)</td>
 </tr>
 </tr>
 

@@ -13,6 +13,7 @@ optimizeurl='${h.url_for(controller="flightplan",action="optimize")}';
 saveurl='${h.url_for(controller="flightplan",action="save")}';
 fetchacurl='${h.url_for(controller="flightplan",action="fetchac")}';
 printableurl='${h.url_for(controller="flightplan",action="printable",trip=c.tripname)}';
+extprintableurl='${h.url_for(controller="flightplan",action="printable",trip=c.tripname,extended=True)}';
 fpcolnum=${str(len(c.cols))};
 fpcolshort=[];
 fpcoldesc=[];
@@ -190,7 +191,7 @@ Total fuel consumption: <input id="totfuel" type="text" readonly="1" value="" si
 <a href="${h.url_for(controller="flightplan",action="printable")}"><u>Printable</u></a><br/>
 </span>
 <h2>Extended printable (warning: experimental)</h2>
-<span id="printablelink">
+<span id="extprintablelink">
 <a href="${h.url_for(controller="flightplan",action="printable",extended=True)}"><u>Extended Printable</u></a><br/>
 This version includes separate legs for climbs and descents.
 </span>

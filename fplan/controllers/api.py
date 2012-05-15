@@ -3,7 +3,7 @@ import StringIO
 from pylons import request, response, session, tmpl_context as c
 import fplan.lib.metartaf as metartaf
 from pylons.controllers.util import abort, redirect
-from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording,AirportProjection
+from fplan.model import meta,User,Trip,Waypoint,Route,Download,Recording,AirportProjection,Aircraft
 from fplan.lib import mapper
 from datetime import datetime,timedelta
 from fplan.lib.recordings import parseRecordedTrip
@@ -47,6 +47,14 @@ def get_user_trips(user):
             #print "Processing trip",trip.trip
             tripobj=dict()
             tripobj['name']=trip.trip
+            tripobj['aircraft']=trip.aircraft
+            
+            actypes=list(meta.Session.query(Aircraft).filter(Aircraft.aircraft==trip.aircraft).all())
+            if len(actypes)==0:
+                tripobj['atsradiotype']='?'
+            else:
+                tripobj['atsradiotype']=actypes[0].atsradiotype
+            
             waypoints=[]
             def eitherf(x,fallback):
                 try:

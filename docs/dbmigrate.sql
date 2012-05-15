@@ -72,3 +72,5 @@ alter table "download" drop constraint "download_pkey";alter table "download" ad
 #version 12 improved:
 create index on notamupdate (disappearnotam,"category");
 
+#version 13
+alter table "aircraft" add column "atsradiotype" varchar(64) not null default 'Ultralight';

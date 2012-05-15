@@ -62,6 +62,8 @@ function makedirty()
     {
         var e=document.getElementById('printablelink');
         e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Printable</span>';
+        e=document.getElementById('extprintablelink');
+        e.innerHTML='<span onclick="do_save()" onmouseover="do_save()" style="cursor:pointer">Extended Printable</span>';
     }
     dirty=1;    
 }
@@ -297,6 +299,9 @@ function save_data(cont)
 		    {
 	                var e=document.getElementById('printablelink');
         	        e.innerHTML='<a id="actualprintable" href="'+printableurl+'"><u>Printable</u></a>';
+	                e=document.getElementById('extprintablelink');
+        	        e.innerHTML='<a id="actualextprintable" href="'+extprintableurl+'"><u>Extended Printable</u></a>';
+        	        
         	        var ret=evalJSONRequest(req);
         	        update_fields(ret);		    
 			clear_calculating();

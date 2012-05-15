@@ -150,10 +150,10 @@
 148: FIXED: Automatically fill in variation information (available from http://www.ngdc.noaa.gov/geomag/WMM/wmm_wdownload.shtml)
 149: FIXED: If no aircraft, and thus no fuel calc, fuel shouldn't be shown in printable.
 150: FIXED: The user field should be more than 32 characters wide, or maybe rather it should be possible to enter email as a separate field.
-151: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
+151: TRIAGED: The downloading of airport charts to the device is not entirely robust. Remake so that existing file names on device are uploaded to server, and server then takes decision which files need to be removed, updated or added.
 152: TRIAGED: Rate-limit error-emails.
 153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
-154: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
+154: FIXED: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
 155: Show cruise GS on the average-legs.
 156: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
 157: FIXED: Estonian AIRAC not selected correctly
@@ -188,10 +188,10 @@
 182: FIXED: Show altitudes in airspace ahead-varningar
 183: Phrases should support icao-position-reports.
 184: FIXED: Get plain api funkar inte
-185: Figure out why there is no ETA in route info in describe position.
+185: FIXED: Figure out why there is no ETA in route info in describe position.
 185: FIXED: Tracks disappear when zooming.
 186: Upload new maptiles to server
-187: Try out the new elevation warning stuff
+187: FIXED: Try out the new elevation warning stuff
 188: WORKSFORME: Negativ planned fuel - varför (För att det inte var planerat med tillräckligt med bränsle ombord)
 189: FIXED: Prev-next knappar på DetailedPlace borde finnas högst upp.
 190: AIP-SUP in i mobilappen?
@@ -206,4 +206,19 @@
 198: Phrases, gör klart
 199: FIXED: Estimating 18, vilseledande om det inte ens är nästa gång klockan blir 18.
 200: Inhibit invalidates to main map when a dialog is open.
-201: Check the bug intercept code better, and make the bug have black border
+201: FIXED: Check the bug intercept code better, and make the bug have black border
+202: FIXED: Större typsnitt i fraseologi-delen?
+203: FIXED: Extended Printable dimmas inte när datat är stale.
+204: FIXED: Gissa nästa waypoint - funkar den verkligen? Ja, men bör inte planera för korsande tracks. 
+205: FIXED: Automatisk waypoint-stegning, borde hända även i Detailed place-skärmen.
+206: FIXED: När man står still så står det "infinity" i airspace-varnings-texten.
+207: FIXED: Heading-buggen siktar för långt framför, och när det är en sväng så borde man kanske inte sikta på en punkt efter svängen, för då missar man punkten ännu mer.
+208: FIXED?: Passed-tiden för en wp borde stå någon stans
+209: Borde ha tid för landning på destination på huvudskärmen - det är bra att ha.
+210: FIXED?: Om man backar till waypointen som är precis innan target_wp och tittar på den, så hoppar den automatiskt till target_wp.
+211: FIXED: Passed visas inte.
+212: FIXED? NO GPS-varningen dyker upp så fort man står still.
+213: FIXED: Android-appen visar alla cities i zoomnivå 4. Blir på tok för många ute i europa.
+214: Ibland funkar fortfarande inte ETA på nextwaypoint systemet.
+215: Could automate phraseology some more
+

@@ -141,6 +141,7 @@ aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                         sa.Column('aircraft',Unicode(32),primary_key=True,nullable=False,default=u"SE-XYZ"),#Registration, like SE-VLI
                         sa.Column('atstype',Unicode(32),primary_key=False,nullable=False,default=u"ULAC"),#Type of aircraft, like ULAC
+                        sa.Column('atsradiotype',Unicode(64),primary_key=False,nullable=False,default=u"Ultralight"),#Type of aircraft, like Ultralight, used on radio
                         sa.Column('markings',Unicode(32),primary_key=False,nullable=False,default=u"W"),#Color, for use in ATS-flightplan
                         sa.Column('cruise_speed',Float(),primary_key=False,nullable=False,default=75),
                         sa.Column('cruise_burn',Float(),primary_key=False,nullable=False,default=18),                        

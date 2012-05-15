@@ -58,7 +58,7 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
         versionnum=int(version.strip())
     except Exception:
         pass
-    assert versionnum>=1 and versionnum<=7
+    assert versionnum>=1 and versionnum<=8
     out=StringIO()
     print "Binary download in progress"
 
@@ -256,6 +256,10 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
                 continue
             writeByte(1)
             writeUTF(trip['name'])
+            if versionnum>=8:
+                writeUTF(trip['aircraft'])
+                writeUTF(trip['atsradiotype'])
+
             writeInt(len(trip['waypoints']))
             for way in trip['waypoints']:
                 way=dict(way)
