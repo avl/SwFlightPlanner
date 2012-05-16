@@ -158,7 +158,7 @@ def get_user_trips(user):
         out.append(tripobj)
     return out
 
-def cleanup_poly(latlonpoints):
+def cleanup_poly(latlonpoints,name="?"):
     
     for minstep in [0,10,100,1000,10000,100000]:
         mercpoints=[]
@@ -180,6 +180,15 @@ def cleanup_poly(latlonpoints):
         del mercpoints[-1]
     if len(mercpoints)<=2: return None
     poly=Polygon(vvector(mercpoints))
+    if len(mercpoints)==4:
+        swapped=[mercpoints[1],mercpoints[0]]+mercpoints[2:]
+        swappedpoly=Polygon(vvector(swapped))
+        print "Found 4-corner area: ",name," areas:",swappedpoly.calc_area(),poly.calc_area()
+        if abs(swappedpoly.calc_area())>abs(1.1*poly.calc_area()):
+            print "Untwisting an area",name
+            mercpoints=swapped
+            poly=swappedpoly
+            
     backtomerc=[mapper.merc2latlon((m.get_x(),m.get_y()),13) for m in mercpoints]
     if poly.is_ccw():
         return backtomerc
@@ -231,7 +240,7 @@ class ApiController(BaseController):
                 name=space['name']
                 if space['type']=="notamarea":
                     name="NOTAM:"+name
-                clnd=cleanup_poly([mapper.from_str(x) for x in space['points']])
+                clnd=cleanup_poly([mapper.from_str(x) for x in space['points']],name)
                 if not clnd:
                     print "Skipped area",name,space 
                     continue
