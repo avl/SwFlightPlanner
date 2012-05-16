@@ -45,7 +45,7 @@
 43: FIXAD: Calc borde alltid se till att angivna höjder nås. Om flygplansprestanda måste överskridas, so be it! Kan vara smart att ange ft/min  i overview.
 44: FIXAD: Gör så att "huvudnyckeln" inte står i koden, utan hämtas från en fil.
 45: METAR+TAF
-46: Links to LHP och SWC.
+46: WONTFIX: Links to LHP och SWC.
 47: FIXAD: En-route frekvenser på något bra sätt
 48: FIXAD: Visa TWR och ATIS-frekv i driftfärdplan
 49: WONTFIX: Flygfältsdata
@@ -80,12 +80,12 @@
 78: TRIAGED: GPX-import functionality would be nice!
 79: FIXAD: Mouse-wheel scroll doesn't always work on chrome. Broken pipe when sending from server.
 80: FIXAD: Save on zoom doesn't work well in chrome. Maybe take the step to a reload-free zoom?
-81: Handle very very long flights better (more than a day)
+81: FIXED: Handle very very long flights better (more than a day)
 82: FIXAD: Fundera ut varför search-dialogen inte funkar som den egentligen borde.
-83: Spara inte alla NOTAMS så jäkla länge, det tar plats.
+83: FIXED?: Spara inte alla NOTAMS så jäkla länge, det tar plats.
 84: FIXAD: Borde inte rendera *alla* punkter från en trip när man visar recordings i webappen. Det kan bli för många points.
 85: FIXAD: Gör så att man får en varning om man lägger en track mot lågt stående sol.
-86: Borde skriva mer om android-flightplannern på hemsidan.
+86: FIXED: Borde skriva mer om android-flightplannern på hemsidan.
 87: Det är skumt hur DOF hanteras i alla situationer förutom ATS. Borde varna om man hoppar tillbaka i tiden.
 88: FIXAD: Det blir skumt när man zoomar med långsam uppkoppling.
 89: FIXAD: (var aldrig fel) Borde väl varna om bränslemängden <0 NÅGONSTANs på rutten?
@@ -105,7 +105,7 @@
 103: FIXED: Cached weather isn't invalidated (well it is, but only after several years).
 104: Om notam-db-loadern misslyckas med att trycka in notams i databasen, kör den ändå igen nästa gång, även om inget har hänt med textfilen (identisk?)?
 105: FIXED: Fixa så att det funkar om piloten har whitespace i förnamn/efternamn (T.ex dubbelnamn eller intialer etc) (In fact, was never broken).
-106: Make printable flight-plan quicker!
+106: FIXED: Make printable flight-plan quicker!
 107: FIXED: Overviewen borde visa "clock"-fältet tillsammans med waypointnamnet, inte som en del av legget!
 108: FIXED: The winds-download-function seems to round 15.0 to 14 and 25.0 to 24! (or rather, I don't think it does. Consider, however, interpolation between directions - it's done using vectors!)
 109: TRIAGED: Mer test behövs. Selenium?
@@ -155,14 +155,13 @@
 153: Lägg in funktion där man kan ange ett antal minuter man vill ha för trafikvarv od yl.
 154: FIXED: Make a printable flightplan with sub-legs, not only legs (to get climb/descent GS correct)
 155: Show cruise GS on the average-legs.
-156: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
+156: TRIAGED: Airport chart downloading should be remade. When it fails, an existing airport chart should not disappear immediately. Rather, after 4 weeks (or so), it should disappear. airportproj overview should show which airports are missing, and which require new manual aligning.
 157: FIXED: Estonian AIRAC not selected correctly
 158: Se till att man inte kan skriva in datum för långt tillbaka i tiden.
 159: FIXED: Should get airport NOTAMS/TAF/METAR when clicking on them, both in android app and online. ALso, downloading notams to app should be super-quick.
 160: FIXED: Add an option to "quick-sync", just syncing nOtam,metar, airspaces etc.
 161: FIXED: We could draw the runway in the android app.
 162: FIXED: Fix Finnish airspaces, they're now in the TMA PDF, looks parseable!
-163: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
 164: Bra idéer: 
  - Nearest funktion
  - FIXED: Visa landningsbanor i vanlig kartvy
@@ -171,7 +170,6 @@
 165: FIXED: Need to clean the adcharts-directory
 166: TRIAGED: Verify that deltify data tables are cleaned. Probably fixed, but not very important since we're talking at most one per trip.
 167: FIXED? Trips aren't deterministic, calc_routes uses current date
-168: Write manual
 169: FIXED: Fallback when calc_route doesn't work, so trip still loads in device.
 170: TRIAGED: When loading unflyable trips to android, they now become flyable with TAS=GS.Fix!
 171: FIXED: Route info cache
@@ -186,11 +184,11 @@
 180: FIXED: Describe-position borde klara att göra ICAO-positions-angivelser, typ expecting NOSLI 52, PEBAX 08.
 181: FIXED: Hysteres i airspeed-ahead-varningen. Om den varnat för 5-min gräns, så måste det bli mer än 7 min innan den slutar varna, eller nåt sånt.
 182: FIXED: Show altitudes in airspace ahead-varningar
-183: Phrases should support icao-position-reports.
+183: FIXED/SORT OF: Phrases should support icao-position-reports.
 184: FIXED: Get plain api funkar inte
 185: FIXED: Figure out why there is no ETA in route info in describe position.
 185: FIXED: Tracks disappear when zooming.
-186: Upload new maptiles to server
+186: FIXED: Upload new maptiles to server
 187: FIXED: Try out the new elevation warning stuff
 188: WORKSFORME: Negativ planned fuel - varför (För att det inte var planerat med tillräckligt med bränsle ombord)
 189: FIXED: Prev-next knappar på DetailedPlace borde finnas högst upp.
@@ -201,7 +199,7 @@
 194: FIXED: Synk-funktionen borde säga när man synkat senast,
 194b:synka automatiskt 1h innan och 15min innan varje planerad trip.
 195: FIXED: Bug to steer for
-196: Color-coded backgrounds for speed, alt, hdg, gps etc.
+196: TRIAGED: Color-coded backgrounds for speed, alt, hdg, gps etc.
 197: FIXED: Describe position, route funkar skumt
 198: FIXED: Phrases, gör klart
 199: FIXED: Estimating 18, vilseledande om det inte ens är nästa gång klockan blir 18.
@@ -214,7 +212,7 @@
 206: FIXED: När man står still så står det "infinity" i airspace-varnings-texten.
 207: FIXED: Heading-buggen siktar för långt framför, och när det är en sväng så borde man kanske inte sikta på en punkt efter svängen, för då missar man punkten ännu mer.
 208: FIXED?: Passed-tiden för en wp borde stå någon stans
-209: Borde ha tid för landning på destination på huvudskärmen - det är bra att ha.
+209: FIXED: Borde ha tid för landning på destination på huvudskärmen - det är bra att ha.
 210: FIXED?: Om man backar till waypointen som är precis innan target_wp och tittar på den, så hoppar den automatiskt till target_wp.
 211: FIXED: Passed visas inte.
 212: FIXED: NO GPS-varningen dyker upp så fort man står still.
@@ -225,4 +223,6 @@
 217: FIXED: Måste visa altitude MSL på huvudskärmen, annars har man ingen aning om terrängvarningen går att lita på.
 218: FIXED: Fixa twistade areas, som t.ex i nordöstra estland. (Fixad i android-appen iaf)
 219: FIXED: Settings menu should be scrollable for small screens.
-220: Should require more precision to hit "more" and "close" buttons.
+220: TRIAGED: Should require more precision to hit "more" and "close" buttons.
+163: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
+168: Write manual
