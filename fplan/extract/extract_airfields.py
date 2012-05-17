@@ -273,13 +273,16 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                     callsign=page.get_by_regex_in_rect(ur"Call\s*sign",0,commitem.y1,100,commitem.y2+8)[0]
                     
                     
-                    for idx,item in enumerate(page.get_lines(page.get_partially_in_rect(callsign.x1-0.5,commitem.y1,100,100))):
+                    for idx,item in enumerate(page.get_lines(page.get_partially_in_rect(callsign.x1-0.5,commitem.y1,100,100),fudge=0.3,order_fudge=15)):
                         if item.strip()=="":
                             curname=None
                         if re.match(".*RADIO\s+NAVIGATION\s+AND\s+LANDING\s+AIDS.*",item):
                             break
-                        m=re.match(r"(.*?)\s*(\d{3}\.\d{1,3})\s+MHz.*",item)
+                        print "Matching:",item
+                        m=re.match(r"(.*?)\s*(\d{3}\.\d{1,3})\s*MHz.*",item)
+                        print "MHZ-match:",m
                         if not m: continue
+                        print "MHZ-match:",m.groups()
                         who,sfreq=m.groups()
                         freq=float(sfreq)
                         if abs(freq-121.5)<1e-4:
@@ -383,7 +386,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                             ceil=subspacealts[altspacename]['ceil'],
                             floor=subspacealts[altspacename]['floor'],
                             points=parse_coord_str(" ".join(subspacelines[spacename])),
-                            freqs=freqs
+                            freqs=list(set(freqs))
                             )
                         
                         if True:
@@ -507,12 +510,15 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
     #print ads
     for ad in ads:
         print "%s: %s - %s (%s ft) (%s)"%(ad['icao'],ad['name'],ad['pos'],ad['elev'],ad.get('flygkartan_id','inte i flygkartan'))
-        if 'spaces' in ad:
-            print "   spaces: %s"%(ad['spaces'],)
-        if 'aiptext' in ad:
-            print "Aip texts:",ad['aiptext']
-        else:
-            print "No aiptext"
+        for space in ad.get('spaces',[]):
+            for freq in space.get('freqs',[]):
+                print "   ",freq
+        #if 'spaces' in ad:
+        #    print "   spaces: %s"%(ad['spaces'],)
+        #if 'aiptext' in ad:
+        #    print "Aip texts:",ad['aiptext']
+        #else:
+        #    print "No aiptext"
         
     f=codecs.open("extract_airfields.regress.txt","w",'utf8')    
     for ad in ads:

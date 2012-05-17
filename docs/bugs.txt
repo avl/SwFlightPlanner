@@ -224,7 +224,7 @@
 218: FIXED: Fixa twistade areas, som t.ex i nordöstra estland. (Fixad i android-appen iaf)
 219: FIXED: Settings menu should be scrollable for small screens.
 220: TRIAGED: Should require more precision to hit "more" and "close" buttons.
-163: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
+163: FIXED: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
 168: Write manual
 221: TRIAGED: Visa indikator som visar att höjdvarningsfunktionen är avslagen.
 222: FIXED: Gör om så att när man klickar på "more" så får man flygplatsskärmen med luftrumsdef. och liknande.
