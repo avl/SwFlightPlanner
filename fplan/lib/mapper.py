@@ -707,7 +707,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         #uprint("Seg params: %s %s %s %s"%(prevpos,center,dist_nm,nextpos))
         segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
         return segseq
-    circ=re.match( ur".*circle,?\s*(?:with|of)?\s*radius\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
+    circ=re.match( ur".*[Cc]ircle,?\s*(?:with|of)?\s*radius\s*(?:of)?\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\s*\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
     if circ:
         radius,lat,lon=circ.groups()
         print "PRev:",prev,"Next:",next
