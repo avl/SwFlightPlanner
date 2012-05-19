@@ -229,7 +229,7 @@
 221: TRIAGED: Visa indikator som visar att höjdvarningsfunktionen är avslagen.
 222: FIXED: Gör om så att när man klickar på "more" så får man flygplatsskärmen med luftrumsdef. och liknande.
 223: FIXED: På flygplatser, så borde man få upp luftrum, inte bara TAF, METAR osv
-224: Ta bort klarering från alla fält som man varit och sedan åkt ur.
+224: ???FIXED: Ta bort klarering från alla fält som man varit och sedan åkt ur.
 225: Intryck från flygningen:
   - Man vill ofta ha många bitar information uppe samtidigt. Svårt på smart-phone. Exempel: När man kollar på fraseologi vill man ha kartan tillgänglig.
   -
@@ -240,7 +240,19 @@
 230: TRIAGED: GPS-höjden är ju ganska exakt. Detta skulle vi kunna använda för att få bättre fraseologi-del - den kan t.ex veta att man håller på att passera ÖVER ett CTR.
 231: Förvälj radio-operatör som man är på väg mot, i fraseologi-delen.
 232: FIXED: Snabba upp android-os animeringar etc. T.ex fading between activities etc.
-233: ATIS saknas för skavsta
+233: FIXED: ATIS saknas för skavsta
 234: Snabba upp animeringen som tar fram android menyn.
 235: Borde vara lättare att mappa in VAC etc.
-
+236: ???FIXED: Detailed place för waypoints funkar inte längre
+237: FIXED: Filter GPS signal
+238: Synka klockorna
+239: Kanske strippa whitespace i början och slutet av användarnamn? (Gör på klient-sidan)
+240: Verkar som att charts laddas ner helt oavsett detail-level setting.
+241: Även om inte elev-data laddats så visas "terrin elevation" i ad-info.
+242: Vakna upp automatiskt och synka data.
+243: FIXED: Get rid of required size stuff.
+244: Get rid of set-north-up timer timeout.
+245: Show on top of map which map has just been selected.
+246: Don't add maps without geo-mapping to toggle-list.
+247: FIXED: Bättre webbläsare (Default android)
+248: Borde säga vilken map som har blivit vald.

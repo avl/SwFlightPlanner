@@ -341,7 +341,7 @@ class ApiController(BaseController):
         correct_pass=False
         if user:
             try:
-                print "Received password",request.params['password']
+                print "Received password",request.params['password'],"user:",repr(user)
                 userobj,=meta.Session.query(User).filter(User.user==user).all()
                 if userobj.password!=request.params['password'] and userobj.password!=md5str(request.params['password']):
                     raise Exception("Bad password")
