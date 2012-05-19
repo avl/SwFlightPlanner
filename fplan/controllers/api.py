@@ -255,6 +255,7 @@ class ApiController(BaseController):
         aiptexts=[]
         points=[]
         version=request.params.get("version",None)
+        getaiptext=int(request.params.get("aip","0"))
         print "version",version
         if version and int(version.strip())>=5:
             user_aipgen=request.params.get("aipgen","")
@@ -294,7 +295,7 @@ class ApiController(BaseController):
                 if metar.text:
                     ap['metar']=metar.text
             
-                if 'aiptext' in airp:
+                if getaiptext and 'aiptext' in airp:
                     for aiptext in airp['aiptext']:
                         aiptexts.append(
                             dict(name=icao+"_"+aiptext['category'],

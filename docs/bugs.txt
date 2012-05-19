@@ -233,9 +233,9 @@
 225: Intryck från flygningen:
   - Man vill ofta ha många bitar information uppe samtidigt. Svårt på smart-phone. Exempel: När man kollar på fraseologi vill man ha kartan tillgänglig.
   -
-226: Starkare vibrationer på airspace-varningen 
-227: Ordna om fraserna i fraseologi, t.ex borde standard-frasen vid flygning på färdplan vara överst.
-228: För krångligt att få upp ad-charts, VAC etc. Borde finnas en ikon som säger "byt"(karta).
+226: TRIAGED: Starkare vibrationer på airspace-varningen 
+227: FIXED: Ordna om fraserna i fraseologi, t.ex borde standard-frasen vid flygning på färdplan vara överst.
+228: FIXED: För krångligt att få upp ad-charts, VAC etc. Borde finnas en ikon som säger "byt"(karta).
 229: AD-Chart-bilderna borde spara scroll-position och zoom-nivå.
 230: TRIAGED: GPS-höjden är ju ganska exakt. Detta skulle vi kunna använda för att få bättre fraseologi-del - den kan t.ex veta att man håller på att passera ÖVER ett CTR.
 231: Förvälj radio-operatör som man är på väg mot, i fraseologi-delen.
@@ -246,13 +246,22 @@
 236: ???FIXED: Detailed place för waypoints funkar inte längre
 237: FIXED: Filter GPS signal
 238: Synka klockorna
-239: Kanske strippa whitespace i början och slutet av användarnamn? (Gör på klient-sidan)
-240: Verkar som att charts laddas ner helt oavsett detail-level setting.
-241: Även om inte elev-data laddats så visas "terrin elevation" i ad-info.
-242: Vakna upp automatiskt och synka data.
+239: FIXED: Kanske strippa whitespace i början och slutet av användarnamn? (Gör på klient-sidan)
+240: FIXED: Verkar som att charts laddas ner helt oavsett detail-level setting.
+241: FIXED: Även om inte elev-data laddats så visas "terrin elevation" i ad-info.
+242: FIXED: Vakna upp automatiskt och synka data.
 243: FIXED: Get rid of required size stuff.
-244: Get rid of set-north-up timer timeout.
-245: Show on top of map which map has just been selected.
-246: Don't add maps without geo-mapping to toggle-list.
+244: FIXED: Get rid of set-north-up timer timeout.
+245: FIXED: Show on top of map which map has just been selected.
+246: FIXED: Don't add maps without geo-mapping to toggle-list.
 247: FIXED: Bättre webbläsare (Default android)
-248: Borde säga vilken map som har blivit vald.
+248: FIXED: Borde säga vilken map som har blivit vald.
+249: Pinch to zoom.
+250: Make fplan server honor "aip" parameter in get map
+251: FIXED: Krasch i route RelDec, troligtvis pga nylig ändring.
+252: FIXED: Passed borde vara "departed", dvs senaste gången man varit på en punkt. Det säger mer om hur sen man är, tror jag. Alternativt ha både arrived och departed.
+253: FIXED: Exit/Settings sist i menyn
+254: FIXED: Show next N nearby maps, when cycling
+255: FIXED: Show terrain even when in adchart mode.
+256: Add periodic refreshment of map, regardless of GPS; so that clock is alway correct even if no GPS.
+
