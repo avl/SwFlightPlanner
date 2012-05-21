@@ -559,24 +559,24 @@ def get_route_prepare(user,trip,action,actionstr):
             
     cone_min=None
     cone_max=None
-    cone_start=None
-    cone_dist=None
+    #cone_start=None
+    #cone_dist=None
     for idx,rt in reversed(list(enumerate(routes))):
         if rt.b.stay or cone_min==None:
-            cone_start=cone_min=cone_max=float(get_pos_elev(mapper.from_str(rt.b.pos)))
-            cone_dist=0.0
+            cone_min=cone_max=float(get_pos_elev(mapper.from_str(rt.b.pos)))
+            #cone_dist=0.0
                                     
         rt.cone_min=cone_min
         rt.cone_max=cone_max
         #print "Idx",idx,"cone",cone_min,cone_max,"dist:",cone_dist
         
-        cone_dist+=rt.d
-        cone_max=max_revdescent_feet(cone_start,cone_dist,ac,rt)
-        cone_min=max_revclimb_feet(cone_start,cone_dist,ac,rt)
+        cone_dist=rt.d
+        cone_max=max_revdescent_feet(cone_max,cone_dist,ac,rt)
+        cone_min=max_revclimb_feet(cone_min,cone_dist,ac,rt)
         
     
     result=action(tripobj,routes,ac,dummyac)
-    print "Done"
+    #print "Done"
     respick=cPickle.dumps(result)
     
     olds=meta.Session.query(TripCache).filter(sa.and_(TripCache.user==user,
@@ -646,12 +646,14 @@ def calc_alts(prev_alt,rt,mid_alt,idx,numroutes,ac):
 
     #print "calc alts, numroutes: %d, idx: %d"%(numroutes,idx),"hard const",alt_hard_constraint
     if alt_hard_constraint!=None:
-        if abs(alt_hard_constraint-alt2)>1:
-            #print "Performance exception: %f, alt2:%f"%(alt_hard_constraint,alt2)            
-            raise PerformanceException("Cannot climb or descent fast enough to reach waypoint: %s"%(rt.b.waypoint,))
+        print "Performance exception: constraint: %f, reached alt:%f"%(alt_hard_constraint,alt2)
+        if abs(alt_hard_constraint-alt2)>100:                        
+            raise PerformanceException("Cannot climb or descend fast enough to reach waypoint: %s"%(rt.b.waypoint,))
     
     
+    print "mid_alt bef cap",mid_alt
     mid_alt,was_capped=cap_mid_alt_if_required(prev_alt,mid_alt,alt2,rt.d,ac,rt)
+    print "mid_alt after cap",mid_alt
     return alt1,mid_alt,alt2,was_capped
 
 
@@ -989,12 +991,13 @@ def get_route_impl(tripobj,routes,ac,dummyac):
         try:
             prev_alt,mid_alt,alt2,was_capped=calc_alts(prev_alt,rt,mid_alt,idx,numroutes,ac)
         except PerformanceException,cause:
-            #print "Performance exception",cause
+            print "Performance exception",cause
             accum_time=None
             accum_fuel=None         
             was_capped=True
             prev_alt=mid_alt=alt2=None
                     
+        #print "Calc alts:",mid_alt
         
         #print "capped mid_alt",mid_alt,was_capped
         
@@ -1087,7 +1090,7 @@ def calc_one_leg(idx,rt,
         #    begindelta*=ratio
         #    mid_alt=prev_alt+begindelta                    
     
-    if enddist==None or begindist==None:
+    if enddist is None or begindist is None:
         #print "Enddist or begindist == None"
         beginrate=0
         endrate=0
@@ -1100,10 +1103,12 @@ def calc_one_leg(idx,rt,
         if enddist+begindist>rt.d:
             if rt.d>1e-3:
                 overcommit=(enddist+begindist)/rt.d
+                #print "Overcommit",overcommit
                 if overcommit<1.0001:
                     begindist/=overcommit
                     enddist/=overcommit
                 else:
+                    #print "Overcommit too large:",overcommit
                     beginspeed=0 #make the route impossible, to flag error
                     rt.performance="notok"
             else:
@@ -1126,11 +1131,20 @@ def calc_one_leg(idx,rt,
     
         
     if beginspeed<1e-3:
-        begintime=None
-        #print "Beginspeed too small"
+        if begindist<1e-3:
+            #print "Begindist almost zero"
+            begintime=0
+        else:
+            begintime=None
+        #print "Beginspeed too small",beginspeed
     else:
         begintime=begindist/beginspeed
     if endspeed<1e-3:
+        if enddist<1e-3:
+            #print "enddist almost zero"
+            endtime=0
+        else:
+            endtime=None        
         endtime=None
         #print "Endspeed too small"
     else:

@@ -163,7 +163,6 @@
 161: FIXED: We could draw the runway in the android app.
 162: FIXED: Fix Finnish airspaces, they're now in the TMA PDF, looks parseable!
 164: Bra idéer: 
- - Nearest funktion
  - FIXED: Visa landningsbanor i vanlig kartvy
  - FIXED: AIP PDF -> html, attacha till flygplatser
  - FIXED: "Var är jag"-funktion.
@@ -197,7 +196,7 @@
 192: WONTFIX: Höjdkartan borde kanske inte vara så högupplöst, tänk om man missar en en-pixel-bergstopp? Bäst att inte göra det! Dessutom är den inte så högupplöst hur som helst.
 193: FIXED: DescribePosition top-nivå kontrollen borde vara scrollbar, så man kan se alla beskrivningar
 194: FIXED: Synk-funktionen borde säga när man synkat senast,
-194b:synka automatiskt 1h innan och 15min innan varje planerad trip.
+194b:FIXED: synka automatiskt 30min innan och 5min innan varje planerad trip.
 195: FIXED: Bug to steer for
 196: TRIAGED: Color-coded backgrounds for speed, alt, hdg, gps etc.
 197: FIXED: Describe position, route funkar skumt
@@ -225,14 +224,11 @@
 219: FIXED: Settings menu should be scrollable for small screens.
 220: TRIAGED: Should require more precision to hit "more" and "close" buttons.
 163: FIXED: Other areas aren't in the program, like for example estonian "zone 6" south tallinn.
-168: Write manual
 221: TRIAGED: Visa indikator som visar att höjdvarningsfunktionen är avslagen.
 222: FIXED: Gör om så att när man klickar på "more" så får man flygplatsskärmen med luftrumsdef. och liknande.
 223: FIXED: På flygplatser, så borde man få upp luftrum, inte bara TAF, METAR osv
 224: ???FIXED: Ta bort klarering från alla fält som man varit och sedan åkt ur.
-225: Intryck från flygningen:
-  - Man vill ofta ha många bitar information uppe samtidigt. Svårt på smart-phone. Exempel: När man kollar på fraseologi vill man ha kartan tillgänglig.
-  -
+225: TRIAGED: Intryck från flygningen:Man vill ofta ha många bitar information uppe samtidigt. Svårt på smart-phone. Exempel: När man kollar på fraseologi vill man ha kartan tillgänglig.
 226: TRIAGED: Starkare vibrationer på airspace-varningen 
 227: FIXED: Ordna om fraserna i fraseologi, t.ex borde standard-frasen vid flygning på färdplan vara överst.
 228: FIXED: För krångligt att få upp ad-charts, VAC etc. Borde finnas en ikon som säger "byt"(karta).
@@ -241,11 +237,11 @@
 231: Förvälj radio-operatör som man är på väg mot, i fraseologi-delen.
 232: FIXED: Snabba upp android-os animeringar etc. T.ex fading between activities etc.
 233: FIXED: ATIS saknas för skavsta
-234: Snabba upp animeringen som tar fram android menyn.
+234: TRIAGED: Snabba upp animeringen som tar fram android menyn.
 235: Borde vara lättare att mappa in VAC etc.
-236: ???FIXED: Detailed place för waypoints funkar inte längre
+236: FIXED: Detailed place för waypoints funkar inte längre
 237: FIXED: Filter GPS signal
-238: Synka klockorna
+238: WHATSTHIS: Synka klockorna
 239: FIXED: Kanske strippa whitespace i början och slutet av användarnamn? (Gör på klient-sidan)
 240: FIXED: Verkar som att charts laddas ner helt oavsett detail-level setting.
 241: FIXED: Även om inte elev-data laddats så visas "terrin elevation" i ad-info.
@@ -256,12 +252,17 @@
 246: FIXED: Don't add maps without geo-mapping to toggle-list.
 247: FIXED: Bättre webbläsare (Default android)
 248: FIXED: Borde säga vilken map som har blivit vald.
-249: Pinch to zoom.
+249: FIXED: Pinch to zoom.
 250: Make fplan server honor "aip" parameter in get map
 251: FIXED: Krasch i route RelDec, troligtvis pga nylig ändring.
 252: FIXED: Passed borde vara "departed", dvs senaste gången man varit på en punkt. Det säger mer om hur sen man är, tror jag. Alternativt ha både arrived och departed.
 253: FIXED: Exit/Settings sist i menyn
 254: FIXED: Show next N nearby maps, when cycling
 255: FIXED: Show terrain even when in adchart mode.
-256: Add periodic refreshment of map, regardless of GPS; so that clock is alway correct even if no GPS.
-
+256: FIXED: Add periodic refreshment of map, regardless of GPS; so that clock is alway correct even if no GPS.
+168: Write manual
+257: Nearest funktion
+258: Fixa så att man kan se om batteriet laddar även om man är färgblind.
+259: Make the CVR configurable.
+260: Fix autosync cancel stuff,
+ 
