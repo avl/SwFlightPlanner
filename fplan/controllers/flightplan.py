@@ -953,8 +953,14 @@ C/%(commander)s %(phonenr)s)"""%(dict(
             rt.maxobstelev=obstacle_free.get_obstacle_free_height_on_line(
                     mapper.from_str(rt.a.pos),
                     mapper.from_str(rt.b.pos))
-            rt.startelev=airspace.get_pos_elev(mapper.from_str(rt.a.pos))
-            rt.endelev=airspace.get_pos_elev(mapper.from_str(rt.b.pos))
+            try:
+                rt.startelev=float(airspace.get_pos_elev(mapper.from_str(rt.a.pos)))
+            except:
+                rt.startelev=float(9999)
+            try:
+                rt.endelev=float(airspace.get_pos_elev(mapper.from_str(rt.b.pos)))
+            except:
+                rt.endelev=float(9999)
             #for obst in obsts:
             #    print "obst:",obst
             for space in get_notam_areas_on_line(mapper.from_str(rt.a.pos),mapper.from_str(rt.b.pos)):

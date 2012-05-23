@@ -146,6 +146,7 @@ fplan/model/meta.py
 fplan/public/MochiKit.js
 fplan/public/aircraft.js
 fplan/public/bg.png
+fplan/public/bigicon.png
 fplan/public/boilerplate.jpg
 fplan/public/boilerplate.png
 fplan/public/downarrow.png
