@@ -195,13 +195,21 @@ def ev_parse_airfields():
             date=date,
             url=url            
                       ))
-    ads.append(dict(
+    spilve=dict(
         icao="EVRS",
         name="Spilve",
         elev=5,
         date=datetime(2011,04,05),
         pos=mapper.parsecoord("565931N 240428E")
-               ))
+               )
+               
+    
+    charturl="http://www.swflightplanner.se:8080/spilve.png"
+    arp=spilve['pos']
+    icao=spilve['icao'].upper()            
+    parse_landing_chart.help_plc(spilve,charturl,icao,arp,country='raw',variant="landing")
+    ads.append(spilve)
+               
     return ads,spaces
 
 
