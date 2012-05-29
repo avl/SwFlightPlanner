@@ -261,8 +261,24 @@
 255: FIXED: Show terrain even when in adchart mode.
 256: FIXED: Add periodic refreshment of map, regardless of GPS; so that clock is alway correct even if no GPS.
 168: Write manual
-257: Nearest funktion
-258: Fixa så att man kan se om batteriet laddar även om man är färgblind.
-259: Make the CVR configurable.
+257: TRIAGED: Nearest funktion
+258: TRIAGED: Fixa så att man kan se om batteriet laddar även om man är färgblind.
+259: FIXED: Make the CVR configurable.
 260: Fix autosync cancel stuff,
- 
+261: UPPFIXAD LITE: buggen är alldeles för kräsen.
+262: FIXED: När man klickar på en punkt borde man få positionsbeskrivning relativt punkten ("you are 41 miles, @ 72 degrees (i.e SSW)").
+263: Borde gå att mata in transponder-kod.
+264: FIXED: Phrases-funktionen borde komma ihåg höjd etc.
+265: Lägg in mer AIP-info - t.ex alla ENR och liknande.
+266: Parse med remarks i airspace-infon.
+267: Saknade frekvenser - t.ex: Tampere Radar, Helsinki Radar, Tallinn Radar, (Riga Radar?), Riga Control.
+268: FIXED: Lägg in planerad höjd.
+269: FIXED: Gör så att waypoint-informations-skärmen fungerar även utan GPS.
+270: FIXED: Kanske borde vi lägga in höjdändringsstöd i ATS?
+271: Föreslå när och vad som ska sägas på radion för hela resan.
+272: Fixa krasch i parse elev estonian R-areas.
+273: Inte bra att vara vare sig för mycket före eller efter färdplan. Kanske rödfärga om man är för "off"?
+274: Phrase för att rapportera att man är för tidig? Opposite of delay?
+275: TRIAGED: Sometime remake the bug-function, so that it actually plans a nice set of turns to get back on track.
+276: FIXED: Make the position description relative to stuff be more intuitive.
+277: Write manual.

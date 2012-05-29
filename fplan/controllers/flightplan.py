@@ -378,6 +378,21 @@ class FlightplanController(BaseController):
                             yield dict(T=T),out
                         T=0.0
                         out=[]                
+            def format_cruise(tas):
+                if tas>999: tas=999
+                if tas<0: tas=0
+                return "N%04d"%(tas,)
+            def format_alt(alt):
+                try:                    
+                    alt=alt.upper().strip()
+                    if alt.startswith("FL"):
+                        ialt=int(float(alt[2:].strip()))
+                        return "F%03d"%(ialt,)
+                    ialt=int(float(alt))/100
+                    print "parsed alt %s"%(repr(alt,)),"as",ialt
+                    return "A%03d"%(ialt,)
+                except Exception:
+                    raise AtsException("Bad altitude specification for some leg: <%s>"%(alt))
                         
                         
             c.atstrips=[]
@@ -405,6 +420,7 @@ class FlightplanController(BaseController):
                 dest_ad_coords=mapper.format_lfv_ats(*mapper.from_str(waypoints[-1].pos))
                 extra_remarks=[]
                 lastwppos=None
+                lastaltspeed=None
                 for i,wp in enumerate(waypoints):
                     print "Subtrip:",i,wp.waypoint
                     at['T']=meta['T']
@@ -458,6 +474,15 @@ class FlightplanController(BaseController):
                     
                     if symbolicpos==None:
                         symbolicpos=mapper.format_lfv_ats(lat,lon)
+                        
+                    if i<len(routes):
+                        altspeed=(format_alt(routes[i].altitude),format_cruise(routes[i].tas))
+                        if lastaltspeed!=None:
+                            if lastaltspeed!=altspeed:
+                                alt,speed=altspeed
+                                symbolicpos+="/"+speed+alt
+                        lastaltspeed=altspeed
+                        
                     wps.append(dict(
                         name=wp.waypoint,
                         airport=airport,
@@ -518,20 +543,6 @@ class FlightplanController(BaseController):
                 phonenr=""
                 if c.user.phonenr:            
                     phonenr=c.user.phonenr
-                def format_cruise(tas):
-                    if tas>999: tas=999
-                    if tas<0: tas=0
-                    return "N%04d"%(tas,)
-                def format_alt(alt):
-                    try:
-                        alt=alt.upper().strip()
-                        if alt.startswith("FL"):
-                            ialt=int(float(alt[2:].strip()))
-                            return "F%03d"%(ialt,)
-                        ialt=int(float(alt))/100
-                        return "A%03d"%(ialt,)
-                    except Exception:
-                        raise AtsException("Bad altitude specification for some leg: <%s>"%(alt))
                 fir_whenposname.sort()
                 dummy=u"""
     FPL-SEVLI-VG
