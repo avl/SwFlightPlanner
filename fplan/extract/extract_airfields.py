@@ -124,8 +124,12 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                             items2=[x for x in page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+40,y2-0.1) if x.y1>=item.y1-0.05]
                             s=(" ".join(page.get_lines(items2))).strip()
 
-                            if s.startswith("ft Left/3"): #Special case for ESOK
-                                s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
+                            #if s.startswith("ft Left/3"): #Special case for ESOK
+                            #    s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
+                            m=re.match("ft Left/\d+.*?([A-Z]{4,}.*)",s)
+                            if m:
+                                s,=m.groups()
+                                
                             if s.startswith("LjUNG"): #Really strange problem with ESCF
                                 s=s[0]+"J"+s[2:]
                             if s.lower().startswith("holding"):
@@ -519,6 +523,9 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
         #    print "Aip texts:",ad['aiptext']
         #else:
         #    print "No aiptext"
+        print "Points:"
+        for point in points.values():
+            print point
         
     f=codecs.open("extract_airfields.regress.txt","w",'utf8')    
     for ad in ads:
@@ -531,7 +538,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
         r=repr(ad)
         f.write(u"%s - %s - %s\n"%(ad['icao'],ad['name'],r))
     f.close()
-        
+    
     return ads,points.values()
 
                 

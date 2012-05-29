@@ -147,7 +147,7 @@ def getmaptile(variant,zoomlevel,mx,my,mtime=None):
     
     #print "Got blob for zoomlevel: %d (=%d)"%(zoomlevel,blob.zoomlevel)
     if blob==None:
-        print "Zoomlevel %d not loaded"%(zoomlevel,)
+        #print "Zoomlevel %d not loaded"%(zoomlevel,)
         return open("fplan/public/nodata.png").read(),dict(status="missing zoomlevel")
     #print "Reading tile: ",mx,my,zoomlevel
     d=blob.get_tile(mx,my)
