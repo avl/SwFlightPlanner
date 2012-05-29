@@ -217,7 +217,7 @@ class AirportprojController(BaseController):
         if variant=='.VAC':
             mercsizex=w
             mercsizey=h
-            scale=5
+            scale=20
         else:
             mercsizex=w
             mercsizey=h

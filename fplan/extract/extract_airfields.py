@@ -115,20 +115,20 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                         items=[x for x in items if not x.text.startswith(" ")]
                         #print "Holding items:",items
                         for idx,item in enumerate(items):
-                            print
+                            print "Holding item",item
                             y1=item.y1
                             if idx==len(items)-1:
                                 y2=100
                             else:
-                                y2=items[idx+1].y2
-                            items2=[x for x in page.get_partially_in_rect(holdingheading.x1,y1+0.3,holdingheading.x1+40,y2-0.1) if x.y1>=item.y1-0.05]
+                                y2=items[idx+1].y1
+                            items2=[x for x in page.get_partially_in_rect(item.x1+1,y1+0.3,item.x1+40,y2-0.1) if x.x1>=item.x1-0.25 and x.y1>=y1-0.05 and x.y1<y2-0.05]
                             s=(" ".join(page.get_lines(items2))).strip()
-
+                            print "Holding lines:",repr(page.get_lines(items2))
                             #if s.startswith("ft Left/3"): #Special case for ESOK
                             #    s,=re.match("ft Left/3.*?([A-Z]{4,}.*)",s).groups()
-                            m=re.match("ft Left/\d+.*?([A-Z]{4,}.*)",s)
-                            if m:
-                                s,=m.groups()
+                            #m=re.match("ft Left/\d+.*?([A-Z]{4,}.*)",s)
+                            #if m:
+                            #    s,=m.groups()
                                 
                             if s.startswith("LjUNG"): #Really strange problem with ESCF
                                 s=s[0]+"J"+s[2:]
@@ -282,11 +282,11 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                             curname=None
                         if re.match(".*RADIO\s+NAVIGATION\s+AND\s+LANDING\s+AIDS.*",item):
                             break
-                        print "Matching:",item
+                        #print "Matching:",item
                         m=re.match(r"(.*?)\s*(\d{3}\.\d{1,3})\s*MHz.*",item)
-                        print "MHZ-match:",m
+                        #print "MHZ-match:",m
                         if not m: continue
-                        print "MHZ-match:",m.groups()
+                        #print "MHZ-match:",m.groups()
                         who,sfreq=m.groups()
                         freq=float(sfreq)
                         if abs(freq-121.5)<1e-4:
@@ -523,9 +523,9 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
         #    print "Aip texts:",ad['aiptext']
         #else:
         #    print "No aiptext"
-        print "Points:"
-        for point in points.values():
-            print point
+    print "Points:"
+    for point in sorted(points.values(),key=lambda x:x['name']):
+        print point
         
     f=codecs.open("extract_airfields.regress.txt","w",'utf8')    
     for ad in ads:
