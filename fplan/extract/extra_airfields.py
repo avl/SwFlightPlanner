@@ -3,7 +3,7 @@ import fplan.lib.mapper as mapper
 import rwy_constructor
 
 minor_ad_charts={
-        u"Frölunda":"http://www.swedishultraflyers.se/images/johnny/Frolunda2011.JPG"
+        u"Frölunda":"http://www.swflightplanner.se:8080/frolunda.jpg"
                      }
 extra_airfields=[
     dict(icao="ESVF",

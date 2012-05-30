@@ -221,10 +221,10 @@ class AirportprojController(BaseController):
       
         
         
-        if variant=='.VAC':
+        if variant.lower().count('vac'):
             mercsizex=w
             mercsizey=h
-            scale=20
+            scale=7
         else:
             mercsizex=w
             mercsizey=h
