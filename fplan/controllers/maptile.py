@@ -63,7 +63,7 @@ def parse_elev_for_sort_purposes(elev):
 def sort_airspace_key(space):
     floorelev=parse_elev_for_sort_purposes(space['floor'])    
     ceilingelev=parse_elev_for_sort_purposes(space['ceiling'])        
-    return (-ceilingelev,floorelev,space['name'])
+    return (space['type']=='sector',-ceilingelev,floorelev,space['name'])
 
 class MaptileController(BaseController):
     no_login_required=True #But we don't show personal data without login
@@ -90,10 +90,19 @@ class MaptileController(BaseController):
                 return "<span style=\"font-size:10px\">[%d%02d%02d]</span>"%(
                         d.year,d.month,d.day)
             return ""
-        spaces=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
-                spaces,key=sort_airspace_key))
+        spaces=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(
+                space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+                    spaces,key=sort_airspace_key) if space['type']!='sector')
+
+        sectors=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(
+                space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+                    spaces,key=sort_airspace_key) if space['type']=='sector')
+
         if spaces=="":
             spaces="No airspace found"
+        if sectors!="":
+            sectors="<b>Sectors:</b><ul>"+sectors+"</ul>"
+
             
         mapviewurl=h.url_for(controller="mapview",action="index")
 
@@ -253,7 +262,7 @@ class MaptileController(BaseController):
             variation=u"%+.1f°"%(varf,)
         except Exception:
             pass
-        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s<br/><b>Terrain: %s ft, Var: %s</b>"%(", ".join(firs),spaces,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev,variation)
+        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s%s<br/><b>Terrain: %s ft, Var: %s</b>"%(", ".join(firs),spaces,sectors,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev,variation)
 
     def get(self):
         # Return a rendered template
