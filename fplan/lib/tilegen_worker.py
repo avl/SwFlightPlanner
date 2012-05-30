@@ -144,7 +144,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         for space in chain(
                 get_airspaces(),get_notam_objs_cached()['areas'],
                 get_aip_sup_areas(),get_firs()):        
-            
+            if space['type']=='sector':
+                continue #Don't draw "sectors"
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
                 ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)

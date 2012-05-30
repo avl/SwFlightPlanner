@@ -49,9 +49,11 @@ def filter_head_foot(xs):
         out.append(x)
     return out
 
-def parse_page(parser,pagenr,kind="TMA"):   
+def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):   
     if kind=="TMA":
         thirdcol="ATC unit"
+    elif kind=="sector":
+        thirdcol="FREQ"
     elif kind=="R":
         thirdcol="Remarks (nature of hazard,"
     else:
@@ -73,7 +75,7 @@ def parse_page(parser,pagenr,kind="TMA"):
     headings.sort(key=lambda x:x.x1)    
     #print "found candidates:",zone_candidates    
     if len(headings)==0:
-        return []
+        return [],None
     avg_heading_y=sum(h.y1 for h in headings)/float(len(headings))
     #print "Found headings:",headings
     zone_candidates=[]
@@ -92,9 +94,11 @@ def parse_page(parser,pagenr,kind="TMA"):
     zone_candidates.sort(key=lambda x:x.y1)
     
     for zone in zone_candidates:
-        assert not zone.text.count("AOR")
+        #uprint("Zone:",zone)
+        #assert not zone.text.count("AOR")
         assert not zone.text.count("FIR")
-            
+    
+    #uprint("Headings:",headings)        
     assert len(headings)==3
     
     
@@ -140,6 +144,32 @@ def parse_page(parser,pagenr,kind="TMA"):
         arealines=[l for l in d['Lateral limits'] if l.strip()!=""]
         last_coord_idx=None
         #uprint("D:<%s> (area:%s)"%(d,arealines))
+        if 'FREQ' in d:
+            freqs=[("SWEDEN CONTROL",float(x)) for x in re.findall(r"\d{3}\.\d{3}","\n".join(d['FREQ']))]
+            #print "Parsed freqs:",freqs
+            if freqs:
+                last_sector['freqs']=freqs
+            
+        if kind=='sector':            
+            m=re.match(r"ES[A-Z]{2}\s*ACC\s*sector\s*([0-9a-zA-Z]*)",d['name'])
+            if m:
+                last_sector['major']=d['name']
+                last_sector['majorsector'],=m.groups()
+            if len(arealines)==0:
+                last_sector['name']=d['name']
+                continue
+            
+            if d['name'].count("Control Area and Upper Control Area"): continue        
+            if d['name'].count("SUECIA CTA"): continue        
+            if d['name'].count("SUECIA UTA"): continue
+            
+            m=re.match(r"([0-9a-zA-Z]*)(:.*)",d['name'])
+            if m and 'majorsector' in last_sector:
+                sectorname,sub=m.groups()
+                if sectorname==last_sector['majorsector']:
+                    d['name']=last_sector['major']+sub
+                    #uprint("Fixed up name: ",d['name'])
+        
         assert len(arealines)
         if arealines[0].strip()=="Danger area EK D395 and D396 are":
             arealines=arealines[1:]
@@ -170,7 +200,7 @@ def parse_page(parser,pagenr,kind="TMA"):
             #print "Object with no vertical limits: %s"%(repr(d['name']),)
             continue
         
-        print "Vertlim: ",vertlim
+        #uprint("Vertlim: ",vertlim)
         heightst=re.findall(r"(FL\s*\d{3})|(\d+\s*ft\s*(?:\s*/\s*\d+\s*.\s*GND)?)|(GND)|(UNL)",vertlim)
         heights=[]
         for fl,ht,gnd,unl in heightst:
@@ -182,55 +212,59 @@ def parse_page(parser,pagenr,kind="TMA"):
                 heights.append(gnd.strip())
             if unl:
                 heights.append(unl.strip())
-        print "heights for ",d['name'],":",repr(heights)
+        #uprint("heights for ",d['name'],":",repr(heights))
         assert len(heights)==2
         ceiling=heights[0].strip()
         floor=heights[1].strip()
-        
+                
         pa['name']=d['name']
         pa['floor']=floor
         pa['ceiling']=ceiling
-        print "Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx])
-        print pa
+        if mapper.parse_elev(floor)>=9500:
+            continue
+        #uprint("Arealines:\n================\n%s\n============\n"%(arealines[:last_coord_idx]))
+        #print pa
         areacoords=" ".join(arealines[:last_coord_idx])
         pa['points']=parse_coord_str(areacoords)
         
         
         vs=[]
         for p in pa['points']:
-            print "from_str:",repr(p)
+            #print "from_str:",repr(p)
             x,y=mapper.latlon2merc(mapper.from_str(p),13)
             vs.append(Vertex(int(x),int(y)))
 
         p=Polygon(vvector(vs))
         if p.calc_area()<=30*30:
-            print pa
-            print "Area:",p.calc_area()
+            pass#print pa
+            #print "Area:",p.calc_area()
         assert p.calc_area()>30*30
-        print "Area: %f"%(p.calc_area(),)
-        print "Point-counts:",len(pa['points'])
+        #print "Area: %f"%(p.calc_area(),)
+        #print "Point-counts:",len(pa['points'])
         for p in pa['points']:
             assert p.count(",")==1 
         pa['type']=kind
         atc=d[thirdcol]
         #print "ATc: <%s>"%(repr(atc),)
         freqs=[(y,float(x)) for x,y in re.findall(r"(\d{3}\.\d{3})\s*MHz\n(.*)","\n".join(atc))]
+        if not freqs:
+            freqs=last_sector.get('freqs',[])
         #print repr(freqs)
         pa['freqs']=freqs
-        
+        #uprint("Cleaning up ",pa['name'])
         for cleaned in clean_up_polygon(list(pa['points'])):
             d=dict(pa)
             #print "cleaned",cleaned
-            for tup in cleaned:
+            for i,tup in enumerate(cleaned):
                 assert type(tup)==str
                 latlon=mapper.from_str(tup)
                 lat,lon=latlon
                 assert lat>=-85 and lat<=85
             d['points']=cleaned
-            #print cleaned
-            print "name:",d['name']
-            print "cleaned points:",d['points']
-            print "from:",areacoords
+            #uprint("cleaned:",pa['name'],len(cleaned),cleaned)
+            #print "name:",d['name']
+            #print "cleaned points:",d['points']
+            #print "from:",areacoords
             #raise Exception()
             out.append(d)
         #if pa['name'].lower().count("esrange"):
@@ -277,13 +311,20 @@ def parse_all_tma():
 	
     res=[]    
     found=False
+    last_sector=dict()
     for pagenr in xrange(0,p.get_num_pages()):
         page=p.parse_page_to_items(pagenr)
-        if found or page.get_by_regex(r"Terminal Control Areas"):
+        #print "Num acc-sec:",len(page.get_by_regex(r".*ACC.sectors.*"))
+        #print "Num and acc-sec:",len(page.get_by_regex(r".*and\s+ACC.sectors.*"))
+        
+        sect=(len(page.get_by_regex(r".*ACC.sectors.*"))>0 and len(page.get_by_regex(r".*and\s+ACC.sector.*"))==0)
+        #print "ACC-sector2:",sect        
+        if found or page.get_by_regex(r".*Terminal Control Areas.*") or sect:
             found=True
         else:
-            continue        
-        parsed=parse_page(p,pagenr,"TMA")
+            continue
+        #if sect:        
+        parsed=parse_page(p,pagenr,"TMA" if not sect else "sector",last_sector=last_sector)
         res.extend(parsed)
         
     res.append(dict(
@@ -322,7 +363,7 @@ def parse_r_areas():
 	
     res=[]    
     for pagenr in xrange(2,p.get_num_pages()): 
-        parsed=parse_page(p,pagenr,"R")
+        parsed,dummy=parse_page(p,pagenr,"R")
         res.extend(parsed)
     for pa in res:
         pretty(pa)
@@ -331,6 +372,6 @@ def parse_r_areas():
     
 if __name__=='__main__':
     parse_all_tma()
-    parse_r_areas()
+    #parse_r_areas()
 
 

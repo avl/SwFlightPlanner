@@ -10,7 +10,7 @@ def clear_cache():
     global borders
     borders=None
 def get_borders(pcountry):
-    print "Getting for",pcountry
+    #print "Getting for",pcountry
     global borders
     if not borders:
         if not os.path.exists("fplan/extract/lands.bin"):
@@ -42,7 +42,7 @@ def get_borders(pcountry):
                 assert poly.is_ccw()
 
                 outparts.append(outpart)
-            print "Parts in ",country,len(outparts),tot
+            #print "Parts in ",country,len(outparts),tot
             out[country]=outparts
         borders=out
     #if pcountry!="sweden":

@@ -231,12 +231,16 @@ class ApiController(BaseController):
     def get_airspaces(self):
         print "Get airspaces called"
         
+        getsectors=int(request.params.get("sectors","0"))
+        
         out=[]
         if 1:
             for space in extracted_cache.get_airspaces()+get_notam_objs_cached()['areas']+extracted_cache.get_aip_sup_areas():
                 lat,lon=mapper.from_str(space['points'][0])
                 #if lat<57 or lat>62:
                 #    continue
+                if getsectors==0 and space.get('type',None)=='sector':
+                    continue
                 name=space['name']
                 if space['type']=="notamarea":
                     name="NOTAM:"+name
@@ -412,7 +416,7 @@ class ApiController(BaseController):
             meta.Session.flush()
             meta.Session.commit()
             
-            rawtext=json.dumps(dict(airspaces=out,points=points))
+            rawtext=json.dumps(dict(airspaces=out,points=points),indent=1)
             
             
             if 'zip' in request.params:
