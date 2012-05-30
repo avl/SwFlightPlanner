@@ -49,7 +49,9 @@ airport_projection = sa.Table("airport_projection",meta.metadata,
                         sa.Column('airport',Unicode(100),primary_key=True,nullable=False),
                         sa.Column('mapchecksum',String(32),primary_key=True,nullable=False),                        
                         sa.Column('updated',DateTime(),nullable=False),
-                        sa.Column("matrix",postgresql.ARRAY(Float,mutable=False,as_tuple=True),nullable=False,default="")
+                        sa.Column("matrix",postgresql.ARRAY(Float,mutable=False,as_tuple=True),nullable=False,default=""),
+                        sa.Column('scale',Float(),nullable=True,default=None),
+                        sa.Column('north',Float(),nullable=True,default=None)
                         )
 
 airport_marker = sa.Table("airport_marker",meta.metadata,

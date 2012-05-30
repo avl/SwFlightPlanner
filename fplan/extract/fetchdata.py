@@ -309,7 +309,8 @@ def get_raw_weather_for_area(cur_area2):
     cd['time']=datetime.utcnow()
     weathercache[cur_area]=cd
     return cd['data']
-    
+
+
     
 def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400):
     outputpathtmp=outputpath+".tmp"

@@ -274,6 +274,9 @@ addLoadEvent(loadproj);
 
 
 <form id="mainform" action="${h.url_for(controller='airportproj',action='save')}" method="POST">
+Size(mm): ${c.mapsize}<br/>
+Scale: <input type="text" name="scale" value="${c.scale}" /><br/>
+North: <input type="text" name="north" value="${c.north}" /><br/>
 Maptype: 
 <button 
 %if c.maptype=='chart':

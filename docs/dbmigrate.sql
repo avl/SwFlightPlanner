@@ -74,3 +74,8 @@ create index on notamupdate (disappearnotam,"category");
 
 #version 13
 alter table "aircraft" add column "atsradiotype" varchar(64) not null default 'Ultralight';
+
+#version 14
+alter table airport_projection add column "scale" float default null;
+alter table airport_projection add column "north" float default null;
+ 

@@ -56,6 +56,7 @@ class AirportprojController(BaseController):
     def get_worklist(self):
         worklist=[]
         for ad in sorted(ec.get_airfields(),key=lambda x:x['name']):
+            print "Airfield:",ad
             if not 'adcharts' in ad: continue
             for adchart in ad['adcharts'].values():
                                     
@@ -111,13 +112,16 @@ class AirportprojController(BaseController):
             proj.mapchecksum=str(adchart['checksum'])
             proj.updated=datetime.utcnow()
             proj.matrix=(1,0,0,1,0,0)
+            proj.scale=None
+            proj.north=None
             meta.Session.add(proj)
             meta.Session.flush()
             meta.Session.commit()
+            
         else:
             proj,=projs
             proj.mapchecksum=str(proj.mapchecksum)
-            
+        
         if all([x==0 for x in proj.matrix[4:6]]):
             projmatrix=self.invent_matrix(proj.mapchecksum,adchart['variant'])
         else:            
@@ -137,6 +141,9 @@ class AirportprojController(BaseController):
         c.flash=None
         c.ad=ad
         c.mapchecksum=adchart['checksum']
+        c.mapsize=adchart['mapsize']
+        c.scale=proj.scale if proj.scale!=None else ""
+        c.north=proj.north if proj.north!=None else ""
         c.runways=[]
         c.arp=transform.to_pixels(mapper.from_str(adobj['pos']))
         arp1m=mapper.latlon2merc(mapper.from_str(adobj['pos']),17)
@@ -290,16 +297,23 @@ class AirportprojController(BaseController):
     def save(self):
         print request.params
         
-        ad=request.params['ad']        
+        ad=request.params['ad']
+        chartobj=None        
+        mapchecksum=request.params['mapchecksum']
         for adobj in ec.get_airfields():
             if adobj['name']==ad:
-                break
+                bb=False
+                for adchart in adobj['adcharts'].values():
+                    if adchart['checksum']==mapchecksum:
+                        chartobj=adchart
+                        bb=True
+                        break
+                if bb: break
         else:
             self.error("No such airport"+ad)
-        mapchecksum=request.params['mapchecksum']
-        marks=dict()        
+        marks=dict()
         for param,val in request.params.items():
-            if param in ["save","ad",'mapchecksum','scroll_x','scroll_y','maptype']:
+            if param in ["save","ad",'mapchecksum','scroll_x','scroll_y','maptype','scale','north']:
                 continue
             if param.startswith("del"):
                 continue
@@ -368,6 +382,17 @@ class AirportprojController(BaseController):
             AirportProjection.user==session['user'],
             AirportProjection.airport==ad,
             AirportProjection.mapchecksum==str(mapchecksum))).one()
+            
+        try:
+            proj.scale=float(request.params['scale'].strip())
+        except:
+            proj.scale=None
+        try:
+            proj.north=float(request.params['north'].strip())
+        except:
+            proj.north=None
+                    
+            
 
         def both_lat_lon(x):
             return x.latitude and x.longitude
@@ -378,6 +403,8 @@ class AirportprojController(BaseController):
         def just_lon(x):
             return not x.latitude and x.longitude
         ms=[m for m in ms if not neither_lat_lon(m)]
+        
+        """
         if (len(ms)==4 and
             len([m for m in ms if just_lat(m)])==2 and
             len([m for m in ms if just_lon(m)])==2):
@@ -395,8 +422,42 @@ class AirportprojController(BaseController):
                     n.longitude=m.longitude
                     extra.append(n)
             ms.extend(extra)
+        """
+        
+        if len(ms)==1 and both_lat_lon(ms[0]) and proj.scale and proj.north!=None:
+            print "Scale/north triggered"
+            print "Adchart:",chartobj
+            if chartobj!=None:
+                render_height=chartobj['render_height']
+
+                mark,=ms
+                pixelpos=(mark.x,mark.y)
+                mapsize=adchart['mapsize']
+                mapheight_meter=mapsize[1]/1000.0 * proj.scale
+                mapheight_km=mapheight_meter/1000.0
+                
+                merc=mapper.latlon2merc((mark.latitude,mark.longitude),17)
+                                            
+                pixels=mapper.approx_scale(merc,17,mapheight_km/1.852)
+                
+                newmerc=(merc[0],merc[1]-pixels)
+                northrad=proj.north/(180.0/math.pi)
+                newpixelpos=(pixelpos[0]+render_height*math.sin(northrad),
+                             pixelpos[1]-render_height*math.cos(northrad))
+
+                m=AirportMarker()
+                m.x=newpixelpos[0]
+                m.y=newpixelpos[1]
+                latlon=mapper.merc2latlon(newmerc,17)
+                m.latitude=latlon[0]
+                m.longitude=latlon[1]
+                m.weight=1
+                ms.append(m)
+                             
+                        
             
         if len(ms)==2 and all(both_lat_lon(x) for x in ms):
+            print "Have exactly two marks now"
             mark1,mark2=ms            
             lm1,lm2=[mapper.latlon2merc((mark.latitude,mark.longitude),17) for mark in [mark1,mark2]]
             ld=(lm2[0]-lm1[0],lm2[1]-lm1[1])

@@ -128,6 +128,21 @@ def parse_landing_chart(path,arppos,icao,country='se',variant=''):
     ret['image']=blobname+"."+cksum+".png"
     fetchdata.getcreate_derived_data_raw(
                 path,outpath,render,"png",country=country)
+
+    
+    fspath=fetchdata.getdatafilename(path,country=country)
+    sizepts=None
+    for line in os.popen("pdfinfo "+fspath):        
+        m=re.match(r"\s*.age\s+size:\s*(\d+\.?\d*)\s*x\s*(\d+\.?\d*)\s*pts.*",line)
+        if m:
+           sizepts=(float(m.groups()[0]),float(m.groups()[1]))
+    if sizepts:
+        sizemm=(0.3527*sizepts[0],0.3527*sizepts[1])
+        ret['mapsize']=sizemm
+        print "Mapsize:",sizemm
+    else:
+        raise Exception("No size of this PDF!") 
+    
     
     outpath2=os.path.join(tmppath,blobname+"."+cksum+".2.png")
     def greyscale(input,output):
