@@ -46,16 +46,19 @@ def format_freqs(freqitems):
     
     return "".join(["<br/>&nbsp;&nbsp;%s"%(o,) for o in out])
 def parse_elev_for_sort_purposes(elev):
+    try:
     #print "elev",elev    
-    elev=elev.lower()
-    if elev=="gnd":
-        return 0
-    if elev.count("/"):
-        elev,dummy=elev.split("/")
-    if elev.endswith("gnd"):
-        elev=elev[:-3]
+        elev=elev.lower()
+        if elev=="gnd":
+            return 0
+        if elev.count("/"):
+            elev,dummy=elev.split("/")
+        if elev.endswith("gnd"):
+            elev=elev[:-3]
         
-    return mapper.parse_elev(elev)
+        return mapper.parse_elev(elev)
+    except:
+        return 0
 
 def sort_airspace_key(space):
     floorelev=parse_elev_for_sort_purposes(space['floor'])    
