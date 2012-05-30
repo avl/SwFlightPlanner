@@ -51,6 +51,7 @@ typecolormap=dict(
     notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
     aip_sup=((1.0,0.25,0.25,0.07),(1.0,0.25,0.25,0.9)),
     mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
+    sector=((0,0,1,0),(0,0,1,0))
     )
 
 def get_airspace_color(airspacetype):

@@ -282,3 +282,4 @@
 275: TRIAGED: Sometime remake the bug-function, so that it actually plans a nice set of turns to get back on track.
 276: FIXED: Make the position description relative to stuff be more intuitive.
 277: Write manual.
+278: Kolla så swfpa funkar med sectors
