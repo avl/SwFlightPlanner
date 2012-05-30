@@ -35,9 +35,6 @@
 <h1>SWFlightplanner</h1>
 </td></tr>
 </table>
-<p style="color:#ff0000">
-TEMPORARY PROBLEM WITH THE MAP! WILL BE FIXED SOON. 2012-05-30 18:38Z.
-</p>
 <p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
@@ -92,7 +89,7 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
-<b>Problem 2012-05-10: </b><b>Temporary problem with the map. Will be fixed within 1 hour.</b><br>
+<b>Problem 2012-05-30: </b>All map information except Swedish aerodromes and their control zones were lost. The problem occurred ca 11:45Z, and was fixed 19:27Z.<br />
 <b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
 <b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />
 <b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
