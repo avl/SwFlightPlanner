@@ -141,7 +141,7 @@ class AirportprojController(BaseController):
         c.flash=None
         c.ad=ad
         c.mapchecksum=adchart['checksum']
-        c.mapsize=adchart['mapsize']
+        c.mapsize=adchart.get('mapsize',(210,297))
         c.scale=proj.scale if proj.scale!=None else ""
         c.north=proj.north if proj.north!=None else ""
         c.runways=[]
@@ -432,7 +432,7 @@ class AirportprojController(BaseController):
 
                 mark,=ms
                 pixelpos=(mark.x,mark.y)
-                mapsize=adchart['mapsize']
+                mapsize=adchart.get('mapsize',(210,297))
                 mapheight_meter=mapsize[1]/1000.0 * proj.scale
                 mapheight_km=mapheight_meter/1000.0
                 
