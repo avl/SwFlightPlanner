@@ -283,3 +283,7 @@
 276: FIXED: Make the position description relative to stuff be more intuitive.
 277: Write manual.
 278: Kolla så swfpa funkar med sectors
+279: Should't have to pdftoppm when no change happened.
+280: Map-regeneration takes too long. Skip zoom-level 13?
+281: Gör kart-pilen mycket tydligare. Kanske med röd-vit-gradient?
+282: Gör klart att elevation-data saknas om man inte väljer very-high.

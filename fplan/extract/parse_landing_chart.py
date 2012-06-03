@@ -135,7 +135,7 @@ def parse_landing_chart(path,arppos,icao,country='se',variant=''):
     for line in os.popen("pdfinfo "+fspath):        
         m=re.match(r"\s*.age\s+size:\s*(\d+\.?\d*)\s*x\s*(\d+\.?\d*)\s*pts.*",line)
         if m:
-           sizepts=(float(m.groups()[0]),float(m.groups()[1]))
+            sizepts=(float(m.groups()[0]),float(m.groups()[1]))
     if sizepts:
         sizemm=(0.3527*sizepts[0],0.3527*sizepts[1])
         ret['mapsize']=sizemm

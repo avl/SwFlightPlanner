@@ -363,7 +363,7 @@ def parse_r_areas():
 	
     res=[]    
     for pagenr in xrange(2,p.get_num_pages()): 
-        parsed,dummy=parse_page(p,pagenr,"R")
+        parsed=parse_page(p,pagenr,"R")
         res.extend(parsed)
     for pa in res:
         pretty(pa)
@@ -371,7 +371,7 @@ def parse_r_areas():
 
     
 if __name__=='__main__':
+    parse_r_areas()
     parse_all_tma()
-    #parse_r_areas()
 
 
