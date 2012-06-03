@@ -75,7 +75,7 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
     headings.sort(key=lambda x:x.x1)    
     #print "found candidates:",zone_candidates    
     if len(headings)==0:
-        return [],None
+        return []
     avg_heading_y=sum(h.y1 for h in headings)/float(len(headings))
     #print "Found headings:",headings
     zone_candidates=[]
@@ -366,6 +366,7 @@ def parse_r_areas():
         parsed=parse_page(p,pagenr,"R")
         res.extend(parsed)
     for pa in res:
+        print "pA:",repr(pa)
         pretty(pa)
     return res
 
