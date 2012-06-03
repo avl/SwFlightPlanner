@@ -61,6 +61,7 @@ def ev_parse_airfields():
             
             for row in rows:
                 cols=alltexts(row.xpath(".//td"))
+                print "cols:",repr(cols)
                 if len(cols)<2: continue
                 if not pos and re.match(ur".*ARP\s*coordinates.*",cols[1]):
                     pos,=mapper.parsecoords(cols[2])
@@ -71,10 +72,15 @@ def ev_parse_airfields():
                     lines=cols[2].split("\n")
                     ctr=True
                     print "Got lateral limits",lines[0]
-                    ctrname,type_=re.match(ur"^([\w\s]+)(CTR|TIZ)",lines[0]).groups()
+                    try:
+                        ctrname,type_=re.match(ur"^([\w\s]+)(CTR|TIZ)",lines[0]).groups()
+                        ctrarea=" ".join(lines[1:])
+                    except:
+                        ctrname,type_=re.match(ur"^([\w\s]+)(CTR|TIZ)",lines[0]+lines[1]).groups()
+                        ctrarea=" ".join(lines[2:])
                     assert ctrname.strip()
                     ctrname=ctrname.strip()+" "+type_
-                    ctrarea=" ".join(lines[1:])
+                    
                 #print ".",cols[1],"."
                 if not ctralt and re.match(ur".*Vertical\s*limits.*",cols[1],re.UNICODE):
                     ctralt=True
