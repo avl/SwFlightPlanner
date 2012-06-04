@@ -23,7 +23,7 @@ from itertools import izip,chain
 import routes.util as h
 from datetime import datetime,timedelta
 import fplan.lib.geomag as geomag
-
+import traceback
 
 def format_freqs(freqitems):
     out=[]
@@ -90,18 +90,28 @@ class MaptileController(BaseController):
                 return "<span style=\"font-size:10px\">[%d%02d%02d]</span>"%(
                         d.year,d.month,d.day)
             return ""
+        spacelist=spaces
         spaces=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(
                 space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
-                    spaces,key=sort_airspace_key) if space['type']!='sector')
+                    spacelist,key=sort_airspace_key) if space['type']!='sector')
 
-        sectors=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(
-                space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
-                    spaces,key=sort_airspace_key) if space['type']=='sector')
+
+        #sectors=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(
+        #        space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+        #            spacelist,key=sort_airspace_key) if space['type']=='sectoasdfr')
+
+        try:
+            sectors=u"".join(u"<li><b>%s</b>%s: %s - %s%s</li>"%(
+                   space['name'],anydate(space),space['floor'],space['ceiling'],format_freqs(space['freqs'])) for space in sorted(
+                  spacelist,key=sort_airspace_key) if space['type']=='sector')
+            if sectors!="":
+                sectors="<b>Sectors:</b><ul>"+sectors+"</ul>"
+        except:
+            print traceback.format_exc()
+            sectors=""
 
         if spaces=="":
             spaces="No airspace found"
-        if sectors!="":
-            sectors="<b>Sectors:</b><ul>"+sectors+"</ul>"
 
             
         mapviewurl=h.url_for(controller="mapview",action="index")

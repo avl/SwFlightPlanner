@@ -35,9 +35,11 @@
 <h1>SWFlightplanner</h1>
 </td></tr>
 </table>
+<!--
 <p>
-<big style="background-color:#ff8080">Still some problems when zooming in on map,<br/> problem expected to be completely resolved<br/> by early morning 31st of May.</big>
+<big style="background-color:#ff8080">Problems...none</big>
 </p>
+-->
 <p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
@@ -89,10 +91,10 @@ ${c.expl}
 <tr>
 <td style="width:75%;text-align:center;padding:2%;font-size:12px">
 
-<span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner&hl=en">SwFlightplanner Android-app!</a></u></span>
+<span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
-<b>Problem 2012-05-30: </b>All map information except Swedish aerodromes and their control zones were lost. The problem occurred ca 11:45Z, and was fixed 19:27Z, with problems when zooming in far on main map expected to persist until early morning 2012-05-31. Android app only affected if synced between 11:45Z and 19:27Z..<br />
+<b>Problem 2012-05-30: </b>Most map information was lost. The problem occurred 11:45Z, and was completely fixed 13 hours later.<br />
 <b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
 <b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />
 <b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
