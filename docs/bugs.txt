@@ -283,13 +283,10 @@
 276: FIXED: Make the position description relative to stuff be more intuitive.
 277: Write manual.
 278: FIXED: Kolla så swfpa funkar med sectors
-279: Should't have to pdftoppm when no change happened.
+279: FIXED: Should't have to pdftoppm when no change happened.
 280: Map-regeneration takes too long. Skip zoom-level 13?
-281: Gör kart-pilen mycket tydligare. Kanske med röd-vit-gradient?
+281: FIXED: Gör kart-pilen mycket tydligare. Kanske med röd-vit-gradient?
 282: Gör klart att elevation-data saknas om man inte väljer very-high.
 283: FIXED: Add aerodromes.txt (from Openstreetmap), but filter all we already have through other channels.
 284: Dubletter i bad airports: Glasgow t.ex två gånger.
-285:
-Fixa så att följande vindangivelse parsas korrekt:
-Hela området utom 2b,3c: SV/10-15 knop, byar upp till25 knop. 
-Område 2b,3c: SV/10 knop. 
+285: FIXAD: Fixa bugg med llf-väder-område Asw3b

@@ -1,3 +1,4 @@
+#encoding=utf8
 import csv
 import os
 import lxml.html
@@ -85,14 +86,45 @@ def alnum(x):
 
 def normalize(name):
     assert type(name)==unicode
-    name=name.replace(u"aerodrome",u"")
-    name=name.replace(u"airport",u"")
-    name=name.replace(u"flygplats",u"")
-    name=(u''.join((alnum(c) for c in unicodedata.normalize('NFKD', name))))
-    name=re.sub(ur"\s+",u"",name)
     name=name.lower()
-    assert type(name)==unicode
-    return name
+    name=name.replace(u"milano",u"milan")
+    name=name.replace(u"aerodrome",u"")
+    
+    name=name.replace(u"campo de vuelo",u"")
+    name=name.replace(u"campo di volo",u"")
+    name=name.replace(u"fliegerhorst",u"")
+    
+    name=name.replace(u"aeropuerto",u"")
+    name=name.replace(u"aeroporto",u"")
+    name=name.replace(u"altisurface",u"")
+    name=name.replace(u"aviosuperficie",u"")
+    name=name.replace(u"letisko",u"")
+    name=name.replace(u"lotnisko",u"")
+    name=name.replace(u"segelfluggelände",u"")
+    name=name.replace(u"sonderlandeplatz",u"")
+    
+    name=name.replace(u"airport",u"")
+    name=name.replace(u"airfield",u"")
+    name=name.replace(u"flygplats",u"")
+    name=name.replace(u"lufthamn",u"")
+    name=name.replace(u"verkehrslandeplatz",u"")
+    name=re.sub(ur"\bde\b",u"",name)
+    name=re.sub(ur"\bdi\b",u"",name)
+    name=re.sub(ur"\bair\b",u"",name)
+    name=re.sub(ur"\bbase\b",u"",name)
+    name=name.replace(u"segelflugplatz",u"")
+    name=name.replace(u"sportflugplatz",u"")
+    name=name.replace(u"flugplatz",u"")
+    name=name.replace(u"flughafen",u"")
+    name=name.replace(u"aeroport",u"")
+    name=name.replace(u"aéroport",u"")
+    name=name.replace(u"aerodrome",u"")
+    name=name.replace(u"aérodrome",u"")
+    name=name.replace(u"lufthavn",u"")    
+    name=(u''.join((alnum(c) for c in unicodedata.normalize('NFKD', name))))
+    name=name.lower()
+    namesub=set(name.split())        
+    return namesub
 def osm_airfields_parse():
     nameicao=parse_info()
     f=open("adnames.txt","w")
@@ -106,17 +138,33 @@ def osm_airfields_parse():
     name2icao=[]
     for name,icao in nameicao:
         name2icao.append((normalize(name),name,icao))
-        
+    
+    dupecheck=set()    
+    
     for lon,lat,name in csv.reader(open("fplan/extract/aerodromes.txt")):
         name=unicode(name,"utf8")
         if not name.strip(): continue
         
         icao=None
         n1=normalize(name)
+        if frozenset(n1) in dupecheck:
+            continue
+        dupecheck.add(frozenset(n1))
+        lastquality=0
+        lastname=None
         for n2,iname,iicao in name2icao:
             #print repr(n1),"==",repr(n2)
-            if n1.count(n2) or n2.count(n1):
+            minlen=min(len(n1),len(n2))
+            if minlen>2:
+                minlen=minlen-1
+            quality=len(n1.intersection(n2))
+            if quality>=minlen and quality>lastquality:
+                if icao!=None and icao!=iicao:
+                    print "For name:",name,"Previous match:,",icao,"New match:",iicao,"Name:",iname,"last name:",lastname,"quality:",quality,"last:",lastquality,"minlen:",minlen
+                    #assert icao==None
                 icao=iicao
+                lastquality=quality
+                lastname=iname
         #print "Ap with name:",name
         if icao:
             hits+=1
@@ -133,17 +181,19 @@ def osm_airfields_parse():
                 )
             
         if hits%10==0:
-            print "Hits: %d, Misses: %d, Perc: %.1f"%(hits,len(misses),float(hits)/(float(hits)+len(misses)))
+            print "Hits: %d, Misses: %d, Perc: %.1f"%(hits,len(misses),100.0*(float(hits)/(float(hits)+len(misses))))
         ads.append(d)
     print "Misses:"
+    f=open("missedads.txt","w")        
     for miss in sorted(misses):
-        print miss
+        f.write((miss+" - "+repr(normalize(miss))+u"\n").encode('utf8'))
+    f.close()    
+    f=open("foundads.txt","w")        
+    for norm,name,icao in name2icao:
+        f.write((name+" - "+repr(norm)+u"\n").encode('utf8'))
+    f.close()    
     print "Hits: ",hits
     print "Misses: ",len(misses)
-    
-    #f=csv.writer(open("fplan/extract/ads/ads_processed.csv","w"))
-    #for ad in ads:
-    #    f.writerow((ad['name'].encode('utf8'),ad['icao'],ad['pos'],ad['elev']))
     
     return ads
                 
