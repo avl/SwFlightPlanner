@@ -66,16 +66,16 @@ def filter_bad_airfields(bad,good):
             bspitems.append(BspTree.Item(                                           
                 mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
         bsp=BspTree(bspitems)
-        for bad in bad:
-            m=mapper.latlon2merc(mapper.from_str(bad['pos']),13)
+        for abad in bad:
+            m=mapper.latlon2merc(mapper.from_str(abad['pos']),13)
             twonm=mapper.approx_scale(m,13,2)   
             bb=BoundingBox(m[0],m[1],m[0],m[1]).expanded(twonm)
             
             for ap in bsp.findall_in_bb(bb):
                 print "Not adding bad airfield:",ap.val['name']
-                pass
+                break
             else:
-                toadd.append(bad)
+                toadd.append(abad)
     except:
         print "Failed to add bad airfields"
         raise
