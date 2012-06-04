@@ -87,7 +87,7 @@ class BlobFile(object):
         self.dupmap=dict()
         assert self.sx>0
         assert self.sy>0
-        print "File size: %d"%(self.size,)
+        #print "File size: %d"%(self.size,)
         if self.size!=0:
             assert self.size>=4*self.sx*self.sy+4*5
         else:

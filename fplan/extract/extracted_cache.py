@@ -16,6 +16,7 @@ from fplan.extract.parse_mountain_area import parse_mountain_area
 from fplan.extract.fi_extract_ats_rte import fi_parse_ats_rte
 from fplan.lib.bbtree import BBTree
 from pyshapemerge2d import Line,Vertex,Polygon,vvector
+import osm_airfields
 from fplan.lib.bsptree import BspTree,BoundingBox
 import fplan.lib.remove_unused_users
 import fplan.lib.delete_old_notams
@@ -56,6 +57,30 @@ debug=True
 loaded_aipdata_cachefiledate=None
 last_timestamp_check=datetime.utcnow()
 lock=Lock()
+
+def filter_bad_airfields(bad,good):
+    toadd=[]
+    try:
+        bspitems=[]
+        for item in good:
+            bspitems.append(BspTree.Item(                                           
+                mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
+        bsp=BspTree(bspitems)
+        for bad in bad:
+            m=mapper.latlon2merc(mapper.from_str(bad['pos']),13)
+            twonm=mapper.approx_scale(m,13,2)   
+            bb=BoundingBox(m[0],m[1],m[0],m[1]).expanded(twonm)
+            
+            for ap in bsp.findall_in_bb(bb):
+                print "Not adding bad airfield:",ap.val['name']
+                pass
+            else:
+                toadd.append(bad)
+    except:
+        print "Failed to add bad airfields"
+        raise
+    return toadd
+    
 
 def gen_bsptree_lookup(data):
     r=dict()
@@ -160,6 +185,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             if not generate_if_missing:
                 raise Exception("You must supply generate_if_missing-parameter for aip-data parsing and generation to happen")
             airspaces=[]
+            bad_airfields=[]
             airfields=[]
             sig_points=[]
             obstacles=[]
@@ -207,7 +233,8 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(evads)
                 
             class SpaceLoader(object):
-                
+                def parse_osm_airfields(self): 
+                    return dict(bad_airfields=osm_airfields.osm_airfields_parse())
                 def parse_latvian_tma(self):
                     "latvian tma"
                     return dict(airspaces=ev_parse_tma())                
@@ -319,6 +346,8 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                             airspaces.extend(v)
                         elif k=="airfields":
                             airfields.extend(v)
+                        elif k=="bad_airfields":
+                            bad_airfields.extend(v)
                         elif k=="sig_points":
                             sig_points.extend(v)
                         elif k=="obstacles":
@@ -373,6 +402,10 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         pa['type']='CTR'
                         pa['freqs']=space.get('freqs',"")
                         airspaces.append(pa)
+            
+            
+            
+            airfields.extend(filter_bad_airfields(bad_airfields,airfields))
             
             sup_areas,sup_hours=parse_all_sups()
                 

@@ -312,18 +312,36 @@ def get_raw_weather_for_area(cur_area2):
 
 
     
-def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400):
+def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400,hashcheck=True):
     outputpathtmp=outputpath+".tmp"
     outputpathdate=outputpath+".date"
     inputdate=get_filedate(inputpath)
+    
+    if hashcheck:
+        curmd5=md5sum(inputpath)
+        hashfile=outputpath+".md5"
+    
     if os.path.exists(outputpathdate) and os.path.exists(outputpath):
+        changed=False
+        if os.path.exists(hashfile):
+            prevmd5=open(hashfile).read()
+            if prevmd5==curmd5:
+                print "Hash match, cache is usable",inputpath
+            else:
+                changed=True
+                print "Hash mismatch, cache is not usable",inputpath
         cacheddate=get_filedate(outputpathdate)
-        if cacheddate>inputdate and (datetime.utcnow()-cacheddate<timedelta(0,maxcachetime)):
+        if not changed and cacheddate>inputdate and (datetime.utcnow()-cacheddate<timedelta(0,maxcachetime)):
             return inputdate 
     if os.path.exists(outputpathtmp):
         os.unlink(outputpathtmp)
     callback(inputpath,outputpathtmp)
-    
+
+    if hashcheck:
+        f=open(hashfile,"w")
+        f.write(curmd5)
+        f.close()
+
     if os.path.exists(outputpath):
         if os.system("cmp %s %s"%(outputpathtmp,outputpath))==0:
             #identical
@@ -333,16 +351,48 @@ def getcreate_local_data_raw(inputpath,outputpath,callback,maxcachetime=30*86400
     shutil.move(outputpathtmp,outputpath)
     open(outputpathdate,"w").write("1")
     
+    
+    
     return inputdate
+
+import hashlib
     
+def md5sum(fname):
+    md5 = hashlib.md5()
+    f=open(fname)
+    while True:
+        chunk=f.read(8192)
+        if not len(chunk):
+            break
+        md5.update(chunk) 
+    return md5.hexdigest()
+
     
-def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=True,cachetime=3600,country='se'):
+def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=True,cachetime=86400*2,country='se',hashcheck=True):
+    """
+    set hashcheck==False if you expect processing to be approximately as fast as checksumming - in which case there's no
+    point in checksumming the input file to see if previous results can be reused.
+    """
     inputfile=getdatafilename(inputpath,country=country,maxcacheage=cachetime)
+    if hashcheck:
+        curmd5=md5sum(inputfile)
+        hashfile=outputpath+".md5"
     svged=outputpath
-    if os.path.exists(svged) and usecache:
+    if os.path.exists(svged) and usecache:                        
         cacheddate=get_filedate(svged)
+        changed=False
+        
+        if hashcheck and os.path.exists(hashfile):
+            prevmd5=open(hashfile).read()
+            if prevmd5!=curmd5:
+                changed=True
+                print "NOT Ok to use cached version, md5 sums mismatch:",svged
+            else:
+                print "Ok to use cached version, md5 sums match:",svged
+
         print "Cached %s version exists, date:"%(format,),svged,cacheddate
-        if is_devcomp() or datetime.utcnow()-cacheddate<timedelta(0,cachetime):
+        if not changed and (is_devcomp() or datetime.utcnow()-cacheddate<timedelta(0,cachetime)):
+                        
             print "Using",format,"cache"
             try:
                 return svged
@@ -354,6 +404,13 @@ def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=Tru
     assert not os.path.exists(svged)
     callback(inputfile,svged)
     #assert 0==os.system("pdf2svg \"%s\" \"%s\" %d"%(inputfile,svged,pagenr+1))
+    
+    if hashcheck:
+        f=open(hashfile,"w")
+        f.write(curmd5)
+        f.close()
+        
+    
     assert os.path.exists(svged)
     return svged
 

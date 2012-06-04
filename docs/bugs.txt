@@ -282,8 +282,9 @@
 275: TRIAGED: Sometime remake the bug-function, so that it actually plans a nice set of turns to get back on track.
 276: FIXED: Make the position description relative to stuff be more intuitive.
 277: Write manual.
-278: Kolla så swfpa funkar med sectors
+278: FIXED: Kolla så swfpa funkar med sectors
 279: Should't have to pdftoppm when no change happened.
 280: Map-regeneration takes too long. Skip zoom-level 13?
 281: Gör kart-pilen mycket tydligare. Kanske med röd-vit-gradient?
 282: Gör klart att elevation-data saknas om man inte väljer very-high.
+283: FIXED: Add aerodromes.txt (from Openstreetmap), but filter all we already have through other channels.
