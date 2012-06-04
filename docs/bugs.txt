@@ -288,3 +288,8 @@
 281: Gör kart-pilen mycket tydligare. Kanske med röd-vit-gradient?
 282: Gör klart att elevation-data saknas om man inte väljer very-high.
 283: FIXED: Add aerodromes.txt (from Openstreetmap), but filter all we already have through other channels.
+284: Dubletter i bad airports: Glasgow t.ex två gånger.
+285:
+Fixa så att följande vindangivelse parsas korrekt:
+Hela området utom 2b,3c: SV/10-15 knop, byar upp till25 knop. 
+Område 2b,3c: SV/10 knop. 
