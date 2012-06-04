@@ -35,9 +35,11 @@
 <h1>SWFlightplanner</h1>
 </td></tr>
 </table>
+<!--
 <p>
 <big style="background-color:#ff8080">Still some problems when zooming in on map,<br/> problem expected to be completely resolved<br/> by early morning 31st of May.</big>
 </p>
+-->
 <p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
