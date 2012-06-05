@@ -246,11 +246,11 @@ class MaptileController(BaseController):
                                         )).all()
                     print "notams:",repr(notams)
                     if notams:
-                        nots=["<ul>"]
+                        nots=[]
                         for notam,ack,downloaded in notams:
-                            nots.append("<li>%s</li>"%(cgi.escape(notam.text)))
-                        nots.append("</ul>")
-                        weather+="<tr valign=\"top\"><td>NOTAM:</td><td>%s</td></tr>"%("".join(nots))
+                            nots.append("<div style=\"border:1px solid;margin:3px;border-color:#B8B8B8;padding:3px;\">%s</div>"%(cgi.escape(notam.text)))
+                        
+                        weather+="<tr valign=\"top\"><td colspan=\"2\">NOTAM:</td></tr><tr><td colspan=\"2\">%s</td></tr>"%("".join(nots))
                     
                     weather+="</table>"
                     meta.Session.flush()
