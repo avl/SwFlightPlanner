@@ -291,4 +291,4 @@
 284: Dubletter i bad airports: Glasgow t.ex två gånger.
 285: FIXAD: Fixa bugg med llf-väder-område Asw3b
 286: Add some way to tell how up-to-date NOTAMs are. Now it is impossible to tell if notam engine stopped, or there's simply actually been no changes
-
+287: Recording-monitorn borde funka även utan GPS.

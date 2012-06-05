@@ -10,7 +10,7 @@
 	<link href="/style.css" rel="stylesheet" type="text/css" />
 </head>
 
-<body style="height:100%;margin:0;padding:0;border:none;">
+<body style="height:100%;margin:0;padding:0;border:none;background-color:#606060">
 
 <div id="left-nav">
 	<dl>
@@ -50,7 +50,7 @@
 </table>
 <table style="height:30%;vertical-align:middle;margin: 0 auto">
 <tr>
-<td style="width:45%;background:#d0ffd0;border:1px #808080 solid;padding:2%">
+<td style="width:45%;background:#607060;border:1px #808080 solid;padding:2%">
 <div>
 New users:<br />
 <u><a style="font-size:30px" href="${h.url_for(controller="mapview",action="index")}">Start using immediately!</a></u><br />
@@ -66,7 +66,7 @@ clicking the link above!
 <td style="width:10%;text-align:center">
 Or
 </td>
-<td style="width:45%;background:#d0d0ff;border: 1px #808080 solid;padding:2%">
+<td style="width:45%;background:#707080;border: 1px #808080 solid;padding:2%">
 <div>
 Existing users:<br />
 <form method="post" action="${h.url_for(controller="splash",action="login")}">
