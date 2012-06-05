@@ -3,9 +3,11 @@ import logging
 import re
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
+import cgi
+import sqlalchemy as sa
 import fplan.lib.mapper as mapper
 import fplan.lib.metartaf as metartaf
-from fplan.model import meta
+from fplan.model import meta,NotamUpdate,Notam,NotamAck
 import fplan.lib.helpers as helpers
 import fplan.extract.extracted_cache as extracted_cache
 import StringIO
@@ -230,6 +232,26 @@ class MaptileController(BaseController):
                         weather+="<tr valign=\"top\"><td>TAF:</td><td "+colorize(taf,5)+">"+taf.text+"</td></tr>"
                     if metar and metar.text:
                         weather+="<tr valign=\"top\"><td>METAR:</td><td "+colorize(metar)+">"+metar.text+"</td></tr>"
+                        
+                        
+                    ack_cnt = meta.Session.query(NotamAck.appearnotam,NotamAck.appearline,sa.func.count('*').label('acks')).filter(NotamAck.user==session.get('user',None)).group_by(NotamAck.appearnotam,NotamAck.appearline).subquery()
+                    notams=meta.Session.query(NotamUpdate,ack_cnt.c.acks,Notam.downloaded).outerjoin(
+                        (ack_cnt,sa.and_(
+                            NotamUpdate.appearnotam==ack_cnt.c.appearnotam,
+                            NotamUpdate.appearline==ack_cnt.c.appearline))).outerjoin(
+                        (Notam,Notam.ordinal==NotamUpdate.appearnotam)
+                         ).order_by(sa.desc(Notam.downloaded)).filter(
+                                sa.and_(NotamUpdate.disappearnotam==sa.null(),
+                                        NotamUpdate.category.like("%"+icao.upper()+"%")
+                                        )).all()
+                    print "notams:",repr(notams)
+                    if notams:
+                        nots=["<ul>"]
+                        for notam,ack,downloaded in notams:
+                            nots.append("<li>%s</li>"%(cgi.escape(notam.text)))
+                        nots.append("</ul>")
+                        weather+="<tr valign=\"top\"><td>NOTAM:</td><td>%s</td></tr>"%("".join(nots))
+                    
                     weather+="</table>"
                     meta.Session.flush()
                     meta.Session.commit()
