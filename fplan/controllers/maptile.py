@@ -196,7 +196,7 @@ class MaptileController(BaseController):
                         "AIP SUP Opening Hours"))
                 weather=""
                 if airp.get('icao','ZZZZ').upper()!='ZZZZ':
-                    icao=airp['icao']
+                    icao=airp['icao'].upper()
                     metar=metartaf.get_metar(icao)
                     taf=metartaf.get_taf(icao)
                     weather="<table>"

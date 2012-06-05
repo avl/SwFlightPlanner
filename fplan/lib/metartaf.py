@@ -77,15 +77,13 @@ def get_area(icao):
         return "Sweden"
     if icao.startswith("EF"):
         return "Nordic"    
-    if icao.startswith("EY"):
-        return "Europe"    
-    if icao.startswith("EE"):
-        return "Europe"    
-    if icao.startswith("EV"):
-        return "Europe"    
+    if icao.startswith("EN"):
+        return "Nordic"    
     if icao.startswith("EK"):
         return "Nordic"    
-    raise Exception()
+    if icao.startswith("BI"): #Iceland
+        return "Nordic"    
+    return "Europe"
 def getklass(what):
     if what=='TAF':
         klass=Taf
