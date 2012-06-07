@@ -103,7 +103,7 @@ def val_freqs(space,key,log):
     if not type(x) in [list,tuple]:
         log.append("freqs must be a list of callsign/frequency pairs")
         return False
-    for idx,item in list(x):
+    for idx,item in enumerate(list(x)):
         if (not type(item) in [list,tuple]) or len(item)!=2:
             log.append("freqs must be a list of callsign/frequency pairs")
             return False
@@ -137,6 +137,7 @@ def validate_space(space,spacetype,log):
         val_alt(space,'ceiling',log)
         val_area(space,'points',log)
         val_freqs(space,'freqs',log)
+        val_str(space,'type',log)
         
         return len(log)==ploglen
     
@@ -199,6 +200,7 @@ class UserData(object):
                             if validate_space(space,spacetype,self.log):
                                 out.append(space)
                         self.spaces[spacetype].extend(out)
+                        data.pop(spacetype)
                 if len(data.keys()):
                     for key in data.keys():
                         self.log.append("Unknown top-level key: %s"%(key,))
