@@ -24,7 +24,7 @@ import fplan.lib.mapper as mapper
 from fplan.lib.helpers import utcdatetime2stamp_inexact
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
-from fplan.extract.de_parse import parse_denmark
+#from fplan.extract.de_parse import parse_denmark
 import json
 from fplan.extract.ee_parse_tma2 import ee_parse_tma2
 from fplan.extract.ee_parse_sigpoints2 import ee_parse_sigpoints2
@@ -265,12 +265,14 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     "Estonian R and TSA"
                     return dict(airspaces=ee_parse_r_and_tsa2())
                                 
+                """
                 def parse_denmark(self):
                     "denmark"
                     if not is_devcomp() or a: #denmark
                         denmark=parse_denmark()
                         return dict(airspaces=denmark['airspace'],
                                     airfields=denmark['airfields'])
+                """
                 def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
                 def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
                 def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())                

@@ -56,8 +56,23 @@ def val_pos(p,key,log):
         log.append("Couldn't parse position: %s"%(cause,))
         return False
 
+def optval_date(x,log):
+    if not 'date' in x: return
+    d=x['date']
+    try:
+        x['date']=datetime.strptime(d.rstrip("Z").rstrip("z"), "%Y-%m-%dT%H:%M:%S")
+    except:
+        try:
+            x['date']=datetime.strptime(d, "%Y-%m-%dT%H:%M:%S.%fZ")
+        except Exception,cause:
+            log.append(cause.message)
+            return False
+    return True
+            
+    
 def validate_point(point,pointtype,log):
     ploglen=len(log)
+    optval_date(point,log)
     if pointtype=='sigpoints':
         val_str(point,'name',log)
         val_pos(point,'pos',log)
@@ -131,9 +146,18 @@ def val_area(space,key,log):
         return False
     
     
+    
+def validate_airfield_space(ad,log,spaces):
+    if 'spaces' in ad:
+        for space in ad['spaces']:
+            validate_space(space,'airspaces',log)
+        spaces.extend(ad['spaces'])
+    
+        
 def validate_space(space,spacetype,log):
     ploglen=len(log)
     if spacetype=='airspaces':
+        optval_date(space,log)
         val_str(space,'name',log)
         val_alt(space,'floor',log)
         val_alt(space,'ceiling',log)
@@ -185,7 +209,7 @@ class UserData(object):
                 print "Data:"
                 print "------------------"
                 print custom.data
-                data=json.loads(custom.data)
+                data=json.loads(u"".join([x for x in custom.data.split("\n") if not x.strip().startswith("#")]).encode('utf8'))
                 if type(data)!=dict:
                     raise Exception("Top level must be object, that is, file must start with '{'")
                 for pointtype in pointtypes:
@@ -194,6 +218,9 @@ class UserData(object):
                         for point in data[pointtype]:
                             if validate_point(point,pointtype,self.log):
                                 out.append(point)
+                        if pointtype=='airfields':
+                            validate_airfield_space(point,self.log,self.spaces['airspaces'])
+                            
                         self.points[pointtype].extend(out)
                         data.pop(pointtype)
                 for spacetype in spacestypes:

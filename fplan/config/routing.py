@@ -24,6 +24,7 @@ def make_map():
     map.connect('/flightplan/{tripname}.csv', controller='flightplan', action="excel")
     map.connect('/customsets/view/{setname}/{version}', controller='customsets', action="view")
     map.connect('/customsets/save/{setname}/{version}', controller='customsets', action="save")
+    map.connect('/customsets/rename/{setname}', controller='customsets', action="rename")
 
     # CUSTOM ROUTES HERE
 

@@ -2,6 +2,7 @@
 <%inherit file="base.mako"/>
 <script src="/MochiKit.js" type="text/javascript"></script>
 
+
 <script type="text/javascript">
 function navigate_to(where)
 {	
@@ -21,7 +22,7 @@ function navigate_to(where)
 %if c.flash:
 <b>${c.flash}</b><br/>
 %endif
-
+<form action="${h.url_for(controller="customsets",action="delete")}" method="POST">
 <table>
 <tr>
 <td>Data Set</td><td>Active</td><td>Ready</td><td>Current(Latest)</td>
@@ -32,12 +33,18 @@ function navigate_to(where)
 <td><a href="${h.url_for(controller="customsets",setname=item['setname'],action="view",version=item['active'])}">${item['active']}</a></td>
 <td><a href="${h.url_for(controller="customsets",setname=item['setname'],action="view",version=item['ready'])}">${item['ready']}</a></td>
 <td><a href="${h.url_for(controller="customsets",setname=item['setname'],action="view",version=item['current'])}">${item['current']}</a></td>
+
+<td>
+<input type="submit" value="Delete" name="delete_${item['setname']}" onclick="if (confirm('Are you sure?')) return confirm('Really delete data set? This cannot be undone.');return false;"> 
+<a href="${h.url_for(controller="customsets",setname=item['setname'],action="rename")}">Rename</a>
+</td>
 </tr>
 %endfor
 </table>
 
+</form>
 
-<a href="${h.url_for(controller="customsets",action="view",setname=c.newset,version="1")}">Create New</a>
+<a href="${h.url_for(controller="customsets",action="rename",setname=c.newset)}">Create New</a>
 
 </div>
 </div>

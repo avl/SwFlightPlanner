@@ -354,6 +354,13 @@ def parsecoords(seg):
     return coords
 
 def anyparse(coord):
+    try:
+        lat,lon=re.match(r"(\d+[\.,]?\d*[NS])\s*(\d+[\.,]?\d*[EW]\b)",coord).groups()
+        return parse_coords(
+                lat,lon)        
+    except Exception,cause:
+        print "Cause:",cause
+        pass
     try:        
         coord=coord.upper()
         def cln(xs):
@@ -406,10 +413,10 @@ def anyparse(coord):
         
     try:
         coord=coord.upper().replace(" ","").replace(",",".")
-        print "matching",repr(coord)
+        #print "matching",repr(coord)
         #NS,latdeg,latmin,EW,londeg,lonmin=re.match(ur"([NS])(\d+)°?(\d+[\.,]\d+)([EW])(\d+)°?(\d+[\.,]\d+)",coord).groups()
         NS,latdeg,latmin,latmindec,EW,londeg,lonmin,lonmindec=re.match(ur"([NS])(\d+)°?(\d+)[^\d]{1,3}(\d*)([EW])(\d+)°?(\d+)[^\d]{1,3}(\d*)",coord).groups()
-        print "Captures:",(NS,latdeg,latmin,EW,londeg,lonmin)
+        #print "Captures:",(NS,latdeg,latmin,EW,londeg,lonmin)
         lat=int(latdeg,10)+float(latmin+"."+latmindec)/60.0
         lon=int(londeg,10)+float(lonmin+"."+lonmindec)/60.0
         if NS=='S':lat=-lat
@@ -418,7 +425,9 @@ def anyparse(coord):
     except Exception:
         #print traceback.format_exc()
         pass
-    raise Exception("Unknown format")
+        
+    
+    raise Exception("Unknown format: <%s>"%(coord,))
 
 def seg_angles(pa1,pa2,step,direction):    
     a1=pa1
@@ -660,7 +669,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
             
         
     if not arc:
-        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along ?an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*(\d+N\s*\d+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
+        arc=re.match(ur"\s*(\d+N\s*\d+E)?.*?(\bcounterclockwise|\bclockwise) along ?an? (?:circle|arc)\s*.?\s*(?:with)?\s*(?:säde)?\s*/?\s*radius\s*(\d+\.?\d*?\s*NM)\s*,?\s*(?:keskipiste /)?\s*cent[red]{1,5}\s*on\s*([\d\.]+N\s*[\d\.]+E)(?:[^\d]*|(?:.*to the point\s*(\d+N\s*\d+E)))$",seg)
         #arc=re.match(ur".*?((?:counter)?clockwise) along.*?(circle|arc).*?radius\s*(\d+\.?\d*? NM).*?cent.*?on\s*(\d+N \d+E).*(to the point\s*\d+N \d+E)?.*",seg)
         #if arc:
         #    print "midArc:",arc,arc.groups()
@@ -765,6 +774,8 @@ def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
 
         if idx!=len(items)-1:
             next=items[idx+1]
+        else:
+            next=items[0]
         pstr=pstr2.strip()
         #print "Coord str: <%s>"%(pstr,)
         

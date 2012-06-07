@@ -149,8 +149,8 @@ def parse_space(lines):
                      freqs=freqs,
                      points=points,
                      type=type_,
-                     date=datetime(2010,1,1)
-                     ))            
+                     date="2010-01-01T00:00:00Z")
+                     )
     except StopIteration:
         pass
     except Exception:
@@ -174,12 +174,13 @@ def parse_airfields():
         nasaelev=get_terrain_elev((lat,lon))
         if elev=='':
             elev=nasaelev        
-        assert abs(float(elev)-nasaelev)<50
+        if nasaelev!=9999:
+            assert abs(float(elev)-nasaelev)<100
         ad=dict(
             icao=ICAO,
             name=name,
             pos=mapper.to_str((lat,lon)),
-            date=datetime(2010,1,1),
+            date="2010-01-01T00:00:00Z",
             elev=int(elev))
         out.append(ad)
     return out

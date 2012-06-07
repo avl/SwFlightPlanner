@@ -119,7 +119,46 @@ class CustomsetsController(BaseController):
         c.havenext=len(next)>0
         print "Havenext:",c.havenext
         return render('/customset.mako')
-            
+    def delete(self):
+        print "Delete called"
+        for req,val in request.params.items():
+            print "Req:",req
+            if req.startswith("delete"):
+                setname=req.split("_",1)[1]
+                print repr(setname)
+                meta.Session.query(CustomSets).filter(sa.and_(
+                                                    CustomSets.user==session['user'],
+                                                    CustomSets.setname==setname)).delete()
+                #meta.Session.commit()
+                meta.Session.commit()
+        redirect(h.url_for(controller='customsets',action="index"))
+
+    def rename(self,setname):
+        c.setname=setname
+        return render('/customsetrename.mako')
+    def renamesave(self):        
+        print request.params
+        oldname=request.params['oldname']
+        setname=request.params['setname']
+        print "Rename",oldname,"->",setname
+        found=False
+        for ds in meta.Session.query(CustomSets).filter(sa.and_(
+                                    CustomSets.user==session['user'],
+                                    CustomSets.setname==oldname)).all():
+            ds.setname=setname
+            ds.ready=None
+            ds.active=None
+            found=True
+        if not found:
+            redirect(h.url_for(controller='customsets',action="view",setname=setname,version=1))
+            return 
+        for ds in meta.Session.query(CustomSet).filter(sa.and_(
+                                    CustomSet.user==session['user'],
+                                    CustomSet.setname==oldname)).all():
+            ds.setname=setname                                                                                                                
+        meta.Session.commit()
+        redirect(h.url_for(controller='customsets',action="index"))
+        
     def save(self,setname,version):
         version=int(version)
         data=request.params['data']
@@ -154,9 +193,9 @@ class CustomsetsController(BaseController):
                                                     CustomSet.version==version)).all()
         if prevs:
             prev,=prevs
-            print "PRevdata == data: ",prev.data==data
-            print "Prev:",repr(prev.data)
-            print "Data:",repr(data)
+            #print "PRevdata == data: ",prev.data==data
+            #print "Prev:",repr(prev.data)
+            #print "Data:",repr(data)
             if prev.data.strip()==data.strip():
                 if handle_nav(): return
                 if 'ready' in request.params:
@@ -198,9 +237,10 @@ class CustomsetsController(BaseController):
         #    if customset.active==version: customset.active=None
             
         f = tempfile.NamedTemporaryFile(delete=True)
-        f.write(data.encode('utf8'))
+        f.write(u"".join([x for x in data.split("\n") if not x.strip().startswith("#")]).encode('utf8'))
         f.flush()
         print "File:",f.name
+        
         p = subprocess.Popen("jsonlint -v "+f.name, shell=True,
                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         (child_stdin,
