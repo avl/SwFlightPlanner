@@ -22,6 +22,7 @@ fplan/controllers/__init__.py
 fplan/controllers/aircraft.py
 fplan/controllers/airportproj.py
 fplan/controllers/api.py
+fplan/controllers/customsets.py
 fplan/controllers/error.py
 fplan/controllers/flightplan.py
 fplan/controllers/maptile.py
@@ -76,6 +77,7 @@ fplan/extract/html_helper.py
 fplan/extract/miner.py
 fplan/extract/no_parse_tma.py
 fplan/extract/notam_downloader.py
+fplan/extract/osm_airfields.py
 fplan/extract/parse.py
 fplan/extract/parse_aip_sup.py
 fplan/extract/parse_landing_chart.py
@@ -139,6 +141,7 @@ fplan/lib/tilegen_worker.py
 fplan/lib/tiles_near_route.py
 fplan/lib/transform_map.py
 fplan/lib/tripsharing.py
+fplan/lib/userdata.py
 fplan/lib/weather.py
 fplan/lib/wind_correction.py
 fplan/model/__init__.py
@@ -177,6 +180,8 @@ fplan/templates/airportsproj.mako
 fplan/templates/ats.mako
 fplan/templates/base.mako
 fplan/templates/coordpres.mako
+fplan/templates/customset.mako
+fplan/templates/customsets.mako
 fplan/templates/enroutenotams.mako
 fplan/templates/error.mako
 fplan/templates/excel.mako
