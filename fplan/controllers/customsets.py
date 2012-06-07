@@ -24,7 +24,7 @@ class CustomsetsController(BaseController):
         
         
         
-        
+        c.newset=datetime.strftime(datetime.utcnow(),"%Y-%m-%d %H:%M")
         
         for res in meta.Session.query(CustomSets,maxver).filter(
                     sa.and_(

@@ -37,7 +37,7 @@ function navigate_to(where)
 </table>
 
 
-<a href="${h.url_for(controller="customsets",action="view",setname="New Dataset",version="1")}">Create New</a>
+<a href="${h.url_for(controller="customsets",action="view",setname=c.newset,version="1")}">Create New</a>
 
 </div>
 </div>
