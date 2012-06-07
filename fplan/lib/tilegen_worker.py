@@ -39,22 +39,7 @@ def get_dirpath(cachedir,zoomlevel,x1,y1):
 def get_path(cachedir,zoomlevel,x1,y1):
     return os.path.join(get_dirpath(cachedir,zoomlevel,x1,y1),str(x1)+".png")
     
-typecolormap=dict(
-    FIR=((0.0,0.0,0.0,0.0),(0.0,0.0,0.0,1.0)),
-    TMA=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
-    RNAV=((1.0,1.0,0.0,0.15),(1.0,1.0,0.0,0.75)),
-    CTA=((1.0,0.85,0.0,0.20),(1.0,0.85,0.0,0.75)),
-    R=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
-    TSA=((1.0,0.0,0.0,0.15),(1.0,0.0,0.0,0.75)),
-    CTR=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),
-    FIZ=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),#Should we have this category? I think we could just as well count it as CTR.
-    TIZ=((1.0,0.5,0.0,0.15),(1.0,0.5,0.0,0.75)),#Should we have this category? I think we could just as well count it as CTR.
-    notamarea=((0.5,1,0.5,0.15),(0.25,1,0.25,0.9)),
-    aip_sup=((1.0,0.25,0.25,0.07),(1.0,0.25,0.25,0.9)),
-    mountainarea=((0.7,0.7,1.0,0.05),(0.7,0.7,1.0,0.75)),
-    sector=((0,0,1,0),(0,0,1,0))
-    )
-
+from typecolor import typecolormap
 def get_airspace_color(airspacetype):
     """returns area-color , edge/solid color"""
     return typecolormap[airspacetype]
