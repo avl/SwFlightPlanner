@@ -141,6 +141,7 @@ fplan/lib/tilegen_worker.py
 fplan/lib/tiles_near_route.py
 fplan/lib/transform_map.py
 fplan/lib/tripsharing.py
+fplan/lib/typecolor.py
 fplan/lib/userdata.py
 fplan/lib/weather.py
 fplan/lib/wind_correction.py

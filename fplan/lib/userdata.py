@@ -105,7 +105,7 @@ def val_freqs(space,key,log):
     if not type(x) in [list,tuple]:
         log.append("freqs must be a list of callsign/frequency pairs")
         return False
-    for idx,item in list(x):
+    for idx,item in enumerate(list(x)):
         if (not type(item) in [list,tuple]) or len(item)!=2:
             log.append("freqs must be a list of callsign/frequency pairs")
             return False
@@ -302,7 +302,8 @@ def get_airspaces(lat,lon,user):
     px,py=mapper.latlon2merc((lat,lon),zoomlevel)
     bb0=BoundingBox(px,py,px,py)    
     for item in ensure_user_data(user).spaceslookup['airspaces'].overlapping(bb0):
-        yield item.payload
+        print "HIT: ",repr(item.payload)
+        yield item.payload[1]
 
 
 def get_generic(lat,lon,zoomlevel,user,what):
