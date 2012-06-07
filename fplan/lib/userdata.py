@@ -195,7 +195,6 @@ class UserData(object):
                             if validate_point(point,pointtype,self.log):
                                 out.append(point)
                         self.points[pointtype].extend(out)
-                        data[pointtype]
                         data.pop(pointtype)
                 for spacetype in spacestypes:
                     if spacetype in data:

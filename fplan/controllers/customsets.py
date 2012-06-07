@@ -162,7 +162,7 @@ class CustomsetsController(BaseController):
         #    if customset.active==version: customset.active=None
             
         f = tempfile.NamedTemporaryFile(delete=True)
-        f.write(data)
+        f.write(data.encode('utf8'))
         f.flush()
         print "File:",f.name
         p = subprocess.Popen("jsonlint -v "+f.name, shell=True,
