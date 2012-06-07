@@ -68,7 +68,43 @@ class CustomsetsController(BaseController):
             c.data=data
         else:
             if len(hits)==0:
-                c.data=""
+                c.data="""
+{
+"obstacles":[
+{"name":"Construction Work",
+ "pos":"59,18",
+ "kind":"Crane",
+ "elev":1234,
+ "height":123
+}
+],
+"sigpoints":[
+{"name":"TestPunkt",
+ "pos":"5920N1810E",
+ "kind":"sig.point"
+}
+],
+"airfields":[
+{"name":"TestPunkt",
+ "pos":"5920N1810E",
+ "kind":"sig.point",
+ "icao":"ABCD",
+ "elev":123
+}],
+"airspaces":[
+{
+"points":"590000N0180000E-600000N0180000E-600000N0183000E-590000N0183000E",
+"name":"Test-area",
+"floor":"GND",
+"ceiling":"FL55",
+"type":"TMA",
+"freqs":[["Pahittat Callsign",123.456],["Ett annat pahittat callsign",111.111]]
+}
+]
+
+
+}
+"""
             else:
                 c.data=hits[0].data
         c.cur=version

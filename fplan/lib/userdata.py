@@ -303,7 +303,8 @@ def get_airspaces(lat,lon,user):
     px,py=mapper.latlon2merc((lat,lon),zoomlevel)
     bb0=BoundingBox(px,py,px,py)    
     for item in ensure_user_data(user).spaceslookup['airspaces'].overlapping(bb0):
-        yield item.payload
+        print "HIT: ",repr(item.payload)
+        yield item.payload[1]
 
 
 def get_generic(lat,lon,zoomlevel,user,what):
