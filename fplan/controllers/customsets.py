@@ -56,9 +56,12 @@ class CustomsetsController(BaseController):
                                                     CustomSet.user==session['user'],
                                                     CustomSet.setname==setname,
                                                     CustomSet.version==version+1)).all()
-        customset,=meta.Session.query(CustomSets).filter(sa.and_(
+        try:
+            customset,=meta.Session.query(CustomSets).filter(sa.and_(
                                                     CustomSets.user==session['user'],
                                                     CustomSets.setname==setname)).all()
+        except:
+            customset=None
                                                     
         print "pn",repr(prev),repr(next)
         if data!=None:
@@ -70,8 +73,12 @@ class CustomsetsController(BaseController):
                 c.data=hits[0].data
         c.cur=version
         c.setname=setname
-        c.active=(customset.active==version)
-        c.ready=(customset.ready==version)
+        if customset:
+            c.active=(customset.active==version)
+            c.ready=(customset.ready==version)
+        else:
+            c.active=False
+            c.ready=False
         c.haveprev=len(prev)>0
         c.havenext=len(next)>0
         print "Havenext:",c.havenext

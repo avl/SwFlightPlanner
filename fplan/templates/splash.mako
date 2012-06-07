@@ -50,12 +50,12 @@
 </table>
 <table style="height:30%;vertical-align:middle;margin: 0 auto">
 <tr>
-<td style="width:45%;background:#607060;border:1px #808080 solid;padding:2%">
+<td style="width:45%;background:#809080;border:1px #808080 solid;padding:2%">
 <div>
 New users:<br />
 <u><a style="font-size:30px" href="${h.url_for(controller="mapview",action="index")}">Start using immediately!</a></u><br />
 <br />
-<div style="font-size:12px;color:#808080">
+<div style="font-size:12px;color:#000000">
 Once in the system, and only if you like, you can select the menu option "Create User" in the top right
 corner of the screen, and create your own user name. But try the system out first, by
 clicking the link above!
@@ -66,7 +66,7 @@ clicking the link above!
 <td style="width:10%;text-align:center">
 Or
 </td>
-<td style="width:45%;background:#707080;border: 1px #808080 solid;padding:2%">
+<td style="width:45%;background:#808090;border: 1px #808080 solid;padding:2%">
 <div>
 Existing users:<br />
 <form method="post" action="${h.url_for(controller="splash",action="login")}">

@@ -267,7 +267,7 @@ class ApiController(BaseController):
             user_aipgen=""
         for airp in extracted_cache.get_airfields():
             lat,lon=mapper.from_str(airp['pos'])
-            if lat>54 or lon<4 or lon>=30.5:
+            if lat<54 or lon<4 or lon>=30.5:
                 try:
                     if not version or int(version.strip())<=7:
                         continue
