@@ -113,7 +113,7 @@ def parse_space(lines):
                     area.append(p)
                     continue
                 if isnext('CLOCKWISE'):
-                    radius,center,dest=re.match(ur"CLOCKWISE RADIUS=(\d+\.?\d*) CENTRE=(\d+N \d+E) TO=(\d+N \d+E)",getline()).groups()
+                    radius,center,dest=re.match(ur"CLOCKWISE RADIUS=(\d+\.?\d*) CENTRE=(\d+\.?\d*N \d+\.?\d*E) TO=(\d+\.?\d*N \d+\.?\d*E)",getline()).groups()
                     area.append(ur"clockwise along an arc with radius %s NM centred on %s to the point %s"%(radius,center,dest))
                     continue
                 if isnext('CIRCLE'):
@@ -201,10 +201,13 @@ def parse_denmark2():
         print "  Elev:",field['elev']
     
     tot=dict(
-        airspace=airspace,
+        airspaces=airspace,
         airfields=airfields)
     jsonstr=json.dumps(tot,indent=2,ensure_ascii=False)
     print jsonstr
+    f=open("denmark.json","w")
+    f.write(jsonstr.encode('utf8'))
+    f.close()
     
     
 if __name__=='__main__':
