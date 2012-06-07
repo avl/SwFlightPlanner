@@ -3,6 +3,7 @@ import fplan.lib.mapper as mapper
 from fplan.lib.get_terrain_elev import get_terrain_elev
 from datetime import datetime
 import csv
+import json
 def coding(x):
     try:
         return unicode(x,'utf8')
@@ -120,7 +121,7 @@ def parse_space(lines):
                     radius,center=re.match(ur"CIRCLE RADIUS=(\d+\.?\d*) CENTRE=(\d+\.?\d*N \d+\.?\d*E)",l).groups()
                     area.append("A circle with radius %s NM centred on %s"%(radius,center))
                 break
-            points=mapper.parse_coord_str(" - ".join(area))
+            points=" - ".join(area)
             if isnext("BASE"):
                 BASE=get("BASE")
                 TOPS=get("TOPS")            
@@ -182,7 +183,7 @@ def parse_airfields():
             elev=int(elev))
         out.append(ad)
     return out
-def parse_denmark():
+def parse_denmark2():
     
     airspace=parse_airspace()
     airfields=parse_airfields()
@@ -198,9 +199,13 @@ def parse_denmark():
         print "  Pos:",field['pos']
         print "  Elev:",field['elev']
     
-    return dict(
+    tot=dict(
         airspace=airspace,
         airfields=airfields)
+    jsonstr=json.dumps(tot,indent=2,ensure_ascii=False)
+    print jsonstr
+    
+    
 if __name__=='__main__':
-    parse_denmark()
+    parse_denmark2()
     
