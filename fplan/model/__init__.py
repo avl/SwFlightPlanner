@@ -41,8 +41,11 @@ user_table = sa.Table("user",meta.metadata,
                         sa.Column('showobst',Boolean(),nullable=False,default=True),
                         sa.Column('fillable',Boolean(),nullable=False,default=False),
                         sa.Column('lasttrip',Unicode(50),nullable=True,default=None),
-                        sa.Column('fullname',Unicode(250),nullable=True,default=None)
+                        sa.Column('fullname',Unicode(250),nullable=True,default=None),                        
+                        sa.Column('trusted',Boolean(),nullable=False,default=False)                        
                         )
+
+
 
 airport_projection = sa.Table("airport_projection",meta.metadata,
                         sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
@@ -68,6 +71,32 @@ airport_marker = sa.Table("airport_marker",meta.metadata,
                             ['airport_projection.user', 'airport_projection.airport','airport_projection.mapchecksum'],
                             onupdate="CASCADE",ondelete="CASCADE"
                             )                              
+                        )
+
+customsets_table = sa.Table("customsets",meta.metadata,
+                        sa.Column("user",Unicode(32),primary_key=True, nullable=False),
+                        sa.Column("setname",Unicode(100),primary_key=True,nullable=False),
+                        sa.Column("active",Integer(),primary_key=False,nullable=True),
+                        sa.Column("ready",Integer(),primary_key=False,nullable=True),
+                        sa.ForeignKeyConstraint(
+                            ['user', 'setname','active'], 
+                            ['customset.user', 'customset.setname', 'customset.version'],
+                            onupdate="SET NULL",ondelete="SET NULL"
+                            ),
+                        sa.ForeignKeyConstraint(
+                            ['user', 'setname', 'ready'], 
+                            ['customset.user', 'customset.setname', 'customset.version'],
+                            onupdate="SET NULL",ondelete="SET NULL"
+                            )
+                        )
+
+
+customset_table = sa.Table("customset",meta.metadata,
+                        sa.Column("user",Unicode(32),primary_key=True, nullable=False),
+                        sa.Column("setname",Unicode(100),primary_key=True,nullable=False),
+                        sa.Column("version",Integer(),primary_key=True,nullable=False),
+                        sa.Column("data",Unicode(),primary_key=False,nullable=False,default=u""),
+                        sa.Column('modified',DateTime(),nullable=False),
                         )
 
 notam_table = sa.Table("notam",meta.metadata,
@@ -394,6 +423,22 @@ class AipHistory(object):
         self.aipgen=aipgen
         self.when=when
         self.data=data
+        
+class CustomSet(object):
+    def __init__(self,user,setname,version,data,modified):
+        self.user=user
+        self.setname=setname
+        self.version=version
+        self.data=data
+        self.modified=modified
+                
+class CustomSets(object):
+    def __init__(self,user,setname):
+        self.user=user
+        self.setname=setname
+                
+orm.mapper(CustomSet,customset_table)
+orm.mapper(CustomSets,customsets_table)
         
 class Metar(object):
     def __init__(self,icao,last_sync,text):

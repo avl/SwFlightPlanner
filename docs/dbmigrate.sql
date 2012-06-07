@@ -78,4 +78,7 @@ alter table "aircraft" add column "atsradiotype" varchar(64) not null default 'U
 #version 14
 alter table airport_projection add column "scale" float default null;
 alter table airport_projection add column "north" float default null;
+
+#version 15
+alter table "user" ADD "trusted" boolean not null default 'false';
  

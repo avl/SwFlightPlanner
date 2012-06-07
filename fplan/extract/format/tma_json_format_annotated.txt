@@ -1,0 +1,24 @@
+[
+#Taket på luftrummet. 
+{'ceiling': u'FL 095',
+#Frivillig information om när luftrummet är upprättat
+ 'established': u'Established during operational hours of HALMSTAD TWR.',
+#Golvet 
+ 'floor': u'4500 ft',
+#Lista med callsign  och frekvens för ATS
+ 'freqs': [(u'HALMSTAD TOWER', 135.05)],
+#Namn på luftrummet 
+ 'name': 'Halmstad TMA b',
+#Punkter som definierar luftrummet 
+ 'points': ['57.0542379689,13.1293487549',
+  '57.1216737076,13.4321594238',
+  '57.0075301534,13.5131835938',
+  '56.7597501087,13.2471084595',
+  '56.6704409950,13.1521797180'],
+#Typ av luftrum: TMA, TIA, R etc.  
+ 'type': 'TMA'}
+ ,
+ <fler luftrum>
+ 
+]
+

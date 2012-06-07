@@ -1,0 +1,237 @@
+{
+  "adcharts": {
+    "": {
+      "blobname": "ESSA", 
+      "render_width": 2500, 
+      "render_height": 1768, 
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_2_1_en.pdf", 
+      "checksum": "f271e2eac259b76c22943667ea8f0b69", 
+      "image": "ESSA.f271e2eac259b76c22943667ea8f0b69.png", 
+      "variant": "", 
+      "mapsize": [
+        419.906985, 
+        296.934603
+      ]
+    }, 
+    "vac": {
+      "blobname": "ESSA.vac", 
+      "render_width": 1767, 
+      "render_height": 2500, 
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_6_1_en.pdf", 
+      "checksum": "bfdb22e8d3a65f9d0e8bfb8238a6552d", 
+      "image": "ESSA.vac.bfdb22e8d3a65f9d0e8bfb8238a6552d.png", 
+      "variant": ".vac", 
+      "mapsize": [
+        209.8565, 
+        296.9734
+      ]
+    }, 
+    "parking": {
+      "blobname": "ESSA.parking", 
+      "render_width": 2500, 
+      "render_height": 1768, 
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_2_7_en.pdf", 
+      "checksum": "2ceffe1cee68842894eedfe638e66de7", 
+      "image": "ESSA.parking.2ceffe1cee68842894eedfe638e66de7.png", 
+      "variant": ".parking", 
+      "mapsize": [
+        419.906985, 
+        296.934603
+      ]
+    }
+  }, 
+  "flygkartan_id": "52846", 
+  "name": "STOCKHOLM/Arlanda", 
+  "aiptexturl": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_en.pdf", 
+  "icao": "ESSA", 
+  "elev": 137, 
+  "pos": "59.6519444444,17.9186111111", 
+  "runways": [
+    {
+      "ends": [
+        {
+          "thr": "01L", 
+          "pos": "59.6372555556,17.9132250000"
+        }, 
+        {
+          "thr": "19R", 
+          "pos": "59.6664027778,17.9237666667"
+        }
+      ]
+    }, 
+    {
+      "ends": [
+        {
+          "thr": "01R", 
+          "pos": "59.6263972222,17.9507416667"
+        }, 
+        {
+          "thr": "19L", 
+          "pos": "59.6484666667,17.9587472222"
+        }
+      ]
+    }, 
+    {
+      "ends": [
+        {
+          "thr": "08", 
+          "pos": "59.6584194444,17.9361333333"
+        }, 
+        {
+          "thr": "26", 
+          "pos": "59.6638972222,17.9791527778"
+        }
+      ]
+    }
+  ], 
+  "spaces": [
+    {
+      "ceil": "2000 ft MSL", 
+      "points": [
+        "59.8161111111,17.7800000000", 
+        "59.8161111111,17.9988888889", 
+        "59.8161111111,18.1797222222", 
+        "59.7744444444,18.2547222222", 
+        "59.6327777778,18.3213888889", 
+        "59.4911111111,17.9633333333", 
+        "59.4983333333,17.8838888889", 
+        "59.5077777778,17.7800000000", 
+        "59.5577777778,17.6966666667", 
+        "59.8161111111,17.7800000000"
+      ], 
+      "freqs": [
+        [
+          "ARLANDA GROUND", 
+          121.7
+        ], 
+        [
+          "ARLANDA CLEARANCE DELIVERY", 
+          121.825
+        ], 
+        [
+          "ARLANDA ATIS DEPARTURE", 
+          121.625
+        ], 
+        [
+          "ARLANDA ATIS ARRIVAL", 
+          119.0
+        ], 
+        [
+          "STOCKHOLM CONTROL", 
+          123.75
+        ], 
+        [
+          "ARLANDA TOWER", 
+          118.5
+        ], 
+        [
+          "ARLANDA TOWER", 
+          125.125
+        ]
+      ], 
+      "name": "ARLANDA CTR", 
+      "floor": "GND"
+    }, 
+    {
+      "ceil": "2000 ft MSL", 
+      "points": [
+        "59.8161111111,17.7800000000", 
+        "59.8161111111,17.9988888889", 
+        "59.4983333333,17.8838888889", 
+        "59.5077777778,17.7800000000", 
+        "59.5577777778,17.6966666667", 
+        "59.8161111111,17.7800000000"
+      ], 
+      "freqs": [
+        [
+          "ARLANDA GROUND", 
+          121.7
+        ], 
+        [
+          "ARLANDA CLEARANCE DELIVERY", 
+          121.825
+        ], 
+        [
+          "ARLANDA ATIS DEPARTURE", 
+          121.625
+        ], 
+        [
+          "ARLANDA ATIS ARRIVAL", 
+          119.0
+        ], 
+        [
+          "STOCKHOLM CONTROL", 
+          123.75
+        ], 
+        [
+          "ARLANDA TOWER", 
+          118.5
+        ], 
+        [
+          "ARLANDA TOWER", 
+          125.125
+        ]
+      ], 
+      "name": "Sector West", 
+      "floor": "GND"
+    }, 
+    {
+      "ceil": "2000 ft MSL", 
+      "points": [
+        "59.8161111111,17.9988888889", 
+        "59.8161111111,18.1797222222", 
+        "59.7744444444,18.2547222222", 
+        "59.6327777778,18.3213888889", 
+        "59.4911111111,17.9633333333", 
+        "59.4983333333,17.8838888889", 
+        "59.8161111111,17.9988888889"
+      ], 
+      "freqs": [
+        [
+          "ARLANDA GROUND", 
+          121.7
+        ], 
+        [
+          "ARLANDA CLEARANCE DELIVERY", 
+          121.825
+        ], 
+        [
+          "ARLANDA ATIS DEPARTURE", 
+          121.625
+        ], 
+        [
+          "ARLANDA ATIS ARRIVAL", 
+          119.0
+        ], 
+        [
+          "STOCKHOLM CONTROL", 
+          123.75
+        ], 
+        [
+          "ARLANDA TOWER", 
+          118.5
+        ], 
+        [
+          "ARLANDA TOWER", 
+          125.125
+        ]
+      ], 
+      "name": "Sector East", 
+      "floor": "GND"
+    }
+  ], 
+  "aipvacurl": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_6_1_en.pdf", 
+  "aiptext": [
+    {
+      "category": "general", 
+      "blobname": "ESSA_general", 
+      "name": "ESSA - General Information", 
+      "title": "General Information", 
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_en.pdf", 
+      "checksum": "6bd1c3e023b29b41615f2238ef8761fd", 
+      "icao": "ESSA"
+    }
+  ]
+}
+
+

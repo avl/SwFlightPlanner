@@ -1,0 +1,236 @@
+[
+{
+#Kartor som hör till flygplatsen, t.ex approach-charts:
+  "adcharts": {
+#Kartan utan namn ("") = 'standard'-kartan över flygplatsen - den som visas i gamla SwFlightplanner. Oftast en 'airport chart', med banor och taxi-banor.
+    "": {
+      #URL från vilken kartan laddats 
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_2_1_en.pdf", 
+      #kartans typ - samma som angivits som nyckel ovan (i detta fall alltså "")
+      "variant": "", 
+    },
+#vac = Visual Approach Chart     
+    "vac": {
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_6_1_en.pdf", 
+      "variant": ".vac", 
+    }, 
+#parking = Inzoomad karta med stand-numbers och liknande (parkeringsplatser)    
+    "parking": {
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_2_7_en.pdf", 
+      "variant": ".parking", 
+    }
+  }, 
+#Flygplatsens id på www.flygkartan.se (används för att göra länkar dit. Kan utelämnas)  
+  "flygkartan_id": "52846", 
+#Flygplatsens namn  
+  "name": "STOCKHOLM/Arlanda", 
+#URL till aip-info om flygplatsen  
+  "aiptexturl": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_en.pdf", 
+#Flygplatsens ICAO-kod (ange 'ZZZZ' om okänt eller ingen kod)  
+  "icao": "ESSA", 
+#Flygplatsens höjd över havet i fot  
+  "elev": 137, 
+#Flygplatsens koordinater i WGS84, decimalt  
+  "pos": "59.6519444444,17.9186111111",
+#Flygplatsens landningsbanor. För varje bana anges tröskel-namn och koordinater   
+  "runways": [
+    {
+      #Första banan har två ändar (trösklar):
+      "ends": [
+        {
+          #Tröskel bana 01L befinner sig alltså på 59.6372555556,17.9132250000
+          "thr": "01L", 
+          "pos": "59.6372555556,17.9132250000"
+        }, 
+        {
+          #Tröskel bana 19R (dvs, samma fysiska asfalt som 01L) är på 59.6664027778,17.9237666667
+          "thr": "19R", 
+          "pos": "59.6664027778,17.9237666667"
+        }
+      ]
+    }, 
+    {
+      "ends": [
+        {
+          "thr": "01R", 
+          "pos": "59.6263972222,17.9507416667"
+        }, 
+        {
+          "thr": "19L", 
+          "pos": "59.6484666667,17.9587472222"
+        }
+      ]
+    }, 
+    {
+      "ends": [
+        {
+          "thr": "08", 
+          "pos": "59.6584194444,17.9361333333"
+        }, 
+        {
+          "thr": "26", 
+          "pos": "59.6638972222,17.9791527778"
+        }
+      ]
+    }
+  ], 
+  #Spaces är eventuella luftrum som är förknippade med flygplatsen. Dvs oftast TIZ eller CTR
+  "spaces": [
+    {
+      #Taket på luftrummet
+      "ceil": "2000 ft MSL", 
+      #Koordinater
+      "points": [
+        "59.8161111111,17.7800000000", 
+        "59.8161111111,17.9988888889", 
+        "59.8161111111,18.1797222222", 
+        "59.7744444444,18.2547222222", 
+        "59.6327777778,18.3213888889", 
+        "59.4911111111,17.9633333333", 
+        "59.4983333333,17.8838888889", 
+        "59.5077777778,17.7800000000", 
+        "59.5577777778,17.6966666667", 
+        "59.8161111111,17.7800000000"
+      ], 
+      #Radiofrekvenser och call-signs
+      "freqs": [
+        [
+          "ARLANDA GROUND", 
+          121.7
+        ], 
+        [
+          "ARLANDA CLEARANCE DELIVERY", 
+          121.825
+        ], 
+        [
+          "ARLANDA ATIS DEPARTURE", 
+          121.625
+        ], 
+        [
+          "ARLANDA ATIS ARRIVAL", 
+          119.0
+        ], 
+        [
+          "STOCKHOLM CONTROL", 
+          123.75
+        ], 
+        [
+          "ARLANDA TOWER", 
+          118.5
+        ], 
+        [
+          "ARLANDA TOWER", 
+          125.125
+        ]
+      ], 
+      "name": "ARLANDA CTR",
+      #Och golvet på luftrummet 
+      "floor": "GND"
+    }, 
+    {
+      "ceil": "2000 ft MSL", 
+      "points": [
+        "59.8161111111,17.7800000000", 
+        "59.8161111111,17.9988888889", 
+        "59.4983333333,17.8838888889", 
+        "59.5077777778,17.7800000000", 
+        "59.5577777778,17.6966666667", 
+        "59.8161111111,17.7800000000"
+      ], 
+      "freqs": [
+        [
+          "ARLANDA GROUND", 
+          121.7
+        ], 
+        [
+          "ARLANDA CLEARANCE DELIVERY", 
+          121.825
+        ], 
+        [
+          "ARLANDA ATIS DEPARTURE", 
+          121.625
+        ], 
+        [
+          "ARLANDA ATIS ARRIVAL", 
+          119.0
+        ], 
+        [
+          "STOCKHOLM CONTROL", 
+          123.75
+        ], 
+        [
+          "ARLANDA TOWER", 
+          118.5
+        ], 
+        [
+          "ARLANDA TOWER", 
+          125.125
+        ]
+      ], 
+      "name": "Sector West", 
+      "floor": "GND"
+    }, 
+    {
+      "ceil": "2000 ft MSL", 
+      "points": [
+        "59.8161111111,17.9988888889", 
+        "59.8161111111,18.1797222222", 
+        "59.7744444444,18.2547222222", 
+        "59.6327777778,18.3213888889", 
+        "59.4911111111,17.9633333333", 
+        "59.4983333333,17.8838888889", 
+        "59.8161111111,17.9988888889"
+      ], 
+      "freqs": [
+        [
+          "ARLANDA GROUND", 
+          121.7
+        ], 
+        [
+          "ARLANDA CLEARANCE DELIVERY", 
+          121.825
+        ], 
+        [
+          "ARLANDA ATIS DEPARTURE", 
+          121.625
+        ], 
+        [
+          "ARLANDA ATIS ARRIVAL", 
+          119.0
+        ], 
+        [
+          "STOCKHOLM CONTROL", 
+          123.75
+        ], 
+        [
+          "ARLANDA TOWER", 
+          118.5
+        ], 
+        [
+          "ARLANDA TOWER", 
+          125.125
+        ]
+      ], 
+      "name": "Sector East", 
+      "floor": "GND"
+    }
+  ],
+  #URL till VAC-karta som visas i webb-applikationen 
+  "aipvacurl": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_6_1_en.pdf", 
+  #Information om AIP-text som har med flygplatsen att göra.
+  "aiptext": [
+    {
+      "category": "general",
+      "name": "ESSA - General Information", 
+      "title": "General Information", 
+      "url": "http://www.lfv.se/AIP/AD/AD%202/ESSA/ES_AD_2_ESSA_en.pdf", 
+      "icao": "ESSA"
+    }
+  ]
+},
+#Här kan följa fler i samma format som ovan
+<fler flygplatser>
+
+]
+
+

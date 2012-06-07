@@ -14,6 +14,7 @@ from fplan.lib.notam_geo_search import get_notam_objs_cached
 import socket
 import maptilereader
 from itertools import izip,chain
+import userdata
 import sys
 #have_mapnik=True
 
@@ -58,12 +59,17 @@ def get_airspace_color(airspacetype):
     """returns area-color , edge/solid color"""
     return typecolormap[airspacetype]
     
-def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format="PIL"):
+def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format="PIL",user=None,only_user=False):
     """
     set osmdraw==True and make sure a full working openstreetmap mapnik environment is available,
     in order to draw using mapnik. If false, a basemap must already have been drawn, and all that can
     be done is that new airspaces etc an be filled in.
     """
+    def only(x):
+        if only_user:
+            #print "Ignoring ",len(x)
+            return []
+        return x
     print "TMA:",tma
     imgx,imgy=pixelsize
     assert osmdraw in [True,False]
@@ -113,7 +119,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         #as_array=numpy.fromstring(buf,numpy.dtype("u4"))
         #as_array.byteswap(True)
     else:
-        print "Reading existing map instead"
+        #print "Reading existing map instead"
         im=Image.new("RGBA",(imgx,imgy))
         for i in xrange(0,pixelsize[0],256):
             for j in xrange(0,pixelsize[1],256):
@@ -143,8 +149,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         def tolocal(merc):
             return (merc[0]-x1,merc[1]-y1)
         for space in chain(
-                get_airspaces(),get_notam_objs_cached()['areas'],
-                get_aip_sup_areas(),get_firs()):        
+                only(get_airspaces()),get_notam_objs_cached()['areas'],
+                only(get_aip_sup_areas()),get_firs(),userdata.get_all_airspaces(user)):        
             if space['type']=='sector':
                 continue #Don't draw "sectors"
             for coord in space['points']:
@@ -161,7 +167,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
             ctx.fill_preserve()
             ctx.set_source(cairo.SolidPattern(*solidcol))
             ctx.stroke()
-        for obst in get_obstacles():
+        for obst in chain(only(get_obstacles()),userdata.get_all_obstacles(user)):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
                 merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
@@ -176,7 +182,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                 ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
                 ctx.stroke()                 
 
-        for sigp in get_sig_points():
+        for sigp in chain(only(get_sig_points()),userdata.get_all_sigpoints(user)):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
                 merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
@@ -207,7 +213,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                     ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
                     ctx.stroke()                 
                                
-        for airfield in get_airfields():
+        for airfield in chain(only(get_airfields()),userdata.get_all_airfields(user)):
             if zoomlevel<6:
                 continue
             ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))

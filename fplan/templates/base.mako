@@ -9,7 +9,7 @@
 </head>
 
 
-<body onload="global_onload()">
+<body onload="global_onload()" style="overflow:hidden">
 <form>
 <input type="hidden" name="refreshid" id="refreshid" value="no"/>
 </form>
@@ -29,6 +29,7 @@ addLoadEvent(fixcontentsize);
 		<dt id="nav-flightplan"><a onclick="navigate_to('${h.url_for(controller="flightplan",action="index")}')" href="#">Flightplan</a></dt>
 		<dt id="nav-aircraft"><a onclick="navigate_to('${h.url_for(controller="aircraft",action="index")}')" href="#">Aircraft</a></dt>
 		<dt id="nav-recordings"><a onclick="navigate_to('${h.url_for(controller="recordings",action="index")}')" href="#">Triplog</a></dt>
+		<dt id="nav-customsets"><a onclick="navigate_to('${h.url_for(controller="customsets",action="index")}')" href="#">Userdata</a></dt>
 	</dl>
 </div>
 <div id="right-nav">

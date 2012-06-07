@@ -26,6 +26,7 @@ import routes.util as h
 from datetime import datetime,timedelta
 import fplan.lib.geomag as geomag
 import traceback
+import fplan.lib.userdata as userdata
 
 def format_freqs(freqitems):
     out=[]
@@ -79,8 +80,9 @@ class MaptileController(BaseController):
         lat=float(request.params.get('lat'))
         lon=float(request.params.get('lon'))
         clickmerc=mapper.latlon2merc((lat,lon),zoomlevel)
+        user=session.get('user',None)
         out=[]
-        spaces=get_airspaces(lat,lon)
+        spaces=chain(get_airspaces(lat,lon),userdata.get_airspaces(lat,lon,user))
         print "Spaces:",spaces
         def anydate(s):
             if not 'date' in s: return ""
@@ -133,9 +135,9 @@ class MaptileController(BaseController):
             aip_sup_strs="<b>AIP SUP:</b><ul>"+aip_sup_strs+"</ul>"
          
         obstbytype=dict()
-        for obst in get_obstacles(lat,lon,zoomlevel):
+        for obst in chain(get_obstacles(lat,lon,zoomlevel),userdata.get_obstacles(lat,lon,zoomlevel,user)):
             obstbytype.setdefault(obst['kind'],[]).append(obst)
-            #print "processing",obst
+            print "processing",obst
         obstacles=[]
         if len(obstbytype):
             for kind,obsts in sorted(obstbytype.items()):
@@ -172,7 +174,7 @@ class MaptileController(BaseController):
                                                   
 
         airports=[]
-        fields=list(get_airfields(lat,lon,zoomlevel))
+        fields=list(chain(get_airfields(lat,lon,zoomlevel),userdata.get_airfields(lat,lon,zoomlevel,user)))
         if len(fields):
             airports.append("<b>Airfield:</b><ul>")
             for airp in fields:
@@ -273,7 +275,7 @@ class MaptileController(BaseController):
             airports.append("</ul>")
         
         sigpoints=[]
-        sigps=list(get_sigpoints(lat,lon,zoomlevel))
+        sigps=list(chain(get_sigpoints(lat,lon,zoomlevel),userdata.get_sigpoints(lat,lon,zoomlevel,user)))
         if len(sigps):
             sigpoints.append("<b>Sig. points</b><ul>")
             for sigp in sigps:
@@ -327,11 +329,19 @@ class MaptileController(BaseController):
             neededit=True                
         
         mtime=request.params.get('mtime',None)
+        
+        user=session.get('user',None)
         generate_on_the_fly=False
+        if user and userdata.have_any_for(user):
+            generate_on_the_fly=True
         #print "get: %d,%d,%d (showair:%s, neededit: %s)"%(mx,my,zoomlevel,airspaces,neededit)
         
         if generate_on_the_fly:
-            im=generate_big_tile((256,256),mx,my,zoomlevel,tma=True,return_format="cairo")    
+            only_user=False
+            if variant=='plain':
+                only_user=True
+            print "Only:",only_user
+            im=generate_big_tile((256,256),mx,my,zoomlevel,osmdraw=True,tma=True,return_format="cairo",user=user,only_user=only_user)    
             tilemeta=dict(status="ok")
         else:
             #print "Getting %s,%s,%s,%d,%d"%(mx,my,zoomlevel,mx%256,my%256)            
@@ -442,7 +452,9 @@ class MaptileController(BaseController):
         
         #print "Corners:",get_map_corners(pixelsize=(width,height),center=pos,lolat=lower,hilat=upper)
         response.headers['Pragma'] = ''
-        if tilemeta['status']!="ok":
+        if generate_on_the_fly:
+            response.headers['Cache-Control'] = 'max-age=10'            
+        elif tilemeta['status']!="ok":
             response.headers['Cache-Control'] = 'max-age=30'
         else:
             response.headers['Cache-Control'] = 'max-age=3600'
