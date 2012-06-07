@@ -10,6 +10,8 @@ from bsptree import BoundingBox,BspTree
 from bbtree import BBTree
 import traceback
 
+from typecolor import typecolormap
+
 def val_str(p,key,log):
     if not key in p:
         log.append("Missing key '%s' in object: %s"%(key,p))
@@ -138,6 +140,8 @@ def validate_space(space,spacetype,log):
         val_area(space,'points',log)
         val_freqs(space,'freqs',log)
         val_str(space,'type',log)
+        if not space['type'] in typecolormap:
+            log.append("Airspace type must be one of: %s"%(typecolormap.keys()))
         
         return len(log)==ploglen
     
