@@ -17,6 +17,7 @@ function navigate_to(where)
 <div>
 <h1>Custom Data Sets</h1>
 
+<b>WARNING! This function is under development and not for general use (yet)!</b>
 %if c.flash:
 <b>${c.flash}</b><br/>
 %endif
