@@ -4,11 +4,13 @@ from threading import Lock
 import json
 from pyshapemerge2d import Line,Vertex,Polygon,vvector
 import sqlalchemy as sa
-from fplan.model import meta,CustomSet,CustomSets
+from fplan.model import meta,CustomSet,CustomSets,User
 import mapper
 from bsptree import BoundingBox,BspTree
 from bbtree import BBTree
 import traceback
+import fplan.extract.parse_landing_chart as parse_landing_chart 
+import fplan.extract.aip_text_documents as aip_text_documents
 
 from typecolor import typecolormap
 
@@ -65,7 +67,7 @@ def optval_date(x,log):
         try:
             x['date']=datetime.strptime(d, "%Y-%m-%dT%H:%M:%S.%fZ")
         except Exception,cause:
-            log.append(cause.message)
+            log.append("Couldn't parse date: %s"%(cause.message,))
             return False
     return True
             
@@ -129,7 +131,7 @@ def val_freqs(space,key,log):
             log.append("Callsign must be a string, not %s"%(callsign,))
             return False
         if not type(freq) in [float,int]:
-            freqmhz,=re.match(r"\s*(\d{3}\.\d{1,3})\s*(?:Mhz)?",freq)
+            freqmhz,=re.match(r"\s*(\d{3}\.\d{1,3})\s*(?:Mhz)?",freq).groups()
             x[idx]=(callsign,float(freqmhz))
     return True
 def val_area(space,key,log):
@@ -176,7 +178,7 @@ class UserData(object):
     def have_any(self):
         return not self.empty
     def __init__(self,user,orders=None):
-        print "Loading userdata for ",user
+        #print "Loading userdata for ",user
         self.user=user
         self.log=[]
         self.points=dict()
@@ -204,25 +206,33 @@ class UserData(object):
             
         for custom in orders:
             try:
-                print "Found custom set:",custom.setname
+                #print "Found custom set:",custom.setname
                 print "Found active custom set:",custom.setname,custom.version
                 print "Data:"
                 print "------------------"
                 print custom.data
+                #print "Cont1"
                 data=json.loads(u"".join([x for x in custom.data.split("\n") if not x.strip().startswith("#")]).encode('utf8'))
                 if type(data)!=dict:
                     raise Exception("Top level must be object, that is, file must start with '{'")
+                #print "Cont2"
                 for pointtype in pointtypes:
                     if pointtype in data:
                         out=[]
                         for point in data[pointtype]:
+                            #print "val point"
                             if validate_point(point,pointtype,self.log):
                                 out.append(point)
+                            #print "aft val point"
+                                
                         if pointtype=='airfields':
+                            #print "val airf"
                             validate_airfield_space(point,self.log,self.spaces['airspaces'])
+                            #print "aft val airf"
                             
                         self.points[pointtype].extend(out)
                         data.pop(pointtype)
+                #print "Cont3"
                 for spacetype in spacestypes:
                     if spacetype in data:
                         out=[]
@@ -231,23 +241,33 @@ class UserData(object):
                                 out.append(space)
                         self.spaces[spacetype].extend(out)
                         data.pop(spacetype)
+                #print "Cont4"
                 if len(data.keys()):
                     for key in data.keys():
                         self.log.append("Unknown top-level key: %s"%(key,))
                         
+                #print "Cont5"
             except Exception,cause:
-                print traceback.format_exc()
+                print "Problem parsing custom",traceback.format_exc()
                 self.log.append(traceback.format_exc())                
-                    
+        #print "About to start bsptreein"
         for pointtype in pointtypes:
             bspitems=[]
             for item in self.points[pointtype]:
-                print "Adding BspTree item of type: ",pointtype,"item:",item
+                #print "Adding BspTree item of type: ",pointtype,"item:",item
                 bspitems.append(BspTree.Item(                                           
                     mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
             self.pointslookup[pointtype]=BspTree(bspitems)
             if bspitems:
                 self.empty=False
+                
+        
+        airspaces=self.spaces.get('airspaces',[])        
+        firs=[space for space in airspaces if space['type']=='FIR']
+        regular_airspaces=[space for space in airspaces if space['type']!='FIR']
+        self.spaces['airspaces']=regular_airspaces
+        self.spaces['firs']=firs
+        
         
         for spacetype in spacestypes:
             bbitems=[]
@@ -316,6 +336,8 @@ def have_any_for(user):
     
 def get_all_airspaces(user):
     return ensure_user_data(user).spaces['airspaces']
+def get_all_firs(user):
+    return ensure_user_data(user).spaces['firs']
 def get_all_airfields(user):
     return ensure_user_data(user).points['airfields']
 def get_all_obstacles(user):
@@ -329,12 +351,23 @@ def get_airspaces(lat,lon,user):
     px,py=mapper.latlon2merc((lat,lon),zoomlevel)
     bb0=BoundingBox(px,py,px,py)    
     for item in ensure_user_data(user).spaceslookup['airspaces'].overlapping(bb0):
-        print "HIT: ",repr(item.payload)
         yield item.payload[1]
+def get_firs(lat,lon,user):
+    if user==None: return
+    zoomlevel=13
+    px,py=mapper.latlon2merc((lat,lon),zoomlevel)
+    bb0=BoundingBox(px,py,px,py)    
+    for item in ensure_user_data(user).spaceslookup['firs'].overlapping(bb0):
+        yield item.payload[1]
+        
 
 def get_airspaces_in_bb(bb13,user):
     if user==None: return
     for item in ensure_user_data(user).spaceslookup['airspaces'].overlapping(bb13):
+        yield item.payload[1]
+def get_firs_in_bb(bb13,user):
+    if user==None: return
+    for item in ensure_user_data(user).spaceslookup['firs'].overlapping(bb13):
         yield item.payload[1]
 
 
@@ -371,3 +404,62 @@ def get_obstacles_in_bb(bb13,user):
 def get_sigpoints_in_bb(bb13,user):
     if user==None: return []
     return get_generic_bb(bb13,user,"sigpoints")
+
+
+
+
+
+
+
+
+def get_trusted_data():
+    airspaces=[]
+    firs=[]
+    airfields=[]
+    obstacles=[]
+    sigpoints=[]    
+    for user in meta.Session.query(User).filter(User.trusted==True).all():
+        orders=[]    
+        for csets in meta.Session.query(CustomSets).filter(CustomSets.user==user.user).all():
+            if csets.ready==None: continue
+            customs=list(meta.Session.query(CustomSet).filter(sa.and_(                                                                          
+                        CustomSet.user==user.user,CustomSet.setname==csets.setname,CustomSet.version==csets.ready)).all())
+            orders.extend(customs)
+        ud=UserData(user.user,orders)
+        airspaces.extend(ud.spaces['airspaces'])
+        firs.extend(ud.spaces['firs'])
+        airfields.extend(ud.points['airfields'])
+        obstacles.extend(ud.points['obstacles'])
+        sigpoints.extend(ud.points['sigpoints'])    
+                    
+    for ad in airfields:
+        adcharts_out=[]
+        if 'adcharts' in ad:
+            adcharts=ad['adcharts']
+            ad.pop('adcharts')
+            for key,val in adcharts.items():
+                variant=key
+                if variant in val:
+                    variant=val['variant'].lstrip(".")
+                parse_landing_chart.help_plc(ad,adchart['url'],
+                            ad['icao'],ad['pos'],"raw",variant="."+variant)
+
+        if 'aiptext' in ad:
+            aiptext=ad['aiptext']
+            ad.pop('aiptext')
+            
+            aip_text_documents.help_parse_doc(ad,aiptext['url'],
+                        ad['icao'],"se",title=aiptext['title'],category=aiptext['category'])
+                
+                
+    return dict(airspaces=airspaces,firs=firs,airfields=airfields,obstacles=obstacles,sigpoints=sigpoints)
+
+if __name__=='__main__':
+    from sqlalchemy import engine_from_config
+    from paste.deploy import appconfig
+    import os
+    from fplan.config.environment import load_environment
+    conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
+    load_environment(conf.global_conf, conf.local_conf)
+    print get_trusted_data()
+    

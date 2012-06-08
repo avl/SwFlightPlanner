@@ -18,6 +18,7 @@ from fplan.lib.bbtree import BBTree
 from pyshapemerge2d import Line,Vertex,Polygon,vvector
 import osm_airfields
 from fplan.lib.bsptree import BspTree,BoundingBox
+import fplan.lib.userdata as userdata
 import fplan.lib.remove_unused_users
 import fplan.lib.delete_old_notams
 import fplan.lib.mapper as mapper
@@ -233,6 +234,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(evads)
                 
             class SpaceLoader(object):
+                def parse_trusted_userdata(self):
+                    "Data added by users, only trusted users"
+                    return userdata.get_trusted_data()
                 def parse_osm_airfields(self): 
                     return dict(bad_airfields=osm_airfields.osm_airfields_parse())
                 def parse_latvian_tma(self):
@@ -264,7 +268,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def parse_estonian_r_and_tsa(self):
                     "Estonian R and TSA"
                     return dict(airspaces=ee_parse_r_and_tsa2())
-                                
+    
                 
                 def parse_denmark(self):
                     "denmark"
@@ -280,7 +284,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def fi_parse_parse_airfields(self):
                     "Finnish major airfields"
                     fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
-                    return dict(airfields=fi_airfields,airspaces=fi_spaces)
+                    return dict(airfields=fi_airfields,airspaces=fi_spaces) 
                 def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
                 def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
 
@@ -400,10 +404,16 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                         pa=dict()
                         pa['name']=space['name']
                         pa['floor']=space['floor']
-                        pa['ceiling']=space['ceil']
+                        if 'ceiling' in space:
+                            pa['ceiling']=space['ceiling']
+                        else:
+                            pa['ceiling']=space['ceil']
                         pa['points']=space['points']
-                        pa['type']='CTR'
-                        pa['freqs']=space.get('freqs',"")
+                        if 'type' in space:
+                            pa['type']=space['type']
+                        else:
+                            pa['type']='CTR'                            
+                        pa['freqs']=space.get('freqs',[])
                         airspaces.append(pa)
             
             

@@ -361,7 +361,7 @@ def anyparse(coord):
         return parse_coords(
                 lat,lon)        
     except Exception,cause:
-        print "Cause:",cause
+        #print "Cause:",cause
         pass
     try:        
         coord=coord.upper()
@@ -731,12 +731,20 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         zoom=14
         center=parse_coords(lat,lon)
         return create_circle(center,dist_nm)
+    
 
     try:
         
         c=[]
         mat=re.match(ur"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg,re.UNICODE)
         if not mat:
+            try:
+                for lat,lon in re.findall(ur"^\s*(\d{1,2}\.?\d*)\s*,\s*(\d{1,3}\.?\d*)\s*$",seg,re.UNICODE):
+                    c.append(to_str((float(lat),float(lon))))
+                return c
+            except:
+                pass
+            
             uprint("Got: <%s>"%(repr(seg),))
             raise Exception("Couldn't parse <%s> as an area segment!"%(seg,))
         for lat,lon in re.findall(r"(\d{4,6}[\.,]?\d*[NS])\s*(\d{5,7}[\.,]?\d*[EW])",seg,re.UNICODE):
