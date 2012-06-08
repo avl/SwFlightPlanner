@@ -166,7 +166,7 @@ class CustomsetsController(BaseController):
             c.ready=False
         c.haveprev=len(prev)>0
         c.havenext=len(next)>0
-        print "Havenext:",c.havenext
+        #print "Havenext:",c.havenext
         c.data=unescape_string_newlines_only(c.data).replace("\n","\r\n")
         return render('/customset.mako')
     def delete(self):
@@ -189,7 +189,7 @@ class CustomsetsController(BaseController):
     def renamesave(self):        
         print request.params
         oldname=request.params['oldname']
-        setname=request.params['setname']
+        setname=request.params['newsetname']
         print "Rename",oldname,"->",setname
         found=False
         for ds in meta.Session.query(CustomSets).filter(sa.and_(

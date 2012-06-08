@@ -182,6 +182,7 @@ fplan/templates/ats.mako
 fplan/templates/base.mako
 fplan/templates/coordpres.mako
 fplan/templates/customset.mako
+fplan/templates/customsetrename.mako
 fplan/templates/customsets.mako
 fplan/templates/enroutenotams.mako
 fplan/templates/error.mako

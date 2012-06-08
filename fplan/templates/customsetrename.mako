@@ -18,9 +18,9 @@ function navigate_to(where)
 <h1>Custom Data Set ${c.setname}</h1>
 
 <form action="${h.url_for(controller="customsets",action="renamesave")}" method="POST">
+<!-- test -->
 
-
-New name:<input type="text" name="setname" value="${c.setname}" /><br/>
+New name:<input type="text" name="newsetname" value="${c.setname}" /><br/>
 
 <input type="hidden" name="oldname" value="${c.setname}" /><br/>
 <input type="submit" id="save_id" name="save_button" value="Save"/>

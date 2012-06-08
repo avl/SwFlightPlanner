@@ -23,7 +23,7 @@ function datachanged()
 </script>
 <div style="height:100%;width:100%;overflow:auto;">
 
-<h1>Custom Data Set ${c.setname}</h1>
+<h1>${c.setname}</h1>
 
 %if c.flash:
 <b style="background-color:#ffb0b0">${c.flash|n}</b><br/>
@@ -46,7 +46,6 @@ Version: ${c.cur}<br/>
 <input type="checkbox" name="active" ${'checked="1"' if c.active else ''|n}"/> Active (Check this to make data available to you only)<br/>
 <input type="checkbox" name="ready" ${'checked="1"' if c.ready else ''|n}"/> Ready (Check this to make data available to general public and in android app)<br/>
 
-<input type="text" name="setname" value="${c.setname}" /><br/>
 <textarea name="data" rows="100" cols="100" onkeydown="datachanged();return 0;" onchange="datachanged();return 0;">
 ${c.data}
 </textarea>
