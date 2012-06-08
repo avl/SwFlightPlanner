@@ -178,7 +178,7 @@ class MaptileController(BaseController):
         if len(fields):
             airports.append("<b>Airfield:</b><ul>")
             for airp in fields:
-                print "clicked on ",airp
+                #print "clicked on ",airp
                 linksstr=""
                 links=[]
                 if 'flygkartan_id' in airp:

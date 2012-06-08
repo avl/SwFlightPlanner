@@ -237,6 +237,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def parse_trusted_userdata(self):
                     "Data added by users, only trusted users"
                     return userdata.get_trusted_data()
+                
                 def parse_osm_airfields(self): 
                     return dict(bad_airfields=osm_airfields.osm_airfields_parse())
                 def parse_latvian_tma(self):

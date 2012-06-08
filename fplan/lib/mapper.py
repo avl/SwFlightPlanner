@@ -738,6 +738,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         c=[]
         mat=re.match(ur"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg,re.UNICODE)
         if not mat:
+            #print "NOt looking like a match, checking wgs84 last"
             try:
                 for lat,lon in re.findall(ur"^\s*(\d{1,2}\.?\d*)\s*,\s*(\d{1,3}\.?\d*)\s*$",seg,re.UNICODE):
                     c.append(to_str((float(lat),float(lon))))

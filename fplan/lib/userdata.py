@@ -140,11 +140,13 @@ def val_area(space,key,log):
         return False
     areatext=space[key]
     try:
+        if type(areatext) in (list,tuple):
+            areatext=" - ".join(areatext)
         points=mapper.parse_coord_str(areatext)
         space[key]=points
         return True
     except Exception,cause:
-        log.append("Couldn't parse area: %s"%(areatext,))
+        log.append(u"Couldn't parse area: %s: %s (%s)"%(repr(areatext),repr(cause),repr(traceback.format_exc())))
         return False
     
     
@@ -165,9 +167,9 @@ def validate_space(space,spacetype,log):
         val_alt(space,'ceiling',log)
         val_area(space,'points',log)
         val_freqs(space,'freqs',log)
-        val_str(space,'type',log)
-        if not space['type'] in typecolormap:
-            log.append("Airspace type must be one of: %s"%(typecolormap.keys()))
+        if val_str(space,'type',log):
+            if not space['type'] in typecolormap:
+                log.append("Airspace type must be one of: %s"%(typecolormap.keys()))
         
         return len(log)==ploglen
     
@@ -207,10 +209,10 @@ class UserData(object):
         for custom in orders:
             try:
                 #print "Found custom set:",custom.setname
-                print "Found active custom set:",custom.setname,custom.version
-                print "Data:"
-                print "------------------"
-                print custom.data
+                ##print "Found active custom set:",custom.setname,custom.version
+                #print "Data:"
+                #print "------------------"
+                #print custom.data
                 #print "Cont1"
                 data=json.loads(u"".join([x for x in custom.data.split("\n") if not x.strip().startswith("#")]).encode('utf8'))
                 if type(data)!=dict:
@@ -433,7 +435,6 @@ def get_trusted_data():
         sigpoints.extend(ud.points['sigpoints'])    
                     
     for ad in airfields:
-        adcharts_out=[]
         if 'adcharts' in ad:
             adcharts=ad['adcharts']
             ad.pop('adcharts')
@@ -441,18 +442,18 @@ def get_trusted_data():
                 variant=key
                 if variant in val:
                     variant=val['variant'].lstrip(".")
-                parse_landing_chart.help_plc(ad,adchart['url'],
+                parse_landing_chart.help_plc(ad,val['url'],
                             ad['icao'],ad['pos'],"raw",variant="."+variant)
 
         if 'aiptext' in ad:
-            aiptext=ad['aiptext']
+            aiptexts=ad['aiptext']
             ad.pop('aiptext')
-            
-            aip_text_documents.help_parse_doc(ad,aiptext['url'],
+            for aiptext in aiptexts:
+                aip_text_documents.help_parse_doc(ad,aiptext['url'],
                         ad['icao'],"se",title=aiptext['title'],category=aiptext['category'])
                 
                 
-    return dict(airspaces=airspaces,firs=firs,airfields=airfields,obstacles=obstacles,sigpoints=sigpoints)
+    return dict(airspaces=airspaces+firs,airfields=airfields,obstacles=obstacles,sig_points=sigpoints)
 
 if __name__=='__main__':
     from sqlalchemy import engine_from_config

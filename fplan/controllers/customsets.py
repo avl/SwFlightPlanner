@@ -290,8 +290,8 @@ class CustomsetsController(BaseController):
         f.write(u"".join([x for x in data.split("\n") if not x.strip().startswith("#")]).encode('utf8'))
         f.flush()
         data=escape_string_newlines_only(data)
-        print "File:",f.name
-        print "Escaped:",repr(data)
+        #print "File:",f.name
+        #print "Escaped:",repr(data)
         
         p = subprocess.Popen("jsonlint -v "+f.name, shell=True,
                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
