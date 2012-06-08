@@ -36,7 +36,7 @@ def escape_string_newlines_only_impl(s,escfun):
                 else:
                     if last!=0:
                         yield "out",s[0:last]
-                print "Quotes at idxes",last,x
+                #print "Quotes at idxes",last,x
                 yield "in",s[last:x+1]
                 last=None
                 prevyield=x+1                
@@ -49,7 +49,7 @@ def escape_string_newlines_only_impl(s,escfun):
                 
     out=[]
     for what,frag in pairify(getquotes()):
-        print "frag",what,frag
+        #print "frag",what,frag
         if what=='in':
             frag=escfun(frag)
         out.append(frag)
@@ -166,7 +166,7 @@ class CustomsetsController(BaseController):
             c.ready=False
         c.haveprev=len(prev)>0
         c.havenext=len(next)>0
-        print "Havenext:",c.havenext
+        #print "Havenext:",c.havenext
         c.data=unescape_string_newlines_only(c.data).replace("\n","\r\n")
         return render('/customset.mako')
     def delete(self):
@@ -189,7 +189,7 @@ class CustomsetsController(BaseController):
     def renamesave(self):        
         print request.params
         oldname=request.params['oldname']
-        setname=request.params['setname']
+        setname=request.params['newsetname']
         print "Rename",oldname,"->",setname
         found=False
         for ds in meta.Session.query(CustomSets).filter(sa.and_(
