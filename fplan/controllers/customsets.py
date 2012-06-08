@@ -14,6 +14,55 @@ import fplan.lib.userdata as userdata
 
 log = logging.getLogger(__name__)
 
+def escape_string_newlines_only_impl(s,escfun):
+    def getquotes():
+        idx=0
+        while True:
+            nidx=s.find('"',idx)
+            if nidx==-1:
+                break
+            if nidx>0 and s[nidx-1]=="\\":
+                idx=nidx+1
+                continue
+            yield nidx
+            idx=nidx+1
+    def pairify(xs):
+        last=None
+        prevyield=None
+        for x in xs:
+            if last!=None:
+                if prevyield!=None:
+                    yield "out",s[prevyield:last]
+                else:
+                    if last!=0:
+                        yield "out",s[0:last]
+                print "Quotes at idxes",last,x
+                yield "in",s[last:x+1]
+                last=None
+                prevyield=x+1                
+            else:
+                last=x
+        if prevyield==None:
+            yield "out",s
+        else:
+            yield "out",s[prevyield:]
+                
+    out=[]
+    for what,frag in pairify(getquotes()):
+        print "frag",what,frag
+        if what=='in':
+            frag=escfun(frag)
+        out.append(frag)
+    return "".join(out)
+def escape_string_newlines_only(s):
+    return escape_string_newlines_only_impl(s,lambda x:x.replace("\n","\\n"))        
+def unescape_string_newlines_only(s):
+    return escape_string_newlines_only_impl(s,lambda x:x.replace("\\n","\n"))        
+            
+        
+
+
+
 class CustomsetsController(BaseController):
     def index(self):
         
@@ -118,6 +167,7 @@ class CustomsetsController(BaseController):
         c.haveprev=len(prev)>0
         c.havenext=len(next)>0
         print "Havenext:",c.havenext
+        c.data=unescape_string_newlines_only(c.data).replace("\n","\r\n")
         return render('/customset.mako')
     def delete(self):
         print "Delete called"
@@ -161,10 +211,10 @@ class CustomsetsController(BaseController):
         
     def save(self,setname,version):
         version=int(version)
-        data=request.params['data']
+        data=request.params['data'].replace("\r\n","\n").replace("\r","\n")
         
         userdata.purge_user_data(session['user'])
-            
+        
         
         def handle_nav():
             if 'prev_button' in request.params:
@@ -239,7 +289,9 @@ class CustomsetsController(BaseController):
         f = tempfile.NamedTemporaryFile(delete=True)
         f.write(u"".join([x for x in data.split("\n") if not x.strip().startswith("#")]).encode('utf8'))
         f.flush()
+        data=escape_string_newlines_only(data)
         print "File:",f.name
+        print "Escaped:",repr(data)
         
         p = subprocess.Popen("jsonlint -v "+f.name, shell=True,
                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
@@ -251,7 +303,7 @@ class CustomsetsController(BaseController):
         out=child_stderr.read().split(":",1)[-1].strip()
         f.close()
         if out!="":
-            return self.view(setname,version,flash="Bad data format: "+out,data=data)
+            return self.view(setname,version,flash="Bad JSON data format: "+out,data=data)
             
         orders=[cs]
         ud=userdata.UserData(session['user'],orders)

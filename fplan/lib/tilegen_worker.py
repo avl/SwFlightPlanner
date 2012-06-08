@@ -7,7 +7,7 @@ import Pyro.core
 import Image
 import cairo
 import numpy
-from fplan.extract.extracted_cache import get_firs,get_airspaces,get_obstacles,get_airfields,get_sig_points,get_aip_sup_areas
+from fplan.extract.extracted_cache import get_firs,get_airspaces_in_bb2,get_obstacles_in_bb,get_airfields_in_bb,get_sig_points_in_bb,get_aip_sup_areas
 import fplan.extract.parse_obstacles as parse_obstacles
 import StringIO
 from fplan.lib.notam_geo_search import get_notam_objs_cached
@@ -16,6 +16,7 @@ import maptilereader
 from itertools import izip,chain
 import userdata
 import sys
+from bsptree import BoundingBox
 #have_mapnik=True
 
 #If changing this - also change 'meta=x' in tilegen_planner .
@@ -133,8 +134,14 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
     if tma:
         def tolocal(merc):
             return (merc[0]-x1,merc[1]-y1)
+        
+        merc13=mapper.merc2merc((x1,y1),zoomlevel,13)
+        merc13b=mapper.merc2merc((x1+imgx,y1+imgy),zoomlevel,13)
+        bb13=BoundingBox(merc13[0],merc13[1],merc13b[0],merc13b[1])
+        
+        
         for space in chain(
-                only(get_airspaces()),get_notam_objs_cached()['areas'],
+                only(get_airspaces_in_bb2(bb13)),get_notam_objs_cached()['areas'],
                 only(get_aip_sup_areas()),get_firs(),userdata.get_all_airspaces(user)):        
             if space['type']=='sector':
                 continue #Don't draw "sectors"
@@ -152,7 +159,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
             ctx.fill_preserve()
             ctx.set_source(cairo.SolidPattern(*solidcol))
             ctx.stroke()
-        for obst in chain(only(get_obstacles()),userdata.get_all_obstacles(user)):
+        for obst in chain(only(get_obstacles_in_bb(bb13)),userdata.get_all_obstacles(user)):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
                 merc=mapper.latlon2merc(mapper.from_str(obst['pos']),zoomlevel)
@@ -167,7 +174,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                 ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
                 ctx.stroke()                 
 
-        for sigp in chain(only(get_sig_points()),userdata.get_all_sigpoints(user)):
+        for sigp in chain(only(get_sig_points_in_bb(bb13)),userdata.get_all_sigpoints(user)):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
                 merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
@@ -198,7 +205,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                     ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
                     ctx.stroke()                 
                                
-        for airfield in chain(only(get_airfields()),userdata.get_all_airfields(user)):
+        for airfield in chain(only(get_airfields_in_bb(bb13)),userdata.get_all_airfields(user)):
             if zoomlevel<6:
                 continue
             ctx.set_source(cairo.SolidPattern(0.8,0.5,1.0,0.25))

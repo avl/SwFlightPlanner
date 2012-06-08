@@ -32,6 +32,8 @@ def max_merc_y(zoomlevel):
     return 256*(2**zoomlevel)
 def max_merc_x(zoomlevel):
     return 256*(2**zoomlevel)
+def merc2merc(m,z1,z2):
+    return (m[0]*(2.0**(z2-z1)),m[1]*(2.0**(z2-z1)))
 
 def approx_scale(merc_coords,zoomlevel,length_in_nautical_miles):
     """Return the number of mercator proj 'pixels'

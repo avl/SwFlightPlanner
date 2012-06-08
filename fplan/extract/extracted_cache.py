@@ -445,6 +445,10 @@ def get_airspaces_in_bb(bb):
     get_aipdata()
     for item in aipdatalookup['airspaces'].overlapping(bb):
         yield item.payload #tuple of (Polygon,Airspace-dict)
+def get_airspaces_in_bb2(bb):
+    get_aipdata()
+    for item in aipdatalookup['airspaces'].overlapping(bb):
+        yield item.payload[1] #tuple of (Polygon,Airspace-dict)
 
 def get_firs_in_bb(bb):
     get_aipdata()

@@ -332,6 +332,16 @@ def get_airspaces(lat,lon,user):
         print "HIT: ",repr(item.payload)
         yield item.payload[1]
 
+def get_airspaces_in_bb(bb13,user):
+    if user==None: return
+    for item in ensure_user_data(user).spaceslookup['airspaces'].overlapping(bb13):
+        yield item.payload[1]
+
+
+def get_generic_bb(bb13,user,what):
+    ud=ensure_user_data(user)
+    for item in ud.pointslookup[what].findall_in_bb(bb13):
+        yield item.val
 
 def get_generic(lat,lon,zoomlevel,user,what):
     px,py=mapper.latlon2merc((lat,lon),13)
@@ -351,3 +361,13 @@ def get_obstacles(lat,lon,zoomlevel,user):
 def get_sigpoints(lat,lon,zoomlevel,user):
     if user==None: return []
     return get_generic(lat,lon,zoomlevel,user,"sigpoints")
+
+def get_airfields_in_bb(bb13,user):
+    if user==None: return []
+    return get_generic_bb(bb13,user,"airfields")
+def get_obstacles_in_bb(bb13,user):
+    if user==None: return []
+    return get_generic_bb(bb13,user,"obstacles")
+def get_sigpoints_in_bb(bb13,user):
+    if user==None: return []
+    return get_generic_bb(bb13,user,"sigpoints")
