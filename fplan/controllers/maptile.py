@@ -258,7 +258,7 @@ class MaptileController(BaseController):
                     meta.Session.flush()
                     meta.Session.commit()
                     
-                if len(links)>0:                    
+                if len(links)>0 and 'icao' in airp:                    
                     linksstr=helpers.foldable_links(airp['icao']+"links",links)
 
                 rwys=[]
@@ -285,7 +285,8 @@ class MaptileController(BaseController):
 
         firs=[]        
         for fir in get_firs((lat,lon)):
-            firs.append("%s (%s)"%(fir['name'],fir['icao']))        
+            if 'icao' in fir:
+                firs.append("%s (%s)"%(fir['name'],fir['icao']))        
         if not firs:
             firs.append("Unknown")
             

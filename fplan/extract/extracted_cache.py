@@ -271,9 +271,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     return dict(airspaces=ee_parse_r_and_tsa2())
     
                 
-                def parse_denmark(self):
-                    "denmark"
-                    raise Exception("CUrrently disabled")
+                #def parse_denmark(self):
+                #    "denmark"
+                #    raise Exception("CUrrently disabled")
                     #if not is_devcomp() or a: #denmark
                     #    denmark=parse_denmark()
                     #    return dict(airspaces=denmark['airspace'],
