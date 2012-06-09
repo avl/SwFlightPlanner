@@ -577,6 +577,7 @@ class ApiController(BaseController):
         assert version in [1,2,3]
         
         
+        
         def writeInt(x):
             response.write(struct.pack(">I",x))
         def writeLong(x):
