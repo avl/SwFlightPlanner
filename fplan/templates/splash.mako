@@ -35,11 +35,11 @@
 <h1>SWFlightplanner</h1>
 </td></tr>
 </table>
-<!--
+
 <p>
-<big style="background-color:#ff8080">Problems...none</big>
+<big style="background-color:#ff8080">We are currently experiencing internet connection problems. Site may be slow.</big>
 </p>
--->
+
 <p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
