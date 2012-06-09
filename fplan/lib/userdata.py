@@ -71,7 +71,25 @@ def optval_date(x,log):
             return False
     return True
             
-    
+def val_runway(point,log):
+    if not 'runways' in point: return
+    for rwy in point['runways']:
+        if not 'ends' in rwy: 
+            log.append("Must have 'ends' key in runway information object.")
+            continue
+        ends=rwy['ends']
+        if len(ends)!=2: 
+            log.append("A runway must have exactly two ends, not %d: %s"%(len(ends),ends))
+            continue
+        for end in ends:
+            if not 'thr' in end:
+                log.append("Must have thr (threshold) key in runway end-object, have only: %s"%(end.keys()))
+                continue
+            if not 'pos' in end:
+                log.append("Must have pos key in runway end-object, have only: %s"%(end.keys()))
+                continue
+            end['pos']=mapper.anyparse(end['pos'])
+                 
 def validate_point(point,pointtype,log):
     ploglen=len(log)
     optval_date(point,log)
@@ -87,6 +105,7 @@ def validate_point(point,pointtype,log):
             log.append(u"ICAO code must be 4 letters, not: %s"%(point['icao'],))
         val_str(point,'name',log)
         val_pos(point,'pos',log)
+        val_runway(point,log)
         if val_float(point,'elev',log):
             point['elev']=int(point['elev'])
         return ploglen==len(log)
@@ -143,6 +162,7 @@ def val_area(space,key,log):
         if type(areatext) in (list,tuple):
             areatext=" - ".join(areatext)
         points=mapper.parse_coord_str(areatext)
+        print "Output from parse coord str:",points
         space[key]=points
         return True
     except Exception,cause:
@@ -164,12 +184,16 @@ def validate_space(space,spacetype,log):
         optval_date(space,log)
         val_str(space,'name',log)
         val_alt(space,'floor',log)
+        if 'ceil' in space:
+            space['ceiling']=space['ceil']
         val_alt(space,'ceiling',log)
         val_area(space,'points',log)
         val_freqs(space,'freqs',log)
         if val_str(space,'type',log):
             if not space['type'] in typecolormap:
                 log.append("Airspace type must be one of: %s"%(typecolormap.keys()))
+        else:
+            space['type']='sector'
         
         return len(log)==ploglen
     
@@ -252,47 +276,52 @@ class UserData(object):
             except Exception,cause:
                 print "Problem parsing custom",traceback.format_exc()
                 self.log.append(traceback.format_exc())                
-        #print "About to start bsptreein"
-        for pointtype in pointtypes:
-            bspitems=[]
-            for item in self.points[pointtype]:
-                #print "Adding BspTree item of type: ",pointtype,"item:",item
-                bspitems.append(BspTree.Item(                                           
-                    mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
-            self.pointslookup[pointtype]=BspTree(bspitems)
-            if bspitems:
-                self.empty=False
-                
         
+        
+        if len(self.log)==0:            
+            #print "About to start bsptreein"
+            for pointtype in pointtypes:
+                bspitems=[]
+                for item in self.points[pointtype]:
+                    #print "Adding BspTree item of type: ",pointtype,"item:",item
+                    bspitems.append(BspTree.Item(                                           
+                        mapper.latlon2merc(mapper.from_str(item['pos']),13),item) )
+                self.pointslookup[pointtype]=BspTree(bspitems)
+                if bspitems:
+                    self.empty=False
+                    
+            
         airspaces=self.spaces.get('airspaces',[])        
         firs=[space for space in airspaces if space['type']=='FIR']
         regular_airspaces=[space for space in airspaces if space['type']!='FIR']
         self.spaces['airspaces']=regular_airspaces
         self.spaces['firs']=firs
         
-        
-        for spacetype in spacestypes:
-            bbitems=[]
-            for space in self.spaces[spacetype]:
-                poly_coords=[]
-                bb=BoundingBox(1e30,1e30,-1e30,-1e30)
-                for coord in space['points']:
-                    x,y=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
-                    bb.x1=min(bb.x1,x)
-                    bb.x2=max(bb.x2,x)
-                    bb.y1=min(bb.y1,y)
-                    bb.y2=max(bb.y2,y)
-                    poly_coords.append(Vertex(int(x),int(y)))
-                if len(poly_coords)<3:
-                    continue
-                poly=Polygon(vvector(poly_coords))
-                #print "Item:",space
-                bbitems.append(
-                    BBTree.TItem(bb,(poly,space)))                                                            
-            self.spaceslookup[spacetype]=BBTree(bbitems,0.5)
-            if bbitems:
-                self.empty=False
-        
+        if len(self.log)==0:            
+            
+            for spacetype in spacestypes:
+                bbitems=[]
+                for space in self.spaces[spacetype]:
+                    poly_coords=[]
+                    bb=BoundingBox(1e30,1e30,-1e30,-1e30)
+                    for coord in space['points']:
+                        print "Coord:",coord
+                        x,y=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
+                        bb.x1=min(bb.x1,x)
+                        bb.x2=max(bb.x2,x)
+                        bb.y1=min(bb.y1,y)
+                        bb.y2=max(bb.y2,y)
+                        poly_coords.append(Vertex(int(x),int(y)))
+                    if len(poly_coords)<3:
+                        continue
+                    poly=Polygon(vvector(poly_coords))
+                    #print "Item:",space
+                    bbitems.append(
+                        BBTree.TItem(bb,(poly,space)))                                                            
+                self.spaceslookup[spacetype]=BBTree(bbitems,0.5)
+                if bbitems:
+                    self.empty=False
+            
                 
         self.date=datetime.utcnow()        
        
@@ -440,7 +469,7 @@ def get_trusted_data():
             ad.pop('adcharts')
             for key,val in adcharts.items():
                 variant=key
-                if variant in val:
+                if "variant" in val:
                     variant=val['variant'].lstrip(".")
                 parse_landing_chart.help_plc(ad,val['url'],
                             ad['icao'],ad['pos'],"raw",variant="."+variant)

@@ -659,6 +659,15 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
             radius,centerstr,nextposraw=arc.groups()
             prevposraw=None
             direction="cw"
+            
+    if not arc:
+        arc=re.match(ur"\s*CIRCLE\s*CLOCKWISE\s*RADIUS\s*=\s*([\d\.]+)\s*CEN[TRED]+\s*=\s*([\d\s\.]+\s*N\s*[\d\s\.]+\s*E)\s*TO\s*=\s*([\d\s\.]+\s*N\s*[\d\s\.]+\s*E)\s*",seg,re.UNICODE|re.IGNORECASE)
+        if arc:
+            radius,centerstr,nextposraw=arc.groups()
+            radius=radius+" NM"
+            prevposraw=None
+            direction="cw"
+                        
     if not arc:
         def s(x):
             return x.replace(" ","\\s*")
@@ -719,9 +728,9 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
         return segseq
     
-    print "Matching agains circle:",seg
+    #print "Matching agains circle:",seg
     circ=re.match( ur".*[Cc]ircle,?\s*(?:with|of)?\s*radius\s*(?:of)?\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\s*\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
-    print "Result:",circ
+    #print "Result:",circ
     if circ:
         radius,lat,lon=circ.groups()
         print "PRev:",prev,"Next:",next
@@ -736,6 +745,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     try:
         
         c=[]
+        seg=re.sub(r"\s+","",seg,re.UNICODE)
         mat=re.match(ur"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg,re.UNICODE)
         if not mat:
             #print "NOt looking like a match, checking wgs84 last"

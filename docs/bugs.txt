@@ -296,3 +296,4 @@
 289: Custom Data tar aldrig skruv för alla användare, även om "Ready" är valt.
 290: Fixa så man kan ha FIR som userdata.
 291: Fixa AIP/AD-chart generering för userdata.
+292: Fix Sweden FIR

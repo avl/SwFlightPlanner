@@ -390,8 +390,9 @@ def getcreate_derived_data_raw(inputpath,outputpath,callback,format,usecache=Tru
             else:
                 print "Ok to use cached version, md5 sums match:",svged
 
-        print "Cached %s version exists, date:"%(format,),svged,cacheddate
-        if not changed and (is_devcomp() or datetime.utcnow()-cacheddate<timedelta(0,cachetime)):
+        timecheck=datetime.utcnow()-cacheddate<timedelta(0,cachetime)
+        print "Cached %s version exists, date:"%(format,),svged,cacheddate,"Timecheck:",timecheck
+        if not changed and (is_devcomp() or timecheck):
                         
             print "Using",format,"cache"
             try:
