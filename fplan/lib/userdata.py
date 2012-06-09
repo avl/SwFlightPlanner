@@ -472,7 +472,7 @@ def get_trusted_data():
                 if "variant" in val:
                     variant=val['variant'].lstrip(".")
                 parse_landing_chart.help_plc(ad,val['url'],
-                            ad['icao'],ad['pos'],"raw",variant="."+variant)
+                            ad['icao'],ad['pos'],"raw",variant=variant)
 
         if 'aiptext' in ad:
             aiptexts=ad['aiptext']
