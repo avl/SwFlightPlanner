@@ -264,14 +264,23 @@ class MaptileController(BaseController):
                 rwys=[]
                 if 'runways' in airp:
                     for rwy in airp['runways']:
+                        ends=[]                        
                         for end in rwy['ends']:
-                            rwys.append(end['thr'])
+                            ends.append(end['thr'])
+                        surf=""
+                        if 'surface' in rwy:
+                            surf="("+rwy['surface']+")"
+                        rwys.append("/".join(ends)+surf)
+                            
                 if len(rwys):                    
-                    rwys=["<br/><b> Runways</b>: "]+rwys
+                    rwys=["<b> Runways</b>: "]+[", ".join(rwys)]
+                remark=""
+                if airp.get('remark'):
+                    remark="<div style=\"border:1px solid;margin:3px;border-color:#B8B8B8;padding:3px;background-color:#ffffe0\"><b>Remark:</b> "+cgi.escape(airp['remark'])+"</div>"
                 
                 
                 
-                airports.append(u"<li><b>%s</b> - %s%s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],linksstr," ".join(rwys),weather))
+                airports.append(u"<li><b>%s</b> - %s%s%s%s%s</li>"%(airp.get('icao','ZZZZ'),airp['name'],linksstr,remark," ".join(rwys),weather))
             airports.append("</ul>")
         
         sigpoints=[]

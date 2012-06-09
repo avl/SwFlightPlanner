@@ -228,6 +228,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                 ends=rwy['ends']
                 mercs=[]
                 #print "Ends:",ends
+                surface=rwy.get('surface','hard').lower()
                 for end in ends:
                     #print "pos:",end['pos']
                     latlon=mapper.from_str(end['pos'])
@@ -238,7 +239,13 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                 if len(mercs)==2:
                     a,b=mercs
                     #print "Drawing:",airfield['icao'],a,b
-                    ctx.set_source(cairo.SolidPattern(0.0,0.0,0.0,1))
+                    if surface=='gravel':
+                        ctx.set_source(cairo.SolidPattern(0.5,0.3,0.0,1))
+                    elif surface=='grass':
+                        ctx.set_source(cairo.SolidPattern(0.0,0.65,0.0,1))
+                    else:
+                        ctx.set_source(cairo.SolidPattern(0.0,0.0,0.0,1))
+                        
                     lwidth=mapper.approx_scale(a,zoomlevel,40.0/1852.0)
                     if lwidth<=2:
                         lwidth=2.0

@@ -202,6 +202,15 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
                         lat,lon=mapper.from_str(end['pos'])
                         writeFloat(lat)
                         writeFloat(lon)
+                    if versionnum>=9:
+                        writeUTF(runway.get('surface','hard'))
+            if versionnum>=9:
+                if point.get('remark',''):
+                    writeByte(1)
+                    writeUTF(point['remark'])
+                else:
+                    writeByte(0)
+                    
                 
             
         writeFloat(float(point['alt']))

@@ -296,6 +296,7 @@ class ApiController(BaseController):
                 lon=lon,
                 kind=kind,
                 notams=notams,
+                remark=airp.get('remark',''),
                 alt=float(airp.get('elev',0)))
             if 'runways' in airp:
                 ap['runways']=airp['runways']
