@@ -491,5 +491,6 @@ if __name__=='__main__':
     from fplan.config.environment import load_environment
     conf = appconfig('config:%s'%(os.path.join(os.getcwd(),"development.ini"),))    
     load_environment(conf.global_conf, conf.local_conf)
-    print get_trusted_data()
+    td=get_trusted_data()
+    open("td.txt","w").write(repr(td))
     
