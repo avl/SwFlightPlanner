@@ -58,7 +58,7 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
         versionnum=int(version.strip())
     except Exception:
         pass
-    assert versionnum>=1 and versionnum<=8
+    assert versionnum>=1 and versionnum<=9
     out=StringIO()
     print "Binary download in progress"
 
