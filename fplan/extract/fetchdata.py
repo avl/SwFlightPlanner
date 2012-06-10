@@ -216,11 +216,12 @@ def getdata(relpath,country="se",maxcacheage=7200,return_path=False,no_dev_comp_
         if host==dev_computer and not no_dev_comp_exception:
             maxcacheage=4*7*24*3600
         if age<timedelta(0,maxcacheage):
-            #print "Returning cached %s"%(relpath,)
+            print "Returning cached %s"%(relpath,)
             if not return_path:
                 return open(cachename).read(),cacheddate
             else:
                 return open(cachename).read(),cacheddate,cachename
+    print "Cache unusable, downloading",relpath
     data=getrawdata(relpath,country=country)
     open(cachename,"w").write(data)
     if not return_path:
@@ -235,7 +236,11 @@ def getdatafilename(relpath,country="se",maxcacheage=7200):
     """    
     data,nowdate,cachename=getdata(relpath,country=country,maxcacheage=maxcacheage,return_path=True)
     return cachename
-    
+def deletecache(relpath):
+    cachename=os.path.join(tmppath,stripname(relpath))
+    if os.path.exists(cachename):
+        os.unlink()    
+        
     
 def getxml(relpath,country="se",maxcacheage=7200):
     print "getxml:"+relpath
