@@ -1,5 +1,6 @@
 import threading
 import pygrib
+
 import math
 import fetchdata
 import os.path
@@ -172,7 +173,7 @@ def get_gfs(dt,future):
     try:
         gfspath=fetchdata.getdatafilename(
                     url,
-                    country='raw',maxcacheage=86400)
+                    country='raw',maxcacheage=86400*24)
     except:
         print traceback.format_exc()
         fetchdata.deletecache(url)

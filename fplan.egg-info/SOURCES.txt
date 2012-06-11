@@ -73,6 +73,7 @@ fplan/extract/fi_parse_restrict.py
 fplan/extract/fi_parse_sigpoints.py
 fplan/extract/fi_parse_tma.py
 fplan/extract/find_nation_boundaries.py
+fplan/extract/gfs_weather.py
 fplan/extract/html_helper.py
 fplan/extract/miner.py
 fplan/extract/no_parse_tma.py
