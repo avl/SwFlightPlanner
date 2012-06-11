@@ -2,8 +2,10 @@
 nice python fplan/extract/extracted_cache.py $1 $2
 for (( ; ; ))
 do
-   ionice -c Idle nice python fplan/extract/extracted_cache.py
-   sleep 7200
+   nice python fplan/extract/extracted_cache.py
+   nice python ./download_weather.py
+   
+   sleep 3600
 done
 
 

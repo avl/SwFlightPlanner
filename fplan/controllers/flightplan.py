@@ -1,5 +1,6 @@
 #encoding=UTF8
 import logging
+import traceback
 import time
 from copy import copy
 from pylons import request, response, session, tmpl_context as c
@@ -14,7 +15,7 @@ from fplan.extract.extracted_cache import get_airfields,get_sig_points,get_obsta
 from fplan.lib.airspace import get_notam_areas_on_line,get_notampoints_on_line,get_any_space_on_line
 import json
 import re
-import fplan.lib.weather as weather
+import fplan.extract.gfs_weather as gfs_weather
 from fplan.lib.calc_route_info import get_route
 import fplan.lib.geo as geo
 import fplan.lib.notam_geo_search as notam_geo_search
@@ -301,11 +302,15 @@ class FlightplanController(BaseController):
              center=(0.5*(merc1[0]+merc2[0]),0.5*(merc1[1]+merc2[1]))
              lat,lon=mapper.merc2latlon(center,14)
              #print "Fetching weather for %s,%s, %s"%(lat,lon,route.altitude)
-             we=weather.get_weather(lat,lon)
+             dummy1,dummy2,we=gfs_weather.get_prognosis(datetime.utcnow())
              if we==None:
                  return ""; #Fail completely we don't have the weather here. We only succeed if we have weather for all parts of the journey.
              else:
-                 wi=we.get_wind(altitude)
+                 try:
+                     wi=we.get_wind(lat,lon,mapper.parse_elev(altitude))
+                 except:
+                     print traceback.format_exc()
+                     return ""
                  #print "Got winds:",wi
                  ret.append([wi['direction'],wi['knots']])
         if len(ret)==0:

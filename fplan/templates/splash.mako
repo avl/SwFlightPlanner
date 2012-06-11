@@ -10,7 +10,7 @@
 	<link href="/style.css" rel="stylesheet" type="text/css" />
 </head>
 
-<body style="height:100%;margin:0;padding:0;border:none;background-color:#606060">
+<body style="height:100%;margin:0;padding:0;border:none;">
 
 <div id="left-nav">
 	<dl>
@@ -35,11 +35,11 @@
 <h1>SWFlightplanner</h1>
 </td></tr>
 </table>
-
+<!--
 <p>
-<big style="background-color:#ff8080">We are currently experiencing internet connection problems. Site may be slow.</big>
+<big style="background-color:#ff8080">Problems...none</big>
 </p>
-
+-->
 <p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
@@ -50,12 +50,12 @@
 </table>
 <table style="height:30%;vertical-align:middle;margin: 0 auto">
 <tr>
-<td style="width:45%;background:#809080;border:1px #808080 solid;padding:2%">
+<td style="width:45%;background:#d0ffd0;border:1px #808080 solid;padding:2%">
 <div>
 New users:<br />
 <u><a style="font-size:30px" href="${h.url_for(controller="mapview",action="index")}">Start using immediately!</a></u><br />
 <br />
-<div style="font-size:12px;color:#000000">
+<div style="font-size:12px;color:#808080">
 Once in the system, and only if you like, you can select the menu option "Create User" in the top right
 corner of the screen, and create your own user name. But try the system out first, by
 clicking the link above!
@@ -66,7 +66,7 @@ clicking the link above!
 <td style="width:10%;text-align:center">
 Or
 </td>
-<td style="width:45%;background:#808090;border: 1px #808080 solid;padding:2%">
+<td style="width:45%;background:#d0d0ff;border: 1px #808080 solid;padding:2%">
 <div>
 Existing users:<br />
 <form method="post" action="${h.url_for(controller="splash",action="login")}">
@@ -94,6 +94,7 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
+<b>Updated 2012-06-11: </b>SwFlightplanner now uses american GFS forecasts, meaning that wind information is now available around the clock, and in all countries (at least northern hemisphere).<br />
 <b>Problem 2012-05-30: </b>Most map information was lost. The problem occurred 11:45Z, and was completely fixed 13 hours later.<br />
 <b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
 <b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />

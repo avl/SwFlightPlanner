@@ -27,6 +27,8 @@ from datetime import datetime,timedelta
 import fplan.lib.geomag as geomag
 import traceback
 import fplan.lib.userdata as userdata
+import fplan.extract.gfs_weather as gfs_weather
+
 
 def format_freqs(freqitems):
     out=[]
@@ -306,7 +308,20 @@ class MaptileController(BaseController):
             variation=u"%+.1f°"%(varf,)
         except Exception:
             pass
-        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s%s<br/><b>Terrain: %s ft, Var: %s</b>"%(", ".join(firs),spaces,sectors,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,terrelev,variation)
+        
+        weather=""
+        try:
+            when,valid,fct=gfs_weather.get_prognosis(datetime.utcnow())
+            qnh=fct.get_qnh(lat,lon)
+            out=["<b>Weather</b><br/>Prognosis: %sZ, valid: %sZ<br /><ul>"%(when.strftime("%Y-%m-%d %H:%M"),valid.strftime("%H:%M"))]
+            for fl,dir,st,temp in fct.get_winds(lat,lon):
+                out.append("<li>FL%02d: %03d deg, %.1fkt, %.1f C"%(int(fl),int(dir),float(st),temp))            
+            out.append("</ul>QNH: %d<br/><br/>"%(qnh,))
+            weather="".join(out)
+        except Exception:
+            print traceback.format_exc()
+        
+        return "<b>Airspace:</b><ul><li><b>FIR:</b> %s</li>%s</ul>%s%s%s%s%s%s%s<br/>%s<b>Terrain: %s ft, Var: %s</b>"%(", ".join(firs),spaces,sectors,aip_sup_strs,"".join(obstacles),"".join(airports),"".join(tracks),"".join(sigpoints),notamareas,weather,terrelev,variation)
 
     def get(self):
         # Return a rendered template
