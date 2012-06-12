@@ -313,7 +313,12 @@ class MaptileController(BaseController):
         try:
             when,valid,fct=gfs_weather.get_prognosis(datetime.utcnow())
             qnh=fct.get_qnh(lat,lon)
-            out=["<b>Weather</b><br/>Prognosis: %sZ, valid: %sZ<br /><ul>"%(when.strftime("%Y-%m-%d %H:%M"),valid.strftime("%H:%M"))]
+            out=["<b>Weather</b><br/>Forecast: %sZ, valid: %sZ<br />"%(when.strftime("%Y-%m-%d %H:%M"),valid.strftime("%H:%M"))]
+            try:
+                out.append("Surface wind: %.0f deg, ")
+            except:
+                print traceback.format_exc()
+            out.append("<ul>")
             for fl,dir,st,temp in fct.get_winds(lat,lon):
                 out.append("<li>FL%02d: %03d deg, %.1fkt, %.1f C"%(int(fl),int(dir),float(st),temp))            
             out.append("</ul>QNH: %d<br/><br/>"%(qnh,))

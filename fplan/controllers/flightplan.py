@@ -269,17 +269,15 @@ class FlightplanController(BaseController):
         return json.dumps(out)
         
     def weather(self):
-        waypoints=meta.Session.query(Waypoint).filter(sa.and_(
-             Waypoint.user==tripuser(),
-             Waypoint.trip==request.params['tripname'])).order_by(Waypoint.ordering).all()
-             
+        dummy,routes=get_route(tripuser(),request.params['tripname'])
+
         ret=[]
         alts=request.params.get('alts','')
         if alts==None:
             altvec=[]
         else:
             altvec=alts.split(",")
-        for way,altitude in zip(waypoints[:-1],altvec):
+        for route,altitude in zip(routes,altvec):
              #print("Looking for waypoint: %s"%(way.pos,))
              try:
                 mapper.parse_elev(altitude)
@@ -287,22 +285,13 @@ class FlightplanController(BaseController):
                  ret.append(['',''])                 
                  continue #skip this alt
              #N+1 selects....
-             route=meta.Session.query(Route).filter(sa.and_(
-                  Route.user==tripuser(),
-                  Route.trip==request.params['tripname'],
-                  Route.waypoint1==way.id,
-                  )).one()
-             way2=meta.Session.query(Waypoint).filter(sa.and_(
-                  Waypoint.user==tripuser(),
-                  Waypoint.trip==request.params['tripname'],
-                  Waypoint.id==route.waypoint2,
-                  )).one()
-             merc1=mapper.latlon2merc(mapper.from_str(way.pos),14)
-             merc2=mapper.latlon2merc(mapper.from_str(way2.pos),14)
+             merc1=mapper.latlon2merc(mapper.from_str(route.a.pos),14)
+             merc2=mapper.latlon2merc(mapper.from_str(route.a.pos),14)
              center=(0.5*(merc1[0]+merc2[0]),0.5*(merc1[1]+merc2[1]))
              lat,lon=mapper.merc2latlon(center,14)
              #print "Fetching weather for %s,%s, %s"%(lat,lon,route.altitude)
-             dummy1,dummy2,we=gfs_weather.get_prognosis(datetime.utcnow())
+             when=route.depart_dt+(route.arrive_dt-route.depart_dt)/2
+             dummy1,dummy2,we=gfs_weather.get_prognosis(when)
              if we==None:
                  return ""; #Fail completely we don't have the weather here. We only succeed if we have weather for all parts of the journey.
              else:

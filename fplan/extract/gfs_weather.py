@@ -109,6 +109,7 @@ class GfsForecast(object):
             last_st=st
         #print "Using last alt",alt
         return dict(direction=last_dir,knots=last_st)
+        
     def get_winds(self,lat,lon):
         lat=int(lat)
         lon=int(lon)
@@ -121,12 +122,34 @@ class GfsForecast(object):
             dir=(360+180+90-(180.0/math.pi)*math.atan2(y,x))%360.0
             #print "x,y -> dir",x,y,dir
             yield (fl,dir,st/100,temp/10.0)
-    
-    def __init__(self,xwinds,ywinds,temps,qnh):
+    def get_surfacewind(self,lat,lon):
+        lat=int(lat)
+        lon=int(lon)
+        
+        x=float(self.surfx[lat,lon])
+        y=float(self.surfy[lat,lon])
+        st=(x*x+y*y)**0.5
+        dir=(360+180+90-(180.0/math.pi)*math.atan2(y,x))%360.0
+        #print "x,y -> dir",x,y,dir
+        return (dir,st/100)
+    def get_surfacerh(self,lat,lon):
+        lat=int(lat)
+        lon=int(lon)
+        
+        rh=float(self.rh[lat,lon])/10
+        #print "x,y -> dir",x,y,dir
+        return rh
+
+    def __init__(self,xwinds,ywinds,temps,qnh,rh,surfx,surfy):
+        assert surfx!=None
+        assert surfy!=None
+        self.surfx=surfx
+        self.surfy=surfy
         self.xwinds=xwinds
         self.ywinds=ywinds
         self.temps=temps
         self.qnh=qnh
+        self.rh=rh
             
     
 def get_nominal_prognosis():
@@ -141,7 +164,7 @@ def get_nominal_prognosis():
 def create_gfs_cache():
     def dates():
         d=datetime.utcnow()
-        for x in xrange(4):
+        for x in xrange(2):
             yield d
             d+=timedelta(0,3600*3)
     out=dict()
@@ -149,11 +172,12 @@ def create_gfs_cache():
         for backoff in [0,6]:
             prog_date=get_nominal_prognosis()-timedelta(0,3600*backoff)
             offset=valid_for_dt-prog_date
-            offset_hours=offset.seconds/3600.0
+            offset_hours=offset.days*24.0+offset.seconds/3600.0
             offset_3hours=int(3*round(offset_hours/3.0))
             if offset_3hours<0:
                 offset_3hours=0
             assert offset_3hours%3==0
+            print "\n\n----------\nOffset 3:",offset_3hours,"\n----------------------\n\n"
             
             gfs=get_gfs(prog_date,offset_3hours)
             if gfs==None:
@@ -192,6 +216,7 @@ def get_gfs_impl(gfspath,future=0):
     xwind=[]
     ywind=[]
     temps=[]
+    rh=None
     qnh=numpy.zeros((91,360),dtype=numpy.int16)
     
     pressure2alt=[None for x in xrange(1014)]
@@ -234,22 +259,40 @@ def get_gfs_impl(gfspath,future=0):
     print "QNH:",10*qnh[59,18]/100.0,"hPa"
         
     print "Temp:",msltemp[59,18]/10.0,"C"
+    convfun=lambda value:value*100.0*3.6/1.852
                 
     
-
+    surfacexwind,surfaceywind=None,None
+    
     for item in grid:        
+        if item['typeOfLevel']=='heightAboveGround':
+            if item['level']==2:
+                print "Level 2",item['name']
+                if item['name'].lower().count("relative humidity"):
+                    print "Adding RH"
+                    rh=numpy.zeros((91,360),dtype=numpy.int16)
+                    get_values(item,rh,lambda x:10*x)                                    
+            if item['level']==10:
+                print "Level 10",item['name']
+                if item['name'].lower().count("u wind component"):
+                    print "Adding surface wind x"
+                    surfacexwind=numpy.zeros((91,360),dtype=numpy.int16)
+                    get_values(item,surfacexwind,convfun)                                    
+                if item['name'].lower().count("v wind component"):
+                    print "Adding surface wind y"
+                    surfaceywind=numpy.zeros((91,360),dtype=numpy.int16)
+                    get_values(item,surfaceywind,convfun)                                    
         if item['typeOfLevel']!="isobaricInhPa":
             continue
         if pressure2alt[item['level']]==None:
             continue
+        fl=pressure2alt[item['level']]/100.0
         for comp in ['U','V']:
             #U blows to the east (from west to east)
             #V blows to the north (from south to north)
             if item['name']==comp+' component of wind':
-                convfun=lambda value:value*100.0*3.6/1.852
                 trg=numpy.zeros((91,360),dtype=numpy.int16)
-                fl=pressure2alt[item['level']]/100.0
-                print "Adding for FL",fl
+                print "Adding wind for FL",fl
                 if comp=='U':
                     xwind.append((fl,trg))
                 elif comp=='V':
@@ -257,11 +300,11 @@ def get_gfs_impl(gfspath,future=0):
                 get_values(item,trg,convfun)
                 
         if item['name'].lower().count("temperature"):
-            fl=pressure2alt[item['level']]/100.0
             temps.append((fl,numpy.zeros((91,360),dtype=numpy.int16)))
             get_values(item,temps[-1][1],lambda x:10*(x-273.15))
+            print "Adding temp for FL",fl
                     
-    return GfsForecast(xwinds=xwind,ywinds=ywind,temps=temps,qnh=qnh)
+    return GfsForecast(xwinds=xwind,ywinds=ywind,temps=temps,qnh=qnh,rh=rh,surfx=surfacexwind,surfy=surfaceywind)
 
 
 import cPickle as pickle
@@ -298,9 +341,11 @@ def get_prognosis(when):
             ensure_cache()
         for backoff in [0,6]:
             prog_date=get_nominal_prognosis()-timedelta(0,3600*backoff)
+            
             offset=when-prog_date
             offset_hours=offset.seconds/3600.0
             offset_3hours=int(3*round(offset_hours/3.0))
+            print "Looking for forecast ",prog_date," + ",offset_3hours
             if offset_3hours<0:
                 offset_3hours=0
             assert offset_3hours%3==0
@@ -326,10 +371,12 @@ def dump_gfs_cache():
     
 
 if __name__=='__main__':
-    when,fct=get_prognosis(datetime.utcnow())
+    when,when2,fct=get_prognosis(datetime.utcnow())
     print "For",when
+    print "Surface wind:",fct.get_surfacewind(59,18)
+    print "Surface RH:",fct.get_surfacerh(59,18)
     for fl,dir,st,temp in fct.get_winds(59,18):
         print "FL%d (%f feet): %03d deg, %.1fkt, %.1f C"%(int(fl),fl2feet(fl,15,fct.qnh[59,18]/10.0),int(dir),float(st),temp)
-    for fl,dir,st,temp in fct.get_winds(59,19):
-        print "FL%d (%f feet): %03d deg, %.1fkt, %.1f C"%(int(fl),fl2feet(fl,15,fct.qnh[59,18]/10.0),int(dir),float(st),temp)
+    #for fl,dir,st,temp,rh in fct.get_winds(59,19):
+    #    print "FL%d (%f feet): %03d deg, %.1fkt, %.1f C"%(int(fl),fl2feet(fl,15,fct.qnh[59,18]/10.0),int(dir),float(st),temp)
         
