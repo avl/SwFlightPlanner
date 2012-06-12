@@ -1,5 +1,6 @@
 import threading
 import pygrib
+
 import math
 import fetchdata
 import os.path
@@ -196,7 +197,7 @@ def get_gfs(dt,future):
     try:
         gfspath=fetchdata.getdatafilename(
                     url,
-                    country='raw',maxcacheage=86400)
+                    country='raw',maxcacheage=86400*24)
     except:
         print traceback.format_exc()
         fetchdata.deletecache(url)
@@ -377,6 +378,3 @@ if __name__=='__main__':
     print "Surface RH:",fct.get_surfacerh(59,18)
     for fl,dir,st,temp in fct.get_winds(59,18):
         print "FL%d (%f feet): %03d deg, %.1fkt, %.1f C"%(int(fl),fl2feet(fl,15,fct.qnh[59,18]/10.0),int(dir),float(st),temp)
-    #for fl,dir,st,temp,rh in fct.get_winds(59,19):
-    #    print "FL%d (%f feet): %03d deg, %.1fkt, %.1f C"%(int(fl),fl2feet(fl,15,fct.qnh[59,18]/10.0),int(dir),float(st),temp)
-        
