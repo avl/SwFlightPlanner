@@ -135,8 +135,8 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         def tolocal(merc):
             return (merc[0]-x1,merc[1]-y1)
         
-        merc13=mapper.merc2merc((x1,y1),zoomlevel,13)
-        merc13b=mapper.merc2merc((x1+imgx,y1+imgy),zoomlevel,13)
+        merc13=mapper.merc2merc((x1-50,y1-50),zoomlevel,13)
+        merc13b=mapper.merc2merc((x1+imgx+50,y1+imgy+50),zoomlevel,13)
         bb13=BoundingBox(merc13[0],merc13[1],merc13b[0],merc13b[1])
         
         

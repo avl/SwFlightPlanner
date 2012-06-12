@@ -304,3 +304,4 @@
 297: Draw inset
  - Ta med luftrum
  - Rita till bitmap, uppdatera bara då-och-då, och aldrig när man scrollar.
+298: Overdraw verkar inte funka
