@@ -104,7 +104,12 @@ class GfsForecast(object):
                     return dict(direction=dir,knots=st)
                 ratio=(altitude-last_alt)/(alt-last_alt)
                 #print "In between ",last_alt,"and",alt,"ratio:",ratio
-                return dict(direction=(1-ratio)*last_dir+ratio*dir,knots=(1-ratio)*last_st+ratio*st)            
+                if abs(last_dir-dir)>180:
+                    if last_dir>dir:
+                        dir+=360
+                    elif dir>last_dir:
+                        last_dir+=360
+                return dict(direction=((1-ratio)*last_dir+ratio*dir)%360,knots=(1-ratio)*last_st+ratio*st)            
             last_alt=alt
             last_dir=dir
             last_st=st
@@ -165,7 +170,7 @@ def get_nominal_prognosis():
 def create_gfs_cache():
     def dates():
         d=datetime.utcnow()
-        for x in xrange(2):
+        for x in xrange(10):
             yield d
             d+=timedelta(0,3600*3)
     out=dict()
