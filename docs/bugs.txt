@@ -305,3 +305,4 @@
  - Ta med luftrum
  - Rita till bitmap, uppdatera bara då-och-då, och aldrig när man scrollar.
 298: Overdraw verkar inte funka
+299: Re-arrange phrases, så man inte tror att fraser hör ihop på ett sätt de inte gör (fras-rubrikerna är ju bara för nästa fras)

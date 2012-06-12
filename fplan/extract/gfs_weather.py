@@ -364,7 +364,10 @@ def get_prognosis(when):
         gfswlock.release()
     return None,None,None
     
-    
+def get_wind(dt,lat,lon,altitude):
+    dummy,dummy2,p=get_prognosis(dt)
+    if p==None: return None
+    return p.get_wind(lat,lon,altitude)
 
 def dump_gfs_cache():
     fct=create_gfs_cache()

@@ -3,13 +3,15 @@ from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,TripCache
 import fplan.lib.mapper as mapper
 import cPickle
 import math
+import traceback
 import sqlalchemy as sa
 from fplan.lib.get_terrain_elev import get_terrain_elev
 from fplan.extract.extracted_cache import get_airfields
 from fplan.lib.airspace import get_pos_elev
 from fplan.lib.helpers import parse_clock
 from fplan.lib.geomag import calc_declination
-from fplan.lib import weather
+#from fplan.lib import weather
+from fplan.extract import gfs_weather
 from datetime import datetime,timedelta
 from copy import copy
 from time import time
@@ -722,7 +724,8 @@ class Nodes(object):
             bmerc=mapper.latlon2merc(mapper.from_str(rt.b.pos),13)
             wmerc=(0.5*(amerc[0]+bmerc[0]),0.5*(amerc[1]+bmerc[1]))
             lat,lon=mapper.merc2latlon(wmerc,13)
-            rt.wind=weather.get_weather(lat,lon)
+            rt.midlatlon=(lat,lon)
+            #rt.wind=gfs_weather.get_weather(lat,lon)
             altnodes=[]
             for alt in xrange(0,10000,altstep):
                 altnodes.append(Node(idx,alt))
@@ -795,8 +798,14 @@ class Nodes(object):
 
                 mid_alt=targalt
                 
-                
-                wind=rt.wind.get_wind(mid_alt) if rt.wind else None
+                wind=None
+                try:
+                    lat,lon=rt.midlatlon
+                    print "Getting weather for",cur.accum_dt," latlon: ",lat,",",lon," alt: ",mid_alt
+                    wind=gfs_weather.get_wind(cur.accum_dt,lat,lon,float(mid_alt))
+                except:
+                    print traceback.format_exc()
+                #wind=rt.wind.get_wind(mid_alt) if rt.wind else None
                 if wind:
                     rt.windvel=wind['knots']
                     rt.winddir=wind['direction']
