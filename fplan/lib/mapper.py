@@ -6,6 +6,7 @@ import popen2
 import math
 import cStringIO
 import math
+import pyproj
 
 def sec(x):
         return 1.0/math.cos(x)
@@ -294,6 +295,7 @@ def to_aviation_format(latlon):
               
     
 
+geod=pyproj.Geod(ellps='WGS84')
 def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
     """bearing in degrees, distance in NM"""
     pos1=start
@@ -303,29 +305,13 @@ def bearing_and_distance(start,end): #pos are tuples, (north-south,east-west)
         a=pos1
         b=pos2
     else:
-        #print "Distance between called: <%s>, <%s>"%(pos1,pos2)
-        a=[_from_decimal(float(pos)) for pos in pos1.split(",")]
-        b=[_from_decimal(float(pos)) for pos in pos2.split(",")]    
-    #x="""geod +ellps=WGS84 <<EOF -I +units=km
-    #42d15' -71d07' 45d31' -123d41'
-    #EOF
-    #"""    
-    #Coord order is: North/south, east/west, north/south2, east/west2
-    x="""geod -p -f %%.6f -F %%.6f  +ellps=WGS84 <<EOF -I +units=km
-    %s %s %s %s
-    EOF"""%(a[0],a[1],b[0],b[1])
-    #print "ARGS:",x
-    #print "Popen:",x
-    res=popen2.popen2(x)[0].read()
-    #print "popen res: ",repr(res)
-    splat=res.split('\t')
-    dist=splat[2].split('\n')[0]
-    if dist=="nan": return 0,0 #this seems to happen when distance is too short for geod program
-    dist=float(dist)
-    bearing=splat[0].strip()
-    assert bearing!="nan"
-    bearing=float(bearing)
-    return bearing,dist/1.852
+        a=from_str(anyparse(pos1))
+        b=from_str(anyparse(pos2))
+    
+    bearing,dummy,dist_meter=geod.inv(a[1],a[0],b[1],b[0])
+    dist=dist_meter/1852.0        
+    bearing=float(bearing)%360
+    return bearing,dist
     
         
 
