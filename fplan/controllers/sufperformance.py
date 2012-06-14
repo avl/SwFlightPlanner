@@ -1,3 +1,4 @@
+#encoding=utf8
 import logging
 import sqlalchemy as sa
 #from md5 import md5
@@ -13,10 +14,41 @@ import re
 import os
 import fplan.lib.metartaf as metartaf
 import traceback
+import json
+import fplan.extract.extracted_cache as ec
 log = logging.getLogger(__name__)
-
+from fplan.controllers.flightplan import strip_accents
 class SufperformanceController(BaseController):
+    def search(self):
+        print "Search called:",request.params
+        
+        term=strip_accents(request.params['term']).lower()
+        if len(term)<3:
+            return json.dumps([])
+        response.headers['Content-Type'] = 'application/json'
+        
+        hits=[]
+        for ac in ec.get_airfields():
+            if (strip_accents(ac['name']).lower().count(term)):
+                hits.append(ac['name'])
+        hits.sort()
+        return json.dumps(hits[:10])
+    def load(self):
+        name=request.params['name']
+        print "Loading",repr(name)
+        for ac in ec.get_airfields():
+            if ac['name']==name:
+                print "Match:",name,ac
+                out=[]
+                
+                if 'runways' in ac:
+                    for rwy in ac['runways']:
+                        for end in rwy['ends']:
+                            out.append(dict(name=end['thr']))
+                return json.dumps(dict(runways=out))
 
+        response.headers['Content-Type'] = 'application/json'
+        return json.dumps(dict(runways=[]))
     def index(self):
         when,valid,fct=gfs_weather.get_prognosis(datetime.utcnow())
         lat=59.45862
@@ -24,6 +56,9 @@ class SufperformanceController(BaseController):
         c.qnh=1013
         c.winddir=0
         c.windvel=0
+        c.field=u"Frölunda"
+        c.searchurl=h.url_for(controller='sufperformance',action='search')
+        c.airport_load_url=h.url_for(controller='sufperformance',action='load')
         metar=metartaf.get_metar('ESSA')
         print "metar:",metar
         try:
