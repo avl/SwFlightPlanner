@@ -31,6 +31,7 @@ fplan/controllers/notam.py
 fplan/controllers/profile.py
 fplan/controllers/recordings.py
 fplan/controllers/splash.py
+fplan/controllers/sufperformance.py
 fplan/extract/__init__.py
 fplan/extract/aip_text_documents.py
 fplan/extract/area_parse_helper.py
@@ -203,6 +204,7 @@ fplan/templates/share.mako
 fplan/templates/splash.mako
 fplan/templates/splash.txt
 fplan/templates/splash.txt~
+fplan/templates/sufperformance.mako
 fplan/tests/__init__.py
 fplan/tests/test_models.py
 fplan/tests/functional/__init__.py

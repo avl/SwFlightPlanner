@@ -39,6 +39,8 @@ class SufperformanceController(BaseController):
         try:
             c.qnh=fct.get_qnh(lat,lon)        
             c.winddir,c.windvel=fct.get_surfacewind(lat,lon)
+            c.winddir=int(c.winddir)
+            c.windvel=int(c.windvel)
         except:
             print traceback.format_exc()
             pass

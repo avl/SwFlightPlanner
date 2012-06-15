@@ -119,7 +119,6 @@ function calc()
   if (windcomp<0)
   	base_landing_distance*=1.0-0.04*windcomp;
   	
-  	
   if (eff_press_factor>1)
   	base_landing_distance*=1.0+(Math.sqrt(eff_press_factor)-1)
     
@@ -160,6 +159,8 @@ function calc()
   	base_landing_distance*=1.0+(-tilt)*0.08;
  
   base_start_distance*=overload; 
+  base_landing_distance*=overload;
+
 	output=document.getElementById('resultdiv');
 	var startcol='#ffffff';
 	var landcol='#ffffff';
