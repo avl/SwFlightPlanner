@@ -19,6 +19,33 @@
 <script type="text/javascript" src="/js/jquery-ui-1.8.21.custom.min.js"></script>
 <script type="text/javascript">
 
+function myParseFloat(x)
+{
+	if (x)
+		return parseFloat(x);
+	return 0.0; 
+}
+
+function hide_custom()
+{
+	$('#custom1')[0].style.display='none';
+	$('#custom2')[0].style.display='none';
+	$('#custom3')[0].style.display='none';
+}
+function show_custom()
+{	
+	hide_change_ad('Eget');
+	$('#custom1')[0].style.display='table-row';
+	$('#custom2')[0].style.display='table-row';
+	$('#custom3')[0].style.display='table-row';
+	$('#custom_runway')[0].focus();
+	onchangecustom();
+}
+
+function add_own()
+{
+	show_custom();
+}
 	
 function findPos(obj) {
 	var curleft = curtop = 0;
@@ -33,42 +60,96 @@ function findPos(obj) {
 	return [curleft,curtop];
 }
 last_airport_data=null;
+function hide_change_ad(newname)
+{
+	$('#tags').autocomplete('destroy');
+	var che=document.getElementById('changefield');
+	che.innerHTML=''+newname+'<button onclick="dochangefield()">Byt fält</button>';
 
+}
+function update_runway_selector()
+{
+	var select = $('#runway');
+	$('option', select).remove();
+	var options = select.prop('options');
+	$.each(last_airport_data['runways'], function(index,val) {
+		    options[options.length] = new Option(val.name, val.name);
+			});			
+
+}
 function do_load_ad(){
 	var sf=document.getElementById('tags');
 	$.getJSON('${c.airport_load_url}',{name:sf.value}, function(data) {
 		last_airport_data=data;
-		var select = $('#runway');
-		$('option', select).remove();
-		var options = select.prop('options');
-		$.each(data['runways'], function(index,val) {
-			    options[options.length] = new Option(val.name, val.name);
-				});				
+		update_runway_selector();
+			
 	});
+	hide_change_ad(sf.value);
+	
 };
-
+function onchangecustom()
+{
+	var decadeg=$('#custom_runway')[0].value;
+	last_airport_data={
+		runways:[{
+				name:decadeg,
+				rwyhdg:myParseFloat(decadeg)*10,
+				available_takeoff:myParseFloat($('#custom_takeoff_length')[0].value),
+				available_landing:myParseFloat($('#custom_landing_length')[0].value)
+				}		
+			]
+	}
+	
+	update_runway_selector();
+  	    	  
+}
+function get_runway(runwayname)
+{
+	for(var i=0;i<last_airport_data.runways.length;++i)
+	{
+		rwy=last_airport_data.runways[i];
+		if (rwy.name==runwayname)
+			return rwy;
+	}
+	return null;
+}
+function click_search()
+{
+	var sf=document.getElementById('tags');
+  	 $.getJSON('${c.searchurl}',{term:sf.value}, function(data) {
+   		if (data==null || data.length==0)
+   		{ 
+   			alert('Finns ingen flygplats med det namnet i programmets databas. Använd knappen "Lägg till eget".');
+   			return;
+   		}
+   		else
+   		{
+   			sf.value=data[0];
+   		}
+   		do_load_ad();
+   	 });
+}
 function dochangefield()
 {
 	var che=document.getElementById('changefield');
 	che.innerHTML='<div class="ui-widget">'+
-		'<label for="tags">Tags: </label>'+	
+		'<label for="tags">Fältets namn:</label>'+	
 		'<input id="tags">'+
-		'<button onclick="do_load_ad()">Sök</button>&nbsp;<button>Lägg till eget</button>';
+		'<button onclick="click_search()">Välj</button>&nbsp;eller <button onclick="add_own()">Lägg till eget</button>';
 	var sf=document.getElementById('tags');
 	sf.focus();
 	$( "#tags" ).autocomplete({			
 		source: '${c.searchurl|n}'
 	});
-	$( "#tags" ).change(do_load_ad);
+	$( "#tags" ).keypress(function(e){
+      if(e.which == 13 || e.which==9){
+      	click_search();
+       }
+      });
 	
 	
 	
-}
-function myParseFloat(x)
-{
-	if (x)
-		return parseFloat(x);
-	return 0.0; 
+	
 }
 function calc()
 {
@@ -87,29 +168,41 @@ function calc()
   var runway=document.getElementById('runway').value;
   
   available_takeoff=0;
-  if (runway=='16')
+  available_landing=0;
+  
+  if (last_airport_data!=null)
   {
-  	available_takeoff=750;
-  	available_landing=550;
-  	rwyhdg=160;  
+      rwy=get_runway(runway);
+  	  available_takeoff=rwy.available_takeoff;
+  	  available_landing=rwy.available_landing;
+  	  rwyhdg=rwy.rwyhdg;
   }
-  if (runway=='34')
+  else
   {
-  	available_takeoff=750;
-  	available_landing=750;  
-  	rwyhdg=340;  
-  }
-  if (runway=='07')
-  {
-  	available_takeoff=430;
-  	available_landing=430-130;  
-  	rwyhdg=70;  
-  }
-  if (runway=='25')
-  {
-  	available_takeoff=430;
-  	available_landing=430;  
-  	rwyhdg=250;  
+	  if (runway=='16')
+	  {
+	  	available_takeoff=750;
+	  	available_landing=550;
+	  	rwyhdg=160;  
+	  }
+	  if (runway=='34')
+	  {
+	  	available_takeoff=750;
+	  	available_landing=750;  
+	  	rwyhdg=340;  
+	  }
+	  if (runway=='07')
+	  {
+	  	available_takeoff=430;
+	  	available_landing=430-130;  
+	  	rwyhdg=70;  
+	  }
+	  if (runway=='25')
+	  {
+	  	available_takeoff=430;
+	  	available_landing=430;  
+	  	rwyhdg=250;  
+	  }
   }
   
 
@@ -162,7 +255,13 @@ function calc()
   var windcomp=Math.cos((winddir-rwyhdg)/(180.0/Math.PI))*windvel;
   windwhat='motvind';
   if (windcomp<0)
-  	windwhat='(=medvind)';
+  	windwhat='medvind';
+  var clock=parseInt(Math.floor(((winddir-rwyhdg)/(360/12))+0.5));
+  if (clock<0) clock+=12;
+  if (clock==0) clock=12;
+  
+  	
+  	
     
   var base_landing_distance=267;
   
@@ -231,11 +330,11 @@ function calc()
 	output.innerHTML=\
 		"<table>"+
 		"<tr><td></td><td>Erforderligt:</td><td>Tillgängligt:</td></tr>"+
-	    "<tr><td>Start:</td><td style=\"background:"+startcol+"\">"+parseInt(base_start_distance)+"m</td><td>"+available_takeoff+"m </td></tr>"+\
-	    "<tr><td>Landning:</td><td style=\"background:"+landcol+"\">"+parseInt(1.43*base_landing_distance)+"m</td><td>"+available_landing+"m </td></tr>"+
+	    "<tr><td>Start:</td><td style=\"background:"+startcol+"\">"+parseInt(base_start_distance)+"m</td><td>"+parseInt(available_takeoff+0.25)+"m </td></tr>"+\
+	    "<tr><td>Landning:</td><td style=\"background:"+landcol+"\">"+parseInt(1.43*base_landing_distance)+"m</td><td>"+parseInt(available_landing+0.25)+"m </td></tr>"+
 	    "</table><br/>"+
 		'Tryckhöjd: '+parseInt(effective_elev)+" fot <br/>"+\
-		'Vindkomposant: '+parseInt(windcomp)+'kt '+windwhat+"<br/>"+\
+		'Vindkomposant: '+parseInt(Math.abs(windcomp))+'kt '+windwhat+" (=klockan "+clock+")<br/>"+\
 		'Överlast: '+isoverload+"<br/>"+
 		'Tyngdpunkt: <span style="background:'+center_color+'">'+loadcenter_str+"</span>";
 }
@@ -244,18 +343,24 @@ function calc()
 
 <table>
 <tr>
-<td>Välj flygplan:</td><td><select id="aircraft">
+<td>Välj flygplan:</td><td><big><select id="aircraft">
 <option value="SE-VOD">SE-VOD</option>
 <option value="SE-VPD">SE-VPD</option>
-</select></td>
-<td>Fält:</td><td id="cur_field"><span id="changefield">${c.field}<button onclick="dochangefield()">Byt fält</button></span></td>
+</select></big></td></tr>
+<tr>
+<td>Fält:</td><td id="cur_field"><span id="changefield">${c.field}&nbsp;<button onclick="dochangefield()">&nbsp;Byt fält</button></span></td>
 </tr>
+
+<tr id="custom1" style="display:none"><td>Ban-nummer:</td><td><input onchange="onchangecustom()" style="background-color:#d0ffd0" id="custom_runway" type="text" size="5" /> (exempelvis: 16)</td></tr>
+<tr id="custom2" style="display:none"><td>Tillgängligt för start:</td><td><input onchange="onchangecustom()" style="background-color:#d0ffd0"id="custom_takeoff_length" type="text" size="5" />m (exempelvis: 650)</td></tr>
+<tr id="custom3" style="display:none"><td>Tillgängligt för landning:</td><td><input onchange="onchangecustom()" style="background-color:#d0ffd0" id="custom_landing_length" type="text" size="5" />m (exempelvis: 550)</td></tr>
 </table>
+
 <h2>Lastning</h2>
 <table>
 <tr><td>Pilotens vikt:</td><td><input type="text" size="4" id="pilot" value="80">kg</td>
 <td>Passagerarens vikt:</td><td><input type="text" size="4" id="pax">kg</td></tr>
-<tr><td>Bagagerum bakom stolarna:</td><td><input type="text" size="4" id="luggage">kg</td>
+<tr><td>Bakom stolarna:</td><td><input type="text" size="4" id="luggage">kg</td>
 <td>Bagage under knäna:</td><td><input type="text" size="4" id="knee">kg</td></tr> 
 <tr><td>Bränsle vänster:</td><td><input type="text" size="4" id="leftfuel" value="30">L</td> 
 <td>Bränsle höger:</td><td><input type="text" size="4" id="rightfuel" value="30">L</td></tr> 

@@ -13,12 +13,18 @@ import fplan.lib.tripsharing as tripsharing
 import re
 import os
 import fplan.lib.metartaf as metartaf
+import fplan.lib.mapper as mapper
 import traceback
 import json
 import fplan.extract.extracted_cache as ec
 log = logging.getLogger(__name__)
 from fplan.controllers.flightplan import strip_accents
+
+def filter(ad):
+    if not 'runways' in ad: return False
+    return True
 class SufperformanceController(BaseController):
+
     def search(self):
         print "Search called:",request.params
         
@@ -29,6 +35,7 @@ class SufperformanceController(BaseController):
         
         hits=[]
         for ac in ec.get_airfields():
+            if not filter(ac): continue
             if (strip_accents(ac['name']).lower().count(term)):
                 hits.append(ac['name'])
         hits.sort()
@@ -37,14 +44,22 @@ class SufperformanceController(BaseController):
         name=request.params['name']
         print "Loading",repr(name)
         for ac in ec.get_airfields():
+            if not filter(ac): continue
             if ac['name']==name:
                 print "Match:",name,ac
                 out=[]
                 
                 if 'runways' in ac:
                     for rwy in ac['runways']:
-                        for end in rwy['ends']:
-                            out.append(dict(name=end['thr']))
+                        for i,end in enumerate(rwy['ends']):
+                            endb=rwy['ends'][(i+1)%2]
+                            brg,dist=mapper.bearing_and_distance(mapper.from_str(end['pos']),mapper.from_str(endb['pos']))
+                            out.append(dict(
+                                name=end['thr'],
+                                rwyhdg=brg,
+                                available_landing=dist*1852.0,
+                                available_takeoff=dist*1852.0                                
+                                ))
                 return json.dumps(dict(runways=out))
 
         response.headers['Content-Type'] = 'application/json'
