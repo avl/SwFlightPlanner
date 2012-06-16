@@ -15,10 +15,19 @@
 <body>
 
 <script type="text/javascript" src="/jquery.js"></script>
+<script type="text/javascript" src="/json2.js"></script>
 <script type="text/javascript" src="/js/jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="/js/jquery-ui-1.8.21.custom.min.js"></script>
 <script type="text/javascript">
 
+/*
+JSON.stringify(your_object, null, 2);
+
+To convert a JSON string to a JS object, use JSON.parse:
+
+var your_object = JSON.parse(json_text);
+
+*/
 function myParseFloat(x)
 {
 	if (x)
@@ -59,7 +68,8 @@ function findPos(obj) {
 	
 	return [curleft,curtop];
 }
-last_airport_data=null;
+last_airport_data={"runways": [{"rwyhdg": 159.40875420296877, "available_landing": 567.6524938370329, "available_takeoff": 567.6524938370329, "name": "16"}, {"rwyhdg": 339.4117857811595, "available_landing": 567.6524938370329, "available_takeoff": 567.6524938370329, "name": "34"}, {"rwyhdg": 75.35455789727928, "available_landing": 241.48423673047128, "available_takeoff": 241.48423673047128, "name": "07"}, {"rwyhdg": 255.358106306855, "available_landing": 241.48423673047128, "available_takeoff": 241.48423673047128, "name": "25"}], "physical": [[{"pos": "59.45891, 17.70657", "name": "16"}, {"pos": "59.45414, 17.71009", "name": "34"}], [{"pos": "59.45858, 17.70633", "name": "07"}, {"pos": "59.459128, 17.71045", "name": "25"}]]}
+
 function hide_change_ad(newname)
 {
 	$('#tags').autocomplete('destroy');
@@ -165,6 +175,8 @@ function calc()
     nominal_kg=450.0;
   }
   
+  
+  
   var runway=document.getElementById('runway').value;
   
   available_takeoff=0;
@@ -181,14 +193,14 @@ function calc()
   {
 	  if (runway=='16')
 	  {
-	  	available_takeoff=750;
+	  	available_takeoff=550;
 	  	available_landing=550;
 	  	rwyhdg=160;  
 	  }
 	  if (runway=='34')
 	  {
-	  	available_takeoff=750;
-	  	available_landing=750;  
+	  	available_takeoff=550;
+	  	available_landing=550;  
 	  	rwyhdg=340;  
 	  }
 	  if (runway=='07')
@@ -217,6 +229,10 @@ function calc()
   
   var moments=126*plane_kg+163*(left_fuel_kg+right_fuel_kg)+643*(pilot_kg+pax_kg)+1023*luggage_kg+100*knee_kg;
   var center=moments/tot_kg;
+  
+  var tot_kg_dry=pilot_kg+pax_kg+luggage_kg+knee_kg+plane_kg;
+  var moments_dry=126*plane_kg+643*(pilot_kg+pax_kg)+1023*luggage_kg+100*knee_kg;
+  var center_dry=moments_dry/tot_kg_dry;
   
   
   var performance_kg=tot_kg;
@@ -263,7 +279,10 @@ function calc()
   	
   	
     
+  
   var base_landing_distance=267;
+  var orig_landing_distance=267;
+  var landing_roll=152;
   
   if (windcomp>0)
   	base_landing_distance*=1.0-0.01*windcomp;
@@ -274,6 +293,9 @@ function calc()
   	base_landing_distance*=1.0+(Math.sqrt(eff_press_factor)-1)
     
   var base_start_distance=264;
+  var orig_start_distance=base_start_distance;
+  var start_roll=86;
+  
   if (isshortgrass) base_start_distance*=1.1;
   if (islonggrass) base_start_distance*=1.5;
   if (isslush)
@@ -295,7 +317,7 @@ function calc()
   	base_start_distance*=1.0+(temp-15)*0.01;
   	
   var effective_elev=elev+alt;
-  if (elev>0)
+  if (effective_elev>0)
   	base_start_distance*=1.0+(effective_elev/1000.0)*0.2;
   	
   
@@ -311,13 +333,22 @@ function calc()
  
   base_start_distance*=overload; 
   base_landing_distance*=overload;
+  
+  
+  start_roll*=(base_start_distance/orig_start_distance);
+  landing_roll*=(base_landing_distance/orig_landing_distance);
+  
+  
+
+    imgout=document.getElementById('resultimg');
+    
 
 	output=document.getElementById('resultdiv');
 	var startcol='#ffffff';
 	var landcol='#ffffff';
 	if (base_start_distance>=available_takeoff)
 		startcol='#ff8080';
-	if (base_landing_distance>=available_landing)
+	if (1.43*base_landing_distance>=available_landing)
 		landcol='#ff8080';
 	var isoverload='Nej';
 	if (overload>1)
@@ -327,7 +358,12 @@ function calc()
 	if (center<237 || center>355.5)
 		center_color='#ff8080';
 	var loadcenter_str=''+parseInt(center)+'mm (mellan 237mm och 355.5mm är okay)';
-		
+
+	var center_color_dry='#ffffff';
+	if (center_dry<237 || center_dry>355.5)
+		center_color_dry='#ff8080';
+	var loadcenter_dry_str=''+parseInt(center_dry)+'mm (mellan 237mm och 355.5mm är okay)';
+
 	output.innerHTML=\
 		"<table>"+
 		"<tr><td></td><td>Erforderligt:</td><td>Tillgängligt:</td></tr>"+
@@ -337,7 +373,27 @@ function calc()
 		'Tryckhöjd: '+parseInt(effective_elev)+" fot <br/>"+\
 		'Vindkomposant: '+parseInt(Math.abs(windcomp))+'kt '+windwhat+" (=klockan "+clock+")<br/>"+\
 		'Överlast: '+isoverload+"<br/>"+
-		'Tyngdpunkt: <span style="background:'+center_color+'">'+loadcenter_str+"</span>";
+		'Tyngdpunkt: <span style="background:'+center_color+'">'+loadcenter_str+"</span><br/>"+\
+		'Tyngdpunkt utan bränsle: <span style="background:'+center_color_dry+'">'+loadcenter_dry_str+"</span>";
+
+
+    imgout.innerHTML=\
+    	'<table><tr><td><b>Start</b></td><td><b>Landning</b></td></tr><tr><td><img src="/sufperformance/getmap?data='+encodeURIComponent(
+    	JSON.stringify(
+    		{ad:last_airport_data,
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll},
+    		 what:'landing'
+    		}
+    		))+'" /></td><td>'+
+    	'<img src="/sufperformance/getmap?data='+encodeURIComponent(
+    	JSON.stringify(
+    		{ad:last_airport_data,
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll},
+    		 what:'start'
+    		}
+    		))+'" /></td></tr></table>';
+    		
+		
 }
 </script>
 <h1>Prestanda-planering, Swedish Ultraflyers</h1>
@@ -391,7 +447,7 @@ function calc()
 <tr><td>Vatten eller snöslask:</td><td><input type="checkbox" id="slush"></td><td>Djup:<input type="text" size="5" id="slushdepth" />cm</tr>
 <tr><td>Tung snö (kramsnö):</td><td><input type="checkbox" id="heavysnow"></td><td>Djup:<input type="text" size="5" id="snowdepth" />cm</tr>
 <tr><td>Pudersnö:</td><td><input type="checkbox" id="powder"></td><td>Djup:<input type="text" size="5" id="powderdepth" />cm</tr>
-
+<tr><td colspan=2>OBS! På is kan stoppsträckan bli betydligt längre!</td></tr>
 </table>
 
 <button onclick="calc()">Beräkna</button>
@@ -400,6 +456,9 @@ function calc()
 
 <div id="resultdiv">
 Tryck på beräkna-knappen ovan!
+</div>
+
+<div id="resultimg">
 </div>
 
 

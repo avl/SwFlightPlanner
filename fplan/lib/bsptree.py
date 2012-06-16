@@ -20,7 +20,18 @@ class BoundingBox(object):
         return False
     def expanded(self,h):
         return BoundingBox(self.x1-h,self.y1-h,self.x2+h,self.y2+h)
-
+    
+def bb_from_mercs(ms):
+    x1=1e30
+    x2=-1e30
+    y1=1e30
+    y2=-1e30
+    for m in ms:
+        x1=min(m[0],x1) 
+        x2=max(m[0],x2) 
+        y1=min(m[1],y1) 
+        y2=max(m[1],y2) 
+    return BoundingBox(x1,y1,x2,y2)
 def axissorter(startaxis):
     return lambda v:(v.vec[0] if startaxis==0 else v.vec[1])
     

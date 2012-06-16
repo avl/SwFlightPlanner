@@ -1,5 +1,8 @@
 #encoding=utf8
 import logging
+import math
+import cairo
+import StringIO
 import sqlalchemy as sa
 #from md5 import md5
 from fplan.model import meta,User,Aircraft
@@ -19,7 +22,7 @@ import json
 import fplan.extract.extracted_cache as ec
 log = logging.getLogger(__name__)
 from fplan.controllers.flightplan import strip_accents
-
+import fplan.lib.bsptree as bsptree 
 def filter(ad):
     if not 'runways' in ad: return False
     return True
@@ -42,10 +45,11 @@ class SufperformanceController(BaseController):
         return json.dumps(hits[:10])
     def load(self):
         name=request.params['name']
-        print "Loading",repr(name)
+        #print "Loading",repr(name)
         for ac in ec.get_airfields():
             if not filter(ac): continue
             if ac['name']==name:
+                physical=[]
                 print "Match:",name,ac
                 out=[]
                 
@@ -60,10 +64,136 @@ class SufperformanceController(BaseController):
                                 available_landing=dist*1852.0,
                                 available_takeoff=dist*1852.0                                
                                 ))
-                return json.dumps(dict(runways=out))
+                        physical.append([dict(name=x['thr'],pos=x['pos']) for x in rwy['ends']])
+                jsonstr=json.dumps(dict(runways=out,physical=physical))
+                print "JSON:",jsonstr
+                return jsonstr
 
         response.headers['Content-Type'] = 'application/json'
+        
+        
         return json.dumps(dict(runways=[]))
+    
+    def getmap(self):
+        #print "DAta:",request.params
+        data=json.loads(request.params['data'])
+        ad=data['ad']
+        perf=data['perf']
+        what=data['what']
+        #print "Perf:",perf
+        im=cairo.ImageSurface(cairo.FORMAT_RGB24,512,512)
+        ctx=cairo.Context(im)
+        if 'physical' in ad:
+            def getdist_meter(p1,p2):
+                brg,dist=mapper.bearing_and_distance(mapper.merc2latlon(p1,20),mapper.merc2latlon(p2,20))
+                return dist*1852.0
+            def draw_cmds():
+                for d in ad['physical']:
+                    yield (mapper.latlon2merc(mapper.from_str(d[0]['pos']),20),
+                           mapper.latlon2merc(mapper.from_str(d[1]['pos']),20),
+                           d[0]['name'],d[1]['name'])
+            def justmercs():
+                for p1,p2,n1,n2 in draw_cmds():
+                    yield p1
+                    yield p2
+                
+                
+                
+            bb=bsptree.bb_from_mercs(justmercs())
+            center=(0.5*(bb.x1+bb.x2),0.5*(bb.y1+bb.y2))
+            #print "Center:",center
+            mercradius=max(bb.x2-bb.x1,bb.y2-bb.y1)
+            scaling=450/mercradius
+            def topixel(merc):
+                off=(merc[0]-center[0],merc[1]-center[1])
+                return (off[0]*scaling+256,off[1]*scaling+256)
+            
+            def draw_marker(ctx,p1,p2,thresholdratio,msg,color=(1,0,0)):
+                ninety=[p2[1]-p1[1],p2[0]-p1[0]]                    
+                ninetylen=math.sqrt(ninety[0]**2+ninety[1]**2)
+                ninety=[50*ninety[0]/ninetylen,-50*ninety[1]/ninetylen]
+                if ninety[0]<0:
+                    ninety[0],ninety[1]=-ninety[0],-ninety[1]
+                print "ninety:",ninety
+                p1=topixel(p1)
+                p2=topixel(p2)
+                d=[p1[0]+thresholdratio*(p2[0]-p1[0]),
+                    p1[1]+thresholdratio*(p2[1]-p1[1])]
+                dB=[d[0]+ninety[0],d[1]+ninety[1]]
+                ctx.new_path()
+                
+                ctx.set_source(cairo.SolidPattern(*(color+(1,))))
+                ctx.arc(d[0],d[1],6,0,2*math.pi)
+                ctx.fill()
+                ctx.new_path()
+                ctx.set_line_width(2)
+                ctx.move_to(*d)
+                ctx.line_to(*dB)
+                ctx.stroke()
+                
+                ctx.move_to(*dB)
+                ctx.save()
+                ang=math.atan2(ninety[1],ninety[0])*180.0/3.1415
+                if (ang<-50 and ang>-50-90) or\
+                   (ang>50 and ang<50+90):                
+                    if ang<0:
+                        ctx.rotate(-90)
+                    else:
+                        ctx.rotate(90)
+                ctx.set_font_size(25);
+                ctx.show_text(msg)
+                ctx.restore()
+                
+            
+            for p1,p2,n1,n2 in draw_cmds():
+                                    
+                
+                
+                print "n1:",n1,"n2:",n2
+                print "p1:",mapper.merc2latlon(p1,20)
+                print "p2:",mapper.merc2latlon(p2,20)
+                pix1=topixel(p1)
+                pix2=topixel(p2)
+                
+                ctx.set_source(cairo.SolidPattern(0.5,0.5,0.5,1))
+                ctx.new_path()
+                ctx.set_line_width(10)
+                ctx.move_to(*pix1)
+                ctx.line_to(*pix2)
+                ctx.stroke()
+                
+            for p1,p2,n1,n2 in draw_cmds():
+                print "Matching",n1,n2,"to",perf['name']
+                if n2==perf['name']:
+                    p1,n1,p2,n2=p2,n2,p1,n1 
+                if n1==perf['name']:
+                    runwaylen=getdist_meter(p1,p2)
+                    thresholdratio=0
+                    startratio=perf["start"]/runwaylen
+                    landingratio=perf["land"]/runwaylen
+                    startrollratio=perf["start_roll"]/runwaylen
+                    landingrollratio=perf["landing_roll"]/runwaylen
+                    
+                    if what=='start':        
+                        draw_marker(ctx,p1,p2,0,"Start")
+                        draw_marker(ctx,p1,p2,startrollratio,"Lättning")
+                        draw_marker(ctx,p1,p2,startratio,"15 meter")
+                    if what=='landing':                        
+                        draw_marker(ctx,p1,p2,0,"Tröskel 15m")
+                        draw_marker(ctx,p1,p2,landingrollratio+0.43*landingratio,"Senaste sättning")
+                        draw_marker(ctx,p1,p2,1.43*landingratio,"Senaste stopp")
+                        
+                    
+                    
+                
+                
+        buf=StringIO.StringIO()
+        im.write_to_png(buf)
+        png=buf.getvalue()
+        response.headers['Content-Type'] = 'image/png'
+        return png
+
+
     def index(self):
         when,valid,fct=gfs_weather.get_prognosis(datetime.utcnow())
         lat=59.45862
