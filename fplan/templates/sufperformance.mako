@@ -269,12 +269,20 @@ function calc()
   var windvel=myParseFloat(document.getElementById('windvel').value);
   
   var windcomp=Math.cos((winddir-rwyhdg)/(180.0/Math.PI))*windvel;
+  var windside=Math.sin((winddir-rwyhdg)/(180.0/Math.PI))*windvel;
   windwhat='motvind';
   if (windcomp<0)
   	windwhat='medvind';
-  var clock=parseInt(Math.floor(((winddir-rwyhdg)/(360/12))+0.5));
-  if (clock<0) clock+=12;
-  if (clock==0) clock=12;
+  var windleftright='';
+  if (windside<-1)
+  	windleftright='(vänster)';
+  if (windside>1)
+  	windleftright='(höger)';
+  
+  
+  //var clock=parseInt(Math.floor(((winddir-rwyhdg)/(360/12))+0.5));
+  //if (clock<0) clock+=12;
+  //if (clock==0) clock=12;
   
   	
   	
@@ -371,7 +379,7 @@ function calc()
 	    "<tr><td>Landning:</td><td style=\"background:"+landcol+"\">"+parseInt(1.43*base_landing_distance)+"m</td><td>"+parseInt(available_landing+0.25)+"m </td></tr>"+
 	    "</table><br/>"+
 		'Tryckhöjd: '+parseInt(effective_elev)+" fot <br/>"+\
-		'Vindkomposant: '+parseInt(Math.abs(windcomp))+'kt '+windwhat+" (=klockan "+clock+")<br/>"+\
+		'Vindkomposant: '+parseInt(Math.abs(windcomp)+0.5)+'kt '+windwhat+' '+parseInt(Math.abs(windside)+0.5)+'kt sidvind'+" "+windleftright+"<br/>"+\
 		'Överlast: '+isoverload+"<br/>"+
 		'Tyngdpunkt: <span style="background:'+center_color+'">'+loadcenter_str+"</span><br/>"+\
 		'Tyngdpunkt utan bränsle: <span style="background:'+center_color_dry+'">'+loadcenter_dry_str+"</span>";
