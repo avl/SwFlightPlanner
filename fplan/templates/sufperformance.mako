@@ -28,6 +28,9 @@ To convert a JSON string to a JS object, use JSON.parse:
 var your_object = JSON.parse(json_text);
 
 */
+
+$(document).ready(calc)
+
 function myParseFloat(x)
 {
 	if (x)
@@ -47,7 +50,7 @@ function show_custom()
 	$('#custom1')[0].style.display='table-row';
 	$('#custom2')[0].style.display='table-row';
 	$('#custom3')[0].style.display='table-row';
-	$('#custom_runway')[0].focus();
+	$('#custom_runway')[0].focus();	
 	onchangecustom();
 }
 
@@ -75,6 +78,7 @@ function hide_change_ad(newname)
 	$('#tags').autocomplete('destroy');
 	var che=document.getElementById('changefield');
 	che.innerHTML=''+newname+'<button onclick="dochangefield()">Byt fält</button>';
+	hide_custom();
 
 }
 function update_runway_selector()
@@ -92,10 +96,11 @@ function do_load_ad(){
 	$.getJSON('${c.airport_load_url}',{name:sf.value}, function(data) {
 		last_airport_data=data;
 		update_runway_selector();
-			
+		calc();
+				
 	});
 	hide_change_ad(sf.value);
-	
+
 };
 function onchangecustom()
 {
@@ -111,6 +116,7 @@ function onchangecustom()
 	}
 	
 	update_runway_selector();
+	calc();
   	    	  
 }
 function get_runway(runwayname)
@@ -161,6 +167,16 @@ function dochangefield()
 	
 	
 }
+
+function myalert(msg)
+{
+    imgout=document.getElementById('resultimg');
+    imgout.innerHTML="";    
+	output=document.getElementById('resultdiv');
+	output.innerHTML="<div style=\"background-color:#ffc000\"><big>"+msg+"</big></div>";
+
+}
+
 function calc()
 {
   var ac_sel=document.getElementById('aircraft');
@@ -254,7 +270,7 @@ function calc()
 	var alt=alt_m/0.3048;
 	
   var eff_press_factor = 1013/qnh*((273+temp)/(273+15));
-  //alert('eff density:'+eff_press_factor);
+  
   
   var isshortgrass=document.getElementById('shortgrass').checked;
   var islonggrass=document.getElementById('longgrass').checked;
@@ -308,17 +324,18 @@ function calc()
   if (islonggrass) base_start_distance*=1.5;
   if (isslush)
   {
-  	if (!slushdepth) {alert("Du måste skriva in slaskdjup");return;}
+  	if (!slushdepth) 
+  		{myalert("Du måste skriva in slaskdjup");return;}
   	base_start_distance*=1.0+0.2*slushdepth;
   }
   if (isheavysnow)
   {
-  	if (!snowdepth) {alert("Du måste skriva in snödjup");return;}
+  	if (!snowdepth) {myalert("Du måste skriva in snödjup");return;}
   	base_start_distance*=1.0+0.1*snowdepth;
   }
   if (ispowder)
   {
-  	if (!powderdepth) {alert("Du måste skriva in pudersnödjup");return;}
+  	if (!powderdepth) {myalert("Du måste skriva in pudersnödjup");return;}
   	base_start_distance*=1.0+0.05*powderdepth;
   }
   if (temp>15)
@@ -335,7 +352,10 @@ function calc()
   	base_start_distance*=1.0+(tilt)*0.05;
   }
   if (tilt>2 || tilt<-2)
-  	alert('Varning - maximal lutning är 2%');
+  {
+  	myalert('Varning - maximal lutning är 2%');
+  	return;
+  }
   if (tilt<0)
   	base_landing_distance*=1.0+(-tilt)*0.08;
  
@@ -378,7 +398,6 @@ function calc()
 	    "<tr><td>Start:</td><td style=\"background:"+startcol+"\">"+parseInt(base_start_distance)+"m</td><td>"+parseInt(available_takeoff+0.25)+"m </td></tr>"+\
 	    "<tr><td>Landning:</td><td style=\"background:"+landcol+"\">"+parseInt(1.43*base_landing_distance)+"m</td><td>"+parseInt(available_landing+0.25)+"m </td></tr>"+
 	    "</table><br/>"+
-		'Tryckhöjd: '+parseInt(effective_elev)+" fot <br/>"+\
 		'Vindkomposant: '+parseInt(Math.abs(windcomp)+0.5)+'kt '+windwhat+' '+parseInt(Math.abs(windside)+0.5)+'kt sidvind'+" "+windleftright+"<br/>"+\
 		'Överlast: '+isoverload+"<br/>"+
 		'Tyngdpunkt: <span style="background:'+center_color+'">'+loadcenter_str+"</span><br/>"+\
@@ -405,10 +424,12 @@ function calc()
 }
 </script>
 <h1>Prestanda-planering, Swedish Ultraflyers</h1>
-
 <table>
 <tr>
-<td>Välj flygplan:</td><td><big><select id="aircraft">
+<td style="width:50%;height=100%;overflow=auto;vertical-align:top">
+<table>
+<tr>
+<td>Välj flygplan:</td><td><big><select onchange="calc()" id="aircraft">
 <option value="SE-VOD">SE-VOD</option>
 <option value="SE-VPD">SE-VPD</option>
 </select></big></td></tr>
@@ -423,12 +444,12 @@ function calc()
 
 <h2>Lastning</h2>
 <table>
-<tr><td>Pilotens vikt:</td><td><input type="text" size="4" id="pilot" value="80">kg</td>
-<td>Passagerarens vikt:</td><td><input type="text" size="4" id="pax">kg</td></tr>
-<tr><td>Bakom stolarna:</td><td><input type="text" size="4" id="luggage">kg</td>
-<td>Bagage under knäna:</td><td><input type="text" size="4" id="knee">kg</td></tr> 
-<tr><td>Bränsle vänster:</td><td><input type="text" size="4" id="leftfuel" value="30">L</td> 
-<td>Bränsle höger:</td><td><input type="text" size="4" id="rightfuel" value="30">L</td></tr> 
+<tr><td>Pilotens vikt:</td><td><input onchange="calc()" type="text" size="4" id="pilot" value="80">kg</td>
+<td>Passagerarens vikt:</td><td><input onchange="calc()" type="text" size="4" id="pax">kg</td></tr>
+<tr><td>Bakom stolarna:</td><td><input onchange="calc()" type="text" size="4" id="luggage">kg</td>
+<td>Bagage under knäna:</td><td><input onchange="calc()" type="text" size="4" id="knee">kg</td></tr> 
+<tr><td>Bränsle vänster:</td><td><input onchange="calc()" type="text" size="4" id="leftfuel" value="30">L</td> 
+<td>Bränsle höger:</td><td><input onchange="calc()" type="text" size="4" id="rightfuel" value="30">L</td></tr> 
 
 </table>
 <h2>Fält</h2>
@@ -436,7 +457,7 @@ function calc()
 <tr>
 
 <td>Bana</td><td>
-<select id="runway">
+<select onchange="calc()" id="runway">
 <option value="16">16</option>
 <option value="34">34</option>
 <option value="07">07</option>
@@ -444,32 +465,36 @@ function calc()
 </select>
 </td></tr>
 <tr>
-<td>Vind</td><td><input type="text" size="4" id="winddir" value="${c.winddir}"> grader</td><td><input type="text" size="4" id="windvel" value="${c.windvel}">knop</td></tr>
+<td>Vind</td><td><input onchange="calc()" type="text" size="4" id="winddir" value="${c.winddir}"> grader</td><td><input onchange="calc()" type="text" size="4" id="windvel" value="${c.windvel}">knop</td></tr>
 
-<tr><td>Temperatur</td><td><input type="text" size="4" id="temperature" value="${c.temp}">C</td>
-<td>Höjd</td><td><input type="text" size="5" id="elevation" value="30">fot</td></tr>
-<tr><td>Motlutning</td><td colspan="4"><input type="text" size="5" id="tilt" value="0">%</td></tr>
-<tr><td>QNH</td><td><input type="text" size="5" id="qnh" value="${c.qnh}">mbar</td></tr>
-<tr><td>Kort gräs</td><td><input type="checkbox" id="shortgrass" onclick="document.getElementById('longgrass').checked=false;"></td>
-<td>Långt gräs</td><td><input type="checkbox" id="longgrass" onclick="document.getElementById('shortgrass').checked=false;"></td></tr>
-<tr><td>Vatten eller snöslask:</td><td><input type="checkbox" id="slush"></td><td>Djup:<input type="text" size="5" id="slushdepth" />cm</tr>
-<tr><td>Tung snö (kramsnö):</td><td><input type="checkbox" id="heavysnow"></td><td>Djup:<input type="text" size="5" id="snowdepth" />cm</tr>
-<tr><td>Pudersnö:</td><td><input type="checkbox" id="powder"></td><td>Djup:<input type="text" size="5" id="powderdepth" />cm</tr>
+<tr><td>Temperatur</td><td><input onchange="calc()" type="text" size="4" id="temperature" value="${c.temp}">C</td>
+<td>Höjd</td><td><input onchange="calc()" type="text" size="5" id="elevation" value="30">fot</td></tr>
+<tr><td>Motlutning</td><td colspan="4"><input onchange="calc()" type="text" size="5" id="tilt" value="0">%</td></tr>
+<tr><td>QNH</td><td><input onchange="calc()" type="text" size="5" id="qnh" value="${c.qnh}">mbar</td></tr>
+<tr><td>Kort gräs</td><td><input onchange="calc()" type="checkbox" checked="1" id="shortgrass" onclick="document.getElementById('longgrass').checked=false;"></td>
+<td>Långt gräs</td><td><input onchange="calc()" type="checkbox" id="longgrass" onclick="document.getElementById('shortgrass').checked=false;"></td></tr>
+<tr><td>Vatten eller snöslask:</td><td><input onchange="calc()" type="checkbox" id="slush"></td><td>Djup:<input onchange="calc()" type="text" size="5" id="slushdepth" />cm</tr>
+<tr><td>Tung snö (kramsnö):</td><td><input onchange="calc()" type="checkbox" id="heavysnow"></td><td>Djup:<input onchange="calc()" type="text" size="5" id="snowdepth" />cm</tr>
+<tr><td>Pudersnö:</td><td><input onchange="calc()" type="checkbox" id="powder"></td><td>Djup:<input onchange="calc()" type="text" size="5" id="powderdepth" />cm</tr>
 <tr><td colspan=2>OBS! På is kan stoppsträckan bli betydligt längre!</td></tr>
 </table>
 
-<button onclick="calc()">Beräkna</button>
 
-<h2>Beräkningsresultat:</h2>
+
+</td>
+<td style="width:50%;height=100%;overflow=auto;vertical-align:top">
+<b>Beräkningsresultat:</b><button onclick="calc()">Uppdatera</button>
 
 <div id="resultdiv">
-Tryck på beräkna-knappen ovan!
+
 </div>
 
 <div id="resultimg">
 </div>
 
-
+</td>
+</tr>
+</table>
 </body>
 
 </html>

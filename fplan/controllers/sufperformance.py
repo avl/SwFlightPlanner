@@ -81,7 +81,8 @@ class SufperformanceController(BaseController):
         perf=data['perf']
         what=data['what']
         #print "Perf:",perf
-        im=cairo.ImageSurface(cairo.FORMAT_RGB24,512,512)
+        imgsize=300
+        im=cairo.ImageSurface(cairo.FORMAT_RGB24,imgsize,imgsize)
         ctx=cairo.Context(im)
         if 'physical' in ad:
             def getdist_meter(p1,p2):
@@ -103,12 +104,12 @@ class SufperformanceController(BaseController):
             center=(0.5*(bb.x1+bb.x2),0.5*(bb.y1+bb.y2))
             #print "Center:",center
             mercradius=max(bb.x2-bb.x1,bb.y2-bb.y1)
-            scaling=450/mercradius
+            scaling=(imgsize/1.3)/mercradius
             def topixel(merc):
                 off=(merc[0]-center[0],merc[1]-center[1])
-                return (off[0]*scaling+256,off[1]*scaling+256)
+                return (off[0]*scaling+imgsize/2,off[1]*scaling+imgsize/2)
             
-            def draw_marker(ctx,p1,p2,thresholdratio,msg,color=(1,0,0)):
+            def draw_marker(ctx,p1,p2,thresholdratio,msg,col=(1,0,0)):
                 ninety=[p2[1]-p1[1],p2[0]-p1[0]]                    
                 ninetylen=math.sqrt(ninety[0]**2+ninety[1]**2)
                 ninety=[50*ninety[0]/ninetylen,-50*ninety[1]/ninetylen]
@@ -122,7 +123,7 @@ class SufperformanceController(BaseController):
                 dB=[d[0]+ninety[0],d[1]+ninety[1]]
                 ctx.new_path()
                 
-                ctx.set_source(cairo.SolidPattern(*(color+(1,))))
+                ctx.set_source(cairo.SolidPattern(*(col+(1,))))
                 ctx.arc(d[0],d[1],6,0,2*math.pi)
                 ctx.fill()
                 ctx.new_path()
@@ -137,10 +138,10 @@ class SufperformanceController(BaseController):
                 if (ang<-50 and ang>-50-90) or\
                    (ang>50 and ang<50+90):                
                     if ang<0:
-                        ctx.rotate(-90)
+                        ctx.rotate(-90*(math.pi/180.0))
                     else:
-                        ctx.rotate(90)
-                ctx.set_font_size(25);
+                        ctx.rotate(90*(math.pi/180.0))
+                ctx.set_font_size(17);
                 ctx.show_text(msg)
                 ctx.restore()
                 
@@ -175,13 +176,13 @@ class SufperformanceController(BaseController):
                     landingrollratio=perf["landing_roll"]/runwaylen
                     
                     if what=='start':        
-                        draw_marker(ctx,p1,p2,0,"Start")
-                        draw_marker(ctx,p1,p2,startrollratio,"Lättning")
-                        draw_marker(ctx,p1,p2,startratio,"15 meter")
+                        draw_marker(ctx,p1,p2,0,"Start",col=(1,0,0))
+                        draw_marker(ctx,p1,p2,startrollratio,"Lättning",col=(1,0.5,0))
+                        draw_marker(ctx,p1,p2,startratio,"15m höjd",col=(0,1,0))
                     if what=='landing':                        
-                        draw_marker(ctx,p1,p2,0,"Tröskel 15m")
-                        draw_marker(ctx,p1,p2,landingrollratio+0.43*landingratio,"Senaste sättning")
-                        draw_marker(ctx,p1,p2,1.43*landingratio,"Senaste stopp")
+                        draw_marker(ctx,p1,p2,0,"15m tröskelhöjd ",col=(1,0,0))
+                        draw_marker(ctx,p1,p2,landingrollratio+0.43*landingratio,"Senaste sättning",col=(1,0.5,0))
+                        draw_marker(ctx,p1,p2,1.43*landingratio,"Senaste stopp",(0,1,0))
                         
                     
                     
