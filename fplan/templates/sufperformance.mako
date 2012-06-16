@@ -390,14 +390,14 @@ function calc()
     	JSON.stringify(
     		{ad:last_airport_data,
     		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll},
-    		 what:'landing'
+    		 what:'start'
     		}
     		))+'" /></td><td>'+
     	'<img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
     		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll},
-    		 what:'start'
+    		 what:'landing'
     		}
     		))+'" /></td></tr></table>';
     		
