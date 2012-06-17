@@ -71,7 +71,7 @@ function findPos(obj) {
 	
 	return [curleft,curtop];
 }
-last_airport_data={"runways": [{"rwyhdg": 159.40875420296877, "available_landing": 567.6524938370329, "available_takeoff": 567.6524938370329, "name": "16"}, {"rwyhdg": 339.4117857811595, "available_landing": 567.6524938370329, "available_takeoff": 567.6524938370329, "name": "34"}, {"rwyhdg": 75.35455789727928, "available_landing": 241.48423673047128, "available_takeoff": 241.48423673047128, "name": "07"}, {"rwyhdg": 255.358106306855, "available_landing": 241.48423673047128, "available_takeoff": 241.48423673047128, "name": "25"}], "physical": [[{"pos": "59.45891, 17.70657", "name": "16"}, {"pos": "59.45414, 17.71009", "name": "34"}], [{"pos": "59.45858, 17.70633", "name": "07"}, {"pos": "59.459128, 17.71045", "name": "25"}]]}
+last_airport_data=${c.defaddata|n};
 
 function hide_change_ad(newname)
 {
@@ -175,6 +175,12 @@ function myalert(msg)
 	output=document.getElementById('resultdiv');
 	output.innerHTML="<div style=\"background-color:#ffc000\"><big>"+msg+"</big></div>";
 
+}
+
+function ipol(x,x1,x2,y1,y2)
+{
+	var ratio=(x-x1)/(x2-x1);
+	return y1+(y2-y1)*ratio;
 }
 
 function calc()
@@ -345,7 +351,20 @@ function calc()
   if (effective_elev>0)
   	base_start_distance*=1.0+(effective_elev/1000.0)*0.2;
   	
-  
+  var climb_performance=6.2*196.850394;
+  if (effective_elev>0 && effective_elev<1000)
+  	climb_performance=ipol(effective_elev,0.0,1000.0,6.2*196.85039,5.9*196.85039);
+  else 
+  {
+    if (effective_elev>=1000 && effective_elev<2000)
+  	  climb_performance=ipol(effective_elev,1000.0,2000.0,5.9*196.85039,5.2*196.85039);
+    else
+   	  climb_performance=5.2*196.850394;
+  }
+  var time_min_to_300=(300.0-49.2)/climb_performance;
+  var time_sec_to_300=time_min_to_300*60.0;
+  var climb_speed_ms=120/3.6;
+  var horizontal_distance_to_300=climb_speed_ms*time_sec_to_300;  
 
   if (tilt>0)
   {
@@ -408,14 +427,14 @@ function calc()
     	'<table><tr><td><b>Start</b></td><td><b>Landning</b></td></tr><tr><td><img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
-    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll},
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300},
     		 what:'start'
     		}
     		))+'" /></td><td>'+
     	'<img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
-    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll},
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300},
     		 what:'landing'
     		}
     		))+'" /></td></tr></table>';

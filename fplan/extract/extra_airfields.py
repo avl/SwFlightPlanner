@@ -4,20 +4,22 @@ import rwy_constructor
 
 minor_ad_charts={
         u"Frölunda":"http://www.swflightplanner.se:8080/frolunda.jpg"
-                     }
-extra_airfields=[
-    dict(icao="ESVF",
+}
+frolunda=dict(icao="ESVF",
          name=u"Frölunda",
          pos=mapper.to_str(mapper.from_aviation_format("5927.5N01742.4E")),
          runways=rwy_constructor.get_rwys(
                     [
-                     dict(pos="59.45891, 17.70657",thr="16"),
+                     dict(pos="59.458468, 17.70691",thr="16",usable_pos="59.459198, 17.70644"),
                      dict(pos="59.45414, 17.71009",thr="34"),
-                     dict(pos="59.45858, 17.70633",thr="07"),
-                     dict(pos="59.459128, 17.71045",thr="25"),
+                     dict(pos="59.458716, 17.707166",thr="07",usable_pos="59.458505, 17.705782"),
+                     dict(pos="59.459343, 17.712018",thr="25",usable_pos="59.459343, 17.712018"),
                      ]
                     ),
-         elev=30),
+         elev=30)
+                 
+extra_airfields=[
+    frolunda,
          
     dict(icao="ZZZZ",
          name=u"Finspång",
