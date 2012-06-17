@@ -7,11 +7,25 @@ that package names could differ if using another distribution.
 
 First, install the following dependencies:
 
-sudo apt-get install python-cairo python-mapnik python-numpy poppler-utils \
-pylons proj postgresql python-elementtree python-dev python-psycopg2 pyro authbind swig \
-proj-bin scons swig libopenjpeg python-mechanize libboost-dev python-demjson python-pygrib libjasper-dev libpng-dev libgrib-api-dev
+sudo apt-get install python-cairo python-mapnik2 python-numpy poppler-utils \
+pylons proj postgresql python-xml python-dev python-psycopg2 pyro authbind swig \
+proj-bin scons swig libopenjpeg python-mechanize libboost-dev python-demjson python-pygrib libjasper-dev libpng-dev libgrib-api-dev python-pyproj
 
-If python-elementtree doesn't exist, you can try "python-xml" instead.
+
+You also need the "python-grib" package. As root, do:
+
+sudo bash
+export JASPER_INCDIR=/usr/inc
+export JASPER_LIBDIR=/usr/lib/i366-linux-gnu
+export GRIBAPI_DIR=/usr
+export PNG_DIR=/usr
+export JPEG_DIR=/usr
+easy_install pygrib
+
+Note, it is important that the environment variables are set when running 
+easy_install. Therefore, don't be tempted to do "sudo easy_install pygrib". 
+Sudo clears environment variables.
+
 
 Then you need the package shapemerge2d, which is not part of debian 
 (at time of writing). Get it from github:

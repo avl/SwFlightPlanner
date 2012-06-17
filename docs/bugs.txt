@@ -288,22 +288,23 @@
 281: FIXED: Gör kart-pilen mycket tydligare. Kanske med röd-vit-gradient?
 282: Gör klart att elevation-data saknas om man inte väljer very-high.
 283: FIXED: Add aerodromes.txt (from Openstreetmap), but filter all we already have through other channels.
-284: Dubletter i bad airports: Glasgow t.ex två gånger.
+284: TRIAGED: Dubletter i bad airports: Glasgow t.ex två gånger.
 285: FIXAD: Fixa bugg med llf-väder-område Asw3b
 286: Add some way to tell how up-to-date NOTAMs are. Now it is impossible to tell if notam engine stopped, or there's simply actually been no changes
-287: Recording-monitorn borde funka även utan GPS.
+287: TRIAGED: Recording-monitorn borde funka även utan GPS.
 288: Kart-cache-problem när man använder Custom Data - funktionen. Borde salta URL:arna.
 289: FIXED: Custom Data tar aldrig skruv för alla användare, även om "Ready" är valt.
 290: FIXED: Fixa så man kan ha FIR som userdata.
 291: FIXED: Fixa AIP/AD-chart generering för userdata.
 292: Fix Sweden FIR
-293: Vad göra av ett fält med 90 vindkraftverk?
+293: TRIAGED: Vad göra av ett fält med 90 vindkraftverk?
 294: Gör höjdprofil-funktion?
 295: Fixa heading-bug-intercept, så att den planerar vettiga svängar för att komma on track.
 296: Gör abort-mode funktion?
 297: Draw inset
  - Ta med luftrum
  - Rita till bitmap, uppdatera bara då-och-då, och aldrig när man scrollar.
-298: Overdraw verkar inte funka
+298: FIXED: Overdraw verkar inte funka (var inte overdraw, var bounding box)
 299: Re-arrange phrases, så man inte tror att fraser hör ihop på ett sätt de inte gör (fras-rubrikerna är ju bara för nästa fras)
-300: Underlaget påverkar endast rullsträcka, inte klättring/acceleration till 50'.
+300: TRIAGED: Underlaget påverkar endast rullsträcka, inte klättring/acceleration till 50'.
+

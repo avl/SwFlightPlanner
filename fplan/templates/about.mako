@@ -58,7 +58,7 @@ on the site will be wrong. I feel it is mostly correct, but comparison with an u
 airspace definitions near Stockholm. Testers from other parts of the country are most welcome.
 </p>
 <p>
-Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspaces, even those very close to or overlapping Swedish territory, are missing entirely. Yet another limitation is that only the coordinates of holding points are given, not how the holding pattern should be aligned with that point, or if it's a left-hand or right-hand pattern. Also, some holding points are missing. Entry/exit-points to CTRs are wrong for some airports. Always cross-check using the official VAC (Visual Approach Chart).
+Note that there is one aspect in which the airspace data is known to be incorrect. The airspace definitions sometimes specify that an airspace follows a nation border. These airspaces are approximated, instead of faithfully following the border. Also, the no-mans-land between Finland and Russia is missing entirely in this program. Also, all Danish airspace has been manually entered, and is not updated automatically. There may be subtle errors. Yet another limitation is that only the coordinates of holding points are given, not how the holding pattern should be aligned with that point, or if it's a left-hand or right-hand pattern. Also, some holding points are missing. Entry/exit-points to CTRs are wrong for some airports. Always cross-check using the official VAC (Visual Approach Chart).
 </p>
 <p>
 TRA, "Temporary Reserved Airspace", are not present in this application. At time of writing (2011-02-26), these were all above FL095, where clearance is always needed anyway. 
@@ -93,8 +93,8 @@ word swflightplanner did not give any hits on google. Sw stands for Sweden. I am
 <br/>
 <br/>
 <h2>Where does the data come from?</h2>
-The airspace data (which only covers Sweden and Finland in detail, and with some Danish data) and NOTAMs (which only cover Sweden) are from LFV and Finavia. The basic map is from openstreetmap.org. The terrain elevation data is from NASA.
-Magnetic variation/declination data is from "The World Magnetic Model" by National Geophysical Data Center.<br/>
+The airspace data (which only covers Sweden and Finland in detail) and NOTAMs (which only cover Sweden) are from LFV/AIP and Finavia/AIP. TAF/METAR are from LFV. Estonian and Latvian data is from Estonian and Latvian AIP. The Danish data has been hand entered from airspace maps. The basic map is from openstreetmap.org. The terrain elevation data is from NASA SRTM. Most of the weather data (GFS forecast) is from the American NOAA.
+Magnetic variation/declination data is from "The World Magnetic Model" by America's National Geophysical Data Center. A big thank you to the american government and people for sharing data with all of the world in such a generous fashion.<br/>
 
 The airspace data was last downloaded from LFV/Finavia at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
 The maps were last updated with this airspace data ${c.mapupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. 
