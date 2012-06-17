@@ -563,7 +563,7 @@ class FlightplanController(BaseController):
 -%(dest_ad)s%(ete)s 
 -%(extra_remarks)s
 -E/%(endurance)s P/%(nr_passengers)s
-A/%(markings)s
+A/%(markings)s%(extra_equipment)s
 C/%(commander)s %(phonenr)s)"""%(dict(
                 acreg=c.ac.aircraft.replace("-",""),
                 actype=c.ac.atstype,
@@ -572,6 +572,7 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 type_of_flight='G',
                 equipment=eqp(c.ac.com_nav_equipment,'V'),
                 transponder=eqp(c.ac.transponder_equipment,'C'),
+                extra_equipment=u" %s"%(c.ac.extra_equipment,) if c.ac.extra_equipment else "",
                 dep_ad=dep_ad,
                 eobt=routes[0].depart_dt.strftime("%H%M"),
                 cruise_speed=format_cruise(tas),

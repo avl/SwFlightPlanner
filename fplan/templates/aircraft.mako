@@ -140,6 +140,18 @@ N = No transponder, A = Mode A, C = Mode C
 </td>
 </tr>
 
+<tr>
+<td>Extra Equipment :</td><td>
+    <input type="text" ${c.fmterror('extra_equipment')|n} name="extra_equipment" value="${c.ac.extra_equipment}" />${c.msgerror('extra_equipment')|n}</td>
+</tr>
+
+<tr>
+<td colspan="2" style="font-size:10px">
+This field will be copied as-is to ATS flight-plan. Examples: R/E = ELT, J/L = light jacket, D/01 = lifeboat. Note, it is not checked at all by swflightplanner - if you enter illegal characters here, the ATS import may subsequently fail.
+</td>
+</tr>
+
+
 </table>
 %endif
 

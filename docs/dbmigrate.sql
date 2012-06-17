@@ -85,3 +85,6 @@ alter table "user" ADD "trusted" boolean not null default 'false';
 #version 16
 alter table aircraft add column com_nav_equipment varchar(32) not null default 'V';
 alter table aircraft add column transponder_equipment varchar(32) not null default 'C';
+
+#version 17
+alter table aircraft add column extra_equipment varchar(32) not null default '';

@@ -191,10 +191,9 @@ aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('adv_descent_rate',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
                         sa.Column('adv_descent_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
                         sa.Column('adv_descent_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-
                         sa.Column('com_nav_equipment',Unicode(32),primary_key=False,nullable=False,default=u"V"),
-                        sa.Column('transponder_equipment',Unicode(32),primary_key=False,nullable=False,default=u"C"),
-                        
+                        sa.Column('transponder_equipment',Unicode(32),primary_key=False,nullable=False,default=u"C"),                        
+                        sa.Column('extra_equipment',Unicode(32),primary_key=False,nullable=False,default=u"")                        
                         )
 
 trip_table = sa.Table("trip",meta.metadata,
