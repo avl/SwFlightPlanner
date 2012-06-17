@@ -82,3 +82,6 @@ alter table airport_projection add column "north" float default null;
 #version 15
 alter table "user" ADD "trusted" boolean not null default 'false';
  
+#version 16
+alter table aircraft add column com_nav_equipment varchar(32) not null default 'V';
+alter table aircraft add column transponder_equipment varchar(32) not null default 'C';

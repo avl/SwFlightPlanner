@@ -1,5 +1,5 @@
 import logging
-
+import cgi
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
 from fplan.model import meta,User,Aircraft,Trip
@@ -104,7 +104,7 @@ class AircraftController(BaseController):
                 msg=bad_values.get((x,alt),None)
                 if msg:
                     msgs.add(msg)
-            return ", ".join(msgs)
+            return "<span style=\"background-color:#ffd0d0\">" + cgi.escape(", ".join(msgs)) + "</span>"
                 
         c.aircraft_name_error=bad_values.get('aircraft',None)
         c.msgerror=get_msgerror
@@ -157,7 +157,7 @@ class AircraftController(BaseController):
                 
                 for name,value in request.params.items():
                     if name in ('orig_aircraft','advanced_model','aircraft'): continue
-                    if name in ['atstype','markings','atsradiotype']:
+                    if name in ['atstype','markings','atsradiotype','com_nav_equipment','transponder_equipment']:
                         setattr(ac,name,value)
                     else:
                         if not add_from_text and name.count("_"):
@@ -191,7 +191,12 @@ class AircraftController(BaseController):
                 for name,value in request.params.items():            
                     if name in ('orig_aircraft','advanced_model','aircraft'): continue
                     if hasattr(ac,name):
-                        if name in ['atstype','markings','atsradiotype']:
+                        if name in ['atstype','markings','atsradiotype','com_nav_equipment','transponder_equipment']:
+                            if name in ['com_nav_equipment','transponder_equipment']:
+                                value=value.replace(" ","").upper()
+                                if re.findall('[^A-Z]',value):
+                                    bad_values[(name,0)]='Only alphabetic characters are allowed in this field'
+                                    continue
                             setattr(ac,name,value)
                         else:
                             try:

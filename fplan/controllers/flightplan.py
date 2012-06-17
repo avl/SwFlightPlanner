@@ -538,6 +538,12 @@ class FlightplanController(BaseController):
                 if c.user.phonenr:            
                     phonenr=c.user.phonenr
                 fir_whenposname.sort()
+                def eqp(x,s):
+                    x="".join(re.findall('[A-Z]',x.upper()))
+                    if len(x)==0:
+                        return s
+                    return x
+                    
                 dummy=u"""
     FPL-SEVLI-VG
     -ULAC/L-V/C
@@ -564,8 +570,8 @@ C/%(commander)s %(phonenr)s)"""%(dict(
                 turbulence_category='L',
                 flight_rules='V',
                 type_of_flight='G',
-                equipment='V',
-                transponder='C',
+                equipment=eqp(c.ac.com_nav_equipment,'V'),
+                transponder=eqp(c.ac.transponder_equipment,'C'),
                 dep_ad=dep_ad,
                 eobt=routes[0].depart_dt.strftime("%H%M"),
                 cruise_speed=format_cruise(tas),

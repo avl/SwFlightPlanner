@@ -80,28 +80,28 @@ ${c.aircraft_name_error if c.aircraft_name_error else '(Example: SE-ABC)'}
 
 %if not (c.ac and c.ac.advanced_model):
 <tr>
-<td>Cruise speed:</td><td><input ${c.fmterror('cruise_speed')|n} type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt ${c.msgerror('cruise_speed')}</td>
+<td>Cruise speed:</td><td><input ${c.fmterror('cruise_speed')|n} type="text" name="cruise_speed" value="${c.ac.cruise_speed}" />kt ${c.msgerror('cruise_speed')|n}</td>
 </tr>
 <tr>
-<td>Cruise fuel burn:</td><td><input ${c.fmterror('cruise_burn')|n} type="text" name="cruise_burn" value="${c.ac.cruise_burn}" />L/h ${c.msgerror('cruise_burn')}</td>
+<td>Cruise fuel burn:</td><td><input ${c.fmterror('cruise_burn')|n} type="text" name="cruise_burn" value="${c.ac.cruise_burn}" />L/h ${c.msgerror('cruise_burn')|n}</td>
 </tr>
 <tr>
-<td>Cruise climb speed:</td><td><input ${c.fmterror('climb_speed')|n} type="text" name="climb_speed" value="${c.ac.climb_speed}" />kt ${c.msgerror('climb_speed')}</td>
+<td>Cruise climb speed:</td><td><input ${c.fmterror('climb_speed')|n} type="text" name="climb_speed" value="${c.ac.climb_speed}" />kt ${c.msgerror('climb_speed')|n}</td>
 </tr>
 <tr>
-<td>Cruise climb rate:</td><td><input ${c.fmterror('climb_rate')|n} type="text" name="climb_rate" value="${c.ac.climb_rate}" />feet/min ${c.msgerror('climb_rate')}</td>
+<td>Cruise climb rate:</td><td><input ${c.fmterror('climb_rate')|n} type="text" name="climb_rate" value="${c.ac.climb_rate}" />feet/min ${c.msgerror('climb_rate')|n}</td>
 </tr>
 <tr>
-<td>Cruise climb fuel burn:</td><td><input ${c.fmterror('climb_burn')|n} type="text" name="climb_burn" value="${c.ac.climb_burn}" />L/h ${c.msgerror('climb_burn')}</td>
+<td>Cruise climb fuel burn:</td><td><input ${c.fmterror('climb_burn')|n} type="text" name="climb_burn" value="${c.ac.climb_burn}" />L/h ${c.msgerror('climb_burn')|n}</td>
 </tr>
 <tr>
-<td>Descent speed:</td><td><input ${c.fmterror('descent_speed')|n} type="text" name="descent_speed" value="${c.ac.descent_speed}" />kt ${c.msgerror('descent_speed')}</td>
+<td>Descent speed:</td><td><input ${c.fmterror('descent_speed')|n} type="text" name="descent_speed" value="${c.ac.descent_speed}" />kt ${c.msgerror('descent_speed')|n}</td>
 </tr>
 <tr>
-<td>Descent rate:</td><td><input ${c.fmterror('descent_rate')|n} type="text" name="descent_rate" value="${c.ac.descent_rate}" />feet/min ${c.msgerror('descent_rate')}</td>
+<td>Descent rate:</td><td><input ${c.fmterror('descent_rate')|n} type="text" name="descent_rate" value="${c.ac.descent_rate}" />feet/min ${c.msgerror('descent_rate')|n}</td>
 </tr>
 <tr>
-<td>Descent fuel burn:</td><td><input ${c.fmterror('descent_burn')|n} type="text" name="descent_burn" value="${c.ac.descent_burn}" />L/h ${c.msgerror('descent_burn')}</td>
+<td>Descent fuel burn:</td><td><input ${c.fmterror('descent_burn')|n} type="text" name="descent_burn" value="${c.ac.descent_burn}" />L/h ${c.msgerror('descent_burn')|n}</td>
 </tr>
 %endif
 
@@ -109,12 +109,36 @@ ${c.aircraft_name_error if c.aircraft_name_error else '(Example: SE-ABC)'}
 <td>Aircraft Color and Markings :</td><td>
     <input type="text" name="markings" value="${c.ac.markings}" />(Aircraft Colour and Markings for use in ATS-flight plan)</td>
 </tr>
+<tr>
 <td colspan="2" style="font-size:10px">
 The following abbreviations are allowed: 
  B = Blue , G = Green , R = Red , W = White , Y = Yellow. Other colours should be written in plain text, like: ORANGE.
 </td>
+</tr>
 
 <tr>
+<td>Equipment, COM/NAV :</td><td>
+    <input type="text" ${c.fmterror('com_nav_equipment')|n} name="com_nav_equipment" value="${c.ac.com_nav_equipment}" />${c.msgerror('com_nav_equipment')|n}</td>
+</tr>
+
+<tr>
+<td colspan="2" style="font-size:10px">
+This field will be copied as-is to ATS flight-plan. Common abbreviations:
+S= Standard Equipped, V = VHF (regular aircraft radio), Y = 8.33kHz VHF Radio, O = VOR, I = ILS, F = ADF, D = DME
+</td>
+</tr>
+
+<tr>
+<td>Transponder :</td><td>
+    <input type="text" ${c.fmterror('transponder_equipment')|n} name="transponder_equipment" value="${c.ac.transponder_equipment}" />${c.msgerror('transponder_equipment')|n}</td>
+</tr>
+
+<tr>
+<td colspan="2" style="font-size:10px">
+This field will be copied as-is to ATS flight-plan. Common abbreviations:
+N = No transponder, A = Mode A, C = Mode C
+</td>
+</tr>
 
 </table>
 %endif
@@ -135,7 +159,7 @@ The following abbreviations are allowed:
 %for alt in xrange(0,10000,1000):
 <td><input ${c.fmterror(name,alt)|n} type="text" name="${name}_${alt}" size="4" value="${c.getval(name,alt)}" /></td>
 %endfor
-<td>${c.msgerror(name)}</td>
+<td>${c.msgerror(name)|n}</td>
 </tr>
 %endfor
 

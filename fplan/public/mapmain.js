@@ -367,11 +367,8 @@ function enter_coordinate_addwp()
 }
 function enter_coordinate_close()
 {
-	function justclose()
-	{
-		return true;
-	}
-	enter_coordinate_impl(justclose);	
+	var cm=document.getElementById("entercoord");
+	cm.style.display='none';
 }
 function enter_coordinate_center()
 {
@@ -390,7 +387,7 @@ function enter_coordinate_center()
 }
 function enter_coordinate_impl(dowhat)
 {
-	var cm=document.getElementById("entercoord");
+	
 	var val=document.getElementById("coordprespos");
 	if (val!=null)
 	{
