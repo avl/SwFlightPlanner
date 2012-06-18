@@ -8,11 +8,52 @@ var your_object = JSON.parse(json_text);
 
 */
 
+function stepto(dest)
+{
+	for(var i=1;i<=3;++i)
+	{
+		var stepe=document.getElementById('step'+i);
+		if (i!=dest)
+			stepe.style.display='none';
+		else
+			stepe.style.display='block';
+	}
+}
 function initial_load()
 {
 	
 	update_runway_selector();
 	calc();
+	
+	for(var i=1;i<=3;++i)
+	{
+		for(var j=1;j<=2;++j)
+		{
+			var nave=document.getElementById('step'+i+'nav'+j);
+			temp='<div style="width:100%;">'+
+				'<div style="width:30%;float:left;text-align:center;">';
+			if (i!=1)
+				temp+='<button onclick="stepto('+(i-1)+')">&lt;&lt;</button>';
+			else
+				temp+='&nbsp;';
+			temp+='</div>'+
+				'<div style="width:30%;float:left;text-align:center;">';
+			if (j==1)
+				temp+='Steg '+i+' av 3';
+			else
+				temp+='&nbsp;';
+			temp+='</div>'+
+				'<div style="width:30%;float:left;text-align:center;">';
+			if (i!=3)
+				temp+='<button onclick="stepto('+(i+1)+')">&gt;&gt;</button>';
+			else
+				temp+='<button onclick="calc()">Beräkna!</button>';
+			temp+='</div>'+		
+				'</div>';
+				
+			nave.innerHTML=temp;
+		}
+	}
 }
 
 $(document).ready(initial_load)
@@ -24,12 +65,16 @@ function myParseFloat(x)
 	return 0.0; 
 }
 
+function myParseFloat2(x)
+{
+	if (x!='')
+		return parseFloat(x);
+	return null; 
+}
+
 function show_custom()
 {	
 	hide_change_ad('Eget');
-	$('#custom1')[0].style.display='table-row';
-	$('#custom2')[0].style.display='table-row';
-	$('#custom3')[0].style.display='table-row';
 	$('#custom_runway')[0].focus();	
 	onchangecustom();
 }
@@ -105,11 +150,16 @@ function onchangecustom()
 				name:decadeg,
 				rwyhdg:myParseFloat(decadeg)*10,
 				runway_length:myParseFloat($('#custom_runway_length')[0].value),
-				threshold:myParseFloat($('#custom_displaced_threshold')[0].value)
+				threshold:myParseFloat($('#custom_displaced_threshold')[0].value),
+				obstacle_dist:myParseFloat($('#custom_obstacle_dist')[0].value),
+				obstacle_height:myParseFloat($('#custom_obstacle_height')[0].value),
+				threshold_height:myParseFloat2($('#custom_threshold_height')[0].value),
+				safety_factor:myParseFloat2($('#custom_safety_factor')[0].value)
 				}		
 			],
-	    iscustom:true
+	    iscustom:true	    
 	}
+	
 	var select = $('#runway');
 	$('option', select).remove();
 	
@@ -132,7 +182,7 @@ function click_search()
   	 $.getJSON(searchurl,{term:sf.value}, function(data) {
    		if (data==null || data.length==0)
    		{ 
-   			alert('Finns ingen flygplats med det namnet i programmets databas. Använd knappen "Lägg till eget".');
+   			alert('Finns ingen flygplats med det namnet i programmets databas. Skriv in baninformation manuellt i fälten ovan.');
    			return;
    		}
    		else
@@ -184,6 +234,14 @@ function myalert(msg)
 	output.innerHTML="<div style=\"background-color:#ffc000\"><big>"+msg+"</big></div>";
 
 }
+function unhidecustom456()
+{
+	document.getElementById('custom4').style.display='table-row';
+	document.getElementById('custom5').style.display='table-row';
+	document.getElementById('custom6').style.display='table-row';
+	document.getElementById('custom7').style.display='table-row';
+	document.getElementById('custom_obstacle_dist').focus();
+}
 
 function ipol(x,x1,x2,y1,y2)
 {
@@ -231,6 +289,10 @@ function calc()
 	  $('#custom_runway')[0].value=runway;
 	  $('#custom_runway_length')[0].value=parseInt(rwy.runway_length+0.5);
 	  $('#custom_displaced_threshold')[0].value=parseInt(rwy.threshold+0.5);
+	  $('#custom_obstacle_dist')[0].value='';
+	  $('#custom_obstacle_height')[0].value='';
+	  $('#custom_threshold_height')[0].value='';
+	  $('#custom_safety_factor')[0].value='';
   }
   
 
@@ -255,6 +317,7 @@ function calc()
   if (performance_kg<nominal_kg)
     performance_kg=nominal_kg;
   var overload=performance_kg/nominal_kg;
+  var overload2=tot_kg/nominal_kg;
 
   var temp=myParseFloat(document.getElementById('temperature').value);
   var elev=myParseFloat(document.getElementById('elevation').value);
@@ -274,6 +337,8 @@ function calc()
   
   var isshortgrass=document.getElementById('shortgrass').checked;
   var islonggrass=document.getElementById('longgrass').checked;
+  var isice=document.getElementById('ice').checked;
+  var iswetgrass=document.getElementById('wetgrass').checked;
   var isslush=document.getElementById('slush').checked;
   var slushdepth=myParseFloat(document.getElementById('slushdepth').value);
   var isheavysnow=document.getElementById('heavysnow').checked;
@@ -302,16 +367,38 @@ function calc()
   
   	
   	
-    
+  var landing_threshold_height=15.0;
+  var flare_shortening=1.0;
+  var avg_flare_speed=43*1.852/3.6;
+  
   
   var base_landing_distance=267;
   var orig_landing_distance=267;
   var landing_roll=152;
+  var obstacle_altitude=null;
+  var nominal_15m_drop_time=(base_landing_distance-landing_roll)/avg_flare_speed;
+  //var drop_time=nominal_15m_drop_time*(landing_threshold_height/15);
+  var dropspeed=(avg_flare_speed-windcomp*1.852/3.6);
+  var dropdist15=dropspeed*nominal_15m_drop_time;
+  var dropratio=15/dropdist15;
+  
   
   if (windcomp>0)
   	base_landing_distance*=1.0-0.01*windcomp;
   if (windcomp<0)
   	base_landing_distance*=1.0-0.04*windcomp;
+  
+  if (rwy.obstacle_dist)
+  {
+	  obstacle_altitude=landing_threshold_height+rwy.obstacle_dist*dropratio;		  	   
+  }
+  var safe_factor=1.43;
+  if (rwy.safety_factor!=null)
+  {
+	  safe_factor=1+rwy.safety_factor/100.0;
+  }
+  
+  
   	
   if (eff_press_factor>1)
   	base_landing_distance*=1.0+(Math.sqrt(eff_press_factor)-1)
@@ -322,6 +409,8 @@ function calc()
   
   if (isshortgrass) base_start_distance*=1.1;
   if (islonggrass) base_start_distance*=1.5;
+  if (isice) base_landing_distance*=1.5;
+  if (iswetgrass) base_landing_distance*=1.2;
   if (isslush)
   {
   	if (!slushdepth) 
@@ -372,12 +461,36 @@ function calc()
   if (tilt<0)
   	base_landing_distance*=1.0+(-tilt)*0.08;
  
-  base_start_distance*=overload; 
-  base_landing_distance*=overload;
+  if (overload>1)
+  {
+	  base_start_distance*=overload; 
+	  base_landing_distance*=overload;
+  }
+  if (overload2<1)
+  {
+	  var underload=1-overload2;
+	  base_start_distance*=(1-1.0*underload); 
+	  base_landing_distance*=(1-0.5*underload);
+	  
+  }
   
   
   start_roll*=(base_start_distance/orig_start_distance);
+  
+  if (rwy.threshold_height!=null)
+  {
+	  landing_threshold_height=rwy.threshold_height;
+	  flare_shortening=landing_threshold_height/15.0;
+	  //var flare_part=landing_roll/orig_landing_distance;
+  }
   landing_roll*=(base_landing_distance/orig_landing_distance);
+  
+  base_landing_distance=landing_roll+(base_landing_distance-landing_roll)*flare_shortening;
+
+  //alert('base_landing: '+base_landing_distance+" roll: "+landing_roll);
+  
+  
+  //landing_roll*=flare_shortening;
   
   
 
@@ -389,7 +502,7 @@ function calc()
 	var landcol='#ffffff';
 	if (base_start_distance>=available_takeoff)
 		startcol='#ff8080';
-	if (1.43*base_landing_distance>=available_landing)
+	if (safe_factor*base_landing_distance>=available_landing)
 		landcol='#ff8080';
 	var isoverload='Nej';
 	if (overload>1)
@@ -404,14 +517,24 @@ function calc()
 	if (center_dry<237 || center_dry>355.5)
 		center_color_dry='#ff8080';
 	var loadcenter_dry_str=''+parseInt(center_dry)+'mm (mellan 237mm och 355.5mm är okay)';
-
+	obst_str="";
+	if (obstacle_altitude)
+	{
+		var obst_color='#ffffff';
+		if (obstacle_altitude-10<rwy.obstacle_height)
+			obst_color='#ffff40';
+		if (obstacle_altitude<rwy.obstacle_height)
+			obst_color='#ff8080';
+		obst_str='Flyghöjd vid hinder, landning: <span style="background-color:'+obst_color+'">'+parseInt(obstacle_altitude+0.5)+'m (Hinder: '+rwy.obstacle_height+'m)</span> <br/>';
+	}
 	output.innerHTML="<table>"+
 		"<tr><td></td><td>Erforderligt:</td><td>Tillgängligt:</td></tr>"+
 	    "<tr><td>Start:</td><td style=\"background:"+startcol+"\">"+parseInt(base_start_distance)+"m</td><td>"+parseInt(available_takeoff+0.25)+"m </td></tr>"+
-	    "<tr><td>Landning:</td><td style=\"background:"+landcol+"\">"+parseInt(1.43*base_landing_distance)+"m</td><td>"+parseInt(available_landing+0.25)+"m </td></tr>"+
+	    "<tr><td>Landning:</td><td style=\"background:"+landcol+"\">"+parseInt(safe_factor*base_landing_distance)+"m</td><td>"+parseInt(available_landing+0.25)+"m </td></tr>"+
 	    "</table><br/>"+
 		'Vindkomposant: '+parseInt(Math.abs(windcomp)+0.5)+'kt '+windwhat+' '+parseInt(Math.abs(windside)+0.5)+'kt sidvind'+" "+windleftright+"<br/>"+
 		'Överlast: '+isoverload+"<br/>"+
+		obst_str+
 		'Tyngdpunkt: <span style="background:'+center_color+'">'+loadcenter_str+"</span><br/>"+
 		'Tyngdpunkt utan bränsle: <span style="background:'+center_color_dry+'">'+loadcenter_dry_str+"</span>";
 
@@ -420,14 +543,14 @@ function calc()
     	'<table><tr><td><b>Start</b></td><td><b>Landning</b></td></tr><tr><td><img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
-    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300},
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300,safe_factor:safe_factor},
     		 what:'start'
     		}
     		))+'" /></td><td>'+
     	'<img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
-    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300},
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300,safe_factor:safe_factor},
     		 what:'landing'
     		}
     		))+'" /></td></tr></table>';

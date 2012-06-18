@@ -246,9 +246,18 @@ class SufperformanceController(BaseController):
                     start300ratio=perf["start300"]/runwaylen
                     startrollratio=perf["start_roll"]/runwaylen
                     
+                    safe_factor=1.43
+                    if 'safe_factor' in perf:
+                        safe_factor=float(perf['safe_factor'])
+                        
                     thresholdratio=t1/runwaylen
-                    landingratio=thresholdratio+perf["land"]/runwaylen
-                    landingrollratio=thresholdratio+perf["landing_roll"]/runwaylen
+                    landingratio=perf["land"]/runwaylen
+                    landingrollratio=landingratio-perf["landing_roll"]/runwaylen
+                    
+                    landingratio*=safe_factor
+                    landingrollratio*=safe_factor
+                    landingratio+=thresholdratio
+                    landingrollratio+=thresholdratio
                     
                     if what=='start':        
                         draw_marker(ctx,p1,p2,0,"Start",col=(1,0,0))
@@ -257,8 +266,8 @@ class SufperformanceController(BaseController):
                         draw_marker(ctx,p1,p2,start300ratio,"300 fot höjd",col=(0,1,0))
                     if what=='landing':                        
                         draw_marker(ctx,p1,p2,thresholdratio,"15m tröskelhöjd ",col=(1,0,0))
-                        draw_marker(ctx,p1,p2,landingrollratio+0.43*landingratio,"Senaste sättning",col=(1,0.5,0))
-                        draw_marker(ctx,p1,p2,1.43*landingratio,"Senaste stopp",(0,1,0))
+                        draw_marker(ctx,p1,p2,landingrollratio,"Senaste sättning",col=(1,0.5,0))
+                        draw_marker(ctx,p1,p2,landingratio,"Senaste stopp",(0,1,0))
                         
                     
                     
@@ -293,7 +302,6 @@ class SufperformanceController(BaseController):
             else:
                 c.temp=int(c.temp)
         except:
-            print traceback.format_exc()
             c.temp=15
         try:
             c.qnh=fct.get_qnh(lat,lon)
