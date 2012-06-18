@@ -1,6 +1,5 @@
 #!/usr/bin/python
 #lifted from a mapnik sample
-import mapnik
 import sys, os, tempfile
 import fplan.lib.mapper as mapper
 import math

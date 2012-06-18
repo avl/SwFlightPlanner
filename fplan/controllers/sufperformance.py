@@ -68,14 +68,13 @@ class SufperformanceController(BaseController):
                 endb=rwy['ends'][(i+1)%2]
                 usable_pos=end.get("usable_pos",end['pos'])
                 usable_posb=endb.get("usable_pos",endb['pos'])
-                brg1,takeoff_dist=mapper.bearing_and_distance(mapper.from_str(usable_pos),mapper.from_str(usable_posb))
-                brg2,landing_dist=mapper.bearing_and_distance(mapper.from_str(end['pos']),mapper.from_str(usable_posb))
+                brg1,runway_dist=mapper.bearing_and_distance(mapper.from_str(usable_pos),mapper.from_str(usable_posb))
+                #brg2,landing_dist=mapper.bearing_afnd_distance(mapper.from_str(end['pos']),mapper.from_str(usable_posb))
                 brgdummy,threshold_dist=mapper.bearing_and_distance(mapper.from_str(usable_pos),mapper.from_str(end['pos']))
                 out.append(dict(
                     name=end['thr'],
                     rwyhdg=brg1,
-                    available_landing=landing_dist*1852.0,
-                    available_takeoff=takeoff_dist*1852.0,
+                    runway_length=runway_dist*1852.0,
                     threshold=threshold_dist*1852.0                       
                     ))
                 curphys.append(dict(
@@ -101,6 +100,33 @@ class SufperformanceController(BaseController):
         ctx=cairo.Context(im)
         def getpos(xd):
             return xd.get('usable_pos',xd['pos'])
+        
+        if not 'physical' in ad:
+            rwy=ad['runways'][0]
+            hdg=float(rwy["rwyhdg"])
+            hdgrad=(hdg/(180.0/math.pi))
+            runway_length=float(rwy["runway_length"])
+            threshold=float(rwy["threshold"])
+            posA=mapper.latlon2merc((59,18),20)
+            meter=mapper.approx_scale(posA, 20, 1/1852.0)
+            rwylen=meter*runway_length
+            delta=(math.sin(hdgrad)*rwylen,-math.cos(hdgrad)*rwylen)
+            print "Delta:",delta
+            posB=(posA[0]+delta[0],posA[1]+delta[1])
+            latlonA=mapper.to_str(mapper.merc2latlon(posA,20))
+            latlonB=mapper.to_str(mapper.merc2latlon(posB,20))
+            ad['physical']=[
+                    [dict(name=rwy['name'],
+                          usable_pos=latlonA,
+                          pos=latlonA,
+                          threshold=threshold),
+                     dict(name="^"+rwy['name'],
+                          usable_pos=latlonB,
+                          pos=latlonB,
+                          threshold=0)]]
+            
+            
+        
         if 'physical' in ad:
             def getdist_meter(p1,p2):
                 brg,dist=mapper.bearing_and_distance(mapper.merc2latlon(p1,20),mapper.merc2latlon(p2,20))
@@ -109,7 +135,7 @@ class SufperformanceController(BaseController):
                 for d in ad['physical']:
                     yield (mapper.latlon2merc(mapper.from_str(getpos(d[0])),20),
                             mapper.latlon2merc(mapper.from_str(getpos(d[1])),20),
-                           d[0]['name'],d[1]['name'],d[0]['threshold'],d[1]['threshold'])
+                           d[0]['name'],d[1]['name'],d[0]['threshold'],d[1]['threshold']) 
             def justmercs():
                 for p1,p2,n1,n2,t1,t2 in draw_cmds():
                     yield p1
