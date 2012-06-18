@@ -1,0 +1,62 @@
+html {
+	font-family:Verdana, sans-serif;
+	font-size: 20px;
+	margin: 0;
+	padding: 0;
+}
+body
+{ 
+	height: 100%; 
+	margin: 0;
+	padding: 0;
+}
+input
+{
+	background-color:#d0ffd0;
+}
+.tabcontainer
+{
+	width:47%;
+	height:95%;
+	padding:1%;
+	overflow:hidden;
+	vertical-align:top;
+	border:solid;
+	border-width:1px;
+	margin-left:auto;
+	margin-right:auto;
+
+}
+td
+{
+	margin-top: 0.2em;
+	margin-bottom: 0.2em;
+	margin-right: 0.1em;
+	margin-left: 0.1em;
+}
+td.key
+{
+	margin-top: 0.2em;
+	margin-bottom: 0.2em;
+	margin-right: 2.5em;
+	margin-left: 0.0em;
+}
+.centertitle
+{
+	clear:both;
+	text-align:center;		
+}
+.tab
+{
+	width:100%;
+	margin:1em;
+	padding:0px;
+}
+.settingtab
+{
+	margin:1em;
+	margin-left:auto;
+	margin-right:auto;
+	
+}
+
