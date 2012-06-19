@@ -282,6 +282,8 @@ function calc()
   rwy=get_runway(runway);
   available_takeoff=rwy.runway_length;
   available_landing=rwy.runway_length-rwy.threshold;
+  runway_length=rwy.runway_length;
+  runway_threshold=rwy.threshold;
   rwyhdg=rwy.rwyhdg;
   
   if (!last_airport_data.iscustom)
@@ -302,9 +304,14 @@ function calc()
   var knee_kg=myParseFloat(document.getElementById('knee').value);
   var left_fuel_kg=myParseFloat(document.getElementById('leftfuel').value)*0.73;
   var right_fuel_kg=myParseFloat(document.getElementById('rightfuel').value)*0.73;
+  
+  
 
   var tot_kg=pilot_kg+pax_kg+luggage_kg+knee_kg+left_fuel_kg+right_fuel_kg+plane_kg;
-  
+
+  if (tot_kg>600) {myalert("Det här programmet kan inte ens räkna på ett så överlastat flygplan.");return;}
+  if (tot_kg<200) {myalert("Orimliga vikt-värden.");return;}
+
   var moments=126*plane_kg+163*(left_fuel_kg+right_fuel_kg)+643*(pilot_kg+pax_kg)+1023*luggage_kg+100*knee_kg;
   var center=moments/tot_kg;
   
@@ -348,6 +355,23 @@ function calc()
   
   var winddir=myParseFloat(document.getElementById('winddir').value);
   var windvel=myParseFloat(document.getElementById('windvel').value);
+
+  if (slushdepth>10) {myalert("För djupt slasklager.");return;}
+  if (snowdepth>10) {myalert("För djup snö.");return;}
+  if (powderdepth>20) {myalert("För djup snö.");return;}
+
+  if (qnh<700) {myalert("QNH måste vara större än 700.");return;}
+  if (qnh>1200) {myalert("QNH måste vara mindre än 1200.");return;}
+  if (elev<-2000) {myalert("Höjd över havet utanför tillåtet område.");return;}
+  if (elev>9500) {myalert("Höjd över havet utanför tillåtet område.");return;}
+  if (temp<-60) {myalert("Temperatur utanför tillåtet område.");return;}
+  if (temp>80) {myalert("Temperatur utanför tillåtet område.");return;}
+
+  if (tilt<-10) {myalert("Angivet värde för lutning är utanför det här programmets förmåga.");return;}
+  if (tilt>2) {myalert("Max 2% motlut tillåtet.");return;}
+
+  if (windvel>40) {myalert("Det här programmet kan inte räkna med starkare vindar än 40kt.");return;}
+  if (windvel<0) {myalert("Negativ vind inte tillåten.");return;}
   
   var windcomp=Math.cos((winddir-rwyhdg)/(180.0/Math.PI))*windvel;
   var windside=Math.sin((winddir-rwyhdg)/(180.0/Math.PI))*windvel;
@@ -376,11 +400,14 @@ function calc()
   var orig_landing_distance=267;
   var landing_roll=152;
   var obstacle_altitude=null;
+  var threshold_start_altitude=15;
   var nominal_15m_drop_time=(base_landing_distance-landing_roll)/avg_flare_speed;
   //var drop_time=nominal_15m_drop_time*(landing_threshold_height/15);
   var dropspeed=(avg_flare_speed-windcomp*1.852/3.6);
   var dropdist15=dropspeed*nominal_15m_drop_time;
-  var dropratio=15/dropdist15;
+  var dropratio=15/5.0;
+  if (dropdist15>5.0)
+	  dropratio=15.0/dropdist15;
   
   
   if (windcomp>0)
@@ -388,10 +415,6 @@ function calc()
   if (windcomp<0)
   	base_landing_distance*=1.0-0.04*windcomp;
   
-  if (rwy.obstacle_dist)
-  {
-	  obstacle_altitude=landing_threshold_height+rwy.obstacle_dist*dropratio;		  	   
-  }
   var safe_factor=1.43;
   if (rwy.safety_factor!=null)
   {
@@ -444,19 +467,17 @@ function calc()
     else
    	  climb_performance=5.2*196.850394;
   }
+  var climb_performance_mps=climb_performance/196.850394;
+  
+  
   var time_min_to_300=(300.0-49.2)/climb_performance;
   var time_sec_to_300=time_min_to_300*60.0;
-  var climb_speed_ms=120/3.6;
-  var horizontal_distance_to_300=climb_speed_ms*time_sec_to_300;  
+  var climb_speed_ms=120/3.6-windcomp*1.852/3.6;
+  if (climb_speed_ms<1) climb_speed_ms=1.0;
 
   if (tilt>0)
   {
   	base_start_distance*=1.0+(tilt)*0.05;
-  }
-  if (tilt>2 || tilt<-2)
-  {
-  	myalert('Varning - maximal lutning är 2%');
-  	return;
   }
   if (tilt<0)
   	base_landing_distance*=1.0+(-tilt)*0.08;
@@ -476,13 +497,29 @@ function calc()
   
   
   start_roll*=(base_start_distance/orig_start_distance);
-  
+  var obstacle_start_altitude=null;
   if (rwy.threshold_height!=null)
   {
 	  landing_threshold_height=rwy.threshold_height;
 	  flare_shortening=landing_threshold_height/15.0;
 	  //var flare_part=landing_roll/orig_landing_distance;
   }
+  if (rwy.obstacle_dist)
+  {
+	  obstacle_altitude=landing_threshold_height+(rwy.obstacle_dist+rwy.threshold)*dropratio;
+	  
+	  var dist_to_obst=((rwy.runway_length+rwy.obstacle_dist)-base_start_distance)
+	  var time_to_obst=dist_to_obst/climb_speed_ms;
+	  obstacle_start_altitude=15+time_to_obst*climb_performance_mps;
+
+	  /*
+	  
+	  var x1=base_start_distance;
+	  var y1=15;
+	  var x2=
+	  */
+  }
+  
   landing_roll*=(base_landing_distance/orig_landing_distance);
   
   base_landing_distance=landing_roll+(base_landing_distance-landing_roll)*flare_shortening;
@@ -493,6 +530,7 @@ function calc()
   //landing_roll*=flare_shortening;
   
   
+  var horizontal_distance_to_300=base_start_distance+climb_speed_ms*time_sec_to_300;  
 
     imgout=document.getElementById('resultimg');
     
@@ -525,7 +563,8 @@ function calc()
 			obst_color='#ffff40';
 		if (obstacle_altitude<rwy.obstacle_height)
 			obst_color='#ff8080';
-		obst_str='Flyghöjd vid hinder, landning: <span style="background-color:'+obst_color+'">'+parseInt(obstacle_altitude+0.5)+'m (Hinder: '+rwy.obstacle_height+'m)</span> <br/>';
+		obst_str='Flyghöjd vid hinder, landning: <span style="background-color:'+obst_color+'">'+parseInt(obstacle_altitude+0.5)+'m (Hinder: '+rwy.obstacle_height+'m)</span> <br/>'+
+				'Vid start: '+obstacle_start_altitude+"<br/>";
 	}
 	output.innerHTML="<table>"+
 		"<tr><td></td><td>Erforderligt:</td><td>Tillgängligt:</td></tr>"+
@@ -540,20 +579,40 @@ function calc()
 
 
     imgout.innerHTML=''+
-    	'<table><tr><td><b>Start</b></td><td><b>Landning</b></td></tr><tr><td><img src="/sufperformance/getmap?data='+encodeURIComponent(
+    	'<table><tr><td><b>Start</b></td><td><b>Landning</b></td></tr><tr><td>Från ovan:<br/><img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
-    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300,safe_factor:safe_factor},
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:horizontal_distance_to_300,safe_factor:safe_factor},
     		 what:'start'
     		}
-    		))+'" /></td><td>'+
-    	'<img src="/sufperformance/getmap?data='+encodeURIComponent(
+    		))+'" />'+
+    		'<br/>Från sidan:<br/><img src="/sufperformance/getmapside?data='+encodeURIComponent(
+    		    	JSON.stringify(
+    		    		{ad:last_airport_data,
+    		    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:horizontal_distance_to_300,safe_factor:safe_factor,
+    		    			 	runway_length:runway_length,runway_threshold:runway_threshold,threshold_altitude:threshold_start_altitude,
+    		    			 	obst_height:rwy.obstacle_height,obst_dist:rwy.obstacle_dist,obst_alt:obstacle_start_altitude},
+    		    		 what:'start'
+    		    		}
+    		    		))+'" />'+	    		
+    	'</td><td>'+
+    	'Från ovan:<br/><img src="/sufperformance/getmap?data='+encodeURIComponent(
     	JSON.stringify(
     		{ad:last_airport_data,
-    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300,safe_factor:safe_factor},
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:horizontal_distance_to_300,safe_factor:safe_factor},
     		 what:'landing'
     		}
-    		))+'" /></td></tr></table>';
+    		))+'" />'+
+		'<br/>Från sidan:<br/><img src="/sufperformance/getmapside?data='+encodeURIComponent(
+    	JSON.stringify(
+    		{ad:last_airport_data,
+    		 perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:horizontal_distance_to_300,safe_factor:safe_factor,
+    			 	runway_length:runway_length,runway_threshold:runway_threshold,threshold_altitude:landing_threshold_height,
+    			 	obst_height:rwy.obstacle_height,obst_dist:rwy.obstacle_dist,obst_alt:obstacle_altitude},
+    		 what:'landing'
+    		}
+    		))+'" />'+
+    		'</td></tr></table>';
     		
 		
 }

@@ -88,6 +88,144 @@ class SufperformanceController(BaseController):
         return jsonstr
 
     
+    def getmapside(self):
+        #print "DAta:",request.params
+        data=json.loads(request.params['data'])
+        ad=data['ad']
+        perf=data['perf']
+        what=data['what']
+        #print "Perf:",perf
+        imgsize=300
+        im=cairo.ImageSurface(cairo.FORMAT_RGB24,imgsize,imgsize)
+        ctx=cairo.Context(im)
+        
+        runway_length=perf['runway_length']
+        runway_threshold=perf['runway_threshold']
+        obst_height=perf.get('obst_height',None)
+        obst_dist=perf.get('obst_dist',None)
+        threshold_alt=perf['threshold_altitude']
+        start300=perf['start300']
+        obstacle_altitude=perf.get('obst_alt',None)
+        #perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300,safe_factor:safe_factor},
+        
+        if what=='landing':
+            if obst_dist!=None:
+                limx1=min(0-obst_dist,0)
+            else:
+                limx1=0
+            limx2=runway_length
+        else:
+            limx1=0
+            if obst_dist!=None:
+                limx2=max(runway_length+obst_dist,runway_length)
+            else:
+                limx2=runway_length
+                
+            
+            
+        scale=0.8*imgsize/(limx2-limx1)
+        assert scale>0
+        def getpos(x,h):
+            return ((x-limx1)*scale+0.1*imgsize,imgsize-h*2-10)
+
+        def draw_marker(x,h,msg,col=(1,0,0),ang=0.5):
+            p1=getpos(x,h)
+            
+            ctx.new_path()            
+            ctx.set_source(cairo.SolidPattern(*col))
+            ctx.arc(p1[0],p1[1],6,0,2*math.pi)
+            ctx.fill()
+            ctx.new_path()
+            
+            ctx.save()
+            ctx.translate(*p1)
+            ctx.rotate(-ang)
+            
+            ctx.set_font_size(17);                
+            ctx.move_to(15,0)                
+            ctx.show_text(msg)
+            ctx.restore()
+        def line(p1,p2):
+            ctx.new_path()                
+            ctx.move_to(*p1)
+            ctx.line_to(*p2)
+            ctx.stroke()
+        ctx.set_source(cairo.SolidPattern(0.5,0.5,0.5))
+        ctx.set_line_width(7)
+        line(getpos(0,0),getpos(runway_length,0))
+
+        if obst_dist!=None:
+            print "A",obst_dist
+            ctx.set_source(cairo.SolidPattern(1,0.0,0.0))
+            ctx.set_line_width(6)
+            
+            if what=='landing':
+                obstpos=0-obst_dist
+            else:
+                obstpos=runway_length+obst_dist
+            
+            xs=[(getpos(obstpos-obst_height/4,0)),
+                (getpos(obstpos,obst_height)),
+                (getpos(obstpos+obst_height/4,0))]
+            line(xs[0],xs[1])
+            line(xs[1],xs[2])
+        
+        if what=='landing':                
+            landing_dist=perf['land']
+            landing_roll=perf['landing_roll']
+            
+            ctx.set_line_width(4)
+            ctx.set_source(cairo.SolidPattern(1,1,0))                                
+            xs=[
+                getpos(runway_threshold,threshold_alt),
+                getpos(runway_threshold+landing_dist-landing_roll,0),
+                getpos(runway_threshold+landing_dist,0)
+                ]
+            if obst_dist!=None and obstacle_altitude!=None:
+                xs=[getpos(-obst_dist,obstacle_altitude)]+xs
+            
+            for a,b in zip(xs,xs[1:]):
+                line(a,b)
+            print "Threshold",runway_threshold
+            draw_marker(runway_threshold,threshold_alt,u'Tröskel',col=(1,0,0))
+            draw_marker(runway_threshold+landing_dist-landing_roll,0,u'Sättning',col=(1,1,0))
+            draw_marker(runway_threshold+landing_dist,0,u'Stopp',col=(0,1,0))
+            if obst_height:
+                draw_marker(-obst_dist,obst_height,u'Hinder',col=(1,0,0))
+        else:
+            start_dist=perf['start']
+            start_roll=perf['start_roll']
+            
+            ctx.set_line_width(4)
+            ctx.set_source(cairo.SolidPattern(1,1,0))                                
+            xs=[
+                getpos(0,0),
+                getpos(start_roll,0),
+                getpos(start_dist,threshold_alt)
+                ]
+            print "Obst alt:",obstacle_altitude
+            if obst_dist!=None and obstacle_altitude!=None:
+                xs+=[getpos(runway_length+obst_dist,obstacle_altitude)]
+            if start300:
+                xs+=[getpos(start300,300*0.3048)]
+            xs.sort()
+            for a,b in zip(xs,xs[1:]):
+                line(a,b)
+            
+            draw_marker(0,0,u'Start',col=(1,0,0),ang=1.5)
+            draw_marker(start_roll,0,u'Lättning',col=(1,1,0),ang=1.5)
+            draw_marker(start_dist,threshold_alt,u'Tröskelhöjd',col=(0,1,0),ang=1.5)
+            draw_marker(start300,300*0.3048,u'300 fot',col=(0,1,0),ang=1.5)
+            if obst_height:
+                draw_marker(runway_length+obst_dist,obstacle_altitude,u'%s fot'%(int(obstacle_altitude/0.3048,)),col=(0,1,0),ang=1.5)
+                draw_marker(runway_length+obst_dist,obst_height,u'Hinder',col=(1,0,0))
+            
+        buf=StringIO.StringIO()
+        im.write_to_png(buf)
+        png=buf.getvalue()
+        response.headers['Content-Type'] = 'image/png'
+        return png
+    
     def getmap(self):
         #print "DAta:",request.params
         data=json.loads(request.params['data'])
@@ -262,10 +400,10 @@ class SufperformanceController(BaseController):
                     if what=='start':        
                         draw_marker(ctx,p1,p2,0,"Start",col=(1,0,0))
                         draw_marker(ctx,p1,p2,startrollratio,"Lättning",col=(1,0.5,0))
-                        draw_marker(ctx,p1,p2,startratio,"15m höjd",col=(1,1,0))
+                        draw_marker(ctx,p1,p2,startratio,"tröskelhöjd",col=(1,1,0))
                         draw_marker(ctx,p1,p2,start300ratio,"300 fot höjd",col=(0,1,0))
                     if what=='landing':                        
-                        draw_marker(ctx,p1,p2,thresholdratio,"15m tröskelhöjd ",col=(1,0,0))
+                        draw_marker(ctx,p1,p2,thresholdratio,"tröskelhöjd ",col=(1,0,0))
                         draw_marker(ctx,p1,p2,landingrollratio,"Senaste sättning",col=(1,0.5,0))
                         draw_marker(ctx,p1,p2,landingratio,"Senaste stopp",(0,1,0))
                         

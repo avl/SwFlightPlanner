@@ -19,7 +19,7 @@ input
 	width:47%;
 	height:95%;
 	padding:1%;
-	overflow:hidden;
+	overflow:auto;
 	vertical-align:top;
 	border:solid;
 	border-width:1px;
