@@ -356,9 +356,9 @@ function calc()
   var winddir=myParseFloat(document.getElementById('winddir').value);
   var windvel=myParseFloat(document.getElementById('windvel').value);
 
-  if (slushdepth>10) {myalert("För djupt slasklager.");return;}
+  if (slushdepth>1.0) {myalert("För djupt slasklager.");return;}
   if (snowdepth>10) {myalert("För djup snö.");return;}
-  if (powderdepth>20) {myalert("För djup snö.");return;}
+  if (powderdepth>15) {myalert("För djup snö.");return;}
 
   if (qnh<700) {myalert("QNH måste vara större än 700.");return;}
   if (qnh>1200) {myalert("QNH måste vara mindre än 1200.");return;}
