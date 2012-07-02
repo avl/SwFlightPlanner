@@ -309,3 +309,4 @@
 300: TRIAGED: Underlaget påverkar endast rullsträcka, inte klättring/acceleration till 50'.
 301: FIXED: Shouldn't show all controls at the same time in the performance calculation screen.	
 302: The airport list becomes way too long in the android app.
+303: Must remove old weather data, it eats disk space.

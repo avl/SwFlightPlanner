@@ -104,6 +104,7 @@ class SufperformanceController(BaseController):
         obst_height=perf.get('obst_height',None)
         obst_dist=perf.get('obst_dist',None)
         threshold_alt=perf['threshold_altitude']
+        safe=perf['safe_factor']
         start300=perf['start300']
         obstacle_altitude=perf.get('obst_alt',None)
         #perf:{start:base_start_distance,land:base_landing_distance,name:runway,start_roll:start_roll,landing_roll:landing_roll,start300:base_start_distance+horizontal_distance_to_300,safe_factor:safe_factor},
@@ -171,8 +172,8 @@ class SufperformanceController(BaseController):
             line(xs[1],xs[2])
         
         if what=='landing':                
-            landing_dist=perf['land']
-            landing_roll=perf['landing_roll']
+            landing_dist=safe*perf['land']
+            landing_roll=safe*perf['landing_roll']
             
             ctx.set_line_width(4)
             ctx.set_source(cairo.SolidPattern(1,1,0))                                
