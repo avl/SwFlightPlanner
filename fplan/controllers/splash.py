@@ -1,5 +1,6 @@
 import logging
 import sqlalchemy as sa
+import json
 #from md5 import md5
 from fplan.model import meta,User,Trip,Waypoint,Route
 from datetime import datetime
@@ -53,9 +54,32 @@ def find_free_mem():
         print "other error"
         return 0
 
+
+static_subhosts=dict()
+def reload_subhostlist():
+    global static_subhosts
+    static_subhosts=json.load(open(os.path.join(os.getenv('SWFP_ROOT'),"subhosts.json")))
+try:
+    reload_subhostlist()
+except:
+    pass
+
 class SplashController(BaseController):
 
-    def index(self):
+    def index(self):        
+        
+        host=request.headers.get('Host',None)
+        if host:
+            host=host.lower()
+            if host in static_subhosts:
+                try:
+                    ret=open(os.path.join(os.getenv('SWFP_ROOT'),static_subhosts[host])).read()
+                    response.headers['Content-Type'] = 'text/html'
+                    return ret
+                except:
+                    return "An error occurred"
+            
+        
         c.expl=request.params.get("explanation","")
         ua=request.headers.get('User-Agent','').lower()
         c.browserwarningheader=None
