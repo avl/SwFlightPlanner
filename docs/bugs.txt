@@ -310,3 +310,8 @@
 301: FIXED: Shouldn't show all controls at the same time in the performance calculation screen.	
 302: The airport list becomes way too long in the android app.
 303: Must remove old weather data, it eats disk space.
+304: Man måste välja feet två gånger innan det blir feet i phraseology-delen.
+305: Mer synlig färdlinje/track. Magenta kanske?
+306: Radial för riktningsangivelse?
+307: Kanske låta kurslinjen påverkas av GS?
+308: Går inte att söka efter flygplatser, och ICAO namn visas inte tydligt.

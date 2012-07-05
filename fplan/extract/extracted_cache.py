@@ -14,6 +14,7 @@ import fplan.extract.extract_cities as extract_cities
 from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
 from fplan.extract.fi_extract_ats_rte import fi_parse_ats_rte
+from fplan.extract import gfs_weather
 from fplan.lib.bbtree import BBTree
 from pyshapemerge2d import Line,Vertex,Polygon,vvector
 import osm_airfields
@@ -529,6 +530,10 @@ def run_update_iteration():
             print "Now deleteting old unregistered users"
             fplan.lib.remove_unused_users.run()
             fplan.lib.delete_old_notams.run()
+            try:
+                gfs_weather.purge_old()
+            except:
+                pass
             fplan.lib.purge_temp_dirs.purge_all_old_basic()
             if debug:
                 print "Yes exit"

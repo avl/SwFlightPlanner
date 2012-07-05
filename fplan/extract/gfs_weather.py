@@ -212,6 +212,24 @@ def get_gfs(dt,future):
         return None
     return get_gfs_impl(gfspath,future)
 
+def purge_old():
+    #this is an ugly hack, we should put all gfs-files in its own directory,
+    #and then only purge that directory. Now we risk purging other stuff that
+    #happens to have similar names.
+    cdir=fetchdata.get_cachedir()
+    for fname in os.listdir(cdir):
+        p=os.path.join(cdir,fname)
+        if not p.count("nomads.ncep.noaa.gov"):
+            continue
+        moddate=datetime.utcfromtimestamp(int(os.path.getmtime(p)))
+        age=datetime.utcnow()-moddate
+        print "File:",p,"age:",age
+        if age>timedelta(2,0):
+            print "Removing old file",p
+            os.remove(p)
+        
+        
+
 def get_gfs_impl(gfspath,future=0):
         
     gridf=pygrib.open(gfspath)
@@ -378,8 +396,12 @@ def dump_gfs_cache():
     f.close()
     shutil.move("gfsweather.dat.tmp","gfsweather.dat")
     
+    
+
 
 if __name__=='__main__':
+    purge_old()
+    create_gfs_cache()
     when,when2,fct=get_prognosis(datetime.utcnow())
     print "For",when
     print "Surface wind:",fct.get_surfacewind(59,18)

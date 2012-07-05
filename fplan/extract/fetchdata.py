@@ -14,7 +14,8 @@ dev_computer=os.getenv('SWFP_DEVCOMP')
 tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
 
 caching_enabled=True #True for debug, set to false by background updater
-
+def get_cachedir():
+    return tmppath
 def is_devcomp():
     return host==dev_computer
 
