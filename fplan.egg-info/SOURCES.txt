@@ -159,6 +159,7 @@ fplan/public/downarrow.png
 fplan/public/favicon.ico
 fplan/public/favicon.png
 fplan/public/fpmain.js
+fplan/public/googlecf55f34d6b81ae61.html
 fplan/public/jquery.js
 fplan/public/lib.js
 fplan/public/loading.png

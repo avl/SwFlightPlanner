@@ -15,6 +15,7 @@ from fplan.lib.maptilereader import get_mtime
 from fplan.lib.forgot import forgot_password,decode_challenge
 import re
 import os
+import traceback
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ def reload_subhostlist():
 try:
     reload_subhostlist()
 except:
+    print traceback.format_exc()
     pass
 
 class SplashController(BaseController):
@@ -77,6 +79,7 @@ class SplashController(BaseController):
                     response.headers['Content-Type'] = 'text/html'
                     return ret
                 except:
+                    print traceback.format_exc()
                     return "An error occurred"
             
         
