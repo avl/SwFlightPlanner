@@ -315,3 +315,10 @@
 306: Radial för riktningsangivelse?
 307: Kanske låta kurslinjen påverkas av GS?
 308: Går inte att söka efter flygplatser, och ICAO namn visas inte tydligt.
+309: Android-app shouldn't try to download so much at the same time, and it should retry when server thread timeouts cause the connection to be reset.
+310: Also, on map-download restarts, we should make it so we don't have to start back from scratch. This is solvable. Perhaps upload a md5-sum of any existing file, and let the server just answer "ok", if it's correct.
+311: Waypoint names above 50 characters cause trip saves to fail. Should probably be truncated, or an error message shown instead?
+312: Pyjamas-randig bakgrund på printable flightplan.
+313: Visa VOR-fyrar på kartan, med frekvens.
+314: TOC, TOD borde ritas på kartan.
+
