@@ -31,16 +31,26 @@ def parse_gpx(gpxcontents,startstr,endstr):
     out.points=[]
     lastpos=None
     lasttime=None
-    for track in xml.findall("*//{http://www.topografix.com/GPX/1/1}trkpt"):
+    for track in xml.findall("*//{http://www.topografix.com/GPX/1/1}trkpt")+xml.findall("*//{http://www.topografix.com/GPX/1/1}rtept"):
         lat=float(track.attrib['lat'].strip())
         lon=float(track.attrib['lon'].strip())
         pos=(lat,lon)
-        tim=track.find("{http://www.topografix.com/GPX/1/1}time").text.strip()
-        ele=float(track.find("{http://www.topografix.com/GPX/1/1}ele").text.strip())
+        tim="1999-12-31T23:59:59Z"
+        try:
+            tim=track.find("{http://www.topografix.com/GPX/1/1}time").text.strip()            
+        except:
+            pass
+        
         Y,M,D,h,m,s=re.match("(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):([\.\d]+)Z",tim.strip()).groups()
         micros=int((1e6)*(float(s)%1.0))
         s=int(float(s))
         dtim=datetime(int(Y),int(M),int(D),int(h),int(m),int(s),int(micros))
+        
+        ele=0
+        try:
+            ele=float(track.find("{http://www.topografix.com/GPX/1/1}ele").text.strip())
+        except:
+            pass
         #print "Parsed %s as %s"%(tim,dtim)
         
         if start and end and (dtim<start or dtim>end): continue
