@@ -321,4 +321,5 @@
 312: Pyjamas-randig bakgrund på printable flightplan.
 313: Visa VOR-fyrar på kartan, med frekvens.
 314: TOC, TOD borde ritas på kartan.
+315: Borde reloada sidan när ajax-save misslyckas.
 
