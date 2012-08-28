@@ -714,14 +714,15 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
         segseq=create_seg_sequence(prevpos,center,nextpos,dist_nm,direction=direction)
         return segseq
     
-    #print "Matching agains circle:",seg
-    circ=re.match( ur".*[Cc]ircle,?\s*(?:with|of)?\s*radius\s*(?:of)?\s*([\d\.]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\s*\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
+    #print "Matching against circle:",seg
+    circ=re.match( ur".*[Cc]ircle,?\s*(?:with|of)?\s*radius\s*(?:of)?\s*([\d\.,]+\s*(?:NM|m|km))\s*(?:\(.*[kK]?[mM]\s*\))?\s*,?\s*cent[red]{1,5}\s*(?:on|at):?\s*(\d+N)\s*(\d+E).*",seg,re.IGNORECASE)
     #print "Result:",circ
     if circ:
         radius,lat,lon=circ.groups()
         print "PRev:",prev,"Next:",next
         assert prev==None        
         #uprint("Parsed circle:%s : %s"%(circ,circ.groups()))
+        radius=radius.replace(",",".")
         dist_nm=parse_dist(radius)
         zoom=14
         center=parse_coords(lat,lon)

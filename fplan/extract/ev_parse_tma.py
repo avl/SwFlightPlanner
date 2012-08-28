@@ -82,6 +82,7 @@ def ev_parse_x(url):
         assert alltext(name).lower().count("name") or alltext(name).lower().count("lateral")
         print alltext(alt)
         assert alltext(alt).lower().count("limit")
+        
         for row in rows[1:]:
             cols=list(row.xpath(".//td"))
             if len(cols)<2: continue
@@ -89,10 +90,15 @@ def ev_parse_x(url):
             lines=[x.strip() for x in alltext(name).split("\n") if x.strip()]
             if len(lines)==0: continue
             assert len(lines)
+            
             spacename=lines[0].strip()
+            if spacename.strip()=="A circle radius 0,5 NM centered on 565705N 0240619E EVR2 RIGA":
+                spacename="EVR2 RIGA"
+                lines=[spacename,lines[0][:-len(spacename)].strip()]+lines[1:]
             print spacename            
             if spacename.strip()=="SKRIVERI":
                 continue
+            print "Spacename is:",spacename
             assert spacename[:3] in ["EVR","EVP","TSA","TRA"] or \
                 spacename.endswith("ATZ") or \
                 spacename.endswith("ATZ (MILITARY)")
