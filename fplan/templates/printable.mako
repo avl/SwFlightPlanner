@@ -39,7 +39,7 @@ EXPECTED HEADWIND IS GREATER THAN TAS!<br/>
 </table>
 
 <table border="1" cellspacing="0" cellpadding="4" width="100%"> 
-<tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
+<tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px;background-color:#e4ffff">
 <b>${c.route[0].a.waypoint}</b>
 <span style="font-size:10px">Start:</span><b>${c.route[0].depart_dt.strftime("%H:%M") if c.route[0].depart_dt else '--'}</b>
 %if c.ac!=None:
@@ -106,7 +106,7 @@ ${freq}
 </tr>
 %endif
 
-<tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px">
+<tr><td colspan="${6 if c.fillable else 9}" style="font-size:16px;background-color:${'#e4ffff' if rt.b.stay!=None or next_rt==None else '#ebebeb'}">
 <b>${rt.b.waypoint}</b>
 
 %if c.ac!=None:
