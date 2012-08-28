@@ -31,6 +31,8 @@ import zlib
 import math
 import struct
 import os
+from fplan.extract import aip_text_documents
+
 class BadCredentials(Exception):pass
 
 def get_user_trips(user):
@@ -309,11 +311,25 @@ class ApiController(BaseController):
             
                 if getaiptext and 'aiptext' in airp:
                     for aiptext in airp['aiptext']:
-                        aiptexts.append(
-                            dict(name=icao+"_"+aiptext['category'],
-                                 icao=icao,
-                                 data=aiptext))
-                    
+                        if aip_text_documents.check_doc(aiptext['icao'],aiptext['category'],aiptext['checksum']):
+                            #^^^Okay, this really needs an explanation^^^
+                            #Nominally, each aiptext item in aipdata.cache (from which the get_airfields() function
+                            #ultimately gets all its data, should always have its corresponding aiptext in html format
+                            #available on disk. Now, if the on-disk file is deleted (should never happen), we will
+                            #get an exception later down where we try to send this data (with the checksum we have here)
+                            #over http to the client. Unfortunately, the routine that sends the data is not at liberty
+                            #to modify "what was sent", so the entire sync operation fails. This hack here makes the
+                            #failure happen earlier, and in that case the given aiptext-document is suppressed
+                            #completely, meaning that the sync operation succeeds, albeit without one specific document
+                            #(hey, better than nothing!).
+                            #
+                            #Of course, the real question is why a document may be missing. A bug of some sort right now,
+                            #2012-08-28, makes this bug occur every now and then. Investigation is ongoing.
+                            aiptexts.append(
+                                dict(name=icao+"_"+aiptext['category'],
+                                     icao=icao,
+                                     data=aiptext))
+                        
             if 'adcharts' in airp and '' in airp['adcharts'] and airp['adcharts'][""]['blobname']:
                 ret=airp['adcharts'][""]
                 try:

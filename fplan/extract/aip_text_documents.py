@@ -13,6 +13,14 @@ def help_parse_doc(ad,url,icao,country,title,category):
         f.write("Failed parsing %s %s\n%s\n\n"%(icao,category,traceback.format_exc()))
     f.close()  
     
+def check_doc(icao,category,cksum):
+    blobname=icao+"_"+category
+    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aiptext",icao)
+    path=os.path.join(tmppath,blobname+"."+cksum+".html")
+    b=os.path.exists(path)
+    print "check doc: ",icao,"returns",b
+    return b
+    
 def get_doc(icao,category,cksum):
     blobname=icao+"_"+category
     tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aiptext",icao)
