@@ -21,7 +21,7 @@ def get_airac_date():
     data,date=fetchdata.getdata(urlbase,country='ee_base')
     parser.feed(data)
     tree=parser.close()
-    for x in tree.xpath(".//p"):    
+    for x in list(tree.xpath(".//p"))+list(tree.xpath(".//li")):    
         txt=alltext(x)
         print "par",txt
         
