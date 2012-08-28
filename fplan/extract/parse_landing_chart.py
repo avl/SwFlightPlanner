@@ -115,15 +115,14 @@ def parse_landing_chart(path,arppos,icao,country='se',variant=''):
     outpath=os.path.join(tmppath,blobname+"."+cksum+".png")
     def render(inputfile,outputfile):
         ext=inputfile.split(".")[-1].lower()
-        if ext=='pdf':
+        if ext=='jpg' or ext=='png':
+            assert 0==os.system("convert -adaptive-resize 2500x2500 %s %s"%(inputfile,outputfile))            
+        else:
+            ext='pdf'
             r="pdftoppm -f 0 -l 0 -scale-to 2500 -png -freetype yes -aa yes -aaVector yes %s >%s"%(
                       inputfile,outputfile)
             print "rendering",r
             assert 0==os.system(r)
-        elif ext=='jpg' or ext=='png':
-            assert 0==os.system("convert -adaptive-resize 2500x2500 %s %s"%(inputfile,outputfile))            
-        else:
-            raise Exception("Unknown landing chart format: %s"%(inputfile,))
             
     ret['image']=blobname+"."+cksum+".png"
     fetchdata.getcreate_derived_data_raw(
