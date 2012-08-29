@@ -322,4 +322,8 @@
 313: Visa VOR-fyrar på kartan, med frekvens.
 314: TOC, TOD borde ritas på kartan.
 315: Borde reloada sidan när ajax-save misslyckas.
+316: Finska ARY-corridors borde inte överlappa TMA.
+317: Use ICAO symbols, colors and general appearance on maps.
+318: Make finnish TSA:s less visible.
+319: Take a look at Finnish VFR-guide. Can we use airfield maps?
 

@@ -18,7 +18,7 @@ def check_doc(icao,category,cksum):
     tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aiptext",icao)
     path=os.path.join(tmppath,blobname+"."+cksum+".html")
     b=os.path.exists(path)
-    print "check doc: ",icao,"returns",b
+    #print "check doc: ",icao,"returns",b
     return b
     
 def get_doc(icao,category,cksum):

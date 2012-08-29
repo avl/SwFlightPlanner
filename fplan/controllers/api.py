@@ -185,7 +185,7 @@ def cleanup_poly(latlonpoints,name="?"):
     if len(mercpoints)==4:
         swapped=[mercpoints[1],mercpoints[0]]+mercpoints[2:]
         swappedpoly=Polygon(vvector(swapped))
-        print "Found 4-corner area: ",name," areas:",swappedpoly.calc_area(),poly.calc_area()
+        #print "Found 4-corner area: ",name," areas:",swappedpoly.calc_area(),poly.calc_area()
         if abs(swappedpoly.calc_area())>abs(1.1*poly.calc_area()):
             print "Untwisting an area",name
             mercpoints=swapped
@@ -582,18 +582,6 @@ class ApiController(BaseController):
         return cksum,proj
      
     def getnewadchart(self):
-        prevstamp=int(request.params["stamp"])
-        print "getnewadchart, prevstamp:",prevstamp
-        version=int(request.params["version"])
-        #Make any sort of race impossible by substracting 5 minutes from now.
-        #A race will now only happen if a file is modified on disk, after this
-        #routine started, but ends up with a timestamp 5 minutes earlier in
-        #time, but that can't happen.
-        nowstamp=utcdatetime2stamp_inexact(datetime.utcnow())-60*5
-        assert version in [1,2,3]
-        
-        
-        
         def writeInt(x):
             response.write(struct.pack(">I",x))
         def writeLong(x):
@@ -608,39 +596,70 @@ class ApiController(BaseController):
             l=len(encoded)
             response.write(struct.pack(">H",l)) #short
             response.write(encoded)
-            
         
+        version=int(request.params["version"])
+
         charts=[]
-        print "Old stamp",prevstamp
-        for ad in extracted_cache.get_airfields():
-            if ad.get('icao','ZZZZ').upper()=='ZZZZ':continue #Ignore non-icao airports 
-            if 'adcharts' in ad:
-                for adc in ad['adcharts'].values():
-                    newer=False
-                    try:
-                        cksum,proj=self.get_sel_cksum(adc['blobname'])
-                        if proj and proj.updated>datetime.utcfromtimestamp(prevstamp):
-                            newer=True 
-                        #print "selected",cksum,"for",adc
-                        if version<=2 and adc['variant']!='':
-                            continue #Don't send all kinds of charts to old clients
-                        if cksum==None: continue
-                        for level in xrange(5):
-                            cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
-                            #print "Read file stamp:",cstamp,"prevstamp:",prevstamp
-                            if cstamp>prevstamp:
-                                newer=True
-                    except Exception,cause:                        
-                        print traceback.format_exc()
-                        continue
-                    if newer:
-                        charts.append((ad['name'],adc['blobname'],ad['icao'],cksum,adc['variant']))
+        
+        print "Client request params",request.params
+
+        if version<=3:
+            prevstamp=int(request.params["stamp"])
+            print "getnewadchart, prevstamp:",prevstamp
             
+            #Make any sort of race impossible by substracting 5 minutes from now.
+            #A race will now only happen if a file is modified on disk, after this
+            #routine started, but ends up with a timestamp 5 minutes earlier in
+            #time, but that can't happen.            
+            nowstamp=utcdatetime2stamp_inexact(datetime.utcnow())-60*5
+            assert version in [1,2,3]
+            print "Old stamp",prevstamp
+            for ad in extracted_cache.get_airfields():
+                if ad.get('icao','ZZZZ').upper()=='ZZZZ':continue #Ignore non-icao airports 
+                if 'adcharts' in ad:
+                    for adc in ad['adcharts'].values():
+                        newer=False
+                        try:
+                            cksum,proj=self.get_sel_cksum(adc['blobname'])
+                            if proj and proj.updated>datetime.utcfromtimestamp(prevstamp):
+                                newer=True 
+                            #print "selected",cksum,"for",adc
+                            if version<=2 and adc['variant']!='':
+                                continue #Don't send all kinds of charts to old clients
+                            if cksum==None: continue
+                            for level in xrange(5):
+                                cstamp=parse_landing_chart.get_timestamp(adc['blobname'],cksum,level)                        
+                                #print "Read file stamp:",cstamp,"prevstamp:",prevstamp
+                                if cstamp>prevstamp:
+                                    newer=True
+                        except Exception,cause:                        
+                            print traceback.format_exc()
+                            continue
+                        if newer:
+                            charts.append((ad['name'],adc['blobname'],ad['icao'],cksum,adc['variant']))                        
+        else:        
+            assert version in [4]
+            for ad in extracted_cache.get_airfields():
+                if ad.get('icao','ZZZZ').upper()=='ZZZZ':continue #Ignore non-icao airports 
+                if 'adcharts' in ad:
+                    for adc in ad['adcharts'].values():
+                        newer=False
+                        try:
+                            cksum,proj=self.get_sel_cksum(adc['blobname'])
+                            param="chartname_"+adc['blobname']
+                            if request.params.get(param,None)==cksum:
+                                print "Checksum match, no need to download ",adc['blobname'],"again"
+                                continue                            
+                            charts.append((ad['name'],adc['blobname'],ad['icao'],cksum,adc['variant']))                        
+                        except:
+                            print "Problem with map",adc
+        
         response.headers['Content-Type'] = 'application/binary'
            
         writeInt(0xf00d1011)
         writeInt(version) #version
-        writeLong(nowstamp)
+        if version<=3:
+            writeLong(nowstamp)
         writeInt(len(charts))
         #TODO: Fix problem with response.write not working
         for human,blob,icao,cksum,variant in charts:
