@@ -286,30 +286,42 @@ def fi_parse_tma():
         #break
         
     
-    print "Len ouf out ",len(res)    
+    print "Len ouf out ",len(res)
+    atsout=[]    
     for space in atsres:
-        print "bef cut:",space['points']
-        mypoly=makepoly.poly(space['points'])
-        
+        #print "bef cut:",space['points']
+        mypolys=[makepoly.poly(space['points'])]    
         for tmaitem in res:
             if tmaitem['type']!='TMA': continue
-            tmapoly=makepoly.poly(tmaitem['points'])
-            #print mypoly
-            #print tmapoly
-            shape=mypoly.subtract(tmapoly)
-            mypolys=shape.get_polys()
-
-            #print "Length is:", len(mypolys)
-            mypoly=shapemerge2d.Polygon(mypolys[0])
-            #print "Cutting"
-            #print "Cut to:",mypoly
-        t=[]
-        for mx,my in [(v.get_x(),v.get_y()) for v in  mypoly.get_vertices()]:
-            t.append(mapper.to_str(mapper.merc2latlon((mx,my),13)))
-        print "Aft cut:",t
-        space['points']=t
-        
-    res.extend(atsres)
+            outmypolys=[]
+            assert len(mypolys)>=1
+            for mypoly in list(mypolys):
+                tmapoly=makepoly.poly(tmaitem['points'])
+                #print mypoly
+                #print tmapoly
+                shape=mypoly.subtract(tmapoly)
+                newpolys=shape.get_polys()
+                if len(newpolys)>1:
+                    print "Length is:", len(newpolys)
+                #print "Cutting"
+                outmypolys.extend([shapemerge2d.Polygon(x) for x in list(newpolys)])
+                #assert len(newpolys)==1
+            if len(outmypolys)>1:
+                print "outmypolys:",outmypolys
+                #print "Cut to:",mypoly
+            mypolys=outmypolys
+            
+        for mypoly in mypolys:
+            t=[]
+            for mx,my in [(v.get_x(),v.get_y()) for v in  mypoly.get_vertices()]:
+                t.append(mapper.to_str(mapper.merc2latlon((mx,my),13)))
+            #print "Aft cut:",t
+            newspace=dict(space)
+            newspace['points']=t            
+            atsout.append(newspace)
+        if len(mypolys)>1:    
+            print "Space was split into ",len(mypolys),"parts"
+    res.extend(atsout)
         
     res.append(dict(
         name="FINLAND FIR",
