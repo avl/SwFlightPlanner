@@ -3,10 +3,12 @@ import parse
 from parse import Item
 import re
 import sys
+import fplan.lib.makepoly as makepoly
 import fplan.lib.mapper as mapper
 from fplan.lib.mapper import uprint
 import md5
 import math
+from pyshapemerge2d import shape_subtraction 
 
 predef={
 ("L24","0679ab4cea290636ac02b4ec4d3035d8") : ( 10,"FL 65","FL 95","""VIBEP
@@ -297,7 +299,7 @@ def get_outline(coords,width):
         right.append(add(here,mul(0.5*width,rotR(d))))
     return right+list(reversed(left))
         
-def fi_parse_ats_rte():
+def fi_parse_ats_rte(tmapolys=[]):
     p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_3_3_EN.pdf",lambda x: x,country='fi')
     out=[]
     for pagenr in xrange(p.get_num_pages()):        
@@ -385,12 +387,24 @@ def fi_parse_ats_rte():
         i1=isol_routes()
         low1=low_routes(i1)
         out.extend(list(get_airspaces(low1)))
-    return out
+
+    out2=[]
+    for space in out:
+        mypoly=makepoly.poly[space['points']]
+        for tmapoly in tmapolys:
+            mypoly=shapemerge2d.shape_difference(mypoly,tmapoly)
+        t=[]
+        for mx,my in [(v.get_x(),v.get_y()) for v in  mypoly.get_vertices()]:
+            t.append(mapper.to_str(mapper.merc2latlon((mx,my),13)))
+        space['points']=t
+    return out2
                     
 
 
 if __name__=='__main__':
-    for space in fi_parse_ats_rte():
+    import fi_parse_tma
+    
+    for space in fi_parse_ats_rte([makepoly.poly(x['points']) for x in fi_parse_tma.fi_parse_tma()]):
         uprint(space)
         
 

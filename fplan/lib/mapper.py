@@ -325,10 +325,10 @@ def scalarprod(x,y):
 
 
 def parsecoord(seg):
-    print "Parsecoord for <%s>"%(seg,)
+    #print "Parsecoord for <%s>"%(seg,)
     m=re.match(ur"\s*([\d\.]+[NS])\s*([\d\.]+[EW])\s*",seg,re.UNICODE)
     if not m:
-        print "Input:",repr(seg)
+        #print "Input:",repr(seg)
         raise MapperBadFormat()
     lat,lon=m.groups()
     coord=parse_coords(lat.strip(),lon.strip())
@@ -554,7 +554,7 @@ border_follower=None
 def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     global border_follower
     
-    uprint("Parsing <%s>"%(seg,))
+    #uprint("Parsing <%s>"%(seg,))
     
     for firspec in [
         ur"(.*)/?then\s*(?:northbound)?\s*along\s*the\s*(?:\w{4})?\s*FIR\s*boundary\s*to\s*the\s*point\s*(\d+N\s*\d+E)"

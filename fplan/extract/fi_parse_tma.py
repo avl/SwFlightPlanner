@@ -10,8 +10,9 @@ from datetime import datetime
 from fplan.lib.mapper import parse_coord_str,uprint
 from pyshapemerge2d import Polygon,Vertex,vvector
 import ats_routes
-
-"""
+import pyshapemerge2d as shapemerge2d
+import fplan.lib.makepoly as makepoly
+"""i
 class Item(object):
     def __init__(self,text,x1,y1,x2,y2):
         self.text=text
@@ -86,9 +87,9 @@ def parse_page(parser,pagenr):
     def findheadingfor(y,meta=None):
         minor=None
         major=None
-        print "HEadings:",headings
+        #print "HEadings:",headings
         for (kind,full,name,item) in reversed(headings):
-            print "Checking %s,%s (state: minor %s / major %s)"%(kind,item.y1,minor,major)
+            #print "Checking %s,%s (state: minor %s / major %s)"%(kind,item.y1,minor,major)
             if kind=='airway' and item.y1<y:
                 return name,"airway"
             if kind=='deleg' and item.y1<y:
@@ -117,6 +118,7 @@ def parse_page(parser,pagenr):
             airway_vlim=(item.x1,item.x2) 
     
     out=[]
+    atsout=[]
     while True:
         found=False
         #print "Looking for coords, y= %d"%(cury,)
@@ -156,7 +158,7 @@ def parse_page(parser,pagenr):
             elevs.sort(key=lambda x:mapper.parse_elev(x))
             floor,ceiling=elevs
                 
-            out.append(dict(
+            atsout.append(dict(
                 floor=floor,
                 ceiling=ceiling,
                 freqs=[],
@@ -179,7 +181,7 @@ def parse_page(parser,pagenr):
                 if re.search(ur"FL \d+",line) or line.count("FT MSL"): 
                     vertidx=idx
                     break            
-                print "Line:",line.encode('utf8')
+                #print "Line:",line.encode('utf8')
                 if line.strip()=="":
                     vertidx=idx
                     break
@@ -236,11 +238,11 @@ def parse_page(parser,pagenr):
         (ceiling,ceilingy),(floor,floory)=verts
         assert ceilingy<floory
         assert floory-ceilingy<5.0
-        uprint("Analyzing area for %s"%(name,))
+        #uprint("Analyzing area for %s"%(name,))
         assert "".join(areaspec).strip()!=""
         print areaspec
         area=mapper.parse_coord_str("".join(areaspec))
-        uprint("Done analyzing %s"%(name,))
+        #uprint("Done analyzing %s"%(name,))
         #print area
         if name.count("CTA") and name.count("TMA")==0:
             type_="CTA"
@@ -255,8 +257,7 @@ def parse_page(parser,pagenr):
             name=name,
             points=area))
     
-
-    return out
+    return out,atsout
 def pretty(pa):
     uprint("\n\nName: %s"%(pa['name'].encode('utf8'),))
     uprint("==============================================================================")
@@ -277,10 +278,39 @@ def fi_parse_tma():
     p=parse.Parser(r"/ais/eaip/pdf/enr/EF_ENR_2_1_EN.pdf",fixgote,country='fi')
 	
     res=[]    
+    atsres=[]
     for pagenr in xrange(4,p.get_num_pages()): 
-        parsed=parse_page(p,pagenr)#pagenr)
+        parsed,atsparsed=parse_page(p,pagenr)#pagenr)
         res.extend(parsed)
+        atsres.extend(atsparsed)        
         #break
+        
+    
+    print "Len ouf out ",len(res)    
+    for space in atsres:
+        print "bef cut:",space['points']
+        mypoly=makepoly.poly(space['points'])
+        
+        for tmaitem in res:
+            if tmaitem['type']!='TMA': continue
+            tmapoly=makepoly.poly(tmaitem['points'])
+            #print mypoly
+            #print tmapoly
+            shape=mypoly.subtract(tmapoly)
+            mypolys=shape.get_polys()
+
+            #print "Length is:", len(mypolys)
+            mypoly=shapemerge2d.Polygon(mypolys[0])
+            #print "Cutting"
+            #print "Cut to:",mypoly
+        t=[]
+        for mx,my in [(v.get_x(),v.get_y()) for v in  mypoly.get_vertices()]:
+            t.append(mapper.to_str(mapper.merc2latlon((mx,my),13)))
+        print "Aft cut:",t
+        space['points']=t
+        
+    res.extend(atsres)
+        
     res.append(dict(
         name="FINLAND FIR",
         icao="EFIN",
@@ -305,8 +335,12 @@ Along the common X/Y state boundary to 601201N 0271735E -
 593346N 0195859E - 601130N 0190512E
 """,context="finland")))
         
-    for pa in res:
-        pretty(pa)
+        
+        
+    #for pa in res:
+    #    pretty(pa)
+        
+        
     return res
 
 def fi_parse_r_areas():
