@@ -329,4 +329,6 @@
 320: Maybe reduce the amount of information when left-clicking in map.
 321: Test new fplan server code with old client.
 322: Gör airspace-alerts konfigurerbara.
+323: Sela-ön saknas på kartan.
+324: Importera norska IFR-punkter
 
