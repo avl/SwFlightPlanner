@@ -25,7 +25,7 @@ def get_airac_date():
         txt=alltext(x)
         print "par",txt
         
-        m=re.match(ur".*Current\s*eAIP\s*with\s*effective\s*date\s*(\d+)\s*([A-Z]+)\s*(\d+).*AIRAC.*",txt,re.UNICODE)
+        m=re.match(ur".*Current\s*eAIP\s*with\s*effective\s*date\s*(\d+)\s*([A-Z]+)\s*(\d+).*",txt,re.UNICODE)
         if m:
             day,months,year=m.groups()
             monthi=dict(JAN=1,

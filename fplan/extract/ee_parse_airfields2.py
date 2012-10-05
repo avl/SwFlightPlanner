@@ -174,6 +174,11 @@ def ee_parse_airfields2():
                 par=h4.getparent()
                 for table in par.xpath(".//table"):
                     for idx,tr in enumerate(table.xpath(".//tr")):
+                        print "cs",repr(tr.getchildren()),alltexts(tr.getchildren())
+                        print len(tr.getchildren())
+                        if len(tr.getchildren())!=5:
+                            if "".join(alltexts(tr.getchildren())).count(u"EMERG"):
+                                continue #Sometimes emergency freq is listed, and then it is without callsign
                         service,callsign,frequency,hours,remarks=\
                             tr.getchildren()
                         callsigntxt=alltext(callsign)
