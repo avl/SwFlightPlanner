@@ -331,4 +331,4 @@
 322: Gör airspace-alerts konfigurerbara.
 323: Sela-ön saknas på kartan.
 324: Importera norska IFR-punkter
-
+325: Borde inte ha blanksteg i floor-falt
