@@ -5,10 +5,10 @@ def purge_all_old_basic():
     print "Purging temporary directories"
     tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aip")
     purge_all_old(tmppath)
-    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
-    purge_all_old(tmppath)
-    tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aiptext")
-    purge_all_old(tmppath)
+    #tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"adcharts")
+    #purge_all_old(tmppath)
+    #tmppath=os.path.join(os.getenv("SWFP_DATADIR"),"aiptext")
+    #purge_all_old(tmppath)
 
 def purge_all_old(tempdir,maxage=86400*30*2):
     now=time.time()        

@@ -119,6 +119,7 @@ fplan/lib/geomag.py
 fplan/lib/get_near_route.py
 fplan/lib/get_terrain_elev.py
 fplan/lib/helpers.py
+fplan/lib/makepoly.py
 fplan/lib/mapper.py
 fplan/lib/maptilereader.py
 fplan/lib/metartaf.py
@@ -179,6 +180,11 @@ fplan/public/sufperf.js
 fplan/public/test.png
 fplan/public/uparrow.png
 fplan/public/wz_jsgraphics.js
+fplan/public/am/clean512.jpg
+fplan/public/am/full512.jpg
+fplan/public/am/icon48.png
+fplan/public/am/index.html
+fplan/public/am/index.html~
 fplan/public/css/smoothness/jquery-ui-1.8.21.custom.css
 fplan/public/css/smoothness/images/ui-bg_flat_0_aaaaaa_40x100.png
 fplan/public/css/smoothness/images/ui-bg_flat_75_ffffff_40x100.png

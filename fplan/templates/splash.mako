@@ -37,7 +37,7 @@
 </table>
 <!--
 <p>
-<big style="background-color:#ff8080">Problems...none</big>
+<big style="background-color:#ff8080">There have been problems with the Android-app-sync function the last few weeks. The problem is being worked on.</big>
 </p>
 -->
 <p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
@@ -94,11 +94,9 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
+<b>Updated 2012-09-09: </b>SwFlightplanner now has norwegian airspace! A big thank-you goes out to user Albin for putting in hard work to provide this and the Danish airspace data!<br />
 <b>Updated 2012-06-11: </b>SwFlightplanner now uses american GFS forecasts, meaning that wind information is now available around the clock, and in all countries (at least northern hemisphere).<br />
-<b>Problem 2012-05-30: </b>Most map information was lost. The problem occurred 11:45Z, and was completely fixed 13 hours later.<br />
 <b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
-<b>Updated 2012-04-13: </b>TAF and METAR now shown when clicking on airfields (in the right margin).<br />
-<b>Updated 2012-03-18: </b>Added some Estonian airspace information.<br />
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br />
 <br />

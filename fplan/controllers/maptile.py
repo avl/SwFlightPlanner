@@ -295,7 +295,7 @@ class MaptileController(BaseController):
        
 
         firs=[]        
-        for fir in get_firs((lat,lon)):
+        for fir in list(get_firs((lat,lon)))+list(userdata.get_firs(lat,lon,user)):
             if 'icao' in fir:
                 firs.append("%s (%s)"%(fir['name'],fir['icao']))        
         if not firs:
