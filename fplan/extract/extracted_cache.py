@@ -26,6 +26,7 @@ import fplan.lib.mapper as mapper
 from fplan.lib.helpers import utcdatetime2stamp_inexact
 import fplan.extract.fetchdata as fetchdata
 from datetime import datetime,timedelta
+from fplan.extract.norway_obstacles import no_obstacles
 #from fplan.extract.de_parse import parse_denmark
 import json
 from fplan.extract.ee_parse_tma2 import ee_parse_tma2
@@ -270,7 +271,10 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def parse_estonian_r_and_tsa(self):
                     "Estonian R and TSA"
                     return dict(airspaces=ee_parse_r_and_tsa2())
-    
+                def norwegian_obstacles(self):
+                    "Norwegian obstacles"
+                    return dict(obstacles=no_obstacles())
+                
                 
                 #def parse_denmark(self):
                 #    "denmark"
