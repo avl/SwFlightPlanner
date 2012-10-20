@@ -77,7 +77,7 @@ def no_obstacles(*fnames):
                 continue
             for point in rec.shape.points:
                 x,y=point
-                lat,lon=transform(utm,wgs84,x,y)
+                lon,lat=transform(utm,wgs84,x,y)
                 #print "Input: ",d,x,y,"output:",lat,lon
                 cur=copy(base)
                 cur['pos']=mapper.to_str((lat,lon))
