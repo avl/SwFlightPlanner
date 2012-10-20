@@ -74,8 +74,8 @@ def no_obstacles():
                 untrans.add(nortype)
             base=dict(
                       name=fixname(unicode(d['lfh_navn'],'utf8')),
-                      height=d['hoeydeover']/0.3048,
-                      elev=d['totalhoeyd']/0.3048,
+                      height=int(d['hoeydeover']/0.3048),
+                      elev=int(d['totalhoeyd']/0.3048),
                       lighting=unicode(d['lyssetting'],'utf8'),
                       kind=engtype,                      
                       date=datetime(2012,9,1))
