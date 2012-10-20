@@ -79,7 +79,7 @@ def no_obstacles():
                       lighting=unicode(d['lyssetting'],'utf8'),
                       kind=engtype,                      
                       date=datetime(2012,9,1))
-            if base['height']<400*0.3048:
+            if base['height']<400:
                 continue
             for point in rec.shape.points:
                 x,y=point
