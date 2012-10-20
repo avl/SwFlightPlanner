@@ -94,6 +94,7 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
+<b>Updated 2012-11-20: </b>Norwegian obstacle information now added.<br />
 <b>Updated 2012-09-09: </b>SwFlightplanner now has norwegian airspace! A big thank-you goes out to user Albin for putting in hard work to provide this and the Danish airspace data!<br />
 <b>Updated 2012-06-11: </b>SwFlightplanner now uses american GFS forecasts, meaning that wind information is now available around the clock, and in all countries (at least northern hemisphere).<br />
 <b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
