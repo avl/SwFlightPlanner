@@ -271,7 +271,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def parse_estonian_r_and_tsa(self):
                     "Estonian R and TSA"
                     return dict(airspaces=ee_parse_r_and_tsa2())
-                def norwegian_obstacles(self):
+                def parse_norwegian_obstacles(self):
                     "Norwegian obstacles"
                     return dict(obstacles=no_obstacles())
                 

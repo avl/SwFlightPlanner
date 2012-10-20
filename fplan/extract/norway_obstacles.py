@@ -1,10 +1,15 @@
 #encoding=utf8
 from pyproj import Proj,transform
 import shapefile
+from datetime import datetime
 from copy import copy
 from fplan.lib import mapper
-def no_obstacles(*fnames):
+def no_obstacles():
     out=[]
+    fnames=["/home/anders/saker/avl_fplan_world/norway_obst/20120903pkt.shp",
+        "/home/anders/saker/avl_fplan_world/norway_obst/20120903linpkt.shp",
+        "/home/anders/saker/avl_fplan_world/norway_obst/20120903lin.shp"]
+
     for fname in fnames:
         r=shapefile.Reader(fname)
         utm = Proj(proj='utm',zone=33,ellps='WGS84')
@@ -72,7 +77,8 @@ def no_obstacles(*fnames):
                       height=d['hoeydeover'],
                       elev=d['totalhoeyd'],
                       lighting=unicode(d['lyssetting'],'utf8'),
-                      kind=engtype)
+                      kind=engtype,                      
+                      date=datetime(2012,9,1))
             if base['height']<400*0.3048:
                 continue
             for point in rec.shape.points:
@@ -87,9 +93,6 @@ def no_obstacles(*fnames):
     return out
 if __name__=='__main__':
     for x in no_obstacles(
-        "/home/anders/saker/avl_fplan_world/norway_obst/20120903pkt.shp",
-        "/home/anders/saker/avl_fplan_world/norway_obst/20120903linpkt.shp",
-        "/home/anders/saker/avl_fplan_world/norway_obst/20120903lin.shp",
         ):
         print x
         
