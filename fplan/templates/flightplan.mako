@@ -197,7 +197,13 @@ This version includes separate legs for climbs and descents.
 </span>
 <h2>Download to GPS:</h2>
 Garmin <a href="${h.url_for(controller='flightplan',action='gpx',tripname=c.tripname)}"><u>GPX Format</u></a>.<br/>
-Custom: <a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname)}"><u>CSV Format</u></a>.<br/>
+Custom CSV Format: <u><a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname)}">Standard</a></u>
+	<font size="2">Andra kodningar: 
+		<u><a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname,encoding='UTF8')}">UTF-8</a></u>
+		<u><a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname,encoding='ISO8859-1')}">ISO8859-1</a></u>
+		<u><a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname,encoding='ISO8859-15')}">ISO8859-15</a></u>
+		<u><a href="${h.url_for(controller='flightplan',action='excel',tripname=c.tripname,encoding='UTF16')}">UTF-16</a></u>
+	</font><br/>
 <!--TomTom <a href="${h.url_for(controller='flightplan',action='itn',tripname=c.tripname)}">ITN Format</a>.<br/>-->
 
 </div>

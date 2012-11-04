@@ -315,10 +315,14 @@ class FlightplanController(BaseController):
         if not self.validate(tripname=request.params.get('tripname',None),exception=False):
             return "Internal error. Missing trip-name or user-session."
         self.standard_prep(c)
-
+        coding=request.params.get("encoding",'UTF8')
+        allowed=set(["UTF16",'ISO8859-15','ISO8859-1','UTF8'])
+        if not coding in allowed:
+            coding='UTF8'
+            
         c.waypoints=c.route
         response.content_type = 'application/octet-stream'               
-        response.charset="utf8"
+        response.charset=coding
         def fixup(val):
             if type(val)==float:
                 return str(val).replace(".",",")
