@@ -40,7 +40,7 @@
 <big style="background-color:#ff8080">There have been problems with the Android-app-sync function the last few weeks. The problem is being worked on.</big>
 </p>
 -->
-<p><a href="/splash/about">– Free flight planning for VFR pilots in Sweden.</a></p>
+<p><a href="/splash/about">– Free and Open Source flight planning for VFR pilots in Sweden.</a></p>
 %if c.browserwarningheader:
 <div style="font-size:20px;border-width:1px    ">${c.browserwarningheader|n}</div>
 <div style="font-size:15px;">${c.browserwarning|n}</div>

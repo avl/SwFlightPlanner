@@ -235,6 +235,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                         if re.match(ur"AD\s+2.13",line): break
                         if line.count("Slope of"): break
                         if line.lower().count("end rwy:"): seen_end_rwy_text=True
+                        if line.lower().count("bgn rwy:"): seen_end_rwy_text=True
                         m=re.match(ur".*(\d{6}\.\d+)[\s\(\)\*]*(N).*",line)
                         if not m:continue
                         m2=re.match(ur".*(\d{6,7}\.\d+)\s*[\s\(\)\*]*(E).*",nextline)                            
@@ -257,6 +258,7 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
                                 rwy=m.groups()[0]
                         if rwy==None and seen_end_rwy_text:
                             continue
+                        print "Cur airport:",icao
                         already=False
                         assert rwy!=None
                         seen_end_rwy_text=False
