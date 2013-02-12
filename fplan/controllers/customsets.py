@@ -9,6 +9,7 @@ import routes.util as h
 from fplan.lib.base import BaseController, render
 from datetime import datetime
 import os
+import json
 import re
 import fplan.lib.userdata as userdata
 
@@ -212,6 +213,8 @@ class CustomsetsController(BaseController):
     def save(self,setname,version):
         version=int(version)
         data=request.params['data'].replace("\r\n","\n").replace("\r","\n")
+        if data.startswith(unicode("\xef\xbb\xbf",'utf8')):
+            data=data[1:] #strip UTF8 encoded Byte order mark
         
         userdata.purge_user_data(session['user'])
         
@@ -292,6 +295,10 @@ class CustomsetsController(BaseController):
         data=escape_string_newlines_only(data)
         #print "File:",f.name
         #print "Escaped:",repr(data)
+        try:
+            json.loads(data)
+        except Exception,cause:
+            return self.view(setname,version,flash="Bad JSON data format: %s"%(cause,),data=data)
         
         p = subprocess.Popen("jsonlint -v "+f.name, shell=True,
                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)

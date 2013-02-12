@@ -732,6 +732,11 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     try:
         
         c=[]
+        for x in xrange(100):
+            newseg=re.sub(r"\s+","",seg,re.UNICODE)
+            if newseg==seg:
+                break
+            seg=newseg
         seg=re.sub(r"\s+","",seg,re.UNICODE)
         mat=re.match(ur"^((?:\s*\d{4,6}[\.,]?\d*[NS]\s*\d{5,7}[\.,]?\d*[EW]\s*-?\s*)+)$",seg,re.UNICODE)
         if not mat:
