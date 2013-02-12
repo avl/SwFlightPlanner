@@ -252,7 +252,7 @@ class Parser(object):
             width=int(page.attrib['width'])
         except Exception:
             width=None
-            raise
+            return#raise
         try:
             height=int(page.attrib['height'])
         except Exception:
