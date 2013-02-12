@@ -93,6 +93,7 @@ def fi_parse_airfield(icao=None):
     freqs=[]
     for pagenr in xrange(p.get_num_pages()):
         page=p.parse_page_to_items(pagenr)
+        if page==None: continue
         for item in page.get_by_regex("\s*RUNWAY\s*PHYSICAL\s*CHARACTERISTICS\s*"):
             lines=page.get_lines(page.get_partially_in_rect(0,item.y2+0.1,100,100))
             for line in lines:

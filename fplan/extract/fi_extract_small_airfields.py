@@ -12,6 +12,7 @@ def fi_parse_small_airfields(only=None):
     ads=dict()
     for pagenr in xrange(p.get_num_pages()):
         page=p.parse_page_to_items(pagenr)
+        if not page: continue
         lines=page.get_lines(page.get_partially_in_rect(0,0,100,15))
         heading=lines[0].strip()
         if pagenr<4 and not heading[-4:-2]=="EF": continue #this is one of the first pages, with general info, not an airport sheet

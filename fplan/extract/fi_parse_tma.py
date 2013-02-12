@@ -263,19 +263,13 @@ def pretty(pa):
     uprint("==============================================================================")
     uprint("Floor: %s, Ceiling: %s, freqs: %s"%(pa['floor'],pa['ceiling'],pa['freqs']))
     uprint("Points: %s"%(pa['points'],))
+def fixuphref(x):
+    bad="<a href=\"EF_ENR_1_4_EN.pdf\">ra </i>2.1</a>"
+    print "Occurence of bad: ",x.count(bad)
+    return x.replace(bad,"<a href=\"EF_ENR_1_4_EN.pdf\">ra 2.1</a></i>")
 
 def fi_parse_tma():
-    def fixgote(raw):
-        #Fix illogical compositions...
-        if 0:
-            illo="""<text top="295" left="57" width="268" height="7" font="1">     Part of GÖTEBORG TMA  584558N 0122951E """
-            assert raw.count(illo)
-            #print "fix up gote"
-            raw=raw.replace(illo,                
-                            """<text top="296" left="5" width="138" height="7" font="1">     Part of GÖTEBORG TMA</text>
-                               <text top="296" left="168" width="58" height="7" font="1">584558N 0122951E """)
-        return raw
-    p=parse.Parser(r"/ais/eaip/pdf/enr/EF_ENR_2_1_EN.pdf",fixgote,country='fi')
+    p=parse.Parser(r"/ais/eaip/pdf/enr/EF_ENR_2_1_EN.pdf",fixuphref,country='fi')
 	
     res=[]    
     atsres=[]
@@ -355,8 +349,9 @@ Along the common X/Y state boundary to 601201N 0271735E -
         
     return res
 
+
 def fi_parse_r_areas():
-    p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_5_1_en.pdf",lambda x: x,country='fi')
+    p=parse.Parser("/ais/eaip/pdf/enr/EF_ENR_5_1_en.pdf",fixuphref,country='fi')
 	
     res=[]    
     for pagenr in xrange(2,p.get_num_pages()): 
@@ -369,6 +364,7 @@ def fi_parse_r_areas():
 
     
 if __name__=='__main__':
+    print "Test!!"
     fi_parse_tma()
     #parse_r_areas()
 
