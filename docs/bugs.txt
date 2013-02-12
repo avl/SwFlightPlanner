@@ -334,4 +334,4 @@
 325: Borde inte ha blanksteg i floor-falt
 326: Borde gå att zooma och panorera på en IPad / IPhone / Android.
 327: Efterfrågad feature: Kunna få gpx, printable flightplan, och lite annat mejlat till sin epost. 
-
+328: Use http://soaringweb.org/Airspace/DE
