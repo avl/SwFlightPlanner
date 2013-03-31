@@ -2,7 +2,7 @@ import logging
 import math
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
-from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,SharedTrip
+from fplan.model import meta,User,Trip,Waypoint,Route,Aircraft,SharedTrip,Stay
 import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
@@ -439,6 +439,52 @@ class MapviewController(BaseController):
                 Trip.trip==tripname)).count():
                 session['current_trip']=tripname
                 session.save()
+        if request.params.get('reversetripname',None):
+            tripsharing.cancel()
+            username=tripuser()
+            print "Reversing"
+            tripname=request.params['reversetripname']
+            wps=list(meta.Session.query(Waypoint).filter(sa.and_(Waypoint.user==username,Waypoint.trip==tripname)).order_by(Waypoint.ordering).all())
+            if len(wps):
+                maxord=max([wp.ordering for wp in wps])
+                for wp in wps:
+                    wp.ordering=maxord+1-wp.ordering
+                    print "Reversed order of",wp.waypoint," = ",wp.ordering
+                    meta.Session.add(wp)
+                firststays=meta.Session.query(Stay).filter(sa.and_(Stay.user==username,Stay.trip==tripname,Stay.waypoint_id==wps[0].id)).all()
+                if len(firststays)==1:
+                    stay,=firststays
+                    stay.waypoint_id=wps[-1].id
+            
+        if request.params.get('copytripname',None):
+            tripsharing.cancel()
+            tripobj=meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),
+                Trip.trip==request.params['copytripname'])).first()
+            newtripname=self.get_free_tripname(tripobj.trip+"(copy)")            
+            trip = Trip(tripuser(), newtripname)
+            meta.Session.add(trip)
+            acs=meta.Session.query(Aircraft).filter(sa.and_(
+                Aircraft.user==tripuser(),Aircraft.aircraft==tripobj.aircraft)).all()
+            if len(acs):
+                trip.aircraft=acs[0].aircraft
+            
+            for origwp in meta.Session.query(Waypoint).filter(sa.and_(Waypoint.user==tripuser(),Waypoint.trip==tripobj.trip)).all():
+                wp=Waypoint(user=origwp.user,trip=newtripname,pos=origwp.pos,id_=origwp.id,
+                            ordering=origwp.ordering,waypoint=origwp.waypoint,altitude=origwp.altitude)
+                meta.Session.add(wp)
+            for origrt in meta.Session.query(Route).filter(sa.and_(Route.user==tripuser(),Route.trip==tripobj.trip)).all():
+                rt=Route(user=origrt.user,trip=newtripname,waypoint1=origrt.waypoint1,waypoint2=origrt.waypoint2,tas=origrt.tas,
+                         winddir=origrt.winddir,windvel=origrt.windvel,variation=origrt.variation)
+                meta.Session.add(rt)
+            for origstay in meta.Session.query(Stay).filter(sa.and_(Stay.user==tripuser(),Stay.trip==tripobj.trip)).all():
+                stay=Stay(user=origstay.user,trip=newtripname,waypoint_id=origstay.waypoint_id,
+                          fuel=origstay.fuel,date_of_flight=origstay.date_of_flight,
+                          departure_time=origstay.departure_time,
+                          nr_persons=origstay.nr_persons,fueladjust=origstay.fueladjust)
+                meta.Session.add(stay)
+            print "Adding trip:",trip
+            session['current_trip']=newtripname
+            session.save()       
             
         if request.params.get('deletetripname',None) and not tripsharing.sharing_active():
             meta.Session.query(Trip).filter(sa.and_(Trip.user==tripuser(),

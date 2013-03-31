@@ -1963,6 +1963,25 @@ function on_delete_trip()
 	}
 	save_data(finish_add_trip);
 }
+function on_copy_trip()
+{
+	function finish_copy_trip()
+	{				
+		document.getElementById('copytripname').value=document.getElementById('oldtripname').value;
+		document.getElementById('tripform').submit();
+	}
+	save_data(finish_copy_trip);
+}
+function on_reverse_trip()
+{   
+	function finish_reverse_trip()
+	{				
+		document.getElementById('reversetripname').value=document.getElementById('oldtripname').value;
+		document.getElementById('tripform').submit();
+	}
+	save_data(finish_reverse_trip);
+}
+
 function on_open_trip()
 {
 	function finish_add_trip()

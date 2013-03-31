@@ -371,13 +371,21 @@ class Download(object):
         self.when=datetime.utcnow()
         self.bytes=bytes
 class Stay(object):
-    def __init__(self,user,trip,waypoint_id):
+    def __init__(self,user,trip,waypoint_id,fuel=None,date_of_flight=None,departure_time=None,nr_persons=None,fueladjust=None):
         self.user=user
         self.trip=trip
         self.waypoint_id=waypoint_id
-        self.fuel=None        
-        self.date_of_flight=datetime.utcnow().strftime("%Y-%m-%d")
-        self.departure_time=(datetime.utcnow()+timedelta(0,3600)).strftime("%H:%M")
+        self.fuel=fuel
+        if date_of_flight==None:
+            self.date_of_flight=datetime.utcnow().strftime("%Y-%m-%d")
+        else:
+            self.date_of_flight=date_of_flight
+        if departure_time==None:           
+            self.departure_time=(datetime.utcnow()+timedelta(0,3600)).strftime("%H:%M")
+        else:
+            self.departure_time=departure_time
+        self.fueladjust=fueladjust
+        self.nr_persons=nr_persons
     def fuelstr(self):
         ret=""
         if self.fuel!=None:

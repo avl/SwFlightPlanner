@@ -139,6 +139,7 @@ function loadmap()
 	'<button style="font-size:10px" onclick="add_new_trip();return false;">New</button>'+
 %if not c.sharing:
 	'<button style="font-size:10px" onclick="on_delete_trip();return false;">Delete</button>'+
+	'<button style="font-size:10px" onclick="on_copy_trip();return false;">Copy</button>'+
 %endif
 	'<button style="font-size:10px" onclick="open_trip();return false;">Previous Trips</button>'+
 	'<button style="font-size:10px" onclick="navigate_to(shareurl);return false;">Share Trip</button>'+
@@ -168,6 +169,8 @@ function loadmap()
 	'<input id="oldtripname" name="oldtripname" type="hidden" value="${h.jsescape(c.tripname)}" />'+
 	'<input id="deletetripname" name="deletetripname" type="hidden" value="" />'+
 	'<input id="opentripname" name="opentripname" type="hidden" value="" />'+
+	'<input id="copytripname" name="copytripname" type="hidden" value="" />'+
+	'<input id="reversetripname" name="reversetripname" type="hidden" value="" />'+
 	'</form>'+
 	'</div>'+
 	'<div class="first"><form id="showdataformbuttons" action="">'+
@@ -196,6 +199,7 @@ function loadmap()
 	'<div class="first"><form id="fplanformbuttons" action="">'+
 	'Route/Waypoints:<br/>'+
 	'<button onclick="remove_all_waypoints();return false" style="font-size:10px" title="Remove all waypoints">Remove All</button>'+
+	'<button onclick="on_reverse_trip();return false" style="font-size:10px" title="Reverse waypoint order">Reverse</button>'+
 	'<button onclick="menu_add_new_waypoints();return false" style="font-size:10px" title="Add a new waypoint. Click here, then click start and end point in map.">Add on Map</button>'+
 	'</form><form id="fplanform" action="">'+
 	'<table id="tab_fplan" width="100%">'+
