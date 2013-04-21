@@ -143,25 +143,60 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
         bb13=BoundingBox(merc13[0],merc13[1],merc13b[0],merc13b[1])
         
         
+        bycolor=dict()
         for space in chain(
                 only(get_airspaces_in_bb2(bb13)),get_notam_objs_cached()['areas'],
                 only(get_aip_sup_areas()),get_firs(),userdata.get_all_airspaces(user)):        
             if space['type']=='sector':
                 continue #Don't draw "sectors"
+            vertices=[]
             for coord in space['points']:
                 merc=mapper.latlon2merc(mapper.from_str(coord),zoomlevel)
-                ctx.line_to(*tolocal(merc))#merc[0]-x1,merc[1]-y1)
+                vertices.append(tolocal(merc))#merc[0]-x1,merc[1]-y1)
             try:
                 areacol,solidcol=get_airspace_color(space['type'])
             except Exception:
                 print space
                 raise   
-                        
-            ctx.close_path()   
-            ctx.set_source(cairo.SolidPattern(*areacol))
-            ctx.fill_preserve()
-            ctx.set_source(cairo.SolidPattern(*solidcol))
-            ctx.stroke()
+            bycolor.setdefault((areacol,solidcol),[]).append(vertices)
+        def colorsorter(col):
+            area,solid=col
+            if solid[0]>0.5: return 110
+            if area[0]>0.5: return 100
+            return col
+            
+        for (areacol,solidcol),polygons in sorted(bycolor.items(),key=colorsorter):
+            if areacol[3]<=0.05: continue
+            surface2 = cairo.ImageSurface(cairo.FORMAT_ARGB32, imgx, imgy)
+            ctx2=cairo.Context(surface2)
+            ctx2.set_operator(cairo.OPERATOR_DEST_OUT)
+            ctx2.rectangle(0,0,imgx,imgy)
+            ctx2.set_source(cairo.SolidPattern(0,0,0,1.0))
+            ctx2.paint()
+            ctx2.set_operator(cairo.OPERATOR_OVER)
+            for poly in polygons:
+                ctx2.new_path()
+                for vert in poly:
+                    ctx2.line_to(*vert)
+                ctx2.close_path()   
+                ctx2.set_source(cairo.SolidPattern(areacol[0],areacol[1],areacol[2],1.0))
+                ctx2.fill_preserve()
+            ctx2.set_operator(cairo.OPERATOR_DEST_OUT)
+            ctx2.rectangle(0,0,imgx,imgy)
+            ctx2.set_source(cairo.SolidPattern(0,0,0,1.0-areacol[3]))
+            ctx2.paint()
+            #ctx2.set_operator(cairo.OPERATOR_OVER)
+            
+            ctx.set_source_surface(surface2)
+            ctx.rectangle(0,0,imgx,imgy)
+            ctx.paint()
+            for poly in polygons:
+                ctx.new_path()
+                for vert in poly:
+                    ctx.line_to(*vert)
+                ctx.close_path()   
+                ctx.set_source(cairo.SolidPattern(*solidcol))
+                ctx.stroke()
         for obst in chain(only(get_obstacles_in_bb(bb13)),userdata.get_all_obstacles(user)):
             if zoomlevel>=9:
                 ctx.set_source(cairo.SolidPattern(1.0,0.0,1.0,0.25))
@@ -179,17 +214,20 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
 
         for sigp in chain(only(get_sig_points_in_bb(bb13)),userdata.get_all_sigpoints(user)):
             if zoomlevel>=9:
-                ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.25))
+                print sigp
+                if zoomlevel==9 and sigp.get('kind','') in ['entry/exit point','holding point']:
+                    continue
+                if sigp.get('kind','') in ['town','city']:continue
                 merc=mapper.latlon2merc(mapper.from_str(sigp['pos']),zoomlevel)
                 pos=tolocal(merc)#(merc[0]-x1,merc[1]-y1)            
-                radius=3            
+                ctx.set_source(cairo.SolidPattern(0.0,0.0,1.0,0.65))
                 ctx.new_path()
-                ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-                ctx.fill_preserve()
-                ctx.set_source(cairo.SolidPattern(1.0,1.0,0.0,0.75))
-                ctx.new_path()
-                ctx.arc(pos[0],pos[1],radius,0,2*math.pi)
-                ctx.stroke()                 
+                ctx.line_to(pos[0],pos[1]-3)
+                ctx.line_to(pos[0]+3,pos[1])
+                ctx.line_to(pos[0],pos[1]+3)
+                ctx.line_to(pos[0]-3,pos[1])
+                ctx.close_path()   
+                ctx.stroke()                                 
                 
         for notamtype,items in get_notam_objs_cached().items():
             if notamtype=="areas": continue
