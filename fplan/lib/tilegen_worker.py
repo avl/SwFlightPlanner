@@ -160,12 +160,10 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
                 raise   
             bycolor.setdefault((areacol,solidcol),[]).append(vertices)
         def colorsorter(col):
-            area,solid=col
-            if solid[0]>0.5: return 110
-            if area[0]>0.5: return 100
+            if col[0]>0.5: return (110,0,0,0)
             return col
             
-        for (areacol,solidcol),polygons in sorted(bycolor.items(),key=colorsorter):
+        for (areacol,solidcol),polygons in sorted(bycolor.items(),key=lambda x:colorsorter(x[0])):
             if areacol[3]<=0.05: continue
             surface2 = cairo.ImageSurface(cairo.FORMAT_ARGB32, imgx, imgy)
             ctx2=cairo.Context(surface2)
@@ -190,6 +188,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
             ctx.set_source_surface(surface2)
             ctx.rectangle(0,0,imgx,imgy)
             ctx.paint()
+        for (areacol,solidcol),polygons in sorted(bycolor.items(),key=lambda x:colorsorter(x[1])):
             for poly in polygons:
                 ctx.new_path()
                 for vert in poly:
@@ -214,7 +213,7 @@ def generate_big_tile(pixelsize,x1,y1,zoomlevel,osmdraw,tma=False,return_format=
 
         for sigp in chain(only(get_sig_points_in_bb(bb13)),userdata.get_all_sigpoints(user)):
             if zoomlevel>=9:
-                print sigp
+                #print sigp
                 if zoomlevel==9 and sigp.get('kind','') in ['entry/exit point','holding point']:
                     continue
                 if sigp.get('kind','') in ['town','city']:continue
