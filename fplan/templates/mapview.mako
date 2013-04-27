@@ -23,6 +23,7 @@ next_waypoint_id=${c.next_waypoint_id};
 selfurl='${h.url_for(controller="mapview",action="index")}';
 shareurl='${h.url_for(controller="mapview",action="share")}';
 saveurl='${h.url_for(controller="mapview",action="save")}';
+querywpnameurl='${h.url_for(controller="mapview",action="querywpname")}';
 coordparseurl='${h.url_for(controller="mapview",action="coordparse")}';
 searchairporturl='${h.url_for(controller="flightplan",action="search")}';
 showareaurl='${h.url_for(controller="mapview",action="showarea")}';
@@ -229,7 +230,7 @@ function loadmap()
 	%for wp in sorted(c.waypoints,key=lambda x:x.ordering):	
 	var me=latlon2merc([${wp.get_lat()},${wp.get_lon()}]);
 	wps.push([me[0],me[1]]);
-	tab_add_waypoint(idx,me,${wp.id},'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}');
+	tab_add_waypoint(idx,me,${wp.id},'${h.jsescape(wp.waypoint)|n}','${h.jsescape(wp.altitude)|n}',0);
 	idx++;
 	%endfor
 	

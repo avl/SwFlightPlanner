@@ -13,6 +13,9 @@ import routes.util as h
 import socket
 import json
 from md5 import md5
+from fplan.lib.airspace import get_airfields,get_sigpoints
+import fplan.lib.userdata as userdata
+from itertools import izip,chain
 from datetime import datetime
 log = logging.getLogger(__name__)
 import fplan.lib.tripsharing as tripsharing
@@ -76,7 +79,16 @@ class MapviewController(BaseController):
             tripname=desiredname+"(%d)"%(attemptnr,)
             attemptnr+=1
         return tripname
-        
+    def querywpname(self):
+        pos=mapper.from_str(request.params['pos'])
+        lat,lon=pos
+        print "Getwpname:",pos
+        zoomlevel=int(request.params['zoomlevel'])
+        sigps=get_sigpoints(lat,lon,zoomlevel)
+        print "Getwpname sigps:",sigps
+        if len(sigps):
+            return json.dumps([sigps[0]['name'],mapper.from_str(sigps[0]['pos'])])        
+        return "notok"
     def save(self):
         try:
             if 'pos' in request.params and 'zoomlevel' in request.params:
