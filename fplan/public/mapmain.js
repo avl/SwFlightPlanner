@@ -253,7 +253,6 @@ function tab_modify_pos(idx,pos)
 	var origname=document.getElementById('row_'+idx+'_name').value;
 	var latlon=merc2latlon(pos);
 	rowpos.value=''+latlon[0]+','+latlon[1];
-    setdirty();
     update_name_of_waypoint(rowpos.value,idx,origname);
 }
 function tab_remove_waypoint(idx)

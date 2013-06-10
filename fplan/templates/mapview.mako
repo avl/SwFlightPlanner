@@ -237,6 +237,7 @@ function loadmap()
 	reload_map();
 	
 	draw_jg();
+	setnotdirty();
 	setInterval("if (getisdirty()) save_data(null)", 5*1000);
 	
 	register_foldedlink_hook(save_data);

@@ -148,7 +148,7 @@ class FlightplanController(BaseController):
                     if not way.stay:
                         #print "Adding stay: ord/id",way.ordering,way.id
                         way.stay=Stay(tripuser(),c.trip.trip,way.id)
-                    if re.match(ur"\d{2,4}-?\d{2}\-?\d{2}",request.params.get(dof_s,'')):
+                    if re.match(ur"\d{4}-?\d{2}\-?\d{2}",request.params.get(dof_s,'')):
                         way.stay.date_of_flight=request.params.get(dof_s,'')
                     else:
                         way.stay.date_of_flight=''

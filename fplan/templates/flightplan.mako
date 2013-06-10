@@ -147,8 +147,8 @@ You have no waypoints yet! Go to the <a href="${h.url_for(controller="mapview",a
 
 %if c.stay:
 <table>
-<tr><td>Date of Flight: </td><td><input size="10" type="text" onchange="on_update_all();" 
-    name="date_of_flight_${c.stay.waypoint_id}" id="date_of_flight_${c.stay.waypoint_id}" value="${c.stay.date_of_flight}"/>(YYYY-MM-DD)</td></tr>
+<tr><td>Date of Flight: </td><td><input size="10" type="text" onchange="on_update_all();validate_date('date_of_flight_${c.stay.waypoint_id}','dof_validation_${c.stay.waypoint_id}');" 
+    name="date_of_flight_${c.stay.waypoint_id}" id="date_of_flight_${c.stay.waypoint_id}" value="${c.stay.date_of_flight}"/>(YYYY-MM-DD)<span id="dof_validation_${c.stay.waypoint_id}" style="color:#ff0000"></span></td></tr>
 <tr><td>Estimated Start Time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" 
     name="departure_time_${c.stay.waypoint_id}" id="departure_time_${c.stay.waypoint_id}" value="${c.stay.departure_time}"/>(HH:MM)</td></tr>
 <tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all();" 

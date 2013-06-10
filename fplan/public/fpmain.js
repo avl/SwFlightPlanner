@@ -4,6 +4,22 @@ in_prog=0;
 cache={};
 recursion=0;
 
+function validate_date(dateval,validationoutput)
+{
+    var d=document.getElementById(dateval);
+    if (d.value=='')
+        return;
+    var dateexp=/[2-3]\d{3}-[0-1]\d-[0-3]\d/;
+    var out=document.getElementById(validationoutput);
+    if (!dateexp.test(d.value))
+    {
+        out.innerHTML='Must be a date in YYYY-MM-DD format!';
+    }
+    else
+    {
+        out.innerHTML='';
+    }
+}
 
 function get_rownum(searchfpid)
 {
@@ -483,7 +499,7 @@ function format_empty_landingrow(trelem,id,idx)
     var tdelem = document.createElement("td");
     tdelem.colSpan=''+fpcolnum;
     tdelem.innerHTML='<table>'+
-            '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="on_update_all()" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)</td></tr>'+
+            '<tr><td>Takeoff date: </td><td><input size="10" type="text" onchange="on_update_all();validate_date(\'date_of_flight_'+id+'\',\'dof_validation_'+id+'\');" id="date_of_flight_'+id+'" value=""/>(YYYY-MM-DD)<span id="dof_validation_'+id+'" style="color:#ff0000"></span></td></tr>'+
             '<tr><td>Estimated takeoff time (UTC): </td><td><input size="5" type="text" onchange="on_update_all();" id="departure_time_'+id+'" value=""/>(HH:MM) <span style="font-size:10px">(leave blank for touch-and-go)</span></td></tr>'+
             '<tr><td>Fuel at takeoff: </td><td><input size="4" type="text" onchange="on_update_all()" id="fuel_'+id+'" value=""/>(L) <span style="font-size:10px">(leave blank if not fueling)</span></td>'+
             '<tr><td>Persons on board: </td><td><input size="4" type="text" onchange="makedirty()" id="persons_'+id+'" value=""/></td></tr>'+
