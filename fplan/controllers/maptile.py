@@ -246,7 +246,7 @@ class MaptileController(BaseController):
                         (Notam,Notam.ordinal==NotamUpdate.appearnotam)
                          ).order_by(sa.desc(Notam.downloaded)).filter(
                                 sa.and_(NotamUpdate.disappearnotam==sa.null(),
-                                        NotamUpdate.category.like("%"+icao.upper()+"%")
+                                        NotamUpdate.category.like(icao.upper()+"/%")
                                         )).all()
                     print "notams:",repr(notams)
                     if notams:
