@@ -9,7 +9,7 @@ def parse_sig_points():
     for pagenr in xrange(p.get_num_pages()):
         #print "Processing page %d"%(pagenr,)
         page=p.parse_page_to_items(pagenr)
-        lines=page.get_lines(page.get_all_items())
+        lines=page.get_lines(page.get_all_items(),order_fudge=20)
         for line in lines:
             cols=line.split()
             if len(cols)>2:
