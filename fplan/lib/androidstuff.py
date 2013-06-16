@@ -294,6 +294,7 @@ def android_fplan_map_format(airspaces,points,aiptexts,trips,version,user_aipgen
                 writeByte(1 if way['land_at_end'] else 0)
                 writeFloat(way['endfuel'])
                 writeFloat(way['fuelburn'])
+                #print "The depart_dt which was suspicous is onw",way['depart_dt'],"represented as",helpers.utcdatetime2stamp_inexact(way['depart_dt'])
                 writeLong(helpers.utcdatetime2stamp_inexact(way['depart_dt']))
                 writeLong(helpers.utcdatetime2stamp_inexact(way['arrive_dt']))
                 writeByte(way['lastsub'])

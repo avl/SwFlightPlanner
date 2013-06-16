@@ -1000,7 +1000,7 @@ def get_route_impl(tripobj,routes,ac,dummyac):
         try:
             prev_alt,mid_alt,alt2,was_capped=calc_alts(prev_alt,rt,mid_alt,idx,numroutes,ac)
         except PerformanceException,cause:
-            print "Performance exception",cause
+            #print "Performance exception",cause
             accum_time=None
             accum_fuel=None         
             was_capped=True

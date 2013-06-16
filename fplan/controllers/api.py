@@ -648,7 +648,7 @@ class ApiController(BaseController):
                             cksum,proj=self.get_sel_cksum(adc['blobname'])
                             param="chartname_"+adc['blobname']
                             if request.params.get(param,None)==cksum:
-                                print "Checksum match, no need to download ",adc['blobname'],"again"
+                                #print "Checksum match, no need to download ",adc['blobname'],"again"
                                 continue                            
                             charts.append((ad['name'],adc['blobname'],ad['icao'],cksum,adc['variant']))                        
                         except:
