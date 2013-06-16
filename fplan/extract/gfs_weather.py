@@ -367,7 +367,7 @@ def get_prognosis(when):
             prog_date=get_nominal_prognosis()-timedelta(0,3600*backoff)
             
             offset=when-prog_date
-            offset_hours=offset.seconds/3600.0
+            offset_hours=offset.days*24+offset.seconds/3600.0
             offset_3hours=int(3*round(offset_hours/3.0))
             print "Looking for forecast ",prog_date," + ",offset_3hours
             if offset_3hours<0:
