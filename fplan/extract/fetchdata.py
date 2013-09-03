@@ -287,14 +287,14 @@ def getxml(relpath,country="se",maxcacheage=7200):
     return open(cachenamexml).read() 
 
 def get_raw_aip_sup_page():
-    if host==dev_computer:
+    if host==dev_computer and False:
         try:
-            return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()    
+            return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP1/").read()    
         except Exception:
             return open(os.path.join(os.getenv("SWFP_ROOT"),"AIP SUP.html")).read()
     else:
         #TODO: 
-        return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP/").read()
+        return urlopen("http://www.lfv.se/sv/FPC/IAIP/AIP-SUP1/").read()
         
 weathercache=dict()
 weatherlookup=dict(
