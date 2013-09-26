@@ -83,7 +83,11 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
             if icao in ['ESIB','ESNY','ESCM','ESPE']:
                 continue                    
             
-            p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao))
+            try:
+                p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao))
+            except:
+                p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_6-1_en.pdf"%(icao,icao))
+
             ad['aipvacurl']=p.get_url()
             for pagenr in xrange(p.get_num_pages()):
                 page=p.parse_page_to_items(pagenr)

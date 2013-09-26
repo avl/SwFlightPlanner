@@ -52,6 +52,9 @@ import shutil
 import time
 import sys
 from threading import Lock
+import socket
+socket.setdefaulttimeout(300)
+
 version=2
 
 aipdata=None
