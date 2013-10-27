@@ -60,6 +60,8 @@ def getrawurl(relpath,country="se"):
         durl="http://www.ippc.no"+fixed
     elif country=="ek":
         durl="http://www.slv.dk"+fixed
+    elif country=="segel":
+        durl="http://iof2.idrottonline.se"+fixed
         print "Fetching:",durl
     elif country=="ep":        
         durl="http://www.ais.pansa.pl"+fixed

@@ -10,6 +10,7 @@ from fplan.extract.fi_extract_airfields import fi_parse_airfields
 from fplan.extract.fi_extract_small_airfields import fi_parse_small_airfields
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate,is_devcomp
+from fplan.extract.extract_segelsektorer import extract_segel
 import fplan.extract.extract_cities as extract_cities
 from fplan.extract.parse_aip_sup import parse_all_sups
 from fplan.extract.parse_mountain_area import parse_mountain_area
@@ -236,6 +237,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(evads)
                 
             class SpaceLoader(object):
+                """
                 def parse_trusted_userdata(self):
                     "Data added by users, only trusted users"
                     return userdata.get_trusted_data()
@@ -310,7 +312,10 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def se_parse_r(self):"Swedish R/D-areas";return dict(airspaces=parse_r_areas())
                 def se_parse_mountain(self):"Swedish mountain area";return dict(airspaces=parse_mountain_area())
                 def se_parse_obstacles(self):"Swedish obstacles";return dict(obstacles=parse_obstacles())
-                
+                """
+                def se_parse_segel(self):
+                    "Swedish Segelsektorer"
+                    return dict(airspaces=extract_segel())
                
             
             def run_space_loader(loader):

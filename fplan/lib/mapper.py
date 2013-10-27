@@ -540,7 +540,7 @@ def uprint(*ss):
             out.append(repr(s))
     print " ".join(out)
 def parse_dist(s):
-    uprint("In:%s"%s)
+    #uprint("In:%s"%s)
     val,nautical,meters,km=re.match(r"\s*([\d.]+)\s*(?:(NM)|(m)|(km))\b\s*",s).groups()
     dval=float(val)
     assert nautical!=None or meters!=None or km!=None
@@ -764,6 +764,9 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     uprint("Unparsed area segment: %s"%(seg,))
     return []
 
+def format_lfv2(pos):
+    lat,lon=from_str(pos)
+    return format_lfv(lat,lon)
 def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
     #borderspecs=[
     #    ]
@@ -775,6 +778,7 @@ def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
     s=s.replace(u"clock-wise","clockwise")
     s=re.sub(ur"-\s*pisteeseen\s*/\s*to the point"," - ",s)
     itemstemp=s.split("-") #re.split(ur" - ",s.strip())
+    print itemstemp
     items=[]
     for item in itemstemp:            
         if item.strip()=="": continue
@@ -804,6 +808,7 @@ def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
         #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
         out.extend(pd)
     if len(out)<3:
+        print out
         raise Exception("Too few items in coord-str: <%s>"%(s,))
     out2=[]
     seen=set()
@@ -853,6 +858,11 @@ def parse_elev(elev):
         #print repr(elev)
         elev=" ".join(elev.replace(u"\xa0",u" ").split())
         #print "After",repr(elev)
+        
+    if elev.lower().endswith("m msl"): 
+        elevmeter=elev[:-5].strip()
+        if elevmeter.isdigit():
+            elev=str(int(float(elevmeter)/0.3048))+" FT MSL"
         
     if elev.upper().startswith("FL"): elev=elev[2:].strip().lstrip("0")+"00" #Gross simplification
     if elev.lower().endswith("ft"): elev=elev[:-2].strip()
