@@ -778,7 +778,7 @@ def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
     s=s.replace(u"clock-wise","clockwise")
     s=re.sub(ur"-\s*pisteeseen\s*/\s*to the point"," - ",s)
     itemstemp=s.split("-") #re.split(ur" - ",s.strip())
-    print itemstemp
+    
     items=[]
     for item in itemstemp:            
         if item.strip()=="": continue
@@ -808,7 +808,6 @@ def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
         #uprint("Parsed area segment <%s> into <%s>"%(pstr,pd))
         out.extend(pd)
     if len(out)<3:
-        print out
         raise Exception("Too few items in coord-str: <%s>"%(s,))
     out2=[]
     seen=set()
