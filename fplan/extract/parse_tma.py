@@ -189,7 +189,12 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
                 break
         if last_coord_idx==None:
             last_coord_idx=len(arealines)
-        #print "ARealines:",arealines
+        print "ARealines:",arealines
+        print "Last coord:",arealines[last_coord_idx-1]
+        if len(arealines)>last_coord_idx:
+            if arealines[last_coord_idx-1:last_coord_idx+1]==[u'571324N 0161129E -', u'Established during operational hours of']:
+                arealines[last_coord_idx-1]=arealines[last_coord_idx-1].strip("-")
+        print "Last fixed:",arealines[last_coord_idx-1]
         assert not arealines[last_coord_idx-1].strip().endswith("-")
         #for idx in xrange(last_coord_idx-1):
         #    print "arealine: <%s>"%(arealines[idx].strip(),)
@@ -200,8 +205,9 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
             #print "Object with no vertical limits: %s"%(repr(d['name']),)
             continue
         
-        #uprint("Vertlim: ",vertlim)
-        heightst=re.findall(r"(FL\s*\d{3})|(\d+\s*ft\s*(?:\s*/\s*\d+\s*.\s*GND)?)|(GND)|(UNL)",vertlim)
+        uprint("Vertlim: ",vertlim)
+        heightst=re.findall(r"(FL\s*\d{3})|(\d+\s*ft\s*(?:\s*/\s*\d+\s*.\s*GND)?(?:\s*GND)?)|(GND)|(UNL)",vertlim)
+        print "Height candidates:",heightst
         heights=[]
         for fl,ht,gnd,unl in heightst:
             if fl:
@@ -212,7 +218,7 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
                 heights.append(gnd.strip())
             if unl:
                 heights.append(unl.strip())
-        #uprint("heights for ",d['name'],":",repr(heights))
+        uprint("heights for ",d['name'],":",repr(heights))
         assert len(heights)==2
         ceiling=heights[0].strip()
         floor=heights[1].strip()
