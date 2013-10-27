@@ -19,8 +19,7 @@ def getareas(lines,date):
             ceiling=ceiling,
             freqs=[],
             type="segel",
-            date=date,
-            name=name+" segelsektor",
+            name=name+" glider sector",
             points=mapper.parse_coord_str(cd))
         return ret
     def haveany():
