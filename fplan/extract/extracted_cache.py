@@ -240,7 +240,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airfields.extend(evads)
                 
             class SpaceLoader(object):
-                """
+                
                 def parse_trusted_userdata(self):
                     "Data added by users, only trusted users"
                     return userdata.get_trusted_data()
@@ -315,7 +315,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 def se_parse_r(self):"Swedish R/D-areas";return dict(airspaces=parse_r_areas())
                 def se_parse_mountain(self):"Swedish mountain area";return dict(airspaces=parse_mountain_area())
                 def se_parse_obstacles(self):"Swedish obstacles";return dict(obstacles=parse_obstacles())
-                """
+                
                 def se_parse_segel(self):
                     "Swedish Segelsektorer"
                     return dict(airspaces=extract_segel())

@@ -94,6 +94,7 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
+<b>Updated 2013-10-27: </b>SwFlightplanner now contains swedish soaring sectors. For sectors with undefined ceilings, the value UNL is used.<br />
 <b>Updated 2013-03-16: </b><a href="www.flygfyren.nu">Flygfyren.nu</a> has agreed to host the support forum for swflightplanner! Posts have been migrated, and links updated. Thank you Flygfyren!<br />
 <b>Updated 2012-11-20: </b>Norwegian obstacle information now added.<br />
 <b>Updated 2012-09-09: </b>SwFlightplanner now has norwegian airspace! A big thank-you goes out to user Albin for putting in hard work to provide this and the Danish airspace data!<br />
