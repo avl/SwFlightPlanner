@@ -77,7 +77,7 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
     if len(headings)==0:
         return []
     avg_heading_y=sum(h.y1 for h in headings)/float(len(headings))
-    #print "Found headings:",headings
+    uprint("Found headings:",headings)
     zone_candidates=[]
     for item in items:        
         if item.text==None or item.text.strip()=="": continue
@@ -91,6 +91,7 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
         if item.y1>avg_heading_y+1 and item.x1<12 and not item.text in ["Name",'None',"LFV"]:
             zone_candidates.append(item)
     
+    uprint("Found cands:",zone_candidates)
     zone_candidates.sort(key=lambda x:x.y1)
     
     for zone in zone_candidates:
@@ -175,6 +176,9 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
             arealines=arealines[1:]
         if arealines[0].strip()=="situated within TMA":
             arealines=arealines[1:]
+            
+        if arealines==u'Förteckning över CTA / Lists of CTA' or arealines=='Lateral limits':
+            continue
 
         for idx in xrange(len(arealines)):
             if arealines[idx].lower().startswith("established"):
@@ -189,12 +193,12 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
                 break
         if last_coord_idx==None:
             last_coord_idx=len(arealines)
-        print "ARealines:",arealines
-        print "Last coord:",arealines[last_coord_idx-1]
+        uprint("ARealines:",arealines)
+        uprint("Last coord:",arealines[last_coord_idx-1])
         if len(arealines)>last_coord_idx:
             if arealines[last_coord_idx-1:last_coord_idx+1]==[u'571324N 0161129E -', u'Established during operational hours of']:
                 arealines[last_coord_idx-1]=arealines[last_coord_idx-1].strip("-")
-        print "Last fixed:",arealines[last_coord_idx-1]
+        uprint("Last fixed:",arealines[last_coord_idx-1])
         assert not arealines[last_coord_idx-1].strip().endswith("-")
         #for idx in xrange(last_coord_idx-1):
         #    print "arealine: <%s>"%(arealines[idx].strip(),)
@@ -205,9 +209,12 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
             #print "Object with no vertical limits: %s"%(repr(d['name']),)
             continue
         
+        if d['name']=='Control Area':
+            continue
+
         uprint("Vertlim: ",vertlim)
         heightst=re.findall(r"(FL\s*\d{3})|(\d+\s*ft\s*(?:\s*/\s*\d+\s*.\s*GND)?(?:\s*GND)?)|(GND)|(UNL)",vertlim)
-        print "Height candidates:",heightst
+        uprint("Height candidates:",heightst)
         heights=[]
         for fl,ht,gnd,unl in heightst:
             if fl:
@@ -289,9 +296,9 @@ def parse_all_tma():
         #Fix illogical composition of Göteborg TMA description. 2010 04 02
         did_replace=[0]
         def replacer(args):
-            print args.groups()
+            uprint(args.groups())
             y,x,w,h,font=args.groups()
-            print w,h            
+            uprint(w,h)
             assert int(w)>=260 and int(w)<420
             assert int(h)>=6 and int(h)<=15
             f=float(w)/270.0
@@ -308,7 +315,7 @@ def parse_all_tma():
             repl="""<text top="%s" left="%s" width="%s" height="%s" font="%s">Part of GÖTEBORG TMA</text>
                            <text top="%s" left="%s" width="%s" height="%s" font="%s">584558N 0122951E - 584358N 0130950E - </text>"""%(
                            y1,x1,w1,h1,font,y2,x2,w2,h2,font)
-            print "\n======================================\nReplacement:\n",repl
+            uprint("\n======================================\nReplacement:\n",repl)
             return repl
         raw=re.sub(r"""<text top="(\d+)" left="(\d+)" width="(\d+)" height="(\d+)" font="(\d+)">\s*Part of GÖTEBORG TMA  584558N 0122951E - 584358N 0130950E - </text>""",replacer,raw)
         assert did_replace[0]==1
@@ -372,13 +379,13 @@ def parse_r_areas():
         parsed=parse_page(p,pagenr,"R")
         res.extend(parsed)
     for pa in res:
-        print "pA:",repr(pa)
+        uprint("pA:",repr(pa))
         pretty(pa)
     return res
 
     
 if __name__=='__main__':
-    parse_r_areas()
+    #parse_r_areas()
     parse_all_tma()
 
 
