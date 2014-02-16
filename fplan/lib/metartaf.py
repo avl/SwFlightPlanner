@@ -19,8 +19,11 @@ cache=dict()
 def too_old(item):
     now=datetime.utcnow()
     age=now-item.last_sync
+    print "Host:",host,"dev:",dev_computer
     if dev_computer==host:
-        maxage=timedelta(1000,0)
+        print "Is on dev:"
+        return True
+        maxage=timedelta(0,0)
     else:
         maxage=timedelta(0,timeout)
     if age>maxage:
@@ -76,14 +79,14 @@ def get_area(icao):
     if icao.startswith("ES"):
         return "Sweden"
     if icao.startswith("EF"):
-        return "Nordic"    
+        return "Finland"    
     if icao.startswith("EN"):
-        return "Nordic"    
+        return "Norway"    
     if icao.startswith("EK"):
-        return "Nordic"    
+        return "Denmark"    
     if icao.startswith("BI"): #Iceland
-        return "Nordic"    
-    return "Europe"
+        return "Iceland"    
+    return "Baltic"
 def getklass(what):
     if what=='TAF':
         klass=Taf
@@ -181,20 +184,37 @@ def get_taf(icao):
 def geturl(what,area):
     if area=='Sweden':    
         if what=='TAF':
-            return "http://www.lfv.se/MetInfoHTML.asp?TextFile=taffc.sweden.list.htm&SubTitle=Sweden&T=TAF%A0Sweden&Frequency=120"
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=177&type=MET"
         if what=='METAR': 
-            return "http://www.lfv.se/MetInfoHTML.asp?TextFile=metar.sweden.list.htm&SubTitle=&T=METAR%A0Sweden&Frequency=30"
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=175&type=MET"
+    if area=='Denmark':    
+        if what=='TAF':
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=196&type=MET"
+        if what=='METAR': 
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=194&type=MET"
+    if area=='Norway':    
+        if what=='TAF':
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=182&type=MET"
+        if what=='METAR': 
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=174&type=MET"
+    if area=='Finland':    
+        if what=='TAF':
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=183&type=MET"
+        if what=='METAR': 
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=176&type=MET"
+    if area=='Iceland':    
+        if what=='TAF':
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=197&type=MET"
+        if what=='METAR': 
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=195&type=MET"
+    if area=='Baltic':    
+        if what=='TAF':
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=199&type=MET"
+        if what=='METAR': 
+            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=179&type=MET"
+
+
         
-    if area=='Nordic':
-        if what=='TAF':
-            return "http://www.lfv.se/MetInfoHTML.asp?TextFile=taffc.en.list.htm&TextFile=taffc.ef.list.htm&TextFile=taffc.ek.list.htm&TextFile=taffc.bi.list.htm&SubTitle=Norway&SubTitle=Finland&SubTitle=Denmark&SubTitle=Iceland&T=TAF%A0Nordic&Frequency=45"
-        if what=='METAR':
-            return "http://www.lfv.se/MetInfoHTML.asp?TextFile=metar.en.list.htm&TextFile=metar.ef.list.htm&TextFile=metar.ek.list.htm&TextFile=metar.bi.list.htm&SubTitle=Norway&SubTitle=Finland&SubTitle=Denmark&SubTitle=Iceland&T=METAR%20Nordic%20countries&Frequency=45"
-    if area=='Europe':
-        if what=='METAR':
-            return "http://www.lfv.se/MetInfoHTML.asp?TextFile=metar.eg.list.htm&TextFile=metar.ed.list.htm&TextFile=metar.benelux.list.htm&TextFile=metar.alps.list.htm&TextFile=metar.lf.list.htm&TextFile=metar.le.list.htm&TextFile=metar.lp.list.htm&TextFile=metar.li.list.htm&TextFile=metar.baltic.list.htm&TextFile=metar.others.list.htm&SubTitle=United%A0Kingdom&Subtitle=Germany&Subtitle=Benelux&Subtitle=Austria,%A0Switzerland&Subtitle=France&Subtitle=Spain&Subtitle=Portugal&Subtitle=Italy&Subtitle=Baltic&Subtitle=Other%A0Countries&T=METAR%A0Europe&Frequency=30"        
-        if what=='TAF':
-            return "http://www.lfv.se/MetInfoHTML.asp?TextFile=taffc.eg.list.htm&TextFile=taffc.ed.list.htm&TextFile=taffc.benelux.list.htm&TextFile=taffc.alps.list.htm&TextFile=taffc.lf.list.htm&TextFile=taffc.le.list.htm&TextFile=taffc.lp.list.htm&TextFile=taffc.li.list.htm&TextFile=taffc.baltic.list.htm&TextFile=taffc.others.list.htm&SubTitle=United%20Kingdom&Subtitle=Germany&Subtitle=Benelux&Subtitle=Austria,%20Switzerland&Subtitle=France&Subtitle=Spain&Subtitle=Portugal&Subtitle=Italy&Subtitle=Baltic&Subtitle=Other%20Countries&T=TAF%20Europe&Frequency=45"
     raise
 
 

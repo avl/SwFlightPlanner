@@ -56,7 +56,7 @@ def fixup(x):
 
 def parse_notam(html):
     print "html lines:",html.count("\n")
-    almostraw="\n".join(pre for pre in re.findall(u"<pre>(.*?)</pre>",html,re.DOTALL|re.IGNORECASE))
+    almostraw="\n".join(pre for pre in re.findall(u"<pre(.*?)</pre>",html,re.DOTALL|re.IGNORECASE))
     almostraw.replace("\r\n","\n")
     almostraw=almostraw.replace("\t","    ")
     #print "Raw lines: %d"%(almostraw.count("\n"),)
