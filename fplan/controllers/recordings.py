@@ -2,7 +2,7 @@ import logging
 
 from pylons import request, response, session, tmpl_context as c
 from pylons.controllers.util import abort, redirect
-from fplan.model import meta,User,Recording
+from fplan.model import meta,User,Recording,recording_epoch
 
 #from md5 import md5
 from fplan.lib.base import BaseController, render
@@ -23,6 +23,24 @@ class RecordingsController(BaseController):
         c.trips=meta.Session.query(Recording).filter(
             Recording.user==session['user']).order_by(sa.desc(Recording.start)).all()
         return render('/recordings.mako')
+
+    def kml(self,starttime):
+        if not 'user' in session:
+            return None
+        user=session['user']
+        print "Rpar:",request.params
+        start=int(starttime)
+        startd=datetime.utcfromtimestamp(start)
+        rec,=meta.Session.query(Recording).filter(sa.and_(
+            Recording.user==session['user'],
+            Recording.start==startd)).all()
+        c.rec=load_recording(rec)
+        c.start=startd
+        c.zip=zip
+        response.content_type = 'application/octet-stream'               
+        response.charset="utf8"
+        return render("/kml.mako")
+        
     def load(self):
         for key,val in request.params.items():
             if key.startswith("view_"):

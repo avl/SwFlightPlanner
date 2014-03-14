@@ -20,6 +20,7 @@ def make_map():
 
     map.connect('/', controller='splash', action="index")
 
+    map.connect('/recordings/download/{starttime}.kml', controller='recordings', action="kml")
     map.connect('/flightplan/{tripname}.gpx', controller='flightplan', action="gpx")
     map.connect('/flightplan/{tripname}.csv', controller='flightplan', action="excel")
     map.connect('/customsets/view/{setname}/{version}', controller='customsets', action="view")

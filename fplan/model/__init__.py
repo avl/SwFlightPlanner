@@ -52,7 +52,7 @@ airport_projection = sa.Table("airport_projection",meta.metadata,
                         sa.Column('airport',Unicode(100),primary_key=True,nullable=False),
                         sa.Column('mapchecksum',String(32),primary_key=True,nullable=False),                        
                         sa.Column('updated',DateTime(),nullable=False),
-                        sa.Column("matrix",postgresql.ARRAY(Float,mutable=False,as_tuple=True),nullable=False,default=""),
+                        sa.Column("matrix",postgresql.ARRAY(Float,as_tuple=True),nullable=False,default=""),
                         sa.Column('scale',Float(),nullable=True,default=None),
                         sa.Column('north',Float(),nullable=True,default=None)
                         )
@@ -183,14 +183,14 @@ aircraft_table = sa.Table("aircraft",meta.metadata,
                         sa.Column('descent_rate',Float(),primary_key=False,nullable=False,default=750),                        
                         sa.Column('descent_burn',Float(),primary_key=False,nullable=False,default=10),
                         sa.Column("advanced_model",Boolean(),nullable=False,default=False),
-                        sa.Column('adv_climb_rate',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_climb_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_climb_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_cruise_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_cruise_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_descent_rate',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_descent_burn',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
-                        sa.Column('adv_descent_speed',postgresql.ARRAY(Float,mutable=False,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_climb_rate',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_climb_burn',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_climb_speed',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_cruise_burn',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_cruise_speed',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_descent_rate',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_descent_burn',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
+                        sa.Column('adv_descent_speed',postgresql.ARRAY(Float,as_tuple=True),primary_key=False,nullable=False,default=""),                        
                         sa.Column('com_nav_equipment',Unicode(32),primary_key=False,nullable=False,default=u"V"),
                         sa.Column('transponder_equipment',Unicode(32),primary_key=False,nullable=False,default=u"C"),                        
                         sa.Column('extra_equipment',Unicode(32),primary_key=False,nullable=False,default=u"")                        
@@ -246,11 +246,17 @@ recordings_table = sa.Table("recordings",meta.metadata,
                         sa.Column('trip',Binary(),primary_key=False,nullable=False,default=""),                        
                         sa.Column("version",Integer(),nullable=False,primary_key=False,default="2")
                         )
+
+recording_epoch=datetime(1990,1,1,0,0,0)
 class Recording(object):
     def __init__(self, user, start):
         self.user=user
         self.start=start
-                        
+    def tostamp(self):
+        return (self.start-recording_epoch).totalseconds()
+        
+        
+        
 stay_table = sa.Table("stay",meta.metadata,
                     sa.Column('user',Unicode(32),sa.ForeignKey("user.user",onupdate="CASCADE",ondelete="CASCADE"),primary_key=True,nullable=False),
                     sa.Column('trip',Unicode(50),primary_key=True,nullable=False),
