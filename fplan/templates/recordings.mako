@@ -45,6 +45,9 @@ Start (Z)
 End (Z)
 </td>
 <td>
+Download
+</td>
+<td>
 </td>
 </tr>
 %for trip in c.trips:
@@ -55,9 +58,8 @@ End (Z)
 <td>${h.timefmt(trip.duration/1000.0/3600.0)}</td>
 <td>${trip.start.strftime("%Y-%m-%d %H:%MZ")}</td>
 <td>${trip.end.strftime("%Y-%m-%d %H:%MZ")}</td>
-<td>
-<input type="submit" value="View" name="view_${h.utcdatetime2stamp(trip.start)}"/>	
-</td>
+<td><a href="${h.url_for(controller='recordings',action='kml',starttime=str(h.utcdatetime2stamp(trip.start)))}"><u>KML</u></a></td>
+<td><input type="submit" value="View" name="view_${h.utcdatetime2stamp(trip.start)}"/></td>
 </tr>
 %endfor
 </table>
