@@ -433,7 +433,8 @@ class MapviewController(BaseController):
             for waypoint in waypoints:
                 name=waypoint['name']
                 pos=waypoint['pos']
-                waypoint=Waypoint(tripuser(),trip.trip,pos,curid,orderint,name,None)
+                alt=waypoint['alt']
+                waypoint=Waypoint(tripuser(),trip.trip,pos,curid,orderint,name,alt)
                 meta.Session.add(waypoint)
                 orderint+=1
                 curid+=1
