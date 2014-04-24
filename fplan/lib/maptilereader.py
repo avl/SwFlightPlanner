@@ -9,7 +9,10 @@ from threading import Lock
 import StringIO
 import fplanquick.fplanquick as fplanquick
 from fplanquick.fplanquick import svector
-import Image
+try:
+    import Image
+except:
+    import PIL.Image as Image
         
 def latlon_limits():
     lat1=53

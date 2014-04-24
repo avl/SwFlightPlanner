@@ -7,6 +7,8 @@ import fplan.lib.mapper as mapper
 #import fplan.lib.gen_tile as gen_tile
 from fplan.lib.base import BaseController, render
 from fplan.lib.parse_gpx import parse_gpx
+from fplan.lib.parse_gpx import parse_gpx_fplan
+
 from fplan.lib.maptilereader import merc_limits
 import sqlalchemy as sa
 import routes.util as h
@@ -418,6 +420,34 @@ class MapviewController(BaseController):
     
     def upload_track(self):
         print "In upload",request.params.get("gpstrack",None)
+        if 'asplan' in request.params:
+            t=request.params.get("gpstrack",None)
+            orderint=0
+            curid=100
+            tripsharing.cancel()
+            tripname,waypoints=parse_gpx_fplan(t.value)
+            tripname=self.get_free_tripname(tripname)
+            trip=Trip(tripuser(), tripname)
+            meta.Session.add(trip)
+            meta.Session.flush()
+            for waypoint in waypoints:
+                name=waypoint['name']
+                pos=waypoint['pos']
+                waypoint=Waypoint(tripuser(),trip.trip,pos,curid,orderint,name,None)
+                meta.Session.add(waypoint)
+                orderint+=1
+                curid+=1
+
+            acs=meta.Session.query(Aircraft).filter(sa.and_(
+                Aircraft.user==tripuser())).all()
+            if len(acs):
+                trip.aircraft=acs[0].aircraft
+
+            session['current_trip']=tripname
+            session.save()       
+            meta.Session.commit()
+            redirect(h.url_for(controller='mapview',action="zoom",zoom='auto'))
+            return
         t=request.params.get("gpstrack",None)
         if t!=None:
             if len(t.value)>30000000:
