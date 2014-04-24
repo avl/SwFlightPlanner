@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Air Navigation Pro for iOS and Android" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+    <rte>
+        <rtept lat="59.345100" lon="17.740500">
+            <geoidheight>0.000000</geoidheight>
+            <name>ESSE</name>
+            <desc>Skå-Edeby Airport</desc>
+            <type>Airport</type>
+            <extensions>
+                <planned_altitude>5.181600</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.321232" lon="17.705306">
+            <geoidheight>31.049707</geoidheight>
+            <name>WP</name>
+            <type>Waypoint</type>
+            <extensions>
+                <planned_altitude>304.800000</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.249043" lon="17.666698">
+            <geoidheight>24.583649</geoidheight>
+            <name>WP</name>
+            <type>Waypoint</type>
+            <extensions>
+                <planned_altitude>457.191485</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="58.937917" lon="17.502222">
+            <geoidheight>44.750000</geoidheight>
+            <name>TRS</name>
+            <desc>TROSA</desc>
+            <type>VOR DME</type>
+            <extensions>
+                <planned_altitude>605.308557</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.039575" lon="17.318461">
+            <geoidheight>31.500910</geoidheight>
+            <name>WP</name>
+            <type>Waypoint</type>
+            <extensions>
+                <planned_altitude>862.455240</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.207167" lon="17.012083">
+            <geoidheight>71.125000</geoidheight>
+            <name>DKR</name>
+            <desc>DUNKER</desc>
+            <type>VOR</type>
+            <extensions>
+                <planned_altitude>1061.217231</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.281374" lon="17.088852">
+            <geoidheight>5.087370</geoidheight>
+            <name>WP</name>
+            <type>Waypoint</type>
+            <extensions>
+                <planned_altitude>618.158540</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.538972" lon="17.358333">
+            <geoidheight>5.150000</geoidheight>
+            <name>LNA</name>
+            <desc>LENA</desc>
+            <type>NDB</type>
+            <extensions>
+                <planned_altitude>449.978376</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.462356" lon="17.402452">
+            <geoidheight>6.000000</geoidheight>
+            <name>WP</name>
+            <type>Waypoint</type>
+            <extensions>
+                <planned_altitude>445.564094</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.362470" lon="17.555901">
+            <geoidheight>7.000000</geoidheight>
+            <name>WP</name>
+            <type>Waypoint</type>
+            <extensions>
+                <planned_altitude>443.774520</planned_altitude>
+                <remark>Adelsö-Munsö</remark>
+            </extensions>
+        </rtept>
+        <rtept lat="59.345100" lon="17.740500">
+            <geoidheight>0.000000</geoidheight>
+            <name>ESSE</name>
+            <desc>Skå-Edeby Airport</desc>
+            <type>Airport</type>
+            <extensions>
+                <planned_altitude>152.399950</planned_altitude>
+            </extensions>
+        </rtept>
+        <rtept lat="59.345100" lon="17.740500">
+            <geoidheight>0.000000</geoidheight>
+            <name>ESSE</name>
+            <desc>Skå-Edeby Airport</desc>
+            <type>Airport</type>
+            <extensions>
+                <planned_altitude>152.399950</planned_altitude>
+            </extensions>
+        </rtept>
+    </rte>
+</gpx>

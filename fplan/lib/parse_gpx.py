@@ -11,7 +11,20 @@ def parse_gpx_fplan(gpxcontents):
         lat=float(track.attrib['lat'].strip())
         lon=float(track.attrib['lon'].strip())
         name=track.find("{http://www.topografix.com/GPX/1/1}name").text.strip()            
-        ret.append( dict(pos="%f,%f"%(float(lat),float(lon)),name=name) )
+        ret.append( dict(pos="%f,%f"%(float(lat),float(lon)),name=name,alt=None) )
+        
+    if ret==[]:
+        for track in xml.findall("*//{http://www.topografix.com/GPX/1/1}rtept"):
+            lat=float(track.attrib['lat'].strip())
+            lon=float(track.attrib['lon'].strip())
+            name=track.find("{http://www.topografix.com/GPX/1/1}name").text.strip()            
+            alt=None
+            try:
+                alt=int(float(track.find("*//{http://www.topografix.com/GPX/1/1}planned_altitude").text.strip())/0.3048)
+            except:                
+                pass
+            ret.append( dict(pos="%f,%f"%(float(lat),float(lon)),name=name,alt=alt) )
+
     name="%s - %s"%(ret[0]['name'],ret[-1]['name'])
     return name,ret
     
