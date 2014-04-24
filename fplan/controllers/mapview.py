@@ -430,15 +430,20 @@ class MapviewController(BaseController):
             trip=Trip(tripuser(), tripname)
             meta.Session.add(trip)
             meta.Session.flush()
+            out=[]
             for waypoint in waypoints:
                 name=waypoint['name']
                 pos=waypoint['pos']
                 alt=waypoint['alt']
                 waypoint=Waypoint(tripuser(),trip.trip,pos,curid,orderint,name,alt)
                 meta.Session.add(waypoint)
+                out.append(waypoint)
                 orderint+=1
                 curid+=1
-
+            for w1,w2 in zip(out,out[1:]):
+                r=Route(tripuser(),trip.trip,
+                    w1.id,w2.id,altitude=str(w2.altitude))
+                meta.Session.add(r)
             acs=meta.Session.query(Aircraft).filter(sa.and_(
                 Aircraft.user==tripuser())).all()
             if len(acs):
