@@ -4,6 +4,21 @@ from md5 import md5
 from datetime import datetime
 import mapper
 
+def parse_gpx_fplan(gpxcontents):
+    xml=fromstring(gpxcontents)
+    ret=[]
+    for track in xml.findall("{http://www.topografix.com/GPX/1/1}wpt"):
+        lat=float(track.attrib['lat'].strip())
+        lon=float(track.attrib['lon'].strip())
+        name=track.find("{http://www.topografix.com/GPX/1/1}name").text.strip()            
+        ret.append( dict(pos="%f,%f"%(float(lat),float(lon)),name=name) )
+    name="%s - %s"%(ret[0]['name'],ret[-1]['name'])
+    return name,ret
+    
+if __name__=='__main__':
+    print parse_gpx_fplan(open("/home/anders/Downloads/example.gpx").read())
+    
+
 class Track():pass
 def parse_gpx(gpxcontents,startstr,endstr):
     start=None

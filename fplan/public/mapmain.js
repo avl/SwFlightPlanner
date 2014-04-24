@@ -1678,7 +1678,8 @@ function visualize_track_data()
 			'block',
 			'<form enctype="multipart/form-data" id="uploadtrackform" action="'+uploadtrackurl+'" method="POST">'+			
 			'Upload a GARMIN .gpx-file:'+
-			'<input type="file" name="gpstrack"/>'+
+			'<input type="file" name="gpstrack"/><br/>'+
+			'<input type="checkbox" name="asplan"/>Add as flight plan</input><br/>'+
 			'<button onclick="return upload_trackdata()">Upload</button><br/>'+
 			'<a href="#" onclick="uploadtrack_show_period_sel()">Select time period</a><br/>'+
 			'<div id="trackdataperiod" style="display:none">Start: <input type="text" name="start" value="1990-01-01 00:00:00"/><br/>'+

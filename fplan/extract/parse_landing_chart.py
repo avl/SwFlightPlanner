@@ -15,7 +15,10 @@ import svg_reader
 import numpy
 import numpy.linalg as linalg
 import os
-import Image
+try:
+    import Image
+except:
+    import PIL.Image as Image
 from fplan.lib.blobfile import BlobFile
 from datetime import datetime,timedelta
 
