@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="Air Navigation for iOS" version="1.1"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+	<metadata>
+	<link href="http://www.xample.ch">
+	<text>Air Navigation - real time navigation software for iPhone/iPad</text></link>
+	<bounds maxlat="59.345100" maxlon="17.740500" minlat="57.168600" minlon="13.440200"/>
+</metadata>
+<wpt lat="59.345100" lon="17.740500">
+<name>ESSE</name>
+<cmt>Skå-Edeby Airport</cmt>
+<sym>Waypoint</sym>
+</wpt><wpt lat="58.707000" lon="15.843556">
+<name>GIMLO</name>
+<cmt></cmt>
+<sym>Waypoint</sym>
+</wpt><wpt lat="58.333313" lon="15.177214">
+<name>User WP</name>
+<cmt>(null)</cmt>
+<sym>Waypoint</sym>
+</wpt><wpt lat="57.995262" lon="14.452181">
+<name>User WP</name>
+<cmt>(null)</cmt>
+<sym>Waypoint</sym>
+</wpt><wpt lat="57.541939" lon="14.151707">
+<name>User WP</name>
+<cmt>(null)</cmt>
+<sym>Waypoint</sym>
+</wpt><wpt lat="57.168600" lon="13.440200">
+<name>ESMY</name>
+<cmt>Smålandsstenar Airport</cmt>
+<sym>Waypoint</sym>
+</wpt><rte>
+<name>Untitled</name>
+<rtept lat="59.345100" lon="17.740500">
+<name>ESSE</name>
+<sym>Waypoint</sym>
+</rtept><rtept lat="58.707000" lon="15.843556">
+<name>GIMLO</name>
+<sym>Waypoint</sym>
+</rtept><rtept lat="58.333313" lon="15.177214">
+<name>User WP</name>
+<sym>Waypoint</sym>
+</rtept><rtept lat="57.995262" lon="14.452181">
+<name>User WP</name>
+<sym>Waypoint</sym>
+</rtept><rtept lat="57.541939" lon="14.151707">
+<name>User WP</name>
+<sym>Waypoint</sym>
+</rtept><rtept lat="57.168600" lon="13.440200">
+<name>ESMY</name>
+<sym>Waypoint</sym>
+</rtept></rte>
+</gpx>
