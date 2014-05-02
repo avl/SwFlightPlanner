@@ -20,7 +20,7 @@ def parse_mountain_area():
                                 )
         allofit=allofit.replace(u"–","-")
         
-        coordarea=re.match(ur".*Mountainous\s+area\s+of\s+Sweden.{1,10}lateral\s+limits(.*?)14.2\s*För\s*flygning\s*inom.*",allofit)
+        coordarea=re.match(ur".*Mountainous\s+area\s+of\s+Sweden.{1,10}lateral\s+limits(.*?)AIRAC.*",allofit)
         if coordarea:
             points=[]
             txt,=coordarea.groups()
