@@ -51,11 +51,11 @@ def filter_head_foot(xs):
 
 def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):   
     if kind=="TMA":
-        thirdcol="ATC unit"
+        thirdcols=["ATC unit","AFIS unit"]
     elif kind=="sector":
-        thirdcol="FREQ"
+        thirdcols=["FREQ"]
     elif kind=="R":
-        thirdcol="Remarks (nature of hazard,"
+        thirdcols=["Remarks (nature of hazard,"]
     else:
         raise Exception("Bad kind")
     page=parser.parse_page_to_items(pagenr)
@@ -69,7 +69,7 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
         item.text=item.text.strip()
         if item.text=="": continue
         if item.text=="Name": continue
-        if item.y1<25 and item.text in ["Lateral limits","Vertical limits",thirdcol]:
+        if item.y1<25 and item.text in ["Lateral limits","Vertical limits"]+thirdcols:
                headings.append(item)  
     
     headings.sort(key=lambda x:x.x1)    
@@ -99,7 +99,8 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
         #assert not zone.text.count("AOR")
         assert not zone.text.count("FIR")
     
-    #uprint("Headings:",headings)        
+    uprint("Headings:",headings)        
+    print "Pagenr:",pagenr
     assert len(headings)==3
     
     
@@ -137,8 +138,22 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
             d['name']=cand.text.strip()
         ret.append(d)  
 
-
-    
+    tret=ret
+    ret=[]
+    accum=[]
+    allow_head=True
+    for idx,x in list(enumerate(tret)):
+        if not allow_head:
+            x['name']=''
+        else:
+            if x['name'].strip()!="":
+                allow_head=False
+                
+        if not "".join(x['Lateral limits']).strip().endswith('-'):
+            allow_head=True
+        
+        
+        
     out=[]
     for d in ret:
         pa=dict()
@@ -257,7 +272,12 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
         for p in pa['points']:
             assert p.count(",")==1 
         pa['type']=kind
-        atc=d[thirdcol]
+        for thirdcol in thirdcols:
+            if thirdcol in d:
+                atc=d[thirdcol]
+                break
+        else:
+            raise Exception("missing thirdcol")
         #print "ATc: <%s>"%(repr(atc),)
         freqs=[(y,float(x)) for x,y in re.findall(r"(\d{3}\.\d{3})\s*MHz\n(.*)","\n".join(atc))]
         if not freqs:
@@ -320,7 +340,7 @@ def parse_all_tma():
         raw=re.sub(r"""<text top="(\d+)" left="(\d+)" width="(\d+)" height="(\d+)" font="(\d+)">\s*Part of GÖTEBORG TMA  584558N 0122951E - 584358N 0130950E - </text>""",replacer,raw)
         assert did_replace[0]==1
         return raw
-    p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_2_1_en.pdf",fixgote)
+    p=parse.Parser("/AIP/ENR/ENR 2/ES_ENR_2_1_en.pdf")
 	
     res=[]    
     found=False
