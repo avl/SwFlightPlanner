@@ -8,8 +8,9 @@ that package names could differ if using another distribution.
 First, install the following dependencies:
 
 sudo apt-get install python-cairo python-mapnik2 python-numpy poppler-utils \
-pylons proj postgresql python-xml python-dev python-psycopg2 pyro authbind swig \
-proj-bin scons swig libopenjpeg python-mechanize libboost-dev python-demjson libjasper-dev libpng-dev libgrib-api-dev python-pyproj
+python-pylons postgresql python-dev python-psycopg2 pyro authbind swig \
+proj-bin scons swig libopenjpeg2 python-mechanize libboost-dev python-demjson libjasper-dev libpng-dev libgrib-api-dev python-pyproj python-sqlalchemy
+
 
 
 You also need the "python-grib" package. As root, do:

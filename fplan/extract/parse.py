@@ -228,7 +228,10 @@ class Parser(object):
         raw=fetchdata.getxml(path,country=country)
         
         if loadhook:
+            print "Running loadhook"
+            bef=raw
             raw=loadhook(raw)
+            print "Bef==raw:",bef==raw
         url=fetchdata.getrawurl(path,country)
         xml=ElementTree.fromstring(raw)        
         

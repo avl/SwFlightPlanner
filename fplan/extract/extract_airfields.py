@@ -188,12 +188,14 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
 
     #sys.exit(1)
 
-
+    def fixhex11(s):
+        return s.replace(chr(0x11),' ')
+        
     for ad in ads:
         icao=ad['icao']
         if icao in big_ad:
             #print "Parsing ",icao
-            p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao))
+            p=Parser("/AIP/AD/AD 2/%s/ES_AD_2_%s_en.pdf"%(icao,icao),loadhook=fixhex11)
             ad['aiptexturl']=p.get_url()
             firstpage=p.parse_page_to_items(0)
             te="\n".join(firstpage.get_all_lines())                        
