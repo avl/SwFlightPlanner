@@ -10,7 +10,7 @@ import fplan.extract.fetchdata as fetchdata
 from copy import copy
 import sys
 
-timeout=300
+timeout=150
 host=socket.gethostname()
 dev_computer=os.getenv('SWFP_DEVCOMP')
 
@@ -40,9 +40,9 @@ def getpage(what,area):
     parser.feed(data)
     tree=parser.close()
     out=[]
-    for cand in tree.xpath(".//tr"):
+    for cand in tree.xpath(".//div"):
         elems=[]
-        for elem in cand.xpath(".//td"):
+        for elem in cand.xpath(".//span"):
             if elem.text and elem.text.strip():
                 elems.append(elem.text.strip())
         if len(elems)<2: continue
@@ -56,6 +56,7 @@ def getpage(what,area):
             out.append(Taf(icao,last_sync,metar))
         else:
             out.append(Metar(icao,last_sync,metar))
+    #print "Parsed out:",out
     return out
 
 def get_and_store(what,area,icao):
@@ -127,9 +128,9 @@ def get_some(what,icao):
     klass=getklass(what)
     #items=meta.Session.query(Metar).filter(Metar.icao==icao).all()
     items=meta.Session.query(klass).filter(klass.icao==icao).all()
-    #if len(items):
-    #    #print "Item age:",items[0].last_sync
-    #print "Querying",icao,what
+    if len(items):
+        print "Item age:",items[0].last_sync
+        print "Querying",icao,what
     if len(items)==0 or too_old(items[0]):
         area=get_area(icao)
         key=(area,what)
@@ -138,35 +139,35 @@ def get_some(what,icao):
             age=now-last_parse[key]
             if age<timedelta(0,timeout/2):                
                 if len(items)==0:
-                    #print "Not reparsing, already done it recently, inserting dummy"
+                    print "Not reparsing, already done it recently, inserting dummy"
                     obj=klass(icao,datetime.utcnow(),"")
                     meta.Session.add(obj)                
                     meta.Session.flush()
                     meta.Session.commit()
                 else:
-                    #not reparsing, returning too-old item instead
+                    print "not reparsing, returning too-old item instead"
                     obj=items[0]            
                 return obj
         last_parse[key]=now
-        #print "Reparsing"
+        print "Reparsing"
         item=get_and_store(what,area,icao)
         if item!=None:
             #print "Found in new dump"
             return item
-        #Store a dummy, so we don't re-parse on next click/fetch
+        print "Store a dummy, so we don't re-parse on next click/fetch"
         if len(items)==0:
-            #print "Not existing, inserting dummy"
+            print "Not existing, inserting dummy"
             obj=klass(icao,datetime.utcnow(),"")            
         else:
             obj=items[0]
             obj.text=""
-            #print "Obj exists, storing dummy"
+            print "Obj exists, storing dummy"
             obj.last_sync=datetime.utcnow()
         meta.Session.add(obj)                
         meta.Session.flush()
         meta.Session.commit()
         return obj
-    #print "Obj exists, using it"
+    print "Obj exists, using it"
     return items[0]
 def get_metar(icao):
     try:
@@ -182,37 +183,13 @@ def get_taf(icao):
 
 
 def geturl(what,area):
-    if area=='Sweden':    
-        if what=='TAF':
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=177&type=MET"
-        if what=='METAR': 
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=175&type=MET"
-    if area=='Denmark':    
-        if what=='TAF':
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=196&type=MET"
-        if what=='METAR': 
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=194&type=MET"
-    if area=='Norway':    
-        if what=='TAF':
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=182&type=MET"
-        if what=='METAR': 
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=174&type=MET"
-    if area=='Finland':    
-        if what=='TAF':
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=183&type=MET"
-        if what=='METAR': 
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=176&type=MET"
-    if area=='Iceland':    
-        if what=='TAF':
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=197&type=MET"
-        if what=='METAR': 
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=195&type=MET"
-    if area=='Baltic':    
-        if what=='TAF':
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=199&type=MET"
-        if what=='METAR': 
-            return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=179&type=MET"
-
+    print "geturl",what,area
+    #if area=='Sweden':    
+    if what=='TAF':
+        return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=304&type=MET"
+    if what=='METAR': 
+        return "https://www.aro.lfv.se/Links/Link/ViewLink?TorLinkId=300&type=MET"
+    print "Geturl uhandled:",what,area
 
         
     raise

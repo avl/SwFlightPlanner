@@ -701,7 +701,8 @@ class ApiController(BaseController):
         version=int(request.params['version'])
         
         chartname=request.params["chart"]
-        
+        print "getadchart called with",chartname,version
+
         cksum=request.params.get("cksum")
         if cksum==None:
             cksum,proj=self.get_sel_cksum(chartname)
@@ -759,10 +760,12 @@ class ApiController(BaseController):
         for level in xrange(5):            
             chart,cksum=parse_landing_chart.get_chart(blobname=chartname,cksum=cksum,level=level)
             writeUTF(cksum)
+            print "Chart:",cksum,"Writing level",level,"size:",len(chart)
             writeInt(len(chart))
             response.write(chart)
             writeInt(0xaabbccdf)
         writeInt(0xf111)
+        print "finished writing chart"
         return 
         
     def getmap(self):
