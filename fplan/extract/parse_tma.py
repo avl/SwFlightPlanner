@@ -69,8 +69,8 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
         item.text=item.text.strip()
         if item.text=="": continue
         if item.text=="Name": continue
-        if item.y1<25 and item.text in ["Lateral limits","Vertical limits"]+thirdcols:
-               headings.append(item)  
+        if item.y1<25 and item.text in (["Lateral limits","Vertical limits"]+thirdcols):
+            headings.append(item)  
     
     headings.sort(key=lambda x:x.x1)    
     #print "found candidates:",zone_candidates    
@@ -85,11 +85,38 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
         if item.text.strip().startswith("The LFV Group"): continue
         if re.match(ur"\s*LFV\s*AIRAC\s*AMDT\s*\d+/\d+\s*",item.text): continue
         if item.text.strip()=="LFV": continue
+        if item.text.count('Terminal Information Areas'): continue
         if item.text.strip().startswith("AIRAC"): continue        
         if kind=="R" and not is_r_or_danger_area_name(item.text.strip()):
             continue
         if item.y1>avg_heading_y+1 and item.x1<12 and not item.text in ["Name",'None',"LFV"]:
-            zone_candidates.append(item)
+            if item.text.count("Established") or item.text.count(u'TROLLHÄTTAN TWR') or item.text.count(u'and/or SÅTENÄS') or item.text.count(u'TWR/TMC') or item.text.strip().endswith("TWR") or item.text.strip().endswith("TWR."):
+                continue
+            if item.text.count("operational hours") or item.text.count("See AIP DENMARK"):
+                continue
+            if item.text.count("hours of"):
+                continue
+            if item.text.count("Upper limit"):
+                continue
+            if item.text.count("that part") or item.text.count("coincides"):
+                continue
+            if item.text.count(u'Danger area EK D395 and') or item.text.count(u'D396 are situated within') or item.text.strip()=="TMA":
+                continue
+            if item.text.count(u'ÖSTGÖTA TMC is closed') or item.text.count(u'and SKAVSTA TWR is') or item.text.strip()=='open.':
+                continue
+            if item.text.count("SAT 0530"): 
+                continue
+            if item.text.strip()=='OPS': 
+                continue
+            if item.text.strip()==u'ÖSTGÖTA TMC:': 
+                continue
+            if item.text.count(u'is open') or item.text.count('is closed'):
+                continue
+            if item.text.count('MON-FRI') or item.text.count('2150'): 
+                continue
+            lines2=page.get_lines(page.get_partially_in_rect(12,item.y1+0.2,40,item.y2-0.2))
+            if len(lines2):
+                zone_candidates.append(item)
     
     uprint("Found cands:",zone_candidates)
     zone_candidates.sort(key=lambda x:x.y1)
@@ -138,25 +165,39 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
             d['name']=cand.text.strip()
         ret.append(d)  
 
-    tret=ret
-    ret=[]
-    accum=[]
-    allow_head=True
-    for idx,x in list(enumerate(tret)):
-        if not allow_head:
-            x['name']=''
+
+    allow_head=2
+    print "Doing fixups--------------------------------------------------"
+    tret=[]
+    for x in ret:
+        #print "Fixing up",x,"allow:",allow_head
+        area="".join(x['Lateral limits']).strip()
+        if allow_head==2 and area!="" and x['name'].strip()!="":
+            allow_head=1
+            
+        if allow_head!=1:
+            if len(tret):
+                tret[-1]['Lateral limits']+=x['Lateral limits']
+                tret[-1]['Vertical limits']+=x['Vertical limits']
         else:
-            if x['name'].strip()!="":
-                allow_head=False
+            tret.append(x)
+        
+        if allow_head==1:
+            allow_head=0
                 
-        if not "".join(x['Lateral limits']).strip().endswith('-'):
-            allow_head=True
-        
-        
-        
+        if not area.endswith('-') and area!="":
+            allow_head=2
+            
+        #print "   Fixed up up",x
+    ret=tret
+    for line in ret:
+        print "Fixed:",line['name']," = ",line['Lateral limits'],line['Vertical limits']
     out=[]
     for d in ret:
         pa=dict()
+        curname=d['name']
+        if curname.count(u'Förteckning över'): continue
+        print "D:",d
         arealines=[l for l in d['Lateral limits'] if l.strip()!=""]
         last_coord_idx=None
         #uprint("D:<%s> (area:%s)"%(d,arealines))
@@ -185,7 +226,7 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
                 if sectorname==last_sector['majorsector']:
                     d['name']=last_sector['major']+sub
                     #uprint("Fixed up name: ",d['name'])
-        
+        #print "Arealines:",arealines
         assert len(arealines)
         if arealines[0].strip()=="Danger area EK D395 and D396 are":
             arealines=arealines[1:]
@@ -208,12 +249,12 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
                 break
         if last_coord_idx==None:
             last_coord_idx=len(arealines)
-        uprint("ARealines:",arealines)
-        uprint("Last coord:",arealines[last_coord_idx-1])
+        #uprint("ARealines:",arealines)
+        #uprint("Last coord:",arealines[last_coord_idx-1])
         if len(arealines)>last_coord_idx:
             if arealines[last_coord_idx-1:last_coord_idx+1]==[u'571324N 0161129E -', u'Established during operational hours of']:
                 arealines[last_coord_idx-1]=arealines[last_coord_idx-1].strip("-")
-        uprint("Last fixed:",arealines[last_coord_idx-1])
+        #uprint("Last fixed:",arealines[last_coord_idx-1])
         assert not arealines[last_coord_idx-1].strip().endswith("-")
         #for idx in xrange(last_coord_idx-1):
         #    print "arealine: <%s>"%(arealines[idx].strip(),)
@@ -241,6 +282,10 @@ def parse_page(parser,pagenr,kind="TMA",last_sector=dict()):
             if unl:
                 heights.append(unl.strip())
         uprint("heights for ",d['name'],":",repr(heights))
+        if len(heights)==0 and d['name']==u'GÖTEBORG TMA':
+            heights=['GND','FL95']
+        if len(heights)==1 and d['name']==u'Göteborg TMA':
+            heights=['4500','FL95']
         assert len(heights)==2
         ceiling=heights[0].strip()
         floor=heights[1].strip()
