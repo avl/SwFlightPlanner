@@ -189,7 +189,18 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
     #sys.exit(1)
 
     def fixhex11(s):
-        return s.replace(chr(0x11),' ')
+        out=[]
+        for c in s:
+            i=ord(c)
+            if i>=0x20:
+                out.append(c)
+                continue
+            if i in [0x9,0xa,0xd]:
+                out.append(c)
+                continue
+            out.append(' ')
+            
+        return "".join(out)
         
     for ad in ads:
         icao=ad['icao']
@@ -428,16 +439,13 @@ def extract_airfields(filtericao=lambda x:True,purge=True):
     for ad in ads:        
         icao=ad['icao']
         if icao in big_ad:          
-            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_1_en.pdf"%(icao,icao),
+            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2-1_en.pdf"%(icao,icao),
                             icao,ad['pos'],"se",variant="")
-            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao),
+            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_6-1_en.pdf"%(icao,icao),
                             icao,ad['pos'],"se",variant="vac")
-            if icao!='ESSA':
-                parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_3_en.pdf"%(icao,icao),
-                                icao,ad['pos'],"se",variant="parking")
-            else:
-                parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2_7_en.pdf"%(icao,icao),                                             
-                                icao,ad['pos'],"se",variant="parking")
+
+            parse_landing_chart.help_plc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_2-3_en.pdf"%(icao,icao),
+                            icao,ad['pos'],"se",variant="parking")
             
             
             #aip_text_documents.help_parse_doc(ad,"/AIP/AD/AD 2/%s/ES_AD_2_%s_6_1_en.pdf"%(icao,icao),
