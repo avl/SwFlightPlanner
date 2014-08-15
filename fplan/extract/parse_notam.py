@@ -63,10 +63,13 @@ def parse_notam(html):
     
     def fixer(x):
         #print "Match: <%s>"%(x.group(),)
+        print "FIXUP!"
         return u""
     if 1:
         almostraw=re.sub(
-        ur" *\n. *CONTINUES ON NEXT PAGE *\n. *\n *AIS *[^\n]* *INFORMATION *ISSUED *[\d ]*[^\n]*\d+ *PAGE *\d+\(\d+\) *\n *\n",
+        #ur" *\n.? *CONTINUES ON NEXT PAGE\s*\n.? *\n(?: *AIS *[^\n]* *INFORMATION)? *ISSUED:{0:25}[\d ]*[^\n]*\d+ *PAGE: *\d+\(\d+\) *\n? *\n",
+        ur".{0,3}\s*CONTINUES ON NEXT PAGE\s*\n[\s\n]*ISSUED.{0,40}\d+:\d+.{0,7}\s*PAGE:\s*\d+\(\d+\)\s*\n",
+        #".{0,3}\s*CONTINUES ON NEXT PAGE\s*\n[\s\n]*ISSUED",
         lambda x: fixer(x),
         almostraw)        
     #print almostraw
