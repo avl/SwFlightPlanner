@@ -8,6 +8,7 @@ from fplan.extract.fi_parse_sigpoints import fi_parse_sigpoints
 from fplan.extract.extract_airfields import extract_airfields
 from fplan.extract.fi_extract_airfields import fi_parse_airfields
 from fplan.extract.fi_extract_small_airfields import fi_parse_small_airfields
+import fplan.extract.new_finland as new_finland
 from fplan.extract.parse_sig_points import parse_sig_points
 from fplan.extract.fetchdata import get_filedate,is_devcomp
 from fplan.extract.extract_segelsektorer import extract_segel
@@ -289,15 +290,19 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     #    return dict(airspaces=denmark['airspace'],
                     #                airfields=denmark['airfields'])
                 
-                def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
-                def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
+                #def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
+                #def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
                 def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())                
                 def fi_parse_parse_airfields(self):
                     "Finnish major airfields"
                     fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
                     return dict(airfields=fi_airfields,airspaces=fi_spaces) 
-                def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
-                def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
+                #def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
+                #def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
+                def fi_parse_new(self):
+                    "Finnish data"
+                    spaces,points=new_finland.load_finland()
+                    return dict(airspaces=spaces,sig_points=points) 
 
                 
                 def se_parse_airfields(self):
