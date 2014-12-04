@@ -84,7 +84,7 @@ def parse_areas(areas,atype):
         if coords.count("RADIUS"):
             coords=fix_circle(coords)
         #print "name:",name,"coords:",coords
-        yield dict(name=name,type=atype,floor=floor,freqs=[],ceiling=ceiling,points=mapper.parse_coord_str(coords))
+        yield dict(name=unicode(name,'utf8'),type=atype,floor=floor,freqs=[],ceiling=ceiling,points=mapper.parse_coord_str(coords))
 
 import fetchdata
             
@@ -103,7 +103,7 @@ def load_finland():
                     continue
                 #print repr(row)
                 lat,lon,name=re.match(r"(\d+N) (\d+E)\s*(\w+)",row).groups()
-                points.append( dict(name=name,kind="sig. point",pos=mapper.parse_coords(lat,lon)) )
+                points.append( dict(name=unicode(name,'utf8'),kind="sig. point",pos=mapper.parse_coords(lat,lon)) )
                 
         else:   
             t="TMA"
