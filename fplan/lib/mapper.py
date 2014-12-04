@@ -719,7 +719,7 @@ def parse_area_segment(seg,prev,next,context=None,fir_context=None):
     #print "Result:",circ
     if circ:
         radius,lat,lon=circ.groups()
-        print "PRev:",prev,"Next:",next
+        #print "PRev:",prev,"Next:",next
         assert prev==None        
         #uprint("Parsed circle:%s : %s"%(circ,circ.groups()))
         radius=radius.replace(",",".")

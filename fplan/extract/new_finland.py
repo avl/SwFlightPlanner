@@ -4,8 +4,8 @@ import zipfile
 import fplan.lib.mapper as mapper
 
 def getzip():
-    if os.system(r"wget https://www.dropbox.com/sh/m8e1n2d5r6pr7r0/AABfsC8ROhEM5a8KsNI_XLlxa/TXT?dl=1 -O finland.zip"):
-        raise Exception("Couldn't download finnish airspace data")
+    raw,nowdate,cachename=fetchdata.getdata('https://www.dropbox.com/sh/m8e1n2d5r6pr7r0/AABfsC8ROhEM5a8KsNI_XLlxa/TXT?dl=1','raw',return_path=True)
+    return cachename
     
     
 def splitareas(rows):
@@ -64,6 +64,7 @@ def fix_circle(coord):
 def parse_areas(areas,atype):
     areas=splitareas(areas.split("\n"))
     points=[]
+
     for area in areas:
         name=area[0].strip()
         assert len(name)
@@ -71,12 +72,13 @@ def parse_areas(areas,atype):
             ceiling=parse_alt(area[-2])
             floor=parse_alt(area[-1])
             areapart=area[1:-2]
-        elif is_alt(area[-1]):            
-            floor,ceiling=parse_alts(area[-1])
-            areapart=area[1:-1]
         else:
-            floor,ceiling="UNK","UNK"
-            areapart=area[1:]
+            try:
+                floor,ceiling=parse_alts(area[-1])
+                areapart=area[1:-1]
+            except:
+                floor,ceiling="UNK","UNK"
+                areapart=area[1:]
         
         coords="-".join([r.replace(" ","").strip() for r in areapart if not r.startswith("*")])
         if coords.count("RADIUS"):
@@ -84,10 +86,12 @@ def parse_areas(areas,atype):
         #print "name:",name,"coords:",coords
         yield dict(name=name,type=atype,floor=floor,freqs=[],ceiling=ceiling,points=mapper.parse_coord_str(coords))
 
+import fetchdata
             
 def load_finland():   
-    getzip()
-    zf=zipfile.ZipFile("finland.zip")
+
+    zipname=getzip()
+    zf=zipfile.ZipFile(zipname)
     areas=[]
     points=[]
     for fname in zf.namelist():
@@ -106,8 +110,10 @@ def load_finland():
             if fname.count("D_Areas") or fname.count("TRA") or fname.count("R_Areas"):
                 t="R"
             if fname.count("CTR"):
-                t="CTR"
+                t="CTR" 
 
+            if fname.lower().count('finland_fir'):
+                t="FIR"
             areas.extend(list(parse_areas(txt,t)))
      
     for area in points:
