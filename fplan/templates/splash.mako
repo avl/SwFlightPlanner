@@ -94,14 +94,15 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
-<b><big style="background-color:#ff0000;color:#ffffff">Updated 2014-11-25: </b>WARNING! Finnish data is older than the program claims. This is due to a software bug. Baltic data is also likely older than claimed by the program.</big><br />
+<b>Updated 2014-12-04</b> ANNOUNCEMENT: Data, in this app, for baltic states is not being actively maintained, and will be removed completely in the future.</br />
+<b>Updated 2014-12-04: </b>Finnish data has now been updated from a different source. Many thanks to the user who provided this source!<br />
+<b>Updated 2014-11-25: </b> Finnish was much older than the program claimed. This was due to a software bug. Baltic data is also likely older than claimed by the program.<br />
 <b>Updated 2014-04-25: </b>New feature - import GPX as flight plan. Select "import track", then check "Add as flight plan".<br />
 <b>Updated 2013-10-27: </b>SwFlightplanner now contains swedish soaring sectors. For sectors with undefined ceilings, the value UNL is used.<br />
 <b>Updated 2013-03-16: </b><a href="www.flygfyren.nu">Flygfyren.nu</a> has agreed to host the support forum for swflightplanner! Posts have been migrated, and links updated. Thank you Flygfyren!<br />
 <b>Updated 2012-11-20: </b>Norwegian obstacle information now added.<br />
 <b>Updated 2012-09-09: </b>SwFlightplanner now has norwegian airspace! A big thank-you goes out to user Albin for putting in hard work to provide this and the Danish airspace data!<br />
 <b>Updated 2012-06-11: </b>SwFlightplanner now uses american GFS forecasts, meaning that wind information is now available around the clock, and in all countries (at least northern hemisphere).<br />
-<b>Updated 2012-05-10: </b>A larger map. The map now includes all of Europe and a bit more. <b>Airspace data is still only for Sweden and some of its neighbors!</b><br />
 <b>Updated 2010-08-25: </b>Airport data graciously provided by <a href="http://www.flygkartan.se/">www.flygkartan.se</a> -
 the place to find and review airports in Sweden.<br />
 <br />
