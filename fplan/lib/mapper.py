@@ -818,6 +818,8 @@ def parse_coord_str(s,filter_repeats=False,context=None,fir_context=None):
             out2.append(o)
     else:
         out2=out
+    if len(set(out2))<3:
+        raise Exception("Not enough unique vertices, must be at least 3: %s"%(s,))
     return out2
     
 class NotAnAltitude(Exception):pass

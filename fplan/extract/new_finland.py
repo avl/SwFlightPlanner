@@ -86,7 +86,7 @@ def parse_areas(areas,atype):
 
             
 def load_finland():   
-    #getzip()
+    getzip()
     zf=zipfile.ZipFile("finland.zip")
     areas=[]
     points=[]

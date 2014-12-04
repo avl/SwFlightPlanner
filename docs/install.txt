@@ -77,7 +77,11 @@ SWFP_ROOT = The directory where SwFlightplanner was checked out.
 
 Then create the database:
 sudo ./resetdb.sh
+paster setup-app development.ini
+
 WARNING! this removes the database if already present! You can ignore any error saying that database "flightplanner" does not exist.
+
+
 
 Building the C++-component
 A very small part of the application, namely the part that merges the 64x64

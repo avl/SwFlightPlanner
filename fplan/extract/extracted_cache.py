@@ -138,9 +138,11 @@ def gen_bsptree_lookup(data):
                     bb.y1=min(bb.y1,y)
                     bb.y2=max(bb.y2,y)
                     poly_coords.append(Vertex(int(x),int(y)))
-                if len(poly_coords)<3:
+                if len(set(poly_coords))<3:
                     continue
+                print "Poly"
                 poly=Polygon(vvector(poly_coords))
+                print "polydone"
                 #print "Item:",space
                 bbitems.append(
                     BBTree.TItem(bb,(poly,space)))
@@ -240,91 +242,100 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            class SpaceLoader(object):
-                
-                def parse_trusted_userdata(self):
-                    "Data added by users, only trusted users"
-                    return userdata.get_trusted_data()
-                
-                def parse_osm_airfields(self): 
-                    return dict(bad_airfields=osm_airfields.osm_airfields_parse())
-                def parse_latvian_tma(self):
-                    "latvian tma"
-                    return dict(airspaces=ev_parse_tma())                
-                def parse_latvian_r(self):
-                    "latvian r"
-                    return dict(airspaces=ev_parse_r())
-                def parse_latvian_obst(self):
-                    "latvian obst"
-                    return dict(obstacles=ev_parse_obst())
-                def parse_latvian_sigpoints(self):
-                    "latvian sig points"
-                    return dict(sig_points=ev_parse_sigpoints())
-                def parse_latvian_airfields(self):
-                    "latvian ad"
-                    evads,evspaces=ev_parse_airfields()
-                    return dict(airspaces=evspaces,airfields=evads)
-                def parse_estonian_airfields(self):
-                    "Estonian Airfields"
-                    ads,spaces=ee_parse_airfields2()
-                    return dict(airspaces=spaces,airfields=ads)
-                def parse_estonian_sigpoints(self):
-                    "Estonian sig points"
-                    return dict(sig_points=ee_parse_sigpoints2())
-                def parse_estonian_tma(self):
-                    "Estonian TMA"
-                    return dict(airspaces=ee_parse_tma2())
-                def parse_estonian_r_and_tsa(self):
-                    "Estonian R and TSA"
-                    return dict(airspaces=ee_parse_r_and_tsa2())
-                def parse_norwegian_obstacles(self):
-                    "Norwegian obstacles"
-                    return dict(obstacles=no_obstacles())
-                
-                
-                #def parse_denmark(self):
-                #    "denmark"
-                #    raise Exception("CUrrently disabled")
-                    #if not is_devcomp() or a: #denmark
-                    #    denmark=parse_denmark()
-                    #    return dict(airspaces=denmark['airspace'],
-                    #                airfields=denmark['airfields'])
-                
-                #def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
-                #def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
-                def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())                
-                def fi_parse_parse_airfields(self):
-                    "Finnish major airfields"
-                    fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
-                    return dict(airfields=fi_airfields,airspaces=fi_spaces) 
-                #def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
-                #def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
-                def fi_parse_new(self):
-                    "Finnish data"
-                    spaces,points=new_finland.load_finland()
-                    return dict(airspaces=spaces,sig_points=points) 
+            if not is_devcomp():
+                class SpaceLoader(object):
+                    
+                    def parse_trusted_userdata(self):
+                        "Data added by users, only trusted users"
+                        return userdata.get_trusted_data()
+                    
+                    def parse_osm_airfields(self): 
+                        return dict(bad_airfields=osm_airfields.osm_airfields_parse())
+                    def parse_latvian_tma(self):
+                        "latvian tma"
+                        return dict(airspaces=ev_parse_tma())                
+                    def parse_latvian_r(self):
+                        "latvian r"
+                        return dict(airspaces=ev_parse_r())
+                    def parse_latvian_obst(self):
+                        "latvian obst"
+                        return dict(obstacles=ev_parse_obst())
+                    def parse_latvian_sigpoints(self):
+                        "latvian sig points"
+                        return dict(sig_points=ev_parse_sigpoints())
+                    def parse_latvian_airfields(self):
+                        "latvian ad"
+                        evads,evspaces=ev_parse_airfields()
+                        return dict(airspaces=evspaces,airfields=evads)
+                    def parse_estonian_airfields(self):
+                        "Estonian Airfields"
+                        ads,spaces=ee_parse_airfields2()
+                        return dict(airspaces=spaces,airfields=ads)
+                    def parse_estonian_sigpoints(self):
+                        "Estonian sig points"
+                        return dict(sig_points=ee_parse_sigpoints2())
+                    def parse_estonian_tma(self):
+                        "Estonian TMA"
+                        return dict(airspaces=ee_parse_tma2())
+                    def parse_estonian_r_and_tsa(self):
+                        "Estonian R and TSA"
+                        return dict(airspaces=ee_parse_r_and_tsa2())
+                    def parse_norwegian_obstacles(self):
+                        "Norwegian obstacles"
+                        return dict(obstacles=no_obstacles())
+                    
+                    
+                    #def parse_denmark(self):
+                    #    "denmark"
+                    #    raise Exception("CUrrently disabled")
+                        #if not is_devcomp() or a: #denmark
+                        #    denmark=parse_denmark()
+                        #    return dict(airspaces=denmark['airspace'],
+                        #                airfields=denmark['airfields'])
+                    
+                    #def fi_parse_tma(self):"Finnish TMA";return dict(airspaces=fi_parse_tma())
+                    #def fi_parse_sigpoints(self): "Finnish significant points";return dict(sig_points=fi_parse_sigpoints())
+                    def fi_parse_obstacles(self): "Finnish obstacles";return dict(obstacles=fi_parse_obstacles())                
+                    def fi_parse_parse_airfields(self):
+                        "Finnish major airfields"
+                        fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
+                        return dict(airfields=fi_airfields,airspaces=fi_spaces) 
+                    #def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
+                    #def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
+                    def fi_parse_new(self):
+                        "Finnish data"
+                        spaces,points=new_finland.load_finland()
+                        return dict(airspaces=spaces,sig_points=points) 
 
-                
-                def se_parse_airfields(self):
-                    "Swedish Major airports"
-                    se_airfields,se_points=extract_airfields()
-                    return dict(airfields=se_airfields,sig_points=se_points)
-                
-                
-                def se_parse_sigpoints(self):"Swedish significant points";return dict(sig_points=parse_sig_points())
-                
-                def se_parse_tma(self):
-                    "Swedish TMA"
-                    return dict(airspaces=parse_all_tma())
-                
-                def se_parse_r(self):"Swedish R/D-areas";return dict(airspaces=parse_r_areas())
-                def se_parse_mountain(self):"Swedish mountain area";return dict(airspaces=parse_mountain_area())
-                def se_parse_obstacles(self):"Swedish obstacles";return dict(obstacles=parse_obstacles())
-                
-                def se_parse_segel(self):
-                    "Swedish Segelsektorer"
-                    return dict(airspaces=extract_segel())
-               
+                    
+                    def se_parse_airfields(self):
+                        "Swedish Major airports"
+                        se_airfields,se_points=extract_airfields()
+                        return dict(airfields=se_airfields,sig_points=se_points)
+                    
+                    
+                    def se_parse_sigpoints(self):"Swedish significant points";return dict(sig_points=parse_sig_points())
+                    
+                    def se_parse_tma(self):
+                        "Swedish TMA"
+                        return dict(airspaces=parse_all_tma())
+                    
+                    def se_parse_r(self):"Swedish R/D-areas";return dict(airspaces=parse_r_areas())
+                    def se_parse_mountain(self):"Swedish mountain area";return dict(airspaces=parse_mountain_area())
+                    def se_parse_obstacles(self):"Swedish obstacles";return dict(obstacles=parse_obstacles())
+                    
+                    def se_parse_segel(self):
+                        "Swedish Segelsektorer"
+                        return dict(airspaces=extract_segel())
+            else:
+                class SpaceLoader(object):
+                    def fi_parse_new(self):
+                        "Finnish data"
+                        spaces,points=new_finland.load_finland()
+                        return dict(airspaces=spaces,sig_points=points) 
+
+                    
+                               
             
             def run_space_loader(loader):
                 if not os.path.exists("data/aipdata"):
@@ -439,7 +450,9 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
             
             airfields.extend(filter_bad_airfields(bad_airfields,airfields))
             
+            print "Parse SUP:"
             sup_areas,sup_hours=parse_all_sups()
+            print "PArsed SUP"
                 
             firs=[space for space in airspaces if space['type']=='FIR']
             regular_airspaces=[space for space in airspaces if space['type']!='FIR']
@@ -454,6 +467,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 se_aip_sup_hours=sup_hours,
                 version=version
                 )
+            print "Making bsplookup"
             aipdatalookup=gen_bsptree_lookup(aipdata)
             pickle.dump(aipdata,open(cachefile,"w"),-1)        
             loaded_aipdata_cachefiledate=get_filedate(cachefile);

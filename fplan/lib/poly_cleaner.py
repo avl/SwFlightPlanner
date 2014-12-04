@@ -4,6 +4,7 @@ from itertools import izip,chain
 import math
 
 def clean_up_polygon(poss):
+    print "Clean poly:",poss
     def tov(merc):
         return Vertex(int(merc[0]),int(merc[1]))
     def fromv(v):
