@@ -96,8 +96,6 @@ word swflightplanner did not give any hits on google. Sw stands for Sweden. I am
 The airspace data (which only covers Sweden and Finland in detail) and NOTAMs (which only cover Sweden) are from LFV/AIP and Finavia/AIP. TAF/METAR are from LFV. Estonian and Latvian data is from Estonian and Latvian AIP. The Danish data has been entered semi-automatically from Danish AIP. The basic map is from openstreetmap.org. The terrain elevation data is from NASA SRTM. Most of the weather data (GFS forecast) is from the American NOAA.
 Magnetic variation/declination data is from "The World Magnetic Model" by America's National Geophysical Data Center. A big thank you to the american government and people for sharing data with all of the world in such a generous fashion.<br/>
 
-The airspace data was last downloaded from LFV/Finavia at ${c.aipupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. <br/>
-The maps were last updated with this airspace data ${c.mapupdate.strftime("%Y-%m-%d %H:%M:%S")} UTC. 
 <br/>
 <br/>
 <h2>Contact information</h2>

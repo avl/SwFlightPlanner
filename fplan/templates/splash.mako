@@ -94,6 +94,7 @@ ${c.expl}
 <span style="font-size:150%">Check out the <u><a href="https://play.google.com/store/apps/details?id=se.flightplanner2&hl=en">SwFlightplanner Android-app!</a></u></span>
 <br/><br/>
 <b>News:</b><br/>
+<b><big style="background-color:#ff0000;color:#ffffff">Updated 2014-11-25: </b>WARNING! Finnish data is older than the program claims. This is due to a software bug. Baltic data is also likely older than claimed by the program.</big><br />
 <b>Updated 2014-04-25: </b>New feature - import GPX as flight plan. Select "import track", then check "Add as flight plan".<br />
 <b>Updated 2013-10-27: </b>SwFlightplanner now contains swedish soaring sectors. For sectors with undefined ceilings, the value UNL is used.<br />
 <b>Updated 2013-03-16: </b><a href="www.flygfyren.nu">Flygfyren.nu</a> has agreed to host the support forum for swflightplanner! Posts have been migrated, and links updated. Thank you Flygfyren!<br />
