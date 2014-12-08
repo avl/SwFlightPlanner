@@ -242,7 +242,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                 airspaces.extend(evspaces)
                 airfields.extend(evads)
                 
-            if not is_devcomp():
+            if True: #not is_devcomp():
                 class SpaceLoader(object):
                     
                     def parse_trusted_userdata(self):
@@ -299,7 +299,7 @@ def get_aipdata(cachefile="aipdata.cache",generate_if_missing=False):
                     def fi_parse_parse_airfields(self):
                         "Finnish major airfields"
                         fi_airfields,fi_spaces,fi_ad_points=fi_parse_airfields()
-                        return dict(airfields=fi_airfields,airspaces=fi_spaces) 
+                        return dict(airfields=fi_airfields,airspaces=[])
                     #def fi_parse_restrictions(self):"Finnish R-areas";return dict(airspaces=fi_parse_restrictions())
                     #def fi_parse_small_airfields(self):"Finnish small airfields";return dict(airfields=fi_parse_small_airfields())
                     def fi_parse_new(self):
